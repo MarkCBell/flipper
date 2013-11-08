@@ -1,0 +1,7 @@
+save
+load
+handle commands better
+
+dual simplex
+reorder decisions?
+train track splittings

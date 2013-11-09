@@ -547,7 +547,7 @@ class App:
 		self.curves['_'] = self.curves[name]
 	
 	def create_composition(self, twists):
-		mapping_class = Id_Encoding_Sequence(self.zeta)
+		mapping_class = Id_Encoding_Sequence(self.abstract_triangulation)
 		for twist in twists[::-1]:
 			if twist in self.curves:
 				mapping_class = self.abstract_triangulation.encode_twist(self.curves[twist]) * mapping_class
@@ -608,7 +608,7 @@ class App:
 		except AbortError:
 			pass
 		else:
-			if mapping_class.is_periodic(self.abstract_triangulation.key_curves(), self.abstract_triangulation.max_order):
+			if mapping_class.is_periodic():
 				tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
 			else:
 				tkMessageBox.showinfo('Periodic', '%s is not periodic.' % composition)
@@ -621,7 +621,7 @@ class App:
 		else:
 			try:
 				start_time = time()
-				result = mapping_class.is_reducible(self.abstract_triangulation.face_matrix(), self.abstract_triangulation.marking_matrices(), True, Progress_App(self), self.options)
+				result = mapping_class.is_reducible(certify=True, show_progress=Progress_App(self), options=self.options)
 				if self.options.profiling: print('Determined reducibility of %s in %0.1fs.' % (composition, time() - start_time))
 				if result[0]:
 					tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
@@ -637,9 +637,9 @@ class App:
 			pass
 		else:
 			try:
-				if mapping_class.is_periodic(self.abstract_triangulation.key_curves(), self.abstract_triangulation.max_order):
+				if mapping_class.is_periodic():
 					tkMessageBox.showinfo('pseudo Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-				elif mapping_class.is_reducible(self.abstract_triangulation.face_matrix(), self.abstract_triangulation.marking_matrices(), False, Progress_App(self), self.options):
+				elif mapping_class.is_reducible(certify=False, show_progress=Progress_App(self), options=self.options):
 					tkMessageBox.showinfo('pseudo Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 				else:
 					tkMessageBox.showinfo('pseudo Anosov', '%s is pseudo-Anosov.' % composition)
@@ -657,7 +657,7 @@ class App:
 			pass
 		else:
 			try:
-				return mapping_class.stable_lamintation(self.abstract_triangulation.key_curves()[0], exact)    # Get any old curve.
+				return mapping_class.stable_lamination(exact)    # Get any old curve.
 			except AbortError:
 				tkMessageBox.showinfo('Dilatation', 'Could not estimate the stable lamination of %s.' % composition)
 	
@@ -795,7 +795,8 @@ class App:
 		self.show_apply(self.list_curves.get(self.list_curves.nearest(event.y)).swapcase())
 	
 	def list_shift_click(self, event):
-		self.show_curve(self.list_curves.get(self.list_curves.nearest(event.y)))
+		if self.list_curves.size() > 0:
+			self.show_curve(self.list_curves.get(self.list_curves.nearest(event.y)))
 
 if __name__ == '__main__':
 	root = TK.Tk()

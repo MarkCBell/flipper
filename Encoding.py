@@ -1,16 +1,21 @@
 from __future__ import print_function
-from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative_image
-from Symbolic_Computation import compute_eigen
 from functools import reduce
 from itertools import product
+from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative_image
+from Error import AbortError
+from Symbolic_Computation import compute_eigen, characteristic_polynomial
 
-def Id_Encoding(zeta):
-	return Encoding([Id_Matrix(zeta)], [Empty_Matrix(zeta)])
+# These represent the piecewise-linear maps between the coordinates systems 
+# of various abstract triangulations.
+
+def Id_Encoding(triangulation):
+	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
 
 class Encoding:
-	def __init__(self, actions, conditions):
+	def __init__(self, actions, conditions, source_triangulation, target_triangulation):
+		assert(source_triangulation.zeta == target_triangulation.zeta)
 		assert(len(actions) > 0)
-		zeta = actions[0].width
+		zeta = source_triangulation.zeta
 		assert(len(actions) == len(conditions))
 		assert(all(len(M) == zeta for M in actions))
 		assert(all(len(row) == zeta for M in actions for row in M))
@@ -20,6 +25,8 @@ class Encoding:
 		self.size = len(actions)
 		self.action_matrices = actions
 		self.condition_matrices = conditions
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
 		self.zeta = zeta
 	def __str__(self):
 		return '\n'.join(str(self.action_matrices[i]) + '\n' + str(self.condition_matrices[i]) for i in range(self.size))
@@ -40,11 +47,11 @@ class Encoding:
 		return self * other
 	def __mul__(self, other):
 		if isinstance(other, Encoding_Sequence):
-			return Encoding_Sequence([self] + other.sequence, other.zeta)
+			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			X = [self.action_matrices[i] * other.action_matrices[j] for i in range(self.size) for j in range(other.size)]
 			Y = [other.condition_matrices[j].join(self.condition_matrices[i]*other.action_matrices[j]) for i in range(self.size) for j in range(other.size)]
-			return Encoding(X, Y)
+			return Encoding(X, Y, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, list):  # other is a vector.
 			for i in range(self.size):
 				if nonnegative_image(self.condition_matrices[i], other):
@@ -53,55 +60,61 @@ class Encoding:
 		else:
 			return NotImplemented
 	def __pow__(self, n):
+		assert(self.source_triangulation == self.target_triangulation)
 		if n == 0:
-			return Id_Encoding(self.zeta)
+			return Id_Encoding(self)
 		if n == 1:
 			return self
 		if n > 1:
-			return reduce(lambda x, y: x * y, [self] * n, Id_Encoding(self.zeta))
+			return reduce(lambda x, y: x * y, [self] * n, Id_Encoding(self))
 		if n == -1:
 			return self.inverse()
 		if n < -1:
 			inv = self.inverse()
-			return reduce(lambda x, y: x * y, [inv] * n, Id_Encoding(self.zeta))
+			return reduce(lambda x, y: x * y, [inv] * n, Id_Encoding(self))
 	def copy(self):
-		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices])
+		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices], self.source_triangulation, self.target_triangulation)
 	def inverse(self):
 		X = [self.action_matrices[i].inverse() for i in range(self.size)]  # This is the very slow bit.
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
-		return Encoding(X, Y)
+		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
 
-def Id_Encoding_Sequence(zeta):
-	return Encoding_Sequence([], zeta)
+def Id_Encoding_Sequence(triangulation):
+	return Encoding_Sequence([], triangulation, triangulation)
 
 class Encoding_Sequence:
-	def __init__(self, L, zeta):
+	def __init__(self, L, source_triangulation, target_triangulation):
 		# Should make sure L is a list of encodings all coming from the same source.
+		assert(source_triangulation.zeta == target_triangulation.zeta)
 		self.sequence = L
-		self.zeta = zeta
-		self.size = len(self.sequence)
+		self.zeta = source_triangulation.zeta
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
 		
-		self.expanded_size = reduce(lambda x,y: x*y, map(len, self.sequence), 1)
+		self.size = len(self.sequence)
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
 		assert(isinstance(other, (Encoding_Sequence, Encoding, list)))
 		if isinstance(other, Encoding_Sequence):
-			return Encoding_Sequence(self.sequence + other.sequence, self.zeta)
+			assert(self.source_triangulation == other.target_triangulation)
+			return Encoding_Sequence(self.sequence + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
-			return Encoding_Sequence(self.sequence + [other], self.zeta)
+			assert(self.source_triangulation == other.target_triangulation)
+			return Encoding_Sequence(self.sequence + [other], other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, list):
 			vector = list(other)
 			for A in reversed(self.sequence):
 				vector = A * vector
 			return vector
 	def __pow__(self, k):
+		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
-			return Id_Encoding_Sequence(self.zeta)
+			return Id_Encoding_Sequence(self.source_triangulation)
 		elif k > 0:
-			return Encoding_Sequence(self.sequence * k, self.zeta)
+			return Encoding_Sequence(self.sequence * k, self.source_triangulation, self.target_triangulation)
 		else:
-			return Encoding_Sequence([A.inverse() for A in reversed(self.sequence)] * abs(k), self.zeta)
+			return Encoding_Sequence([A.inverse() for A in reversed(self.sequence)] * abs(k), self.source_triangulation, self.target_triangulation)
 	def __len__(self):
 		return self.size
 	def __str__(self):
@@ -110,7 +123,7 @@ class Encoding_Sequence:
 		return iter(self.sequence)
 	def __getitem__(self, key):
 		if isinstance(key, slice):
-			return Encoding_Sequence(self.sequence[key], self.zeta)
+			return Encoding_Sequence(self.sequence[key], self.sequence[key.end].source_triangulation, self.sequence[key.start].target_triangulation)
 		elif isinstance(key, int):
 			return self.sequence[key]
 		else:
@@ -129,7 +142,7 @@ class Encoding_Sequence:
 			X[1] = X[0] * X[1]
 			X = X[1:]
 		
-		return Encoding_Sequence(X, self.zeta)
+		return Encoding_Sequence(X, self.source_triangulation, self.target_triangulation)
 	
 	def applied_matrix(self, vector):
 		''' Returns the matrix that will be applied to the vector and the condition matrix the vector must satisfy. '''
@@ -145,7 +158,7 @@ class Encoding_Sequence:
 		return self.expand_indices(indices)
 	
 	def inverse(self):
-		return Encoding_Sequence([A.inverse() for A in reversed(self)], self.zeta)
+		return Encoding_Sequence([A.inverse() for A in reversed(self)], self.target_triangulation, self.source_triangulation)
 	
 	def expand_indices(self, indices):
 		''' Given indices = [a_0, ..., a_k] this returns the action and condition matrix of
@@ -168,14 +181,18 @@ class Encoding_Sequence:
 			if Cs.nontrivial_polytope()[0]:
 				yield indices
 	
-	def is_periodic(self, key_curves, max_order):
+	def is_periodic(self):
+		assert(self.source_triangulation == self.target_triangulation)
+		key_curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
 		return any(all(self**i * v == v for v in key_curves) for i in range(1,max_order+1))
 	
-	def is_reducible(self, face_matrix, marking_matrices, certify=False, show_progress=None, options=None):
-		''' Let V be the subset of ZZ^zeta defined by face_matrix.v >= 0 and marking_matrix.v >= 0
-		for some marking_matrix in marking_matrices. This determines if the induced action of self on V has a
-		fixed point. If so returns (True, example) if not returns (False, None). '''
+	def is_reducible(self, certify=False, show_progress=None, options=None):
+		''' This determines if the induced action of self on V has a fixed point satisfying:
+		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices.
+		
+		If certify is True then this returns (True, example) is there is such fixed point and (False, None) otherwise. '''
 		# We now use Ben's branch and bound approach. It's much better.
+		assert(self.source_triangulation == self.target_triangulation)
 		
 		# We first create two little functions to increment the list of indices to the next point that 
 		# we are interested in. The first jumps from our current location to the next subtree, the second
@@ -183,10 +200,6 @@ class Encoding_Sequence:
 		
 		reciprocal_sizes = [float(1) / encoding.size for encoding in self]
 		reciprocal_sizes_mul = [reduce(lambda x,y: x*y, reciprocal_sizes[:i], reciprocal_sizes[0]) for i in range(len(reciprocal_sizes))]
-		
-		# !?! At some point we should cut all branches in advance.
-		# for i in range(self.size):
-			# print(len(list(self[i:i+5].yield_feasible_expansions())))
 		
 		def jump(indices):
 			indices = list(indices)
@@ -206,6 +219,8 @@ class Encoding_Sequence:
 		
 		def progress(indices):
 			return sum(index * scale for index, scale in zip(indices, reciprocal_sizes_mul))
+		
+		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
 		M6 = Id_Matrix(self.zeta)
@@ -249,6 +264,8 @@ class Encoding_Sequence:
 	
 	def is_reducible2(self, is_multicurve, certify=False):
 		''' This is insane. Never run this. In fact most of the time Python wont let you as you hit the CInt limit. '''
+		assert(self.source_triangulation == self.target_triangulation)
+		
 		K = (self.zeta ** self.zeta) * (3 ** (self.zeta * self.size))
 		print(K)
 		for vector in product(range(K), repeat=self.zeta):
@@ -259,13 +276,14 @@ class Encoding_Sequence:
 	def check_fixedpoint(self, certificate):
 		return self * certificate == certificate  # Should also test self.triangulation.is_multicurve(certificate)
 	
-	def stable_lamintation(self, curve, exact=False):
-		# Returns a curve that is quite (very) close to the stable lamination of mapping_class and an 
+	def stable_lamination(self, exact=False):
+		# Returns a curve that is quite (very) close to the stable lamination of this mapping class and an 
 		# (floating point) estimate of the dilatation. If one cannot be found this an AbortError is thrown. 
 		# If exact is set to True then this uses compute_eigen to return the exact stable lamination (as a list of
 		# algebraic numbers) along with the exact dilatation (again as an algebraic number).
 		
-		# TO DO: How to get an initial curve? Currently required an initial guess. !?!
+		assert(self.source_triangulation == self.target_triangulation)
+		curve = self.source_triangulation.key_curves()[0]
 		
 		def is_stable(curve, new_curve, error_reciprocal):
 			curve_sum, new_curve_sum = sum(curve), sum(new_curve)

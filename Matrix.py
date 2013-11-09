@@ -61,7 +61,7 @@ class Matrix:
 	def __getitem__(self, index):
 		return self.rows[index]
 	def __str__(self):
-		return '[\n' + '\n'.join(str(row) for row in self.rows) + '\n]'
+		return '[\n' + ',\n'.join(str(row) for row in self.rows) + '\n]'
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == len(other))

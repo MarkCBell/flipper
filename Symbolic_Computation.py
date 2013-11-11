@@ -19,16 +19,16 @@
 #	3) We actually provide interfaces to several different libraries such as sympy and sage.
 
 # Select a library interface here:
-# from Symbolic_Computation_dummy import simplify, compute_eigen, characteristic_polynomial  # Dummy
-from Symbolic_Computation_sympy import simplify, compute_eigen, characteristic_polynomial  # Sympy
-# from Symbolic_Computation_sage import simplify, compute_eigen, characteristic_polynomial  # Sage
+# from Symbolic_Computation_dummy import simplify, compute_eigen  # Dummy
+# from Symbolic_Computation_sympy import simplify, compute_eigen  # Sympy
+from Symbolic_Computation_sage import simplify, compute_eigen  # Sage
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 
 	# integers returns m, n. This uses a variant of the Euclidean algorithm and can probably be done smarter.
 	
 	a, b = simplify(a), simplify(b)
-	if a == b: 
+	if a == b:
 		return (1, 1)
 	elif a > b:
 		m2, n2 = compute_powers(a / b, b)

@@ -18,7 +18,8 @@ except ImportError: # Python 3
 from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
 from AbstractTriangulation import Abstract_Triangulation
 from Progress import Progress_App
-from Encoding import Id_Encoding_Sequence
+from Encoding import Id_Encoding_Sequence, Encoding
+from Matrix import Permutation_Matrix, Empty_Matrix
 from Options import Options, Options_App
 from Error import AbortError
 
@@ -223,6 +224,22 @@ class App:
 					# self.is_reducible('a.a.B.C')  # ??
 					# self.is_reducible('a.a.b.C')  # Irreducible.
 				
+				elif sections[0] == 'test2':
+					# Test using 'rngon abcdefABCDEF'
+					T = self.abstract_triangulation
+					a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+					A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
+					b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+					B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
+					
+					perms = T.find_isometries(T)
+					print(perms[1])
+					
+					p = Encoding([Permutation_Matrix(perms[1])], [Empty_Matrix(T.zeta)], T, T)
+					
+					h = (b*A*A*A*p)
+					self.curves['_'] = h * self.curves['_']
+					self.show_curve('_')
 				# elif sections[0] == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -252,8 +269,9 @@ class App:
 	def debug(self):
 		self.options.debugging = True
 		if self.is_complete():
-			for edge in self.edges: 
+			for edge in self.edges:
 				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label')
+			print([triangle.edge_indices for triangle in self.abstract_triangulation])
 	
 	def profile(self):
 		self.options.profiling = True
@@ -392,12 +410,14 @@ class App:
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
 		
+		self.create_vertex((w / 2, h / 2))
 		for i in range(n):
 			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * w * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * h * self.options.n_gon_fraction))
+		for i in range(1,n):
+			self.create_edge(self.vertices[i], self.vertices[i+1])
+		self.create_edge(self.vertices[n], self.vertices[1])
 		for i in range(n):
-			self.create_edge(self.vertices[i], self.vertices[i-1])
-		for i in range(2,n-1):
-			self.create_edge(self.vertices[0], self.vertices[i])
+			self.create_edge(self.vertices[0], self.vertices[i+1])
 		if gluing != '':
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
@@ -585,6 +605,7 @@ class App:
 		self.show_curve('_')
 	
 	def vectorise(self):
+		print(self.curve_to_vector())
 		tkMessageBox.showinfo('Curve', '%s' % self.curve_to_vector())
 	
 	def show_apply(self, composition):

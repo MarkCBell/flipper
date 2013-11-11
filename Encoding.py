@@ -1,15 +1,18 @@
 from __future__ import print_function
 from functools import reduce
 from itertools import product
-from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative_image
+from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 from Error import AbortError
-from Symbolic_Computation import compute_eigen, characteristic_polynomial
+from Symbolic_Computation import compute_eigen
 
 # These represent the piecewise-linear maps between the coordinates systems 
 # of various abstract triangulations.
 
 def Id_Encoding(triangulation):
 	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
+
+def Permutation_Encoding(perutation, triangulation):
+	return Encoding([Permutation_Matrix(perutation)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
 
 class Encoding:
 	def __init__(self, actions, conditions, source_triangulation, target_triangulation):
@@ -274,7 +277,8 @@ class Encoding_Sequence:
 		return (False, None) if certify else False
 	
 	def check_fixedpoint(self, certificate):
-		return self * certificate == certificate  # Should also test self.triangulation.is_multicurve(certificate)
+		assert(self.source_triangulation == self.target_triangulation)
+		return self.source_triangulation.is_multicurve(certificate) and self * certificate == certificate
 	
 	def stable_lamination(self, exact=False):
 		# Returns a curve that is quite (very) close to the stable lamination of this mapping class and an 

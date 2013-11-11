@@ -1,8 +1,11 @@
+from __future__ import print_function
 from itertools import product, combinations
 from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative, nontrivial, nonnegative_image
-from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
+from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence, Permutation_Encoding
 from Symbolic_Computation import simplify, compute_powers
+from Error import AbortError
 from time import time
+from random import choice
 try:
 	from Queue import Queue
 except ImportError: # Python 3
@@ -230,11 +233,10 @@ class Abstract_Triangulation:
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
-	def find_isometries(self, other):
+	def find_isometries(self, other, as_Encodings=False):
 		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
 		# to the edges of other isometrically.
 		if self.zeta != other.zeta: return []
-		# return [list(range(self.zeta))]
 		
 		def safe_assign(perm, i, j):
 			if perm[i] != -1 and perm[i] != j: return False
@@ -244,97 +246,136 @@ class Abstract_Triangulation:
 		def extend_map(other, t, k):
 			permutation = [-1] * self.zeta
 			base_triangle = self.triangles[0]
-			if not safe_assign(permutation, base_triangle[0], t[k]): return None
-			if not safe_assign(permutation, base_triangle[1], t[k+1]): return None
-			if not safe_assign(permutation, base_triangle[2], t[k+2]): return None
 			
-			seen_triangles = set([base_triangle])
 			triangles_to_process = Queue()
-			triangles_to_process.put((base_triangle, t, k))
-			
+			triangles_to_process.put((base_triangle, t, k))  # We start by assuming that the base_triangle gets mapped to t via the permutation (k,k+1,k+2).
+			seen_triangles = set([base_triangle])
 			while not triangles_to_process.empty():
 				from_triangle, to_triangle, cycle = triangles_to_process.get()
-				# print(from_triangle.index, to_triangle.index)
 				for side in range(3):
+					if not safe_assign(permutation, from_triangle[side], to_triangle[side+cycle]): return None
 					from_triangle_neighbour, from_neighbour_side = self.find_neighbour(from_triangle, side)
-					to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle) % 3)
-					for i in range(3):
-						if not safe_assign(permutation, from_triangle_neighbour[from_neighbour_side+i], to_triangle_neighbour[to_neighbour_side+i]): return None
+					to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle)%3)
 					if from_triangle_neighbour not in seen_triangles:
 						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
 						seen_triangles.add(from_triangle_neighbour)
-				
+			
 			return permutation
 		
-		return list(filter(lambda x: x is not None, [extend_map(other, triangle, i) for triangle in other for i in range(3)]))
+		if as_Encodings:
+			return [Permutation_Encoding(p, self) for p in [extend_map(other, triangle, i) for triangle in other for i in range(3)] if p is not None]
+		else:
+			return [p for p in [extend_map(other, triangle, i) for triangle in other for i in range(3)] if p is not None]
 	
 	def puncture_trigons(self, vector):
-		new_triangulation = [list(triangle.edge_indices) for triangle in self.triangles]
+		new_labels = [list(triangle.edge_indices) for triangle in self.triangles]
 		new_vector = list(vector)
 		zeta = self.zeta
 		for triangle in self.triangles:
 			a, b, c = triangle.edge_indices
 			if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
 				x, y, z = zeta, zeta+1, zeta+2
-				new_triangulation.extend([[a,z,y], [b,x,z], [c,y,x]])
-				new_triangulation.remove([a,b,c])
+				new_labels.extend([[a,z,y], [b,x,z], [c,y,x]])
+				new_labels.remove([a,b,c])
 				new_vector.extend([(new_vector[b] + new_vector[c] - new_vector[a]) / 2, (new_vector[c] + new_vector[a] - new_vector[b]) / 2, (new_vector[a] + new_vector[b] - new_vector[c]) / 2])
 				zeta = zeta + 3
-		return Abstract_Triangulation(new_triangulation), new_vector
+		return Abstract_Triangulation(new_labels), new_vector
 	
-	def collapse_trivial_weights(self, vector):
-		# TO DO !?!
-		def replace(x, y, L):
-			return [y if l == y else l for l in L]
+	def collapse_trivial_weight(self, vector, edge_index):
+		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
+		# WLOG: a < b and c < d.
+		if b < a: a, b = b, a
+		if d < c: c, d = d, c
 		
+		replacement = dict(zip([i for i in range(self.zeta) if i not in [edge_index, b, d]], range(self.zeta)))
+		replacement[b] = replacement[a]
+		replacement[d] = replacement[c]
 		
-		working_copy, vector_copy = self.copy(), list(vector)
-		new_labels = [list(triangle.edge_vectors) for triangle in working_copy]
-		while any(v == 0 for v in vector_copy):
-			i = vector_copy.index(0)
-			a, b, c, d = working_copy.find_indicies_of_square_about_edge(i)  # Get the square about it.
-			if b < a: a, b = b, a
-			if d < c: c, d = d, c
-			
-			
-			
-			# new_labels = [replace(d, c, replace(b, a, label) for label in new_labels]
-			
-			# vector_copy[i] = -1
-			
+		new_labels = [[replacement[i] for i in triangle.edge_indices] for triangle in self if edge_index not in triangle.edge_indices]
+		new_vector = [[vector[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(self.zeta - 3)]
+		return Abstract_Triangulation(new_labels), new_vector
 	
 	def splitting_sequence(self, vector):
 		# We assume that vector is a list of algebraic numbers. 
 		# We continually use Symbolic_Computation.simplify() just to be safe.
 		# This assumes that the edges are labelled 0, ..., self.zeta-1, this is a very sane labelling system.
+		# In fact this algorithm currently assumes that vector is the stable lamination.
 		
-		# !?! TO DO compress virtual edges of weight 0.
-		working_copy, vector_copy = self.puncture_trigons(vector)
+		# At the end len(working_copy.corner_classes) - len(self.corner_classes) will be the number of singularities of vector.
 		
 		def projectivise_vector(vector):
-			return [simplify(v / vector[0]) for v in vector]
 			s = simplify(sum(vector))
-			return [simplify(v / s) for v in vector]
+			return tuple([simplify(v / s) for v in vector])
 		
+		# Check if vector is obviously reducible.
+		if any(v == 0 for v in vector):
+			return [], [], 1
+		
+		working_copy, vector_copy = self.puncture_trigons(vector)
 		flipped = []
 		seen_vectors = [(0, list(vector_copy), projectivise_vector(vector_copy), working_copy)]
 		while True:
-			i = max(range(self.zeta), key=lambda i: vector_copy[i])  # Find the index of the largest entry
+			i = max(range(working_copy.zeta), key=lambda i: vector_copy[i])  # Find the index of the largest entry
 			a, b, c, d = working_copy.find_indicies_of_square_about_edge(i)  # Get the square about it.
 			working_copy = working_copy.flip_edge(i)  # Flip the square.
 			vector_copy[i] = simplify(max(vector_copy[a] + vector_copy[c], vector_copy[b] + vector_copy[d]) - vector_copy[i])  # Update the weights.
+			if vector_copy[i] == 0:  
+				# Assumes pA.
+				working_copy, vector_copy = working_copy.collapse_trivial_weight(vector_copy, i)
+				# If (some property of the graph is not met): raise AbortError.
+				# This is one such property but there should be more subtle ones.
+				if working_copy.zeta < self.zeta:
+					return [], [], 1
 			flipped.append(i)
-			# print(i, ', '.join('%0.4f' % v for v in vector_copy))
+			projective_vector = projectivise_vector(vector_copy)
+			print(i, '| ' + ', '.join('%0.4f' % v for v in projective_vector))
 			for index, old_vector, old_projective_vector, old_triangulation in seen_vectors:
 				for isometry in working_copy.find_isometries(old_triangulation):
-					permuted_old_projective_vector = [old_projective_vector[isometry[i]] for i in range(working_copy.zeta)]
-					projective_vector = projectivise_vector(vector_copy)
+					permuted_old_projective_vector = tuple([old_projective_vector[isometry[i]] for i in range(working_copy.zeta)])
 					if projective_vector == permuted_old_projective_vector:
 						return flipped[:index], flipped[index:], simplify(old_vector[isometry[0]] / vector_copy[0])
 			else:
 				seen_vectors.append((len(seen_vectors), list(vector_copy), projectivise_vector(vector_copy), working_copy))
 
 if __name__ == '__main__':
+	import sys
+	
+	# This a 12--gon with one vertex at the centre and opposite sides identified.
+	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
+	[12, 13, 0], [14, 1, 13], [14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])
+	a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+	A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
+	b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+	B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
+	
+	p = T.find_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
+	
+	h = (b*A*A*b*p)**6
+	V, dilatation = h.stable_lamination(exact=True)
+	x, y, z = T.splitting_sequence(V)
+	print(len(x), len(y), compute_powers(dilatation, z))
+	# exit(1)
+	
+	# Another n--gon. (n==24)
+	T = Abstract_Triangulation([[12, 13, 0], [14, 1, 13], [15, 2, 14], [15, 16, 3], [17, 4, 16], [17, 18, 5], 
+		[18, 19, 6], [20, 7, 19], [21, 8, 20], [21, 22, 9], [22, 23, 10], [24, 11, 23], [25, 0, 24], [25, 26, 1], 
+		[26, 27, 2], [28, 3, 27], [29, 4, 28], [29, 30, 5], [30, 31, 6], [32, 7, 31], [33, 8, 32], [33, 34, 9], 
+		[34, 35, 10], [12, 11, 35]])
+	
+	a = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+	A = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
+	b = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
+	B = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
+	
+	p = T.find_isometries(T, as_Encodings=True)[1]  # This is a click of some sort.
+	h = (a*B*B*a*p)**12
+	V, dilatation = h.stable_lamination(exact=True)
+	x, y, z = T.splitting_sequence(V)
+	print(k, len(x), len(y), compute_powers(dilatation, z))
+	
+	
+	
+	# S_1_2: We'll do some random twists.
 	T = Abstract_Triangulation([[2, 1, 3], [2, 0, 4], [1, 5, 0], [4, 3, 5]])
 	a = T.encode_twist([0,0,1,1,1,0])
 	b = T.encode_twist([0,1,0,1,0,1])
@@ -343,20 +384,38 @@ if __name__ == '__main__':
 	B = T.encode_twist([0,1,0,1,0,1], k=-1)
 	C = T.encode_twist([1,0,0,0,1,1], k=-1)
 	
-	def random_mapping_class(n):
+	def expand_class(string):
+		print(string)
 		h = Id_Encoding_Sequence(T)
-		for i in range(n):
-			h = choice([a,b,c,A,B,C]) * h
+		for letter in string:
+			h = {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}[letter] * h
 		return h
+	
+	
+	def random_mapping_class(n):
+		return ''.join(choice('abcABC') for i in range(n))
 	
 	print('Start')
 	for k in range(3, 50):
 		# h = (a*b*C*b)**k * (a*b*C) * (B*c*B*A)**k
-		h = random_mapping_class(25)
+		# h = expand_class(random_mapping_class(10))
+		# h = expand_class('aBc')
+		h = expand_class(sys.argv[1] if len(sys.argv) > 1 else random_mapping_class(10))
+		
 		start_time = time()
-		V, dilatation = h.stable_lamination(exact=True)
-		t1 = time() - start_time
-		start_time = time()
-		x, y, z = T.splitting_sequence(V)
-		t2 = time() - start_time
-		print(k, len(x), len(y), t1, t2)
+		try:
+			V, dilatation = h.stable_lamination(exact=True)
+		except AbortError:
+			pass
+		else:
+			t1 = time() - start_time
+			start_time = time()
+			x, y, z = T.splitting_sequence(V)
+			t2 = time() - start_time
+			if z > 1:
+				print('Times:', t1, t2)
+				print(k, len(x), len(y), compute_powers(dilatation, z))
+				print(float(dilatation), float(z))
+			else:
+				print('Probably reducible')
+		exit(0)

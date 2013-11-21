@@ -1,3 +1,8 @@
+# To run from within sage you might need to first update tkiner by doing:
+# sudo apt-get install tk8.5-dev
+# sage -f python
+# Then run with:
+# sage -python App.py
 
 from math import sin, cos, pi
 from itertools import combinations
@@ -72,11 +77,11 @@ class App:
 		###
 		###
 		
-		self.label_curves = TK.Label(self.frame_interface, text='Curves:', anchor='w', font=self.options.custom_font)
-		self.label_curves.pack(fill='x')
+		self.label_mapping_classes = TK.Label(self.frame_interface, text='Mapping Classes:', anchor='w', font=self.options.custom_font)
+		self.label_mapping_classes.pack(fill='x')
 		
-		self.list_curves = TK.Listbox(self.frame_interface, font=self.options.custom_font)
-		self.list_curves.pack(fill='both', expand=True)
+		self.list_mapping_classes = TK.Listbox(self.frame_interface, font=self.options.custom_font)
+		self.list_mapping_classes.pack(fill='both', expand=True)
 		
 		###
 		
@@ -94,15 +99,14 @@ class App:
 		self.frame_draw = TK.Frame(self.parent)
 		self.frame_draw.grid(row=0, column=0, sticky='nesw')
 		###
-		self.canvas = TK.Canvas(self.frame_draw, bg='#dcecff')
+		self.canvas = TK.Canvas(self.frame_draw, width=500, height=500, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
-		self.canvas.bind('<B1-Motion>', self.canvas_mouse_moved)
-		self.canvas.bind('<ButtonRelease-1>', self.canvas_left_release)
-		self.list_curves.bind("<Button-1>", self.list_left_click)
-		self.list_curves.bind("<Button-3>", self.list_right_click)
-		self.list_curves.bind('<Shift-Button-1>', self.list_shift_click)
+		self.canvas.bind('<Motion>', self.canvas_move)
+		self.list_mapping_classes.bind("<Button-1>", self.list_left_click)
+		self.list_mapping_classes.bind("<Button-3>", self.list_right_click)
+		self.list_mapping_classes.bind('<Shift-Button-1>', self.list_shift_click)
 		
 		###
 		parent.bind('<Key>', self.parent_key_press)
@@ -119,6 +123,7 @@ class App:
 		self.edges = []
 		self.triangles = []
 		self.curve_components = []
+		self.mapping_classes = {}
 		self.selected_object = None
 		
 		self.build_complete_structure()
@@ -127,7 +132,6 @@ class App:
 		self.set_mode(TRIANGULATION_MODE)
 		
 		self.canvas.delete('all')
-		self.list_curves.delete(0, TK.END)
 		self.entry_command.delete(0, TK.END)
 		
 		self.entry_command.focus()
@@ -158,11 +162,6 @@ class App:
 				self.set_mode(GLUING_MODE)
 			else:
 				self.mode_variable.set(mode)
-		elif mode == CURVE_DRAWING_MODE:
-			if not self.is_complete():
-				self.set_mode(GLUING_MODE)
-			else:
-				self.mode_variable.set(mode)
 	
 	def command_return(self, event):
 		command = self.entry_command.get()
@@ -184,62 +183,27 @@ class App:
 				elif sections[0] == 'rngon': self.initialise_radial_n_gon(sections[1])
 				
 				elif sections[0] == 'tighten': self.tighten_curve()
-				elif sections[0] == 'store': self.store_curve(sections[1])
 				elif sections[0] == 'show': self.show_composition(sections[1])
 				elif sections[0] == 'render': self.show_render(sections[1])
 				elif sections[0] == 'vectorise': self.vectorise()
-				elif sections[0] == 'apply': self.show_apply(sections[1])
 				
+				elif sections[0] == 'twist': self.store_curve(sections[1])
+				elif sections[0] == 'isometry': self.store_isometry(sections[1], sections[2], sections[3])
+				elif sections[0] == 'apply': self.show_apply(sections[1])
+				elif sections[0] == 'applied': self.show_applied(sections[1])
+				
+				elif sections[0] == 'order': self.order(sections[1])
 				elif sections[0] == 'periodic': self.is_periodic(sections[1])
 				elif sections[0] == 'reducible': self.is_reducible(sections[1])
 				elif sections[0] == 'pA': self.is_pseudo_Anosov(sections[1])
 				elif sections[0] == 'lamination': print(self.stable_lamination(sections[1]))
 				elif sections[0] == 'lamination_exact': print(self.stable_lamination(sections[1], exact=True))
-				elif sections[0] == 'applied': self.show_applied(sections[1])
 				
 				elif sections[0] == 'split': self.splitting_sequence(sections[1])
 				
 				elif sections[0] == 'save': self.save(sections[1])
 				elif sections[0] == 'load': self.load(sections[1])
 				elif sections[0] == 'export': self.export_image(sections[1])
-				elif sections[0] == 'test': 
-					self.initialise_circular_n_gon('abcACB')
-					self.profile()
-					self.stats()
-					self.curves['a'] = [0,0,1,1,1,0]
-					self.curves['b'] = [0,1,0,1,0,1]
-					self.curves['c'] = [1,0,0,0,1,1]
-					self.curves['_'] = self.curves['a']
-					print([triangle.edge_indices for triangle in self.abstract_triangulation.triangles])
-					print('Estimating stable_lamination of a.b.C:')
-					print(self.stable_lamination('a.b.C'))
-					# print('and now exactly:')
-					# print(self.stable_lamination('a.b.C', exact=True))
-					test = 'abCCbaCCaBBB'
-					for i in range(3,len(test)):
-						print('Computing splitting sequence of: %s' % '.'.join(test[:i]))
-						self.splitting_sequence('.'.join(test[:i]))
-					# self.is_reducible('c.A.B.C')  # Reducible
-					# self.is_reducible('c.c.A.B.C.C')  # Reducible
-					# self.is_reducible('a.a.B.C')  # ??
-					# self.is_reducible('a.a.b.C')  # Irreducible.
-				
-				elif sections[0] == 'test2':
-					# Test using 'rngon abcdefABCDEF'
-					T = self.abstract_triangulation
-					a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
-					A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
-					b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-					B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
-					
-					perms = T.find_isometries(T)
-					print(perms[1])
-					
-					p = Encoding([Permutation_Matrix(perms[1])], [Empty_Matrix(T.zeta)], T, T)
-					
-					h = (b*A*A*A*p)
-					self.curves['_'] = h * self.curves['_']
-					self.show_curve('_')
 				# elif sections[0] == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -261,23 +225,22 @@ class App:
 		self.canvas.tag_raise('oval')
 		self.canvas.tag_raise('curve')
 		self.canvas.tag_raise('label')
+		self.canvas.tag_raise('edge_label')
 	
 	def show_options(self):
 		self.options_app.parent.state('normal')
 		self.options_app.parent.lift()
 	
 	def debug(self):
-		self.options.debugging = True
-		if self.is_complete():
-			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label')
+		self.options.debugging = not self.options.debugging
+		if self.options.debugging and self.is_complete():
 			print([triangle.edge_indices for triangle in self.abstract_triangulation])
 	
 	def profile(self):
-		self.options.profiling = True
+		self.options.profiling = not self.options.profiling
 	
 	def stats(self):
-		self.options.statistics = True
+		self.options.statistics = not self.options.statistics
 	
 	def select_object(self, selected_object):
 		self.selected_object = selected_object
@@ -389,12 +352,11 @@ class App:
 		self.redraw()
 	
 	def destroy_curve(self):
-		while True:
-			for curve_component in self.curve_components:
-				self.destroy_curve_component(curve_component)
-				break
-			else:
-				break
+		while self.curve_components != []:
+			self.destroy_curve_component(self.curve_components[-1])
+		
+		self.set_current_curve()
+		self.select_object(None)
 		self.redraw()
 	
 	
@@ -422,7 +384,10 @@ class App:
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
+			# self.store_isometry('%d,%d,%d' % (0,n+1,n), '%d,%d,%d' % (1,n+2,n+1), 'p')  # !?! Add in a 1/n rotation by default.
 			self.set_mode(CURVE_MODE)
+		else:
+			self.set_mode(GLUING_MODE)
 	
 	def initialise_circular_n_gon(self, specification):
 		self.initialise()
@@ -471,15 +436,41 @@ class App:
 		for edge in self.edges:
 			edge.index = -1
 	
+	def create_edge_labels(self):
+		self.destroy_edge_labels()
+		if self.options.label_edges == 'Index':
+			for edge in self.edges:
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+		elif self.options.label_edges == 'Geometric':
+			vector = self.curves['_']
+			for edge in self.edges:
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(vector[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+		elif self.options.label_edges == 'Algebraic':
+			vector = self.abstract_triangulation.geometric_to_algebraic(self.curves['_'])
+			for edge in self.edges:
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(vector[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+		elif self.options.label_edges == 'None':
+			self.canvas.delete('edge_label')
+		else:
+			raise ValueError()
+	
+	def destroy_edge_labels(self):
+		self.canvas.delete('edge_label')
+	
 	def create_abstract_triangulation(self):
+		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		self.curves = {'_':[0] * self.zeta}
 		self.abstract_triangulation = Abstract_Triangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
+		self.create_edge_labels()
 	
 	def destroy_abstract_triangulation(self):
 		self.clear_edge_indices()
-		self.curves = {}
+		self.destroy_edge_labels()
 		self.abstract_triangulation = None
+		self.curves = {}
+		self.mapping_classes = {}
+		self.list_mapping_classes.delete(0, TK.END)
 	
 	def build_complete_structure(self):
 		if self.is_complete():
@@ -487,8 +478,14 @@ class App:
 		else:
 			self.destroy_abstract_triangulation()
 	
+	
 	######################################################################
 	
+	
+	def set_current_curve(self, vector=None):
+		if vector is None: vector = self.curve_to_vector()
+		self.curves['_'] = vector
+		self.create_edge_labels()
 	
 	def curve_to_vector(self):
 		vector = [0] * self.zeta
@@ -542,6 +539,8 @@ class App:
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						self.create_curve_component(start_point).append_point(end_point)
+		
+		self.set_current_curve(vector)
 	
 	def tighten_curve(self):
 		curve = self.curve_to_vector()
@@ -549,30 +548,33 @@ class App:
 			if self.abstract_triangulation.is_multicurve(curve):
 				self.vector_to_curve(curve)
 			else:
-				tkMessageBox.showwarning('Curve', 'Not a curve.')
+				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
 	
 	def store_curve(self, name):
 		if name != '' and name != '_':
-			if self.abstract_triangulation.is_multicurve(self.curve_to_vector()):
-				if name not in self.curves: self.list_curves.insert(TK.END, name)
-				self.curves[name] = self.curve_to_vector()
+			vector = self.curve_to_vector()
+			if self.abstract_triangulation.is_multicurve(vector):
+				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+				self.curves[name] = vector
+				self.mapping_classes[name] = self.abstract_triangulation.encode_twist(vector)
+				self.mapping_classes[name.swapcase()] = self.abstract_triangulation.encode_twist(vector, k=-1)
 				self.destroy_curve()
-				self.curves['_'] = [0] * self.zeta
 			else:
-				tkMessageBox.showwarning('Curve', 'Not a curve.')
+				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
 	
 	def show_curve(self, name):
-		self.destroy_curve()
-		self.vector_to_curve(self.curves[name])
-		self.curves['_'] = self.curves[name]
+		if name in self.curves:
+			self.destroy_curve()
+			self.vector_to_curve(self.curves[name])
+			self.set_current_curve(self.curves[name])
+		else:
+			tkMessageBox.showwarning('Curve', '%s is not a curve.' % name)
 	
 	def create_composition(self, twists):
 		mapping_class = Id_Encoding_Sequence(self.abstract_triangulation)
 		for twist in twists[::-1]:
-			if twist in self.curves:
-				mapping_class = self.abstract_triangulation.encode_twist(self.curves[twist]) * mapping_class
-			elif twist.swapcase() in self.curves:
-				mapping_class = self.abstract_triangulation.encode_twist(self.curves[twist.swapcase()], k=-1) * mapping_class
+			if twist in self.mapping_classes:
+				mapping_class = self.mapping_classes[twist] * mapping_class
 			else:
 				tkMessageBox.showwarning('Curve', 'Unknown curve: %s' % twist)
 				raise AbortError()
@@ -597,19 +599,42 @@ class App:
 		except AbortError:
 			pass
 		else:
-			self.curves['_'] = mapping_class * curve
-			self.show_curve('_')
+			self.set_current_curve(mapping_class * curve)
+			self.vector_to_curve(self.curves['_'])
 	
 	def show_render(self, composition):
-		self.curves['_'] = [int(i) for i in composition.split(',')]
-		self.show_curve('_')
+		self.set_current_curve([int(i) for i in composition.split(',')])
+		self.vector_to_curve(self.curves['_'])
 	
 	def vectorise(self):
-		print(self.curve_to_vector())
 		tkMessageBox.showinfo('Curve', '%s' % self.curve_to_vector())
 	
 	def show_apply(self, composition):
 		self.show_composition(composition + '._')
+	
+	def store_isometry(self, name, from_edges, to_edges):
+		from_edges = [int(x) for x in from_edges.split(',')]
+		to_edges = [int(x) for x in to_edges.split(',')]
+		
+		source_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(from_edges)]
+		target_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(to_edges)]
+		if len(source_triangles) != 1 or len(source_triangles) != 1:
+			tkMessageBox.showwarning('Isometry', 'Information does not specify a triangle.')
+			return
+		
+		source_triangle, target_triangle = source_triangles[0], target_triangles[0]
+		
+		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
+		isometry = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle, as_Encoding=True)
+		isometry_inverse = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3, as_Encoding=True)
+		if isometry is None:
+			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
+			return
+		
+		if name != '' and name != '_':
+			if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+			self.mapping_classes[name] = isometry
+			self.mapping_classes[name.swapcase()] = isometry_inverse
 	
 	def show_applied(self, composition):
 		try:
@@ -622,6 +647,14 @@ class App:
 	
 	######################################################################
 	
+	def order(self, composition):
+		try:
+			mapping_class = self.create_composition(composition.split('.'))
+		except AbortError:
+			pass
+		else:
+			order = mapping_class.order()
+			tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, ('infinite' if order == 0 else str(order))))
 	
 	def is_periodic(self, composition):
 		try:
@@ -678,7 +711,7 @@ class App:
 			pass
 		else:
 			try:
-				return mapping_class.stable_lamination(exact)    # Get any old curve.
+				return mapping_class.stable_lamination(exact)
 			except AbortError:
 				tkMessageBox.showinfo('Dilatation', 'Could not estimate the stable lamination of %s.' % composition)
 	
@@ -757,8 +790,11 @@ class App:
 	
 	def curve_click(self, x, y):
 		if self.selected_object is None:
-			self.set_mode(CURVE_DRAWING_MODE)
 			self.select_object(self.create_curve_component((x,y)))
+			self.selected_object.append_point((x,y))
+		else:
+			self.selected_object.append_point((x,y))
+			self.set_current_curve()
 	
 	
 	######################################################################
@@ -773,20 +809,17 @@ class App:
 		if self.mode_variable.get() == CURVE_MODE:
 			self.curve_click(x, y)
 	
-	def canvas_right_click(self, event):
-		self.select_object(None)
-	
-	def canvas_mouse_moved(self, event):
+	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if self.mode_variable.get() == CURVE_DRAWING_MODE:
-			x0, y0 = self.selected_object.vertices[-1]
-			if (x - x0)**2 + (y - y0)**2 > self.options.spacing**2:
-				self.selected_object.append_point((x,y))
+		if self.mode_variable.get() == CURVE_MODE:
+			if self.selected_object is not None:
+				self.selected_object.move_last_point((x,y))
 	
-	def canvas_left_release(self, event):
-		if self.mode_variable.get() == CURVE_DRAWING_MODE:
-			self.curves['_'] = self.curve_to_vector()
-			self.set_mode(CURVE_MODE)
+	def canvas_right_click(self, event):
+		if self.selected_object is not None:
+			if self.mode_variable.get() == CURVE_MODE:
+				self.selected_object.pop_point()
+			self.select_object(None)
 	
 	def parent_key_press(self, event):
 		key = event.keysym
@@ -810,14 +843,16 @@ class App:
 				self.entry_command.insert(0, self.command_history[self.history_position])
 	
 	def list_left_click(self, event):
-		self.show_apply(self.list_curves.get(self.list_curves.nearest(event.y)))
+		if self.list_mapping_classes.size() > 0:
+			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
 	
 	def list_right_click(self, event):
-		self.show_apply(self.list_curves.get(self.list_curves.nearest(event.y)).swapcase())
+		if self.list_mapping_classes.size() > 0:
+			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)).swapcase())
 	
 	def list_shift_click(self, event):
-		if self.list_curves.size() > 0:
-			self.show_curve(self.list_curves.get(self.list_curves.nearest(event.y)))
+		if self.list_mapping_classes.size() > 0:
+			self.show_curve(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
 
 if __name__ == '__main__':
 	root = TK.Tk()

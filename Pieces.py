@@ -195,7 +195,7 @@ class Curve_Component:
 		self.vertices.append(point)
 		self.drawn_segments.append(self.canvas.create_line(self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1], width=self.options.line_size, fill=self.default_colour, tag='curve'))
 		if self.multiplicity is not None:
-			self.drawn_labels.append(self.canvas.create_text((self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2, text=str(self.multiplicity), tag='label', font=self.options.custom_font))
+			self.drawn_labels.append(self.canvas.create_text((self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2, text=str(self.multiplicity), tag='label', font=self.options.custom_font, fill=self.options.default_curve_label_colour))
 		return self
 	
 	def pop_point(self):
@@ -214,3 +214,11 @@ class Curve_Component:
 	def set_default_colour(self, colour):
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
+	
+	def move_last_point(self, new_point):
+		if len(self.vertices) > 1:
+			self.vertices[-1] = new_point
+			self.canvas.coords(self.drawn_segments[-1], self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1])
+			if self.multiplicity is not None:
+				self.canvas.coords(self.drawn_labels[-1], (self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2)
+

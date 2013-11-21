@@ -184,10 +184,15 @@ class Encoding_Sequence:
 			if Cs.nontrivial_polytope()[0]:
 				yield indices
 	
-	def is_periodic(self):
+	def order(self):
+		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
 		key_curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
-		return any(all(self**i * v == v for v in key_curves) for i in range(1,max_order+1))
+		orders = [i for i in range(1,max_order+1) if all(self**i * v == v for v in key_curves)]
+		return orders[0] if len(orders) > 0 else 0
+	
+	def is_periodic(self):
+		return self.order() > 0
 	
 	def is_reducible(self, certify=False, show_progress=None, options=None):
 		''' This determines if the induced action of self on V has a fixed point satisfying:
@@ -255,10 +260,12 @@ class Encoding_Sequence:
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:
+						certificate = [2*i for i in certificate]
+						print(certificate)
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
 						if options is not None and options.statistics: print(buckets)
-						return (True, [2*i for i in certificate]) if certify else True
+						return (True, certificate) if certify else True
 				indices = jump(indices)
 		
 		if show_progress is not None: show_progress.cancel()
@@ -281,9 +288,10 @@ class Encoding_Sequence:
 		return self.source_triangulation.is_multicurve(certificate) and self * certificate == certificate
 	
 	def stable_lamination(self, exact=False):
-		# Returns a curve that is quite (very) close to the stable lamination of this mapping class and an 
-		# (floating point) estimate of the dilatation. If one cannot be found this an AbortError is thrown. 
-		# If exact is set to True then this uses compute_eigen to return the exact stable lamination (as a list of
+		# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
+		# quite (very) close to its stable lamination and a (floating point) estimate of the dilatation. 
+		# If one cannot be found this an AbortError is thrown. If exact is set to True then this uses 
+		# Symbolic_Computation.compute_eigen() to return the exact stable lamination (as a list of
 		# algebraic numbers) along with the exact dilatation (again as an algebraic number).
 		
 		assert(self.source_triangulation == self.target_triangulation)

@@ -1,6 +1,8 @@
 
 import sympy
 
+_name = 'sympy'
+
 def simplify(x):
 	return x.simplify()
 

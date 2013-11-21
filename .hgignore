@@ -1,0 +1,4 @@
+syntax:glob
+build/*
+__pycache__/*
+*.pyc

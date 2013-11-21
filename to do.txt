@@ -1,7 +1,12 @@
 save
 load
+sum
 handle commands better
+better curve to vector code
+handle bigons
 
-dual simplex
-reorder decisions?
 train track splittings
+floating point approximations
+fast algebra
+
+documentation

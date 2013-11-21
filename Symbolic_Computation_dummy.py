@@ -1,4 +1,6 @@
 
+_name = 'dummy'
+
 def simplify(x):
 	return None
 

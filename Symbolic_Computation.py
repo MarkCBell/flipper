@@ -18,10 +18,14 @@
 #		requirement by multiplication.
 #	3) We actually provide interfaces to several different libraries such as sympy and sage.
 
-# Select a library interface here:
-# from Symbolic_Computation_dummy import simplify, compute_eigen  # Dummy
-# from Symbolic_Computation_sympy import simplify, compute_eigen  # Sympy
-from Symbolic_Computation_sage import simplify, compute_eigen  # Sage
+# We select a library interface here. we first try sage, then sympy and finally just load the dummy library.
+try:
+	from Symbolic_Computation_sage import simplify, compute_eigen, _name # Sage
+except ImportError:
+	try:
+		from Symbolic_Computation_sympy import simplify, compute_eigen, _name  # Sympy
+	except ImportError:
+		from Symbolic_Computation_dummy import simplify, compute_eigen, _name  # Dummy
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

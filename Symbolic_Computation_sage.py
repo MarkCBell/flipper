@@ -1,6 +1,8 @@
 
 from sage.all import Matrix
 
+_name = 'sage'
+
 def simplify(x):
 	x.simplify()
 	return x

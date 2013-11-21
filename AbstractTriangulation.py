@@ -1,3 +1,6 @@
+
+# TO DO: We need an is_curve() function to make sure we never try to Dehn twist about a multicurve, for example.
+
 from __future__ import print_function
 from itertools import product, combinations
 from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative, nontrivial, nonnegative_image
@@ -24,6 +27,8 @@ def tweak_vector(v, add, subtract):
 	return v
 
 class Abstract_Triangle:
+	__slots__ = ['index', 'edge_indices']  # !?! Force minimal RAM usage?
+	
 	def __init__(self, index=None):
 		# Edges are ordered anti-clockwise.
 		self.index = index
@@ -37,11 +42,12 @@ class Abstract_Triangle:
 
 class Abstract_Triangulation:
 	def __init__(self, all_edge_indices):
-		# Convention (although this is not enforced (yet)): flattening all_edge_indices must give the list
-		# 0,...,self.zeta-1 with each number appearing twice.
-		self.triangles = [Abstract_Triangle(i) for i in range(len(all_edge_indices))]
-		self.num_triangles = len(self.triangles)
+		self.num_triangles = len(all_edge_indices)
 		self.zeta = self.num_triangles * 3 // 2
+		
+		# Convention: Flattening all_edge_indices must give the list 0,...,self.zeta-1 with each number appearing exactly twice.
+		assert(sorted([x for edge_indices in all_edge_indices for x in edge_indices]) == sorted(list(range(self.zeta)) + list(range(self.zeta))))
+		self.triangles = [Abstract_Triangle(i) for i in range(len(all_edge_indices))]
 		
 		# We should assert a load of stuff here first. !?!
 		for triangle, edge_indices in zip(self.triangles, all_edge_indices):
@@ -94,7 +100,34 @@ class Abstract_Triangulation:
 		return self._marking_matrices
 	
 	def is_multicurve(self, vector):
+		if vector == [0] * self.zeta: return False
+		
+		if not nonnegative_image(self.face_matrix(), vector): return False
+		
+		for vertex in self.corner_classes:
+			for triangle, side in vertex:
+				weights = [vector[index] for index in triangle.edge_indices]
+				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
+				for i in range(3):
+					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
+						return False
+				if dual_weights_doubled[side] == 0:
+					break
+			else:
+				return False
+		
+		return True
+		
 		return nonnegative_image(self.face_matrix(), vector) and any(nonnegative_image(M, vector) for M in self.marking_matrices())
+	
+	def vector_to_path(self, vector):
+		# !?!
+		pass
+	
+	def geometric_to_algebraic(self, vector):
+		# Converts a vector of geometric intersection numbers to a vector of algebraic intersection numbers.
+		# !?! TO DO.
+		return vector
 	
 	def find_edge(self, edge_index):
 		return [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]
@@ -184,25 +217,16 @@ class Abstract_Triangulation:
 		conjugation_inverse = Id_Encoding_Sequence(self)
 		
 		while weight(vector) > 2:
-			# Find an edge which decreases our weight, if it exists.
+			# Find the edge which decreases our weight the most.
+			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
+			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
 			working_copy = conjugation.target_triangulation
-			for edge_index in range(working_copy.zeta):
-				if working_copy.edge_is_flippable(edge_index):
-					if working_copy.flipping_edge_improves(edge_index, vector):
-						vector = working_copy.flip_effect(edge_index, vector)
-						forward, backwards = conjugation.target_triangulation.encode_flip(edge_index)
-						conjugation = forward * conjugation
-						conjugation_inverse = conjugation_inverse * backwards
-						break
-			else:  # If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-				for edge_index in range(working_copy.zeta):
-					if working_copy.edge_is_flippable(edge_index):
-						if vector[edge_index] > 0:
-							vector = working_copy.flip_effect(edge_index, vector)
-							forward, backwards = conjugation.target_triangulation.encode_flip(edge_index)
-							conjugation = forward * conjugation
-							conjugation_inverse = conjugation_inverse * backwards
-							break
+			edge_index = min([i for i in range(working_copy.zeta) if vector[i] > 0], key=lambda i: weight(working_copy.flip_effect(i, vector)))
+			
+			vector = working_copy.flip_effect(edge_index, vector)
+			forward, backwards = conjugation.target_triangulation.encode_flip(edge_index)
+			conjugation = forward * conjugation
+			conjugation_inverse = conjugation_inverse * backwards
 		
 		assert(weight(vector) == 2)
 		working_copy = conjugation.target_triangulation
@@ -233,39 +257,39 @@ class Abstract_Triangulation:
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
-	def find_isometries(self, other, as_Encodings=False):
-		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
-		# to the edges of other isometrically.
-		if self.zeta != other.zeta: return []
+	def extend_isometry(self, other, source_triangle, target_triangle, cycle, as_Encoding=False):
+		if self.zeta != other.zeta: return None
+		permutation = [-1] * self.zeta
 		
 		def safe_assign(perm, i, j):
 			if perm[i] != -1 and perm[i] != j: return False
 			perm[i] = j
 			return True
 		
-		def extend_map(other, t, k):
-			permutation = [-1] * self.zeta
-			base_triangle = self.triangles[0]
-			
-			triangles_to_process = Queue()
-			triangles_to_process.put((base_triangle, t, k))  # We start by assuming that the base_triangle gets mapped to t via the permutation (k,k+1,k+2).
-			seen_triangles = set([base_triangle])
-			while not triangles_to_process.empty():
-				from_triangle, to_triangle, cycle = triangles_to_process.get()
-				for side in range(3):
-					if not safe_assign(permutation, from_triangle[side], to_triangle[side+cycle]): return None
-					from_triangle_neighbour, from_neighbour_side = self.find_neighbour(from_triangle, side)
-					to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle)%3)
-					if from_triangle_neighbour not in seen_triangles:
-						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
-						seen_triangles.add(from_triangle_neighbour)
-			
-			return permutation
+		triangles_to_process = Queue()
+		triangles_to_process.put((source_triangle, target_triangle, cycle))  # We start by assuming that the source_triangle gets mapped to t via the permutation (k,k+1,k+2).
+		seen_triangles = set([source_triangle])
+		while not triangles_to_process.empty():
+			from_triangle, to_triangle, cycle = triangles_to_process.get()
+			for side in range(3):
+				if not safe_assign(permutation, from_triangle[side], to_triangle[side+cycle]): return None
+				from_triangle_neighbour, from_neighbour_side = self.find_neighbour(from_triangle, side)
+				to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle)%3)
+				if from_triangle_neighbour not in seen_triangles:
+					triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
+					seen_triangles.add(from_triangle_neighbour)
 		
-		if as_Encodings:
-			return [Permutation_Encoding(p, self) for p in [extend_map(other, triangle, i) for triangle in other for i in range(3)] if p is not None]
+		if as_Encoding:
+			return Permutation_Encoding(permutation, self)
 		else:
-			return [p for p in [extend_map(other, triangle, i) for triangle in other for i in range(3)] if p is not None]
+			return permutation
+	
+	def all_isometries(self, other, as_Encodings=False):
+		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
+		# to the edges of other isometrically.
+		if self.zeta != other.zeta: return []
+		
+		return [p for p in [self.extend_isometry(other, self.triangles[0], triangle, i, as_Encodings) for triangle in other for i in range(3)] if p is not None]
 	
 	def puncture_trigons(self, vector):
 		new_labels = [list(triangle.edge_indices) for triangle in self.triangles]
@@ -287,6 +311,8 @@ class Abstract_Triangulation:
 		if b < a: a, b = b, a
 		if d < c: c, d = d, c
 		
+		# replacement is a map sending 0,...,self.zeta to 0,...,self.zeta-3. It skips mapping edge_index anywhere
+		# and maps b to where a is sent and d to where c is sent.
 		replacement = dict(zip([i for i in range(self.zeta) if i not in [edge_index, b, d]], range(self.zeta)))
 		replacement[b] = replacement[a]
 		replacement[d] = replacement[c]
@@ -295,50 +321,83 @@ class Abstract_Triangulation:
 		new_vector = [[vector[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(self.zeta - 3)]
 		return Abstract_Triangulation(new_labels), new_vector
 	
-	def splitting_sequence(self, vector):
-		# We assume that vector is a list of algebraic numbers. 
+	def splitting_sequence(self, lamination):
+		# We assume that lamination is a list of algebraic numbers. 
 		# We continually use Symbolic_Computation.simplify() just to be safe.
 		# This assumes that the edges are labelled 0, ..., self.zeta-1, this is a very sane labelling system.
-		# In fact this algorithm currently assumes that vector is the stable lamination.
+		# In fact this algorithm currently assumes that lamination is the stable lamination.
 		
-		# At the end len(working_copy.corner_classes) - len(self.corner_classes) will be the number of singularities of vector.
+		# At the end len(working_copy.corner_classes) - len(self.corner_classes) will be the number of singularities of lamination.
+		
+		# We use this function to hash the number down. It MUST be invariant under isometries of the triangulation.
+		# We take the coefficients of the minimal polynomial of each entry and sort them.
+		def key_vector(vector):
+			return tuple(sorted(([tuple(v.minpoly().coefficients()) for v in projectivise_vector(vector)])))
+			# return tuple(sorted(([round(float(v), 4) for v in projectivise_vector(vector_copy)])))
 		
 		def projectivise_vector(vector):
 			s = simplify(sum(vector))
 			return tuple([simplify(v / s) for v in vector])
 		
 		# Check if vector is obviously reducible.
-		if any(v == 0 for v in vector):
+		if any(v == 0 for v in lamination):
 			return [], [], 1
 		
-		working_copy, vector_copy = self.puncture_trigons(vector)
+		# Puncture out all trigon regions.
+		working_copy, lamination_copy = self.puncture_trigons(lamination)
 		flipped = []
-		seen_vectors = [(0, list(vector_copy), projectivise_vector(vector_copy), working_copy)]
+		seen = {key_vector(lamination_copy):[[0, list(lamination_copy), projectivise_vector(lamination_copy), working_copy]]}
 		while True:
-			i = max(range(working_copy.zeta), key=lambda i: vector_copy[i])  # Find the index of the largest entry
+			i = max(range(working_copy.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
 			a, b, c, d = working_copy.find_indicies_of_square_about_edge(i)  # Get the square about it.
 			working_copy = working_copy.flip_edge(i)  # Flip the square.
-			vector_copy[i] = simplify(max(vector_copy[a] + vector_copy[c], vector_copy[b] + vector_copy[d]) - vector_copy[i])  # Update the weights.
-			if vector_copy[i] == 0:  
-				# Assumes pA.
-				working_copy, vector_copy = working_copy.collapse_trivial_weight(vector_copy, i)
+			lamination_copy[i] = simplify(max(lamination_copy[a] + lamination_copy[c], lamination_copy[b] + lamination_copy[d]) - lamination_copy[i])  # Update the weights.
+			if lamination_copy[i] == 0:  
+				# Currently assumes pA.
+				working_copy, lamination_copy = working_copy.collapse_trivial_weight(lamination_copy, i)
+				# This is where we should detect that our map is reducible.
 				# If (some property of the graph is not met): raise AbortError.
 				# This is one such property but there should be more subtle ones.
 				if working_copy.zeta < self.zeta:
 					return [], [], 1
 			flipped.append(i)
-			projective_vector = projectivise_vector(vector_copy)
-			print(i, '| ' + ', '.join('%0.4f' % v for v in projective_vector))
-			for index, old_vector, old_projective_vector, old_triangulation in seen_vectors:
-				for isometry in working_copy.find_isometries(old_triangulation):
-					permuted_old_projective_vector = tuple([old_projective_vector[isometry[i]] for i in range(working_copy.zeta)])
-					if projective_vector == permuted_old_projective_vector:
-						return flipped[:index], flipped[index:], simplify(old_vector[isometry[0]] / vector_copy[0])
+			
+			projective_lamination = projectivise_vector(lamination_copy)
+			# print(i, '| ' + ', '.join('%0.4f' % v for v in projective_lamination))
+			if len(flipped) % 20 == 0: print(flipped[-20:])
+			
+			target = key_vector(lamination_copy)
+			if target in seen:
+				for index, old_lamination, old_triangulation in seen[target]:
+					old_projective_vector = projectivise_vector(old_lamination)
+					for isometry in working_copy.all_isometries(old_triangulation):
+						permuted_old_projective_vector = tuple([old_projective_vector[isometry[i]] for i in range(working_copy.zeta)])
+						if projective_lamination == permuted_old_projective_vector:
+							return flipped[:index], flipped[index:], simplify(old_lamination[isometry[0]] / lamination_copy[0])
+				seen[target].append([len(flipped), list(lamination_copy), working_copy])
 			else:
-				seen_vectors.append((len(seen_vectors), list(vector_copy), projectivise_vector(vector_copy), working_copy))
+				seen[target] = [[len(flipped), list(lamination_copy), working_copy]]
 
 if __name__ == '__main__':
 	import sys
+	
+	# This is a 36--gon with one vertex at the centre and opposite sides identified.
+	# T = Abstract_Triangulation([[18, 19, 0], [20, 1, 19], [21, 2, 20], [21, 22, 3], [22, 23, 4], [24, 5, 23], [25, 6, 24], [25, 26, 7], [27, 8, 26], [27, 28, 9], [28, 29, 10], [30, 11, 29], 
+	# [31, 12, 30], [31, 32, 13], [32, 33, 14], [34, 15, 33], [35, 16, 34], [35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41],
+	# [43, 6, 42], [43, 44, 7], [44, 45, 8], [46, 9, 45], [47, 10, 46], [47, 48, 11], [48, 49, 12], [50, 13, 49], [51, 14, 50], [51, 52, 15], [52, 53, 16], [18, 17,53]])
+	# a = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+	# A = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
+	# b = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
+	# B = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
+	
+	# p = T.all_isometries(T, as_Encodings=True)[1]  # This is a click of some sort.
+	# print('Start')
+	# h = (a*B*B*a*p)**3
+	# print('Lamination')
+	# V, dilatation = h.stable_lamination(exact=True)
+	# print('Splitting')
+	# x, y, z = T.splitting_sequence(V)
+	# print(len(x), len(y), compute_powers(dilatation, z))
 	
 	# This a 12--gon with one vertex at the centre and opposite sides identified.
 	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
@@ -348,10 +407,13 @@ if __name__ == '__main__':
 	b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 	B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
 	
-	p = T.find_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
+	p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
 	
+	print('Start')
 	h = (b*A*A*b*p)**6
+	print('Lamination')
 	V, dilatation = h.stable_lamination(exact=True)
+	print('Splitting')
 	x, y, z = T.splitting_sequence(V)
 	print(len(x), len(y), compute_powers(dilatation, z))
 	# exit(1)
@@ -367,11 +429,16 @@ if __name__ == '__main__':
 	b = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 	B = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
 	
-	p = T.find_isometries(T, as_Encodings=True)[1]  # This is a click of some sort.
-	h = (a*B*B*a*p)**12
+	p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/24 click of a 24--gon.
+	print('Start')
+	h = (a*B*B*a*p)**3
+	print('Lamination')
 	V, dilatation = h.stable_lamination(exact=True)
+	print('Splitting')
 	x, y, z = T.splitting_sequence(V)
-	print(k, len(x), len(y), compute_powers(dilatation, z))
+	print(len(x), len(y), compute_powers(dilatation, z))
+	
+	
 	
 	
 	

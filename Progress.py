@@ -5,13 +5,12 @@ except ImportError: # Python 3
 	import tkinter as TK
 from Error import AbortError
 
-'''Michael Lange <klappnase (at) freakmail (dot) de>
-The Meter class provides a simple progress bar widget for TK.
+''' A simple progress bar widget for TK.
 
 INITIALIZATION OPTIONS:
 The widget accepts all options of a TK.Frame plus the following:
 
-    fillcolour -- the color that is used to indicate the progress of the
+    fillcolour -- the colour that is used to indicate the progress of the
                  corresponding process; default is "orchid1".
     value -- a float value between 0.0 and 1.0 (corresponding to 0% - 100%)
              that represents the current status of the process; values higher
@@ -20,7 +19,7 @@ The widget accepts all options of a TK.Frame plus the following:
             displays its value as percentage; if you don't want any text, use text="";
             default is None.
     font -- the font to use for the widget's text; the default is system specific.
-    textcolour -- the color to use for the widget's text; default is "black".
+    textcolour -- the colour to use for the widget's text; default is "black".
 
 WIDGET METHODS:
 All methods of a TK.Frame can be used; additionally there are two widget specific methods:

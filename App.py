@@ -7,6 +7,7 @@
 from math import sin, cos, pi
 from itertools import combinations
 from time import time
+import pickle
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -60,29 +61,13 @@ class App:
 		
 		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
 		self.frame_interface.grid(column=1, sticky='nse')
-		###
 		
-		self.frame_mode = TK.Frame(self.frame_interface, pady=2)
-		self.frame_mode.pack(padx=1, pady=1, side='top', fill='x')
 		###
-		###
-		self.label_tools = TK.Label(self.frame_mode, text='Tools:', anchor='w', font=self.options.custom_font)
-		self.radio_mode_triangulation = TK.Radiobutton(self.frame_mode, text="Triangulation", variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE), indicatoron=False, font=self.options.custom_font)
-		self.radio_mode_gluing = TK.Radiobutton(self.frame_mode, text="Gluing", variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE), indicatoron=False, font=self.options.custom_font)
-		self.radio_mode_curve = TK.Radiobutton(self.frame_mode, text="Curve", variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE), indicatoron=False, font=self.options.custom_font)
-		self.label_tools.pack(fill='x') 
-		self.radio_mode_triangulation.pack(fill='x', expand=True)
-		self.radio_mode_gluing.pack(fill='x', expand=True)
-		self.radio_mode_curve.pack(fill='x', expand=True)
-		###
-		###
-		
 		self.label_mapping_classes = TK.Label(self.frame_interface, text='Mapping Classes:', anchor='w', font=self.options.custom_font)
 		self.label_mapping_classes.pack(fill='x')
 		
 		self.list_mapping_classes = TK.Listbox(self.frame_interface, font=self.options.custom_font)
 		self.list_mapping_classes.pack(fill='both', expand=True)
-		
 		###
 		
 		self.frame_command = TK.Frame(self.parent)
@@ -104,11 +89,38 @@ class App:
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
-		self.list_mapping_classes.bind("<Button-1>", self.list_left_click)
-		self.list_mapping_classes.bind("<Button-3>", self.list_right_click)
+		self.list_mapping_classes.bind('<Button-1>', self.list_left_click)
+		self.list_mapping_classes.bind('<Button-3>', self.list_right_click)
 		self.list_mapping_classes.bind('<Shift-Button-1>', self.list_shift_click)
 		
 		###
+		
+		# Create the menus.
+		menubar = TK.Menu(self.parent)
+		
+		filemenu = TK.Menu(menubar, tearoff=0)
+		filemenu.add_command(label='New', command=self.initialise)
+		filemenu.add_command(label='Open', command=lambda : self.load())
+		filemenu.add_command(label='Save', command=lambda : self.save())
+		filemenu.add_separator()
+		filemenu.add_command(label='Exit', command=self.parent.quit)
+		
+		toolmenu = TK.Menu(menubar, tearoff=0)
+		toolmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE))
+		toolmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE))
+		toolmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE))
+		
+		helpmenu = TK.Menu(menubar, tearoff=0)
+		helpmenu.add_command(label='Help')  # !?!
+		filemenu.add_separator()
+		helpmenu.add_command(label='About', command=self.show_about)
+		
+		menubar.add_cascade(label='File', menu=filemenu)
+		menubar.add_cascade(label='Tools', menu=toolmenu)
+		menubar.add_command(label='Options', command=self.show_options)
+		menubar.add_cascade(label='Help', menu=helpmenu)
+		self.parent.config(menu=menubar)
+		
 		parent.bind('<Key>', self.parent_key_press)
 		
 		self.parent.columnconfigure(0, weight=1)
@@ -122,9 +134,11 @@ class App:
 		self.vertices = []
 		self.edges = []
 		self.triangles = []
+		self.abstract_triangulation = None
 		self.curve_components = []
 		self.mapping_classes = {}
 		self.selected_object = None
+		self.list_mapping_classes.delete(0, TK.END)
 		
 		self.build_complete_structure()
 		
@@ -136,14 +150,71 @@ class App:
 		
 		self.entry_command.focus()
 	
-	def save(self, path):
-		pass
+	def save(self, path=''):
+		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
+		if path is None: return
+		try:
+			spec = 'A Flipper file.'
+			vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
+			edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
+			abstract_triangulation = self.abstract_triangulation
+			curves = self.curves
+			mapping_classes = self.mapping_classes
+			list_names = self.list_mapping_classes.get(0, TK.END)
+			
+			pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names], open(path, 'wb'))
+		except IOError:
+			tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
-	def load(self, path):
-		pass
+	def load(self, path=''):
+		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+		if path is None: return
+		
+		try:
+			spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names = pickle.load(open(path, 'rb'))
+			# Might throw value error.
+			# !?! Add more error checking.
+			assert(spec == 'A Flipper file.')
+			
+			self.initialise()
+			for vertex in vertices:
+				self.create_vertex(vertex)
+			
+			for edge in edges:
+				start_index, end_index, glued_to_index = edge
+				self.create_edge(self.vertices[start_index], self.vertices[end_index])
+			
+			for index, edge in enumerate(edges):
+				start_index, end_index, glued_to_index = edge
+				if glued_to_index > index:
+					self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
+			
+			self.abstract_triangulation = abstract_triangulation
+			
+			self.curves = curves
+			self.mapping_classes = mapping_classes
+			
+			for name in list_names:
+				self.list_mapping_classes.insert(TK.END, name)
+			
+			if self.is_complete():
+				self.vector_to_curve(self.curves['_'])
+				self.set_mode(CURVE_MODE)
+			
+		except IOError:
+			tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
 	def export_image(self, path):
-		self.canvas.postscript(file=path, colormode='color')
+		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
+		if path is None: return
+		
+		try:
+			self.canvas.postscript(file=path, colormode='color')
+		except IOError:
+			tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
+	
+	def show_about(self):
+		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
 	
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
@@ -162,6 +233,8 @@ class App:
 				self.set_mode(GLUING_MODE)
 			else:
 				self.mode_variable.set(mode)
+		else:
+			raise ValueError()
 	
 	def command_return(self, event):
 		command = self.entry_command.get()
@@ -170,41 +243,46 @@ class App:
 			self.history_position = len(self.command_history) - 1
 			
 			sections = command.split(' ')
+			task, arguements = sections[0], sections[1:]
+			combined = ' '.join(arguements)
 			try:
-				if sections[0] == 'clear': self.initialise()
-				elif sections[0] == 'erase': self.destroy_curve()
-				elif sections[0] == 'options': self.show_options()
-				elif sections[0] == 'debug': self.debug()
-				elif sections[0] == 'profile': self.profile()
-				elif sections[0] == 'stats': self.stats()
-				elif sections[0] == 'exit': self.parent.quit()
+				if task == 'clear': self.initialise()
+				elif task == 'erase': self.destroy_curve()
+				elif task == 'options': self.show_options()
+				elif task == 'debug': self.debug()
+				elif task == 'profile': self.profile()
+				elif task == 'stats': self.stats()
+				elif task == 'exit': self.parent.quit()
 				
-				elif sections[0] == 'ngon': self.initialise_circular_n_gon(sections[1])
-				elif sections[0] == 'rngon': self.initialise_radial_n_gon(sections[1])
+				elif task == 'ngon': self.initialise_circular_n_gon(combined)
+				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				
-				elif sections[0] == 'tighten': self.tighten_curve()
-				elif sections[0] == 'show': self.show_composition(sections[1])
-				elif sections[0] == 'render': self.show_render(sections[1])
-				elif sections[0] == 'vectorise': self.vectorise()
+				elif task == 'tighten': self.tighten_curve()
+				elif task == 'show': self.show_composition(combined)
+				elif task == 'render': self.show_render(combined)
+				elif task == 'vectorise': self.vectorise()
 				
-				elif sections[0] == 'twist': self.store_curve(sections[1])
-				elif sections[0] == 'isometry': self.store_isometry(sections[1], sections[2], sections[3])
-				elif sections[0] == 'apply': self.show_apply(sections[1])
-				elif sections[0] == 'applied': self.show_applied(sections[1])
+				elif task == 'twist': self.store_curve(combined)
+				elif task == 'isometry': self.store_isometry(combined)
+				elif task == 'apply': self.show_apply(combined)
+				elif task == 'applied': self.show_applied(combined)
 				
-				elif sections[0] == 'order': self.order(sections[1])
-				elif sections[0] == 'periodic': self.is_periodic(sections[1])
-				elif sections[0] == 'reducible': self.is_reducible(sections[1])
-				elif sections[0] == 'pA': self.is_pseudo_Anosov(sections[1])
-				elif sections[0] == 'lamination': print(self.stable_lamination(sections[1]))
-				elif sections[0] == 'lamination_exact': print(self.stable_lamination(sections[1], exact=True))
+				elif task == 'order': self.order(combined)
+				elif task == 'periodic': self.is_periodic(combined)
+				elif task == 'reducible': self.is_reducible(combined)
+				elif task == 'pA': self.is_pseudo_Anosov(combined)
+				elif task == 'lamination': print(self.stable_lamination(combined))
+				elif task == 'lamination_exact': print(self.stable_lamination(combined, exact=True))
 				
-				elif sections[0] == 'split': self.splitting_sequence(sections[1])
+				elif task == 'split': self.splitting_sequence(combined)
 				
-				elif sections[0] == 'save': self.save(sections[1])
-				elif sections[0] == 'load': self.load(sections[1])
-				elif sections[0] == 'export': self.export_image(sections[1])
-				# elif sections[0] == '':
+				elif task == 'save': self.save(combined)
+				elif task == 'load': self.load(combined)
+				elif task == 'open': self.load(combined)
+				elif task == 'export': self.export_image(combined)
+				elif task == 'about': self.show_about()
+				
+				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
 				self.entry_command.delete(0, TK.END)
@@ -384,7 +462,7 @@ class App:
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
-			# self.store_isometry('%d,%d,%d' % (0,n+1,n), '%d,%d,%d' % (1,n+2,n+1), 'p')  # !?! Add in a 1/n rotation by default.
+			# self.store_isometry('p %d,%d,%d %d,%d,%d' % (0,n+1,n,1,n+2,n+1))  # !?! Add in a 1/n rotation by default.
 			self.set_mode(CURVE_MODE)
 		else:
 			self.set_mode(GLUING_MODE)
@@ -473,9 +551,9 @@ class App:
 		self.list_mapping_classes.delete(0, TK.END)
 	
 	def build_complete_structure(self):
-		if self.is_complete():
+		if self.is_complete() and self.abstract_triangulation is None:
 			self.create_abstract_triangulation()
-		else:
+		elif not self.is_complete() and self.abstract_triangulation is not None:
 			self.destroy_abstract_triangulation()
 	
 	
@@ -612,7 +690,9 @@ class App:
 	def show_apply(self, composition):
 		self.show_composition(composition + '._')
 	
-	def store_isometry(self, name, from_edges, to_edges):
+	def store_isometry(self, specification):
+		name, from_edges, to_edges = specification.split(' ')[:3]
+		
 		from_edges = [int(x) for x in from_edges.split(',')]
 		to_edges = [int(x) for x in to_edges.split(',')]
 		

@@ -38,6 +38,8 @@ class Options:
 		self.default_curve_label_colour = 'black'
 		
 		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
+		
+		self.version = '0.1.0'
 
 
 class Options_App:

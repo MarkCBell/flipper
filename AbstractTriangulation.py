@@ -373,7 +373,7 @@ class Abstract_Triangulation:
 					for isometry in working_copy.all_isometries(old_triangulation):
 						permuted_old_projective_vector = tuple([old_projective_vector[isometry[i]] for i in range(working_copy.zeta)])
 						if projective_lamination == permuted_old_projective_vector:
-							return flipped[:index], flipped[index:], simplify(old_lamination[isometry[0]] / lamination_copy[0])
+							return flipped[:index], flipped[index:], simplify(old_lamination[isometry[0]] / lamination_copy[0]), isometry
 				seen[target].append([len(flipped), list(lamination_copy), working_copy])
 			else:
 				seen[target] = [[len(flipped), list(lamination_copy), working_copy]]

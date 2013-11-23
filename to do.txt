@@ -2,6 +2,7 @@ sum
 handle commands better
 better curve to vector code
 handle bigons
+half twists
 fat train tracks
 algebraic intersection number
 translate, zoom, autoscale

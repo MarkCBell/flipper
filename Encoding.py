@@ -5,8 +5,7 @@ from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegat
 from Error import AbortError
 from Symbolic_Computation import compute_eigen
 
-# These represent the piecewise-linear maps between the coordinates systems 
-# of various abstract triangulations.
+# These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 def Id_Encoding(triangulation):
 	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)

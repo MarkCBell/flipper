@@ -216,6 +216,13 @@ class App:
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
 	
+	def translate(self, dx, dy):
+		for vertex in self.vertices:
+			vertex.x += dx
+			vertex.y += dy
+		
+		self.canvas.move('all', dx, dy)
+	
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
 	

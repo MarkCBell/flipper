@@ -87,6 +87,7 @@ class App:
 		self.canvas = TK.Canvas(self.frame_draw, width=500, height=500, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
+		self.canvas.bind('<Double-Button-1>', self.canvas_double_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
 		self.list_mapping_classes.bind('<Button-1>', self.list_left_click)
@@ -112,7 +113,7 @@ class App:
 		
 		helpmenu = TK.Menu(menubar, tearoff=0)
 		helpmenu.add_command(label='Help')  # !?!
-		filemenu.add_separator()
+		helpmenu.add_separator()
 		helpmenu.add_command(label='About', command=self.show_about)
 		
 		menubar.add_cascade(label='File', menu=filemenu)
@@ -434,7 +435,6 @@ class App:
 		for i in range(len(curve_component.vertices)):
 			curve_component.pop_point()
 		self.curve_components.remove(curve_component)
-		self.redraw()
 	
 	def destroy_curve(self):
 		while self.curve_components != []:
@@ -908,6 +908,9 @@ class App:
 				self.selected_object.pop_point()
 			self.select_object(None)
 	
+	def canvas_double_click(self, event):
+		self.canvas_right_click(event)
+	
 	def parent_key_press(self, event):
 		key = event.keysym
 		if key in ('Delete','BackSpace'):
@@ -918,6 +921,20 @@ class App:
 				elif isinstance(self.selected_object, Edge):
 					self.destroy_edge(self.selected_object)
 					self.select_object(None)
+			if self.mode_variable.get() == GLUING_MODE:
+				pass
+			if self.mode_variable.get() == CURVE_MODE:
+				if self.selected_object is not None:
+					if len(self.selected_object.vertices) > 2:
+						(x,y) = self.selected_object.vertices[-1]
+						self.selected_object.pop_point()
+						self.selected_object.pop_point()
+						self.selected_object.append_point((x,y))
+						self.set_current_curve()
+					else:
+						self.destroy_curve_component(self.selected_object)
+						self.select_object(None)
+						self.set_current_curve()
 		elif key == 'Up':
 			if self.history_position > 0:
 				self.history_position -= 1

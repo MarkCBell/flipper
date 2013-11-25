@@ -6,7 +6,7 @@ from itertools import product, combinations
 from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative, nontrivial, nonnegative_image
 from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence, Permutation_Encoding
 from Symbolic_Computation import simplify, compute_powers
-from Error import AbortError
+from Error import AbortError, ComputationError
 from time import time
 from random import choice
 try:
@@ -26,32 +26,53 @@ def tweak_vector(v, add, subtract):
 	for i in subtract: v[i] -= 1
 	return v
 
+class Isometry:
+	def __init__(self, source_triangulation, target_triangulation, triangle_map):
+		# source_triangulation and target_triangulation are two Abstract_Triangulations
+		# triangle_map is a dictionary sending each Abstract_Triangle of source_triangulation to a pair
+		# (Abstract_Triangle, cycle).
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
+		self.triangle_map = triangle_map
+		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0][i+self.triangle_map[triangle][1]]) for triangle in self.source_triangulation for i in range(3)])
+		# Check that the thing that we've built is actually a permutation.
+		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)): self = None
+	def __repr__(self):
+		return str(self.triangle_map)
+	def __getitem__(self, index):
+		return self.triangle_map[index]
+	def encoding(self):
+		return Permutation_Encoding(self.edge_map, self.source_triangulation)
+
 class Abstract_Triangle:
-	__slots__ = ['index', 'edge_indices']  # !?! Force minimal RAM usage?
+	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
 	
-	def __init__(self, index=None):
+	def __init__(self, index=None, edge_indices=None, corner_labels=None):
 		# Edges are ordered anti-clockwise.
 		self.index = index
-		self.edge_indices = [-1, -1, -1]
+		self.edge_indices = list(edge_indices) if edge_indices is not None else [-1, -1, -1]
+		self.corner_labels = list(corner_labels) if corner_labels is not None else [None, None, None]
+	
+	def __iter__(self):
+		return iter(self.edge_indices)
 	
 	def __repr__(self):
-		return '%s: %s' % (self.index, self.edge_indices)
+		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
 	
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]
 
 class Abstract_Triangulation:
-	def __init__(self, all_edge_indices):
+	def __init__(self, all_edge_indices, all_corner_labels=None):
 		self.num_triangles = len(all_edge_indices)
 		self.zeta = self.num_triangles * 3 // 2
 		
+		# We should assert a load of stuff here first. !?!
 		# Convention: Flattening all_edge_indices must give the list 0,...,self.zeta-1 with each number appearing exactly twice.
 		assert(sorted([x for edge_indices in all_edge_indices for x in edge_indices]) == sorted(list(range(self.zeta)) + list(range(self.zeta))))
-		self.triangles = [Abstract_Triangle(i) for i in range(len(all_edge_indices))]
 		
-		# We should assert a load of stuff here first. !?!
-		for triangle, edge_indices in zip(self.triangles, all_edge_indices):
-			triangle.edge_indices = list(edge_indices)
+		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
+		self.triangles = [Abstract_Triangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
 		
 		# Now build all the equivalence classes of corners.
 		corners = set(product(self.triangles, range(3)))
@@ -59,16 +80,13 @@ class Abstract_Triangulation:
 		while len(corners) > 0:
 			new_corner_class = [corners.pop()]
 			while True:
-				current_corner = new_corner_class[-1]
-				adjacent_corner = (current_corner[0], (current_corner[1]+1)%3)
-				containing = self.find_edge(adjacent_corner[0][adjacent_corner[1]])
-				opposite_corner = containing[0] if containing[0] != adjacent_corner else containing[1]
-				next_corner = (opposite_corner[0], (opposite_corner[1]+1)%3)
+				next_corner = self.find_adjacent(*new_corner_class[-1])
 				if next_corner in corners: 
 					new_corner_class.append(next_corner)
 					corners.remove(next_corner)
 				else:
 					break
+			
 			self.corner_classes.append(new_corner_class)
 		
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
@@ -106,7 +124,7 @@ class Abstract_Triangulation:
 		
 		for vertex in self.corner_classes:
 			for triangle, side in vertex:
-				weights = [vector[index] for index in triangle.edge_indices]
+				weights = [vector[index] for index in triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
 				for i in range(3):
 					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
@@ -120,10 +138,6 @@ class Abstract_Triangulation:
 		
 		return nonnegative_image(self.face_matrix(), vector) and any(nonnegative_image(M, vector) for M in self.marking_matrices())
 	
-	def vector_to_path(self, vector):
-		# !?!
-		pass
-	
 	def geometric_to_algebraic(self, vector):
 		# Converts a vector of geometric intersection numbers to a vector of algebraic intersection numbers.
 		# !?! TO DO.
@@ -133,13 +147,22 @@ class Abstract_Triangulation:
 		return [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]
 	
 	def find_neighbour(self, triangle, side):
+		# Returns the (triangle, side) opposite to this one.
 		containing = self.find_edge(triangle[side])
 		return containing[0] if containing[0] != (triangle, side) else containing[1]
+	
+	def find_adjacent(self, triangle, side):
+		# Returns the (triangle, side) one click anti-clockwise around this vertex from this one.
+		opposite_corner = self.find_neighbour(triangle,(side+1)%3)
+		return (opposite_corner[0], (opposite_corner[1]+1)%3)
 	
 	def edge_is_flippable(self, edge_index):
 		# An edge is flippable iff it lies in two distinct triangles.
 		containing_triangles = self.find_edge(edge_index)
 		return containing_triangles[0][0] != containing_triangles[1][0]
+	
+	def find_triangle(self, edge_indices):
+		return [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)][0]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
 		assert(self.edge_is_flippable(edge_index))
@@ -156,7 +179,7 @@ class Abstract_Triangulation:
 		assert(self.edge_is_flippable(edge_index))
 		
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		new_edge_indices = [list(triangle.edge_indices) for triangle in self.triangles if edge_index not in triangle.edge_indices] + [[edge_index, d, a], [edge_index, b, c]]
+		new_edge_indices = [list(triangle.edge_indices) for triangle in self.triangles if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
 		return Abstract_Triangulation(new_edge_indices)
 	
 	def flip_effect(self, edge_index, vector):
@@ -259,51 +282,71 @@ class Abstract_Triangulation:
 	
 	def extend_isometry(self, other, source_triangle, target_triangle, cycle, as_Encoding=False):
 		if self.zeta != other.zeta: return None
-		permutation = [-1] * self.zeta
-		
-		def safe_assign(perm, i, j):
-			if perm[i] != -1 and perm[i] != j: return False
-			perm[i] = j
-			return True
+		permutation = {}
 		
 		triangles_to_process = Queue()
-		triangles_to_process.put((source_triangle, target_triangle, cycle))  # We start by assuming that the source_triangle gets mapped to t via the permutation (k,k+1,k+2).
+		# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
+		triangles_to_process.put((source_triangle, target_triangle, cycle))
 		seen_triangles = set([source_triangle])
+		permutation[source_triangle] = (target_triangle, cycle)
 		while not triangles_to_process.empty():
 			from_triangle, to_triangle, cycle = triangles_to_process.get()
 			for side in range(3):
-				if not safe_assign(permutation, from_triangle[side], to_triangle[side+cycle]): return None
+				permutation[from_triangle] = (to_triangle, cycle)
 				from_triangle_neighbour, from_neighbour_side = self.find_neighbour(from_triangle, side)
 				to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle)%3)
 				if from_triangle_neighbour not in seen_triangles:
 					triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
 					seen_triangles.add(from_triangle_neighbour)
 		
+		d = dict([(triangle[i], permutation[triangle][0][i+permutation[triangle][1]]) for triangle in self for i in range(3)])
+		# Check that the thing that we've built is actually a permutation.
+		if any(d[i] == d[j] for i, j in combinations(range(self.zeta), 2)): return None
+		
 		if as_Encoding:
-			return Permutation_Encoding(permutation, self)
+			return Isometry(self, other, permutation).encoding()
 		else:
-			return permutation
+			return Isometry(self, other, permutation)
 	
 	def all_isometries(self, other, as_Encodings=False):
 		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
-		# to the edges of other isometrically.
+		# to the edges of other by an orientation preserving isometry.
 		if self.zeta != other.zeta: return []
 		
-		return [p for p in [self.extend_isometry(other, self.triangles[0], triangle, i, as_Encodings) for triangle in other for i in range(3)] if p is not None]
+		isometries = []
+		for triangle in other:
+			for i in range(3):
+				isometry = self.extend_isometry(other, self.triangles[0], triangle, i, as_Encodings)
+				if isometry is not None:
+						isometries.append(isometry)
+		
+		return isometries
 	
 	def puncture_trigons(self, vector):
-		new_labels = [list(triangle.edge_indices) for triangle in self.triangles]
+		# We label real punctures with a 0 and fake ones created by this process with a 1.
+		new_labels = []
+		new_corner_labels = []
 		new_vector = list(vector)
 		zeta = self.zeta
 		for triangle in self.triangles:
 			a, b, c = triangle.edge_indices
 			if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
 				x, y, z = zeta, zeta+1, zeta+2
-				new_labels.extend([[a,z,y], [b,x,z], [c,y,x]])
-				new_labels.remove([a,b,c])
-				new_vector.extend([(new_vector[b] + new_vector[c] - new_vector[a]) / 2, (new_vector[c] + new_vector[a] - new_vector[b]) / 2, (new_vector[a] + new_vector[b] - new_vector[c]) / 2])
+				new_labels.append([a,z,y])
+				new_labels.append([b,x,z])
+				new_labels.append([c,y,x])
+				new_corner_labels.append([1,0,0])
+				new_corner_labels.append([1,0,0])
+				new_corner_labels.append([1,0,0])
+				new_vector.append((new_vector[b] + new_vector[c] - new_vector[a]) / 2)
+				new_vector.append((new_vector[c] + new_vector[a] - new_vector[b]) / 2)
+				new_vector.append((new_vector[a] + new_vector[b] - new_vector[c]) / 2)
 				zeta = zeta + 3
-		return Abstract_Triangulation(new_labels), new_vector
+			else:
+				new_labels.append([a,b,c])
+				new_corner_labels.append([0,0,0])
+		
+		return Abstract_Triangulation(new_labels, new_corner_labels), new_vector
 	
 	def collapse_trivial_weight(self, vector, edge_index):
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
@@ -317,7 +360,7 @@ class Abstract_Triangulation:
 		replacement[b] = replacement[a]
 		replacement[d] = replacement[c]
 		
-		new_labels = [[replacement[i] for i in triangle.edge_indices] for triangle in self if edge_index not in triangle.edge_indices]
+		new_labels = [[replacement[i] for i in triangle] for triangle in self if edge_index not in triangle]
 		new_vector = [[vector[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(self.zeta - 3)]
 		return Abstract_Triangulation(new_labels), new_vector
 	
@@ -341,7 +384,7 @@ class Abstract_Triangulation:
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in lamination):
-			return [], [], 1
+			return [], [], 1, {}
 		
 		# Puncture out all trigon regions.
 		working_copy, lamination_copy = self.puncture_trigons(lamination)
@@ -356,10 +399,10 @@ class Abstract_Triangulation:
 				# Currently assumes pA.
 				working_copy, lamination_copy = working_copy.collapse_trivial_weight(lamination_copy, i)
 				# This is where we should detect that our map is reducible.
-				# If (some property of the graph is not met): raise AbortError.
+				# If (some property of the graph is not met): raise ComputationError.
 				# This is one such property but there should be more subtle ones.
 				if working_copy.zeta < self.zeta:
-					return [], [], 1
+					return [], [], 1, {}
 			flipped.append(i)
 			
 			projective_lamination = projectivise_vector(lamination_copy)
@@ -371,12 +414,23 @@ class Abstract_Triangulation:
 				for index, old_lamination, old_triangulation in seen[target]:
 					old_projective_vector = projectivise_vector(old_lamination)
 					for isometry in working_copy.all_isometries(old_triangulation):
-						permuted_old_projective_vector = tuple([old_projective_vector[isometry[i]] for i in range(working_copy.zeta)])
+						isometry_permutation = isometry.edge_map
+						permuted_old_projective_vector = tuple([old_projective_vector[isometry_permutation[i]] for i in range(working_copy.zeta)])
 						if projective_lamination == permuted_old_projective_vector:
-							return flipped[:index], flipped[index:], simplify(old_lamination[isometry[0]] / lamination_copy[0]), isometry
+							return flipped[:index], flipped[index:], simplify(old_lamination[isometry_permutation[0]] / lamination_copy[0]), isometry
 				seen[target].append([len(flipped), list(lamination_copy), working_copy])
 			else:
 				seen[target] = [[len(flipped), list(lamination_copy), working_copy]]
+	
+	def splitting_sequence_to_encoding(self, sequence):
+		
+		encoding = Id_Encoding_Sequence(self)
+		
+		for edge_index in sequence:
+			forwards, backwards = encoding.target_triangulation.encode_flip()
+			encoding = forwards * encoding
+		
+		return encoding
 
 if __name__ == '__main__':
 	import sys
@@ -396,8 +450,8 @@ if __name__ == '__main__':
 	# print('Lamination')
 	# V, dilatation = h.stable_lamination(exact=True)
 	# print('Splitting')
-	# x, y, z = T.splitting_sequence(V)
-	# print(len(x), len(y), compute_powers(dilatation, z))
+	# x, y, z, w = T.splitting_sequence(V)
+	# print(len(x), len(y), compute_powers(dilatation, z), w)
 	
 	# This a 12--gon with one vertex at the centre and opposite sides identified.
 	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
@@ -414,8 +468,8 @@ if __name__ == '__main__':
 	print('Lamination')
 	V, dilatation = h.stable_lamination(exact=True)
 	print('Splitting')
-	x, y, z = T.splitting_sequence(V)
-	print(len(x), len(y), compute_powers(dilatation, z))
+	x, y, z, w = T.splitting_sequence(V)
+	print(len(x), len(y), compute_powers(dilatation, z), w)
 	# exit(1)
 	
 	# Another n--gon. (n==24)
@@ -435,8 +489,8 @@ if __name__ == '__main__':
 	print('Lamination')
 	V, dilatation = h.stable_lamination(exact=True)
 	print('Splitting')
-	x, y, z = T.splitting_sequence(V)
-	print(len(x), len(y), compute_powers(dilatation, z))
+	x, y, z, w = T.splitting_sequence(V)
+	print(len(x), len(y), compute_powers(dilatation, z), w)
 	
 	
 	
@@ -477,7 +531,7 @@ if __name__ == '__main__':
 		else:
 			t1 = time() - start_time
 			start_time = time()
-			x, y, z = T.splitting_sequence(V)
+			x, y, z, w = T.splitting_sequence(V)
 			t2 = time() - start_time
 			if z > 1:
 				print('Times:', t1, t2)

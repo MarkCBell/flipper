@@ -2,13 +2,15 @@
 #	compute the stable lamination exactly.
 #	compute splitting sequences.
 
-# This module provides two functions which return types storing algebraic numbers.
-#	1) compute_eigen(matrix):
+# This module provides three functions which return types storing algebraic numbers.
+#	1) simplify(x):
+#		Given a type representing an algebraic number this must return that algebraic number in a standard form.
+#	2) Perron_Frobenius_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue.
 #		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
 #		The eigenvalue must be an algebraic number and the eigenvector must be a list of algebraic numbers.
-#	2) simplify(x):
-#		Given a type representing an algebraic number this must return that algebraic number in a standard form.
+#	3) minimal_polynomial_coefficients(number):
+#		Returns the coefficients of the minimal polynomial of an algebraic number as a tuple of integers.
 
 # Notes: 
 #	1) We do not actually care what type is used to represent the algebraic numbers however we require that they implement;
@@ -21,12 +23,12 @@
 
 # We select a library interface here. we first try sage, then sympy and finally just load the dummy library which can't do anything.
 try:
-	from Symbolic_Computation_sage import simplify, compute_eigen, _name # Sage
+	from Symbolic_Computation_sage import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name # Sage
 except ImportError:
 	try:
-		from Symbolic_Computation_sympy import simplify, compute_eigen, _name  # Sympy
+		from Symbolic_Computation_sympy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
 	except ImportError:
-		from Symbolic_Computation_dummy import simplify, compute_eigen, _name  # Dummy
+		from Symbolic_Computation_dummy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

@@ -7,7 +7,7 @@ _name = 'sympy'
 def simplify(x):
 	return x.simplify()
 
-def compute_eigen(matrix):
+def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	M = sympy.Matrix(matrix.rows)
@@ -19,3 +19,6 @@ def compute_eigen(matrix):
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	return [simplify(x) for x in eigenvector], eigenvalue
+
+def minimal_polynomial_coefficients(number):
+	return tuple(sympy.Poly(sympy.minpoly(number)).all_coeffs())

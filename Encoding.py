@@ -3,7 +3,7 @@ from functools import reduce
 from itertools import product, combinations
 from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 from Error import AbortError, ComputationError, AssumptionError
-from Symbolic_Computation import compute_eigen
+from Symbolic_Computation import Perron_Frobenius_eigen
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
@@ -290,7 +290,7 @@ class Encoding_Sequence:
 		# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
 		# quite (very) close to its stable lamination and a (floating point) estimate of the dilatation. 
 		# If one cannot be found this a ComputationError is thrown. If exact is set to True then this uses 
-		# Symbolic_Computation.compute_eigen() to return the exact stable lamination (as a list of
+		# Symbolic_Computation.Perron_Frobenius_eigen() to return the exact stable lamination (as a list of
 		# algebraic numbers) along with the exact dilatation (again as an algebraic number). Again, if a good
 		# enough approximation cannot be found to start the exact calculations with, this is detected and a
 		# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
@@ -316,7 +316,7 @@ class Encoding_Sequence:
 		if exact:
 			action_matrix, condition_matrix = self.applied_matrix(curve)
 			try:
-				eigenvector, eigenvalue = compute_eigen(action_matrix)
+				eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix)
 			except AssumptionError:  # action_matrix was not Perron-Frobenius.
 				raise ComputationError('Could not estimate stable lamination.')
 			if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 

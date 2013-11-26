@@ -1,6 +1,6 @@
 from AbstractTriangulation import Abstract_Triangulation
 from Error import ComputationError, AssumptionError
-from Symbolic_Computation import simplify, compute_powers
+from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
 def puncture_trigons(abstract_triangulation, vector):
 	# We label real punctures with a 0 and fake ones created by this process with a 1.
@@ -29,49 +29,74 @@ def puncture_trigons(abstract_triangulation, vector):
 	return Abstract_Triangulation(new_labels, new_corner_labels), new_vector
 
 def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
-	# Assumes that the given edge does not connect between two real vertices, that is vertices
-	# with label 0. If not an AssumptionError is thrown.
-	
-	# !?! TO DO: Still an error in here when a == d, see 'cbccbaAbbccACaCccAbaacCaccBCca'.
+	# Assumes that abstract_triangulation is not S_{0,3}. Assumes that the given 
+	# edge does not connect between two real vertices, that is vertices with 
+	# label 0. Assumes that edge_index is the only edge of weight 0.
+	# If any of these assumptions are not met an AssumptionError is thrown.
 	
 	assert(lamination[edge_index] == 0)
 	
+	a, b, c, d = abstract_triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
+	
+	# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
+	if a == b or c == d:
+		# This means that lamination[a] (respectively lamination[c] == 0).
+		raise AssumptionError('Additional weightless edges.')
+	
+	# There is at most one duplicated pair.
+	if a == d and b == c:
+		raise AssumptionError('Underlying surface is S_{0,3}.')
+	
+	if a == c and a == d:
+		# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
+		raise AssumptionError('Edge connects between two vertices labelled 0.')
+	
 	# We'll first compute the new corner labels. This way we can check if our assumption is False
 	# early and so save some work.
-	
 	base_triangle, base_side = abstract_triangulation.find_edge(edge_index)[0]
 	corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 	corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
 	if corner_A_label == 0 and corner_B_label == 0:
 		raise AssumptionError('Edge connects between two vertices labelled 0.')
-	elif corner_A_label == 0 and corner_B_label == 1:
-		good_corner_label = corner_A_label
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
-	elif corner_A_label == 1 and corner_B_label == 0:
-		good_corner_label = corner_B_label
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
-	elif corner_A_label == 1 and corner_B_label == 1:
-		good_corner_label = corner_A_label
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
 	
+	# We'll replace the labels on the corner class with higher labels with the label from the lower
+	good_corner_label = min(corner_A_label, corner_B_label)
+	if corner_A_label < corner_B_label:
+		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+	else:
+		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+	
+	# replacement is a map sending the old edge_indices to the new edge indices. We already know what it does on edges far away from edge_index.
+	replacement = dict(zip([i for i in range(abstract_triangulation.zeta) if i not in [edge_index, a, b, c, d]], range(abstract_triangulation.zeta)))
+	zeta = len(replacement)
+	if a == c:
+		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
+		zeta += 1
+	elif a == d:
+		# Must make sure to update the vertex which is not in the interior of the bigon.
+		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+		
+		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
+		zeta += 1
+	elif b == c:
+		# Must make sure to update the vertex which is not in the interior of the bigon.
+		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+		
+		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
+		zeta += 1
+	elif b == d:
+		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
+		zeta += 1
+	else:
+		replacement[a] = replacement[b] = zeta
+		replacement[c] = replacement[d] = zeta + 1
+		zeta += 2
+	
+	new_edge_labels = [[replacement[i] for i in triangle] for triangle in abstract_triangulation if edge_index not in triangle]
+	new_vector = [[lamination[j] for j in range(abstract_triangulation.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
 	new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in abstract_triangulation if edge_index not in triangle]
 	
-	a, b, c, d = abstract_triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
-	
-	# WLOG: a < b and c < d.
-	if b < a: a, b = b, a
-	if d < c: c, d = d, c
-	
-	# replacement is a map sending 0,...,abstract_triangulation.zeta to 0,...,abstract_triangulation.zeta-3. It skips mapping edge_index anywhere
-	# and maps b to where a is sent and d to where c is sent.
-	replacement = dict(zip([i for i in range(abstract_triangulation.zeta) if i not in [edge_index, b, d]], range(abstract_triangulation.zeta)))
-	replacement[b] = replacement[a]
-	replacement[d] = replacement[c]
-	
-	new_labels = [[replacement[i] for i in triangle] for triangle in abstract_triangulation if edge_index not in triangle]
-	new_vector = [[lamination[j] for j in range(abstract_triangulation.zeta) if j != edge_index and replacement[j] == i][0] for i in range(abstract_triangulation.zeta - 3)]
-	
-	return Abstract_Triangulation(new_labels, new_corner_labels), new_vector
+	return Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector
 
 def compute_splitting_sequence(abstract_triangulation, lamination):
 	# Assumes that lamination is a filling lamination. If not, it will discover this along the way and throw an 
@@ -83,7 +108,7 @@ def compute_splitting_sequence(abstract_triangulation, lamination):
 	# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
 	# We take the coefficients of the minimal polynomial of each entry and sort them.
 	def hash_vector(vector):
-		return tuple(sorted(([tuple(v.minpoly().coefficients()) for v in projectivise_vector(vector)])))
+		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projectivise_vector(vector)])))
 	
 	def projectivise_vector(vector):
 		s = simplify(sum(vector))
@@ -104,7 +129,7 @@ def compute_splitting_sequence(abstract_triangulation, lamination):
 		
 		if lamination_copy[i] == 0:
 			try:
-				# Here collapse_trivial_weight uses the assumption that lamination is filling.
+				# If this fails it's because the lamination isn't filling.
 				working_copy, lamination_copy = collapse_trivial_weight(working_copy, lamination_copy, i)
 			except AssumptionError:
 				raise AssumptionError('Lamination is not filling.')
@@ -222,8 +247,8 @@ if __name__ == '__main__':
 	for k in range(num_trials):
 		# h = (a*b*C*b)**k * (a*b*C) * (B*c*B*A)**k
 		# h = expand_class(random_mapping_class(10))
-		# h = expand_class('cbccbaAbbccACaCccAbaacCaccBCca')
 		# h = expand_class('aBc')
+		# h = expand_class('cbccbaAbbccACaCccAbaacCaccBCca')
 		h = expand_class(random_mapping_class(random_length))
 		
 		start_time = time()
@@ -240,7 +265,7 @@ if __name__ == '__main__':
 			except AssumptionError:
 				print(' -- Reducible.')
 		t1 = time() - start_time
-		print('      (Time: %0.4f)' % t1)
+		print('      (Time: %0.4fs)' % t1)
 		total_time += t1
 	
 	print('Average decision time for %d trials: %0.4fs' % (num_trials, total_time / num_trials))

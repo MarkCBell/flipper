@@ -382,7 +382,6 @@ class App:
 		self.build_complete_structure()
 	
 	def create_triangle(self, e1, e2, e3):
-		assert(True)  # Check distinct or something? Check each edge is in at most 2 triangles and is not equivalent.
 		assert(e1 != e2 and e1 != e3 and e2 != e3)
 		
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):

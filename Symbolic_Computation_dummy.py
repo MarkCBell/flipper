@@ -5,5 +5,8 @@ _name = 'dummy'
 def simplify(x):
 	return None
 
-def compute_eigen(matrix):
+def Perron_Frobenius_eigen(matrix):
+	return None
+
+def minimal_polynomial_coefficients(number):
 	return None

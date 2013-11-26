@@ -8,7 +8,7 @@ def simplify(x):
 	x.simplify()
 	return x
 
-def compute_eigen(matrix):
+def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	M = Matrix(matrix.rows)
@@ -20,3 +20,6 @@ def compute_eigen(matrix):
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	return [simplify(x) for x in eigenvector], eigenvalue
+
+def minimal_polynomial_coefficients(number):
+	return tuple(number.minpoly().coefficients())

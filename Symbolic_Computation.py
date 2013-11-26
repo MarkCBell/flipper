@@ -4,7 +4,8 @@
 
 # This module provides two functions which return types storing algebraic numbers.
 #	1) compute_eigen(matrix):
-#		Given a matrix (of type Matrix.Matrix) this must returns the pair (eigenvector, eigenvalue) with largest eigenvalue for matrix.
+#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue.
+#		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
 #		The eigenvalue must be an algebraic number and the eigenvector must be a list of algebraic numbers.
 #	2) simplify(x):
 #		Given a type representing an algebraic number this must return that algebraic number in a standard form.
@@ -18,7 +19,7 @@
 #		requirement by multiplication.
 #	3) We actually provide interfaces to several different libraries such as sympy and sage.
 
-# We select a library interface here. we first try sage, then sympy and finally just load the dummy library.
+# We select a library interface here. we first try sage, then sympy and finally just load the dummy library which can't do anything.
 try:
 	from Symbolic_Computation_sage import simplify, compute_eigen, _name # Sage
 except ImportError:

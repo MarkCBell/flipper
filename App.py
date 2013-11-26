@@ -23,11 +23,12 @@ except ImportError: # Python 3
 
 from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
 from AbstractTriangulation import Abstract_Triangulation
+from SplittingSequence import compute_splitting_sequence
 from Progress import Progress_App
 from Encoding import Id_Encoding_Sequence, Encoding
 from Matrix import Permutation_Matrix, Empty_Matrix
 from Options import Options, Options_App
-from Error import AbortError
+from Error import AbortError, ComputationError, AssumptionError
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -230,11 +231,10 @@ class App:
 	def set_mode(self, mode):
 		self.select_object(None)
 		if mode == TRIANGULATION_MODE:
-			self.canvas.delete('curve')
+			self.destroy_curve()
 			self.mode_variable.set(mode)
 		elif mode == GLUING_MODE:
-			self.canvas.delete('curve')
-			self.curve_components = []
+			self.destroy_curve()
 			self.mode_variable.set(mode)
 		elif mode == CURVE_MODE:
 			if not self.is_complete():
@@ -811,7 +811,7 @@ class App:
 			tkMessageBox.showinfo('Dilatation', 'Could not estimate the stable lamination of %s.' % composition)
 		else:
 			start_time = time()
-			print(self.abstract_triangulation.splitting_sequence(V))
+			print(compute_splitting_sequence(V))
 			if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
 	
 	
@@ -960,6 +960,6 @@ class App:
 
 if __name__ == '__main__':
 	root = TK.Tk()
-	root.title('Twist Images')
+	root.title('Flipper')
 	app = App(root)
 	root.mainloop()

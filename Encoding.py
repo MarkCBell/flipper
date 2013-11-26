@@ -1,8 +1,8 @@
 from __future__ import print_function
 from functools import reduce
-from itertools import product
+from itertools import product, combinations
 from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
-from Error import AbortError
+from Error import AbortError, ComputationError, AssumptionError
 from Symbolic_Computation import compute_eigen
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
@@ -289,31 +289,39 @@ class Encoding_Sequence:
 	def stable_lamination(self, exact=False):
 		# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
 		# quite (very) close to its stable lamination and a (floating point) estimate of the dilatation. 
-		# If one cannot be found this an AbortError is thrown. If exact is set to True then this uses 
+		# If one cannot be found this a ComputationError is thrown. If exact is set to True then this uses 
 		# Symbolic_Computation.compute_eigen() to return the exact stable lamination (as a list of
-		# algebraic numbers) along with the exact dilatation (again as an algebraic number).
+		# algebraic numbers) along with the exact dilatation (again as an algebraic number). Again, if a good
+		# enough approximation cannot be found to start the exact calculations with, this is detected and a
+		# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
+		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
-		curve = self.source_triangulation.key_curves()[0]
+		curves = self.source_triangulation.key_curves()
 		
-		def is_stable(curve, new_curve, error_reciprocal):
-			curve_sum, new_curve_sum = sum(curve), sum(new_curve)
-			return max(abs((p * new_curve_sum) - q * curve_sum) for p, q in zip(curve, new_curve)) * error_reciprocal < curve_sum * new_curve_sum 
+		def projective_difference(A, B, error_reciprocal):
+			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
+			A_sum, B_sum = sum(A), sum(B)
+			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 		
-		new_curve = self * curve
 		for i in range(1000):
-			new_curve, curve = self * new_curve, new_curve
-			if i > 10 and is_stable(curve, new_curve, 1000000000):  # Make sure to apply at least 10 iterations.
+			curves = [self * curve for curve in curves]
+			if i > 3 and all(projective_difference(curve_A, curve_B, 1000000000) for curve_A, curve_B in combinations(curves, 2)):  # Make sure to apply at least 4 iterations.
 				break
 		else:
-			raise AbortError
+			raise ComputationError('Could not estimate stable lamination.')
+		
+		curve = curves[0]  # They're all pretty much the same so just get this one.
 		
 		if exact:
-			action_matrix, condition_matrix = self.applied_matrix(new_curve)
-			eigenvector, eigenvalue = compute_eigen(action_matrix)
+			action_matrix, condition_matrix = self.applied_matrix(curve)
+			try:
+				eigenvector, eigenvalue = compute_eigen(action_matrix)
+			except AssumptionError:  # action_matrix was not Perron-Frobenius.
+				raise ComputationError('Could not estimate stable lamination.')
 			if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 
 				return eigenvector, eigenvalue
 			else:
-				raise AbortError  # If not then the curve failed to get close enough to the stable lamination.
+				raise ComputationError('Could not estimate stable lamination.')  # If not then the curve failed to get close enough to the stable lamination.
 		else:
-			return new_curve, float(new_curve[0]) / curve[0]
+			return curve, float((self * curve)[0]) / curve[0]

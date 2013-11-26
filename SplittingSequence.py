@@ -1,5 +1,5 @@
 from AbstractTriangulation import Abstract_Triangulation
-from Error import ComputationError, AssumptionError
+from Error import AssumptionError
 from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
 def puncture_trigons(abstract_triangulation, vector):
@@ -160,12 +160,38 @@ def splitting_sequence_to_encoding(abstract_triangulation, sequence):
 	
 	return encoding
 
+def determine_type(mapping_class):
+	from Error import ComputationError
+	from time import time
+	
+	start_time = time()
+	if mapping_class.is_periodic():
+		print(' -- Periodic.')
+	else:
+		try:
+			# We know the map cannot be periodic.
+			# If this computation fails it will throw a ComputationError - the map was probably reducible.
+			V, dilatation = mapping_class.stable_lamination(exact=True)
+			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
+			x, y, z = compute_splitting_sequence(T, V)
+			print(' -- Pseudo-Anosov.')
+		except ComputationError:
+			print(' ~~ Probably reducible.')
+		except AssumptionError:
+			print(' -- Reducible.')
+	print('      (Time: %0.4fs)' % (time() - start_time))
+
+def profile_test(h):
+	import cProfile
+	cProfile.run('determine_type(h)', sort='cumtime')
+	exit(1)
+
 if __name__ == '__main__':
 	from random import choice
 	from time import time
 	from Encoding import Id_Encoding_Sequence
-	from Error import ComputationError
 	
+	print('Start')
 	# This is a 36--gon with one vertex at the centre and opposite sides identified.
 	# T = Abstract_Triangulation([[18, 19, 0], [20, 1, 19], [21, 2, 20], [21, 22, 3], [22, 23, 4], [24, 5, 23], [25, 6, 24], [25, 26, 7], [27, 8, 26], [27, 28, 9], [28, 29, 10], [30, 11, 29], 
 	# [31, 12, 30], [31, 32, 13], [32, 33, 14], [34, 15, 33], [35, 16, 34], [35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41],
@@ -176,7 +202,6 @@ if __name__ == '__main__':
 	# B = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
 	
 	# p = T.all_isometries(T, as_Encodings=True)[1]  # This is a click of some sort.
-	# print('Start')
 	# h = (a*B*B*a*p)**3
 	# print('Lamination')
 	# V, dilatation = h.stable_lamination(exact=True)
@@ -184,22 +209,16 @@ if __name__ == '__main__':
 	# x, y, z = compute_splitting_sequence(T, V)
 	# print(len(x), len(y), compute_powers(dilatation, z))
 	
-	# T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
-	# [12, 13, 0], [14, 1, 13], [14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])  # This a 12--gon with one vertex at the centre and opposite sides identified.
-	# a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
-	# A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
-	# b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-	# B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
+	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
+	[12, 13, 0], [14, 1, 13], [14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])  # This a 12--gon with one vertex at the centre and opposite sides identified.
+	a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
+	A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
+	b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+	B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
 	
-	# p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
+	p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
 	
-	# print('Start')
-	# h = (b*A*A*b*p)**6
-	# print('Lamination')
-	# V, dilatation = h.stable_lamination(exact=True)
-	# print('Splitting')
-	# x, y, z = compute_splitting_sequence(T, V)
-	# print(len(x), len(y), compute_powers(dilatation, z))
+	# determine_type((b*A*A*b*p)**6)
 	
 	
 	# T = Abstract_Triangulation([[12, 13, 0], [14, 1, 13], [15, 2, 14], [15, 16, 3], [17, 4, 16], [17, 18, 5], 
@@ -213,7 +232,6 @@ if __name__ == '__main__':
 	# B = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
 	
 	# p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/24 click of a 24--gon.
-	# print('Start')
 	# h = (a*B*B*a*p)**3
 	# print('Lamination')
 	# V, dilatation = h.stable_lamination(exact=True)
@@ -240,32 +258,18 @@ if __name__ == '__main__':
 	def random_mapping_class(n):
 		return ''.join(choice('abcABC') for i in range(n))
 	
-	print('Start')
+	# profile_test(expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'))
+	
 	random_length = 50
 	num_trials = 50
 	total_time = 0
 	for k in range(num_trials):
 		# h = (a*b*C*b)**k * (a*b*C) * (B*c*B*A)**k
-		# h = expand_class(random_mapping_class(10))
-		# h = expand_class('aBc')
 		# h = expand_class('cbccbaAbbccACaCccAbaacCaccBCca')
 		h = expand_class(random_mapping_class(random_length))
 		
 		start_time = time()
-		
-		if h.is_periodic():
-			print(' -- Periodic.')
-		else:
-			try:
-				V, dilatation = h.stable_lamination(exact=True)
-				x, y, z = compute_splitting_sequence(T, V)
-				print(' -- Pseudo-Anosov.')
-			except ComputationError:
-				print(' ~~ Probably reducible.')
-			except AssumptionError:
-				print(' -- Reducible.')
-		t1 = time() - start_time
-		print('      (Time: %0.4fs)' % t1)
-		total_time += t1
+		determine_type(h)
+		total_time += time() - start_time
 	
 	print('Average decision time for %d trials: %0.4fs' % (num_trials, total_time / num_trials))

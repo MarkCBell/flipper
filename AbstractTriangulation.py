@@ -3,8 +3,8 @@
 
 from __future__ import print_function
 from itertools import product, combinations
-from Matrix import Matrix, Id_Matrix, Empty_Matrix, nonnegative, nontrivial, nonnegative_image
-from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence, Permutation_Encoding
+from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
+from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
 from Error import AbortError, ComputationError, AssumptionError
 try:
 	from Queue import Queue
@@ -34,7 +34,9 @@ class Isometry:
 	def __getitem__(self, index):
 		return self.triangle_map[index]
 	def encoding(self):
-		return Permutation_Encoding(self.edge_map, self.source_triangulation)
+		return Encoding([Permutation_Matrix(self.edge_map)], [Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
+	def adapt(self, new_source_triangulation, new_target_triangulation):
+		return Isometry(new_source_triangulation, new_target_triangulation, self.triangle_map)
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?

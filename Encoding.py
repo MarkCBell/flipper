@@ -10,9 +10,6 @@ from Symbolic_Computation import Perron_Frobenius_eigen
 def Id_Encoding(triangulation):
 	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
 
-def Permutation_Encoding(perutation, triangulation):
-	return Encoding([Permutation_Matrix(perutation)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
-
 class Encoding:
 	def __init__(self, actions, conditions, source_triangulation, target_triangulation):
 		assert(source_triangulation.zeta == target_triangulation.zeta)

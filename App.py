@@ -436,12 +436,13 @@ class App:
 		self.curve_components.remove(curve_component)
 	
 	def destroy_curve(self):
-		while self.curve_components != []:
-			self.destroy_curve_component(self.curve_components[-1])
-		
-		self.set_current_curve()
-		self.select_object(None)
-		self.redraw()
+		if self.is_complete():
+			while self.curve_components != []:
+				self.destroy_curve_component(self.curve_components[-1])
+			
+			self.set_current_curve()
+			self.select_object(None)
+			self.redraw()
 	
 	
 	######################################################################

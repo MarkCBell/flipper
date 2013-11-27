@@ -1,9 +1,15 @@
+
 from __future__ import print_function
 from functools import reduce
 from itertools import product, combinations
-from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
-from Error import AbortError, ComputationError, AssumptionError
-from Symbolic_Computation import Perron_Frobenius_eigen
+try:
+	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
+	from Source.Error import AbortError, ComputationError, AssumptionError
+	from Source.Symbolic_Computation import Perron_Frobenius_eigen
+except ImportError:
+	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
+	from Error import AbortError, ComputationError, AssumptionError
+	from Symbolic_Computation import Perron_Frobenius_eigen
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 

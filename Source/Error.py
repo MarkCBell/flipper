@@ -15,7 +15,7 @@ class ComputationError(Exception):
 	def __str__(self):
 		return repr(self.code)
 
-# An exception for when a funcion notices that one of its assumptions is false.
+# An exception for when a function notices that one of its assumptions is false.
 class AssumptionError(Exception):
 	def __init__(self, code=None):
 		self.code = code

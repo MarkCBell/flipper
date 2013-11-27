@@ -2,7 +2,10 @@
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154.
 
 from itertools import permutations, combinations
-from AbstractTriangulation import Abstract_Triangulation
+try:
+	from Source.AbstractTriangulation import Abstract_Triangulation
+except ImportError:
+	from AbstractTriangulation import Abstract_Triangulation
 
 class Permutation:
 	def __init__(self, permutation):

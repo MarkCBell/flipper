@@ -1,5 +1,4 @@
 
-from Error import AssumptionError
 _name = 'dummy'
 
 def simplify(x):

@@ -1,3 +1,4 @@
+
 # To run from within sage you might need to first update tkiner by doing:
 # sudo apt-get install tk8.5-dev
 # sage -f python
@@ -21,14 +22,24 @@ except ImportError: # Python 3
 	import tkinter.messagebox as tkMessageBox
 	import tkinter.simpledialog as tkSimpleDialog
 
-from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
-from AbstractTriangulation import Abstract_Triangulation
-from SplittingSequence import compute_splitting_sequence
-from Progress import Progress_App
-from Encoding import Id_Encoding_Sequence, Encoding
-from Matrix import Permutation_Matrix, Empty_Matrix
-from Options import Options, Options_App
-from Error import AbortError, ComputationError, AssumptionError
+try:
+	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
+	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.SplittingSequence import compute_splitting_sequence
+	from Source.Progress import Progress_App
+	from Source.Encoding import Id_Encoding_Sequence, Encoding
+	from Source.Matrix import Permutation_Matrix, Empty_Matrix
+	from Source.Options import Options, Options_App
+	from Source.Error import AbortError, ComputationError, AssumptionError
+except ImportError:
+	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
+	from AbstractTriangulation import Abstract_Triangulation
+	from SplittingSequence import compute_splitting_sequence
+	from Progress import Progress_App
+	from Encoding import Id_Encoding_Sequence, Encoding
+	from Matrix import Permutation_Matrix, Empty_Matrix
+	from Options import Options, Options_App
+	from Error import AbortError, ComputationError, AssumptionError
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -958,8 +969,11 @@ class App:
 		if self.list_mapping_classes.size() > 0:
 			self.show_curve(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
 
-if __name__ == '__main__':
+def main():
 	root = TK.Tk()
 	root.title('Flipper')
 	app = App(root)
 	root.mainloop()
+
+if __name__ == '__main__':
+	main()

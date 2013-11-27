@@ -3,13 +3,18 @@
 
 from __future__ import print_function
 from itertools import product, combinations
-from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
-from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
-from Error import AbortError, ComputationError, AssumptionError
 try:
 	from Queue import Queue
 except ImportError: # Python 3
 	from queue import Queue
+try:
+	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
+	from Source.Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
+	from Source.Error import AbortError, ComputationError, AssumptionError
+except ImportError:
+	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
+	from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
+	from Error import AbortError, ComputationError, AssumptionError
 
 weight = sum
 

@@ -1,9 +1,13 @@
 
 try:
+	from Source.Error import AbortError
+except ImportError:
+	from Error import AbortError
+
+try:
 	import Tkinter as TK
 except ImportError: # Python 3
 	import tkinter as TK
-from Error import AbortError
 
 ''' A simple progress bar widget for TK.
 

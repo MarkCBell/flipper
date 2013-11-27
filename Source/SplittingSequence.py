@@ -1,6 +1,12 @@
-from AbstractTriangulation import Abstract_Triangulation
-from Error import AssumptionError
-from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
+
+try:
+	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Error import AssumptionError
+	from Source.Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
+except ImportError:
+	from AbstractTriangulation import Abstract_Triangulation
+	from Error import AssumptionError
+	from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
 def puncture_trigons(abstract_triangulation, vector):
 	# We label real punctures with a 0 and fake ones created by this process with a 1.
@@ -45,14 +51,14 @@ def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
 	
 	# There is at most one duplicated pair.
 	if a == d and b == c:
+		# We're on S_{0,3}.
 		raise AssumptionError('Underlying surface is S_{0,3}.')
 	
 	if a == c and a == d:
 		# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
 		raise AssumptionError('Edge connects between two vertices labelled 0.')
 	
-	# We'll first compute the new corner labels. This way we can check if our assumption is False
-	# early and so save some work.
+	# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
 	base_triangle, base_side = abstract_triangulation.find_edge(edge_index)[0]
 	corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 	corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
@@ -111,8 +117,10 @@ def compute_splitting_sequence(abstract_triangulation, lamination):
 		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projectivise_vector(vector)])))
 	
 	def projectivise_vector(vector):
-		s = simplify(sum(vector))
-		return tuple([simplify(v / s) for v in vector])
+		# s = simplify(sum(vector))
+		# return tuple([simplify(v / s) for v in vector])
+		s = simplify(1 / sum(vector))
+		return tuple([simplify(v * s) for v in vector])
 	
 	# Check if vector is obviously reducible.
 	if any(v == 0 for v in lamination):
@@ -180,11 +188,6 @@ def determine_type(mapping_class):
 		except AssumptionError:
 			print(' -- Reducible.')
 	print('      (Time: %0.4fs)' % (time() - start_time))
-
-def profile_test(h):
-	import cProfile
-	cProfile.run('determine_type(h)', sort='cumtime')
-	exit(1)
 
 if __name__ == '__main__':
 	from random import choice
@@ -258,14 +261,17 @@ if __name__ == '__main__':
 	def random_mapping_class(n):
 		return ''.join(choice('abcABC') for i in range(n))
 	
-	# profile_test(expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'))
+	h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
+	determine_type(h)
+	exit(1)
+	# import cProfile
+	# cProfile.run('determine_type(h)', sort='time')
+	# exit(1)
 	
 	random_length = 50
 	num_trials = 50
 	total_time = 0
 	for k in range(num_trials):
-		# h = (a*b*C*b)**k * (a*b*C) * (B*c*B*A)**k
-		# h = expand_class('cbccbaAbbccACaCccAbaacCaccBCca')
 		h = expand_class(random_mapping_class(random_length))
 		
 		start_time = time()

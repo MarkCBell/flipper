@@ -1,6 +1,9 @@
 
-from Error import AssumptionError
 import sympy
+try:
+	from Source.Error import AssumptionError
+except ImportError:
+	from Error import AssumptionError
 
 _name = 'sympy'
 

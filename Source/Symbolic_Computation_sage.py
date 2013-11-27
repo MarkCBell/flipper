@@ -1,6 +1,9 @@
 
-from Error import AssumptionError
 from sage.all import Matrix
+try:
+	from Source.Error import AssumptionError
+except ImportError:
+	from Error import AssumptionError
 
 _name = 'sage'
 

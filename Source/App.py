@@ -101,6 +101,7 @@ class App:
 		filemenu.add_command(label='New', command=self.initialise)
 		filemenu.add_command(label='Open', command=lambda : self.load())
 		filemenu.add_command(label='Save', command=lambda : self.save())
+		filemenu.add_command(label='Export', command=lambda : self.export_image())
 		filemenu.add_separator()
 		filemenu.add_command(label='Exit', command=self.parent.quit)
 		
@@ -278,7 +279,6 @@ class App:
 				elif task == 'twist': self.store_curve(combined)
 				elif task == 'isometry': self.store_isometry(combined)
 				elif task == 'apply': self.show_apply(combined)
-				elif task == 'applied': self.show_applied(combined)
 				
 				elif task == 'order': self.order(combined)
 				elif task == 'periodic': self.is_periodic(combined)
@@ -286,7 +286,6 @@ class App:
 				elif task == 'pA': self.is_pseudo_Anosov(combined)
 				elif task == 'lamination': self.stable_lamination(combined)
 				elif task == 'lamination_exact': self.stable_lamination(combined, exact=True)
-				
 				elif task == 'split': self.splitting_sequence(combined)
 				# elif task == '':
 				else:
@@ -721,16 +720,9 @@ class App:
 			self.mapping_classes[name] = isometry
 			self.mapping_classes[name.swapcase()] = isometry_inverse
 	
-	def show_applied(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
-			print(mapping_class.applied_matrix(self.curves['_'])[0])
-	
 	
 	######################################################################
+	
 	
 	def order(self, composition):
 		try:

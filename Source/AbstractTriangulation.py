@@ -7,6 +7,7 @@ try:
 	from Queue import Queue
 except ImportError: # Python 3
 	from queue import Queue
+
 try:
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
@@ -139,8 +140,32 @@ class Abstract_Triangulation:
 				return False
 		
 		return True
+	
+	def is_curve(self, vector):
+		# This is based off of self.encode_twist() see the documentation there as to why this works.
+		if not self.is_multicurve(vector): return False
 		
-		return nonnegative_image(self.face_matrix(), vector) and any(nonnegative_image(M, vector) for M in self.marking_matrices())
+		vector = list(vector)
+		working_copy = self.copy()
+		
+		time_since_last_weight_loss = 0
+		old_weight = weight(vector)
+		while weight(vector) > 2:
+			edge_index = min([i for i in range(working_copy.zeta) if vector[i] > 0], key=lambda i: weight(working_copy.flip_effect(i, vector)))
+			vector = working_copy.flip_effect(edge_index, vector)
+			working_copy = working_copy.flip_edge(edge_index)
+			
+			if weight(vector) < old_weight:
+				time_since_last_weight_loss = 0
+				old_weight = weight(vector)
+			else:
+				time_since_last_weight_loss += 1
+			
+			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
+			if time_since_last_weight_loss > 2:
+				return False
+		
+		return True
 	
 	def geometric_to_algebraic(self, vector):
 		# Converts a vector of geometric intersection numbers to a vector of algebraic intersection numbers.
@@ -206,7 +231,7 @@ class Abstract_Triangulation:
 		return weight(self.flip_effect(edge_index, vector)) < weight(vector)
 	
 	def encode_swap(self, i, j, target_triangulation):
-		# Should use an Isometry.
+		# !?! TO DO: Should use an Isometry.
 		A = Id_Matrix(self.zeta)
 		A[i][i] = 0
 		A[j][j] = 0
@@ -235,8 +260,8 @@ class Abstract_Triangulation:
 		will return an Encoding of a right Dehn twist about vector raised to the power -k.
 		Assumes that vector represents a curve and not a multicurve, if given a multicurve an
 		AssumptionError is thrown. '''
-		if not self.is_multicurve(vector):
-			raise AssumptionError('Not a multicurve.')
+		if not self.is_curve(vector):
+			raise AssumptionError('Not a curve.')
 		
 		if k == 0: return Id_Encoding_Sequence(self)
 		
@@ -249,13 +274,10 @@ class Abstract_Triangulation:
 		conjugation = Id_Encoding_Sequence(self)
 		conjugation_inverse = Id_Encoding_Sequence(self)
 		
-		time_since_last_weight_loss = 0
-		old_weight = weight(vector)
 		while weight(vector) > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			# We should spot when we are looping and throw a AssumptionError.
 			working_copy = conjugation.target_triangulation
 			edge_index = min([i for i in range(working_copy.zeta) if vector[i] > 0], key=lambda i: weight(working_copy.flip_effect(i, vector)))
 			
@@ -263,16 +285,6 @@ class Abstract_Triangulation:
 			forward, backwards = conjugation.target_triangulation.encode_flip(edge_index)
 			conjugation = forward * conjugation
 			conjugation_inverse = conjugation_inverse * backwards
-			
-			if weight(vector) < old_weight:
-				time_since_last_weight_loss = 0
-				old_weight = weight(vector)
-			else:
-				time_since_last_weight_loss += 1
-			
-			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
-			if time_since_last_weight_loss > 2:
-				raise AssumptionError('Not a curve.')
 		
 		working_copy = conjugation.target_triangulation
 		# Grab the indices of the two edges we meet.

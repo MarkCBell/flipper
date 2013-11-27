@@ -10,22 +10,19 @@ except ImportError: # Python 3
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
 
-def lines_intersect(s1, e1, s2, e2, float_error, properly=False):
+def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	dx1, dy1 = e1[0] - s1[0], e1[1] - s1[1]
 	dx2, dy2 = e2[0] - s2[0], e2[1] - s2[1]
 	D = dx2*dy1 - dx1*dy2
-	if D == 0: return False
+	if D == 0: return (-1, False)
 	
 	xx = s2[0] - s1[0]
 	yy = s2[1] - s1[1]
 	
-	s = (yy*dx1 - xx*dy1)/D
-	t = (yy*dx2 - xx*dy2)/D
+	s = float(yy*dx1 - xx*dy1)/D
+	t = float(yy*dx2 - xx*dy2)/D
 	
-	if properly:
-		return 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error
-	else:
-		return 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error
+	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
 class Colour_Palette:
 	def __init__(self):
@@ -175,7 +172,7 @@ class Triangle:
 		dot11 = dot(v1, v1)
 		dot12 = dot(v1, v2)
 		
-		invDenom = 1 / (dot00 * dot11 - dot01 * dot01)
+		invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01)
 		u = (dot11 * dot02 - dot01 * dot12) * invDenom
 		v = (dot00 * dot12 - dot01 * dot02) * invDenom
 		

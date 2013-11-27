@@ -23,7 +23,7 @@ except ImportError: # Python 3
 	import tkinter.simpledialog as tkSimpleDialog
 
 try:
-	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
+	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.SplittingSequence import compute_splitting_sequence
 	from Source.Progress import Progress_App
@@ -32,7 +32,7 @@ try:
 	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
-	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component
+	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
 	from SplittingSequence import compute_splitting_sequence
 	from Progress import Progress_App
@@ -46,20 +46,6 @@ TRIANGULATION_MODE = 0
 GLUING_MODE = 1
 CURVE_MODE = 2
 CURVE_DRAWING_MODE = 3
-
-def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
-	dx1, dy1 = e1[0] - s1[0], e1[1] - s1[1]
-	dx2, dy2 = e2[0] - s2[0], e2[1] - s2[1]
-	D = dx2*dy1 - dx1*dy2
-	if D == 0: return (-1, False)
-	
-	xx = s2[0] - s1[0]
-	yy = s2[1] - s1[1]
-	
-	s = (yy*dx1 - xx*dy1)/D
-	t = (yy*dx2 - xx*dy2)/D
-	
-	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
 class App:
 	def __init__(self, parent):
@@ -649,7 +635,7 @@ class App:
 	def store_curve(self, name):
 		if name != '' and name != '_':
 			vector = self.curve_to_vector()
-			if self.abstract_triangulation.is_multicurve(vector):
+			if self.abstract_triangulation.is_curve(vector):
 				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
 				self.curves[name] = vector
 				self.mapping_classes[name] = self.abstract_triangulation.encode_twist(vector)

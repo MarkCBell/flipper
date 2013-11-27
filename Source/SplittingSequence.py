@@ -261,9 +261,9 @@ if __name__ == '__main__':
 	def random_mapping_class(n):
 		return ''.join(choice('abcABC') for i in range(n))
 	
-	h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
-	determine_type(h)
-	exit(1)
+	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
+	# determine_type(h)
+	# exit(1)
 	# import cProfile
 	# cProfile.run('determine_type(h)', sort='time')
 	# exit(1)

@@ -1,20 +1,24 @@
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Encoding import Id_Encoding_Sequence
+	from Source.Lamination import Lamination
 	from Source.Error import AssumptionError
 	from Source.Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
+	from Encoding import Id_Encoding_Sequence
+	from Lamination import Lamination
 	from Error import AssumptionError
 	from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
-def puncture_trigons(abstract_triangulation, vector):
+def puncture_trigons(lamination):
 	# We label real punctures with a 0 and fake ones created by this process with a 1.
 	new_labels = []
 	new_corner_labels = []
-	new_vector = list(vector)
-	zeta = abstract_triangulation.zeta
-	for triangle in abstract_triangulation.triangles:
+	new_vector = list(lamination)
+	zeta = lamination.zeta
+	for triangle in lamination.abstract_triangulation.triangles:
 		a, b, c = triangle.edge_indices
 		if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
 			x, y, z = zeta, zeta+1, zeta+2
@@ -32,9 +36,9 @@ def puncture_trigons(abstract_triangulation, vector):
 			new_labels.append([a,b,c])
 			new_corner_labels.append([0,0,0])
 	
-	return Abstract_Triangulation(new_labels, new_corner_labels), new_vector
+	return Lamination(Abstract_Triangulation(new_labels, new_corner_labels), new_vector)
 
-def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
+def collapse_trivial_weight(lamination, edge_index):
 	# Assumes that abstract_triangulation is not S_{0,3}. Assumes that the given 
 	# edge does not connect between two real vertices, that is vertices with 
 	# label 0. Assumes that edge_index is the only edge of weight 0.
@@ -42,7 +46,7 @@ def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
 	
 	assert(lamination[edge_index] == 0)
 	
-	a, b, c, d = abstract_triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
+	a, b, c, d = lamination.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
 	
 	# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 	if a == b or c == d:
@@ -59,7 +63,7 @@ def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
 		raise AssumptionError('Edge connects between two vertices labelled 0.')
 	
 	# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
-	base_triangle, base_side = abstract_triangulation.find_edge(edge_index)[0]
+	base_triangle, base_side = lamination.abstract_triangulation.find_edge(edge_index)[0]
 	corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 	corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
 	if corner_A_label == 0 and corner_B_label == 0:
@@ -68,25 +72,25 @@ def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
 	# We'll replace the labels on the corner class with higher labels with the label from the lower
 	good_corner_label = min(corner_A_label, corner_B_label)
 	if corner_A_label < corner_B_label:
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+		bad_corner_class = lamination.abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
 	else:
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+		bad_corner_class = lamination.abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
 	
 	# replacement is a map sending the old edge_indices to the new edge indices. We already know what it does on edges far away from edge_index.
-	replacement = dict(zip([i for i in range(abstract_triangulation.zeta) if i not in [edge_index, a, b, c, d]], range(abstract_triangulation.zeta)))
+	replacement = dict(zip([i for i in range(lamination.zeta) if i not in [edge_index, a, b, c, d]], range(lamination.zeta)))
 	zeta = len(replacement)
 	if a == c:
 		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
 		zeta += 1
 	elif a == d:
 		# Must make sure to update the vertex which is not in the interior of the bigon.
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+		bad_corner_class = lamination.abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
 		
 		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
 		zeta += 1
 	elif b == c:
 		# Must make sure to update the vertex which is not in the interior of the bigon.
-		bad_corner_class = abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+		bad_corner_class = lamination.abstract_triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
 		
 		replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
 		zeta += 1
@@ -98,78 +102,76 @@ def collapse_trivial_weight(abstract_triangulation, lamination, edge_index):
 		replacement[c] = replacement[d] = zeta + 1
 		zeta += 2
 	
-	new_edge_labels = [[replacement[i] for i in triangle] for triangle in abstract_triangulation if edge_index not in triangle]
-	new_vector = [[lamination[j] for j in range(abstract_triangulation.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
-	new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in abstract_triangulation if edge_index not in triangle]
+	new_edge_labels = [[replacement[i] for i in triangle] for triangle in lamination.abstract_triangulation if edge_index not in triangle]
+	new_vector = [[lamination[j] for j in range(lamination.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
+	new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in lamination.abstract_triangulation if edge_index not in triangle]
 	
-	return Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector
+	return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 
-def compute_splitting_sequence(abstract_triangulation, lamination):
+def compute_splitting_sequence(lamination):
 	# Assumes that lamination is a filling lamination. If not, it will discover this along the way and throw an 
 	# AssumptionError
 	# We assume that lamination is given as a list of algebraic numbers. 
 	# We continually use Symbolic_Computation.simplify() just to be safe.
 	# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 	
+	def projective_weights(lamination):
+		s = simplify(1 / sum(lamination))
+		return tuple([simplify(v * s) for v in lamination])
+	
 	# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
 	# We take the coefficients of the minimal polynomial of each entry and sort them.
-	def hash_vector(vector):
-		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projectivise_vector(vector)])))
-	
-	def projectivise_vector(vector):
-		# s = simplify(sum(vector))
-		# return tuple([simplify(v / s) for v in vector])
-		s = simplify(1 / sum(vector))
-		return tuple([simplify(v * s) for v in vector])
+	def hash_lamination(lamination):
+		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(lamination)])))
 	
 	# Check if vector is obviously reducible.
-	if any(v == 0 for v in lamination):
+	if any(v == 0 for v in lamination.vector):
 		raise AssumptionError('Lamination is not filling.')
 	
-	working_copy, lamination_copy = puncture_trigons(abstract_triangulation, lamination)  # Puncture out all trigon regions.
+	lamination_copy = puncture_trigons(lamination)  # Puncture out all trigon regions.
 	flipped = []
-	seen = {hash_vector(lamination_copy):[[0, list(lamination_copy), projectivise_vector(lamination_copy), working_copy]]}
+	seen = {hash_lamination(lamination_copy):[[0, lamination_copy.copy(), projective_weights(lamination_copy)]]}
 	while True:
-		i = max(range(working_copy.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
-		a, b, c, d = working_copy.find_indicies_of_square_about_edge(i)  # Get the square about it.
-		working_copy = working_copy.flip_edge(i)  # Flip the square.
-		lamination_copy[i] = simplify(max(lamination_copy[a] + lamination_copy[c], lamination_copy[b] + lamination_copy[d]) - lamination_copy[i])  # Update the weights.
+		i = max(range(lamination.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
+		lamination_copy = lamination_copy.flip_edge(i)
 		
 		if lamination_copy[i] == 0:
 			try:
 				# If this fails it's because the lamination isn't filling.
-				working_copy, lamination_copy = collapse_trivial_weight(working_copy, lamination_copy, i)
+				lamination_copy = collapse_trivial_weight(lamination_copy, i)
 			except AssumptionError:
 				raise AssumptionError('Lamination is not filling.')
 		
 		flipped.append(i)
 		
-		projective_lamination = projectivise_vector(lamination_copy)
+		projective_lamination = projective_weights(lamination_copy)
 		# if len(flipped) % 20 == 0: print(flipped[-20:])  # Every once in a while show how we're progressing.
 		
 		# Check if it (projectively) matches a lamination we've already seen.
-		target = hash_vector(lamination_copy)
+		target = hash_lamination(lamination_copy)
+		current_triangulation = lamination_copy.abstract_triangulation
 		if target in seen:
-			for index, old_lamination, old_projective_vector, old_triangulation in seen[target]:
-				for isometry in working_copy.all_isometries(old_triangulation):
-					permuted_old_projective_vector = tuple([old_projective_vector[isometry.edge_map[i]] for i in range(working_copy.zeta)])
-					if projective_lamination == permuted_old_projective_vector:
+			for index, old_lamination, old_projective_weights in seen[target]:
+				old_triangulation = old_lamination.abstract_triangulation
+				for isometry in current_triangulation.all_isometries(old_triangulation):
+					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination_copy.zeta)])
+					if projective_lamination == permuted_old_projective_weights:
 						# Return: the pre-periodic part, the periodic part, the dilatation.
 						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination_copy[0])
-			seen[target].append([len(flipped), list(lamination_copy), list(projective_lamination), working_copy])
+			seen[target].append([len(flipped), lamination_copy.copy(), list(projective_lamination)])
 		else:
-			seen[target] = [[len(flipped), list(lamination_copy), list(projective_lamination), working_copy]]
+			seen[target] = [[len(flipped), lamination_copy.copy(), list(projective_lamination)]]
 
 def splitting_sequence_to_encoding(abstract_triangulation, sequence):
 	encoding = Id_Encoding_Sequence(abstract_triangulation)
 	for edge_index in sequence:
-		forwards, backwards = encoding.target_triangulation.encode_flip()
+		new_triangulation = forwards, backwards = encoding.target_triangulation.flip_edge(edge_index, encoding=True)
 		encoding = forwards * encoding
 	
 	return encoding
 
 def determine_type(mapping_class):
-	from Error import ComputationError
+	from Error import ComputationError, AssumptionError
 	from time import time
 	
 	start_time = time()
@@ -179,9 +181,9 @@ def determine_type(mapping_class):
 		try:
 			# We know the map cannot be periodic.
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
-			V, dilatation = mapping_class.stable_lamination(exact=True)
+			lamination, dilatation = mapping_class.stable_lamination(exact=True)
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			x, y, z = compute_splitting_sequence(T, V)
+			preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
 			print(' -- Pseudo-Anosov.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')
@@ -192,70 +194,26 @@ def determine_type(mapping_class):
 if __name__ == '__main__':
 	from random import choice
 	from time import time
-	from Encoding import Id_Encoding_Sequence
 	
 	print('Start')
-	# This is a 36--gon with one vertex at the centre and opposite sides identified.
-	# T = Abstract_Triangulation([[18, 19, 0], [20, 1, 19], [21, 2, 20], [21, 22, 3], [22, 23, 4], [24, 5, 23], [25, 6, 24], [25, 26, 7], [27, 8, 26], [27, 28, 9], [28, 29, 10], [30, 11, 29], 
-	# [31, 12, 30], [31, 32, 13], [32, 33, 14], [34, 15, 33], [35, 16, 34], [35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41],
-	# [43, 6, 42], [43, 44, 7], [44, 45, 8], [46, 9, 45], [47, 10, 46], [47, 48, 11], [48, 49, 12], [50, 13, 49], [51, 14, 50], [51, 52, 15], [52, 53, 16], [18, 17,53]])
-	# a = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	# A = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
-	# b = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	# B = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
 	
-	# p = T.all_isometries(T, as_Encodings=True)[1]  # This is a click of some sort.
-	# h = (a*B*B*a*p)**3
+	# from Examples import Example_24
+	# twists = Example_24()
+	# h = (twists['a']*twists['B']*twists['B']*twists['a']*twists['p'])**3
 	# print('Lamination')
-	# V, dilatation = h.stable_lamination(exact=True)
+	# lamination, dilatation = h.stable_lamination(exact=True)
 	# print('Splitting')
-	# x, y, z = compute_splitting_sequence(T, V)
-	# print(len(x), len(y), compute_powers(dilatation, z))
+	# preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
+	# print(len(preperiodic), len(periodic), compute_powers(dilatation, new_dilatation))
 	
-	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], 
-	[12, 13, 0], [14, 1, 13], [14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])  # This a 12--gon with one vertex at the centre and opposite sides identified.
-	a = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
-	A = T.encode_twist([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0], k=-1)
-	b = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-	B = T.encode_twist([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0], k = -1)
-	
-	p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/12 click of a 12--gon.
-	
-	# determine_type((b*A*A*b*p)**6)
-	
-	
-	# T = Abstract_Triangulation([[12, 13, 0], [14, 1, 13], [15, 2, 14], [15, 16, 3], [17, 4, 16], [17, 18, 5], 
-		# [18, 19, 6], [20, 7, 19], [21, 8, 20], [21, 22, 9], [22, 23, 10], [24, 11, 23], [25, 0, 24], [25, 26, 1], 
-		# [26, 27, 2], [28, 3, 27], [29, 4, 28], [29, 30, 5], [30, 31, 6], [32, 7, 31], [33, 8, 32], [33, 34, 9], 
-		# [34, 35, 10], [12, 11, 35]])  # Another n--gon. (n==24)
-	
-	# a = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	# A = T.encode_twist([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
-	# b = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-	# B = T.encode_twist([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], k=-1)
-	
-	# p = T.all_isometries(T, as_Encodings=True)[1]  # I've checked, this is a 1/24 click of a 24--gon.
-	# h = (a*B*B*a*p)**3
-	# print('Lamination')
-	# V, dilatation = h.stable_lamination(exact=True)
-	# print('Splitting')
-	# x, y, z = compute_splitting_sequence(T, V)
-	# print(len(x), len(y), compute_powers(dilatation, z))
-	
-	# S_1_2: We'll do some random twists.
-	T = Abstract_Triangulation([[2, 1, 3], [2, 0, 4], [1, 5, 0], [4, 3, 5]])
-	a = T.encode_twist([0,0,1,1,1,0])
-	b = T.encode_twist([0,1,0,1,0,1])
-	c = T.encode_twist([1,0,0,0,1,1])
-	A = T.encode_twist([0,0,1,1,1,0], k=-1)
-	B = T.encode_twist([0,1,0,1,0,1], k=-1)
-	C = T.encode_twist([1,0,0,0,1,1], k=-1)
+	from Examples import Example_S_1_2
+	twists = Example_S_1_2()
 	
 	def expand_class(string):
 		print(string)
-		h = Id_Encoding_Sequence(T)
+		h = Id_Encoding_Sequence(twists['a'].source_triangulation)
 		for letter in string:
-			h = {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}[letter] * h
+			h = twists[letter] * h
 		return h
 	
 	def random_mapping_class(n):

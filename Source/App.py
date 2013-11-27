@@ -25,6 +25,7 @@ except ImportError: # Python 3
 try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Lamination import Lamination
 	from Source.SplittingSequence import compute_splitting_sequence
 	from Source.Progress import Progress_App
 	from Source.Encoding import Id_Encoding_Sequence, Encoding
@@ -34,6 +35,7 @@ try:
 except ImportError:
 	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
+	from Lamination import Lamination
 	from SplittingSequence import compute_splitting_sequence
 	from Progress import Progress_App
 	from Encoding import Id_Encoding_Sequence, Encoding
@@ -47,7 +49,7 @@ GLUING_MODE = 1
 CURVE_MODE = 2
 CURVE_DRAWING_MODE = 3
 
-class App:
+class Flipper_App:
 	def __init__(self, parent):
 		self.parent = parent
 		self.mode_variable = TK.IntVar()
@@ -198,7 +200,7 @@ class App:
 				self.list_mapping_classes.insert(TK.END, name)
 			
 			if self.is_complete():
-				self.vector_to_curve(self.curves['_'])
+				self.lamination_to_curve(self.curves['_'])
 				self.set_mode(CURVE_MODE)
 			
 		except IOError:
@@ -565,11 +567,11 @@ class App:
 	
 	
 	def set_current_curve(self, vector=None):
-		if vector is None: vector = self.curve_to_vector()
+		if vector is None: vector = self.curve_to_lamination()
 		self.curves['_'] = vector
 		self.create_edge_labels()
 	
-	def curve_to_vector(self):
+	def curve_to_lamination(self):
 		vector = [0] * self.zeta
 		
 		# This version takes into account bigons between interior edges.
@@ -587,7 +589,7 @@ class App:
 			for index, double in meets:
 				vector[index] += (2 if double else 1) * (1 if curve.multiplicity is None else curve.multiplicity)
 		
-		return [i // 2 for i in vector]
+		return Lamination(self.abstract_triangulation, [i // 2 for i in vector])
 		
 		# for edge in self.edges:  # We'll double count everything!
 			# for curve in self.curve_components:
@@ -600,10 +602,10 @@ class App:
 		
 		# return [i // 2 for i in vector]
 	
-	def vector_to_curve(self, vector):
+	def lamination_to_curve(self, lamination):
 		self.destroy_curve()
 		for triangle in self.triangles:
-			weights = [vector[edge.index] for edge in triangle.edges]
+			weights = [lamination.vector[edge.index] for edge in triangle.edges]
 			dual_weights = [(weights[1] + weights[2] - weights[0]) // 2, (weights[2] + weights[0] - weights[1]) // 2, (weights[0] + weights[1] - weights[2]) // 2]
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
@@ -622,24 +624,24 @@ class App:
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						self.create_curve_component(start_point).append_point(end_point)
 		
-		self.set_current_curve(vector)
+		self.set_current_curve(lamination)
 	
 	def tighten_curve(self):
-		curve = self.curve_to_vector()
+		curve = self.curve_to_lamination()
 		if self.abstract_triangulation is not None:
 			if self.abstract_triangulation.is_multicurve(curve):
-				self.vector_to_curve(curve)
+				self.lamination_to_curve(curve)
 			else:
 				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
 	
 	def store_curve(self, name):
 		if name != '' and name != '_':
-			vector = self.curve_to_vector()
-			if self.abstract_triangulation.is_curve(vector):
+			lamination = self.curve_to_lamination()
+			if lamination.is_curve():
 				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-				self.curves[name] = vector
-				self.mapping_classes[name] = self.abstract_triangulation.encode_twist(vector)
-				self.mapping_classes[name.swapcase()] = self.abstract_triangulation.encode_twist(vector, k=-1)
+				self.curves[name] = lamination
+				self.mapping_classes[name] = lamination.encode_twist()
+				self.mapping_classes[name.swapcase()] = lamination.encode_twist(k=-1)
 				self.destroy_curve()
 			else:
 				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
@@ -647,7 +649,7 @@ class App:
 	def show_curve(self, name):
 		if name in self.curves:
 			self.destroy_curve()
-			self.vector_to_curve(self.curves[name])
+			self.lamination_to_curve(self.curves[name])
 			self.set_current_curve(self.curves[name])
 		else:
 			tkMessageBox.showwarning('Curve', '%s is not a curve.' % name)
@@ -682,14 +684,14 @@ class App:
 			pass
 		else:
 			self.set_current_curve(mapping_class * curve)
-			self.vector_to_curve(self.curves['_'])
+			self.lamination_to_curve(self.curves['_'])
 	
 	def show_render(self, composition):
 		self.set_current_curve([int(i) for i in composition.split(',')])
-		self.vector_to_curve(self.curves['_'])
+		self.lamination_to_curve(self.curves['_'])
 	
 	def vectorise(self):
-		tkMessageBox.showinfo('Curve', '%s' % self.curve_to_vector())
+		tkMessageBox.showinfo('Curve', '%s' % self.curve_to_lamination().vector)
 	
 	def show_apply(self, composition):
 		self.show_composition(composition + '._')
@@ -709,8 +711,8 @@ class App:
 		source_triangle, target_triangle = source_triangles[0], target_triangles[0]
 		
 		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
-		isometry = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle, as_Encoding=True)
-		isometry_inverse = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3, as_Encoding=True)
+		isometry = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle).encoding()
+		isometry_inverse = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3).encoding()
 		if isometry is None:
 			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			return
@@ -963,7 +965,7 @@ class App:
 def main():
 	root = TK.Tk()
 	root.title('Flipper')
-	app = App(root)
+	Flipper_App(root)
 	root.mainloop()
 
 if __name__ == '__main__':

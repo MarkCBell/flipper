@@ -1,6 +1,4 @@
 
-# TO DO: We need an is_curve() function to make sure we never try to Dehn twist about a multicurve, for example.
-
 from __future__ import print_function
 from itertools import product, combinations
 try:
@@ -9,15 +7,15 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
+	from Source.Lamination import Lamination
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
+	from Lamination import Lamination
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
 	from Error import AbortError, ComputationError, AssumptionError
-
-weight = sum
 
 def tweak_vector(v, add, subtract):
 	for i in add: v[i] += 1
@@ -41,8 +39,8 @@ class Isometry:
 		return self.triangle_map[index]
 	def encoding(self):
 		return Encoding([Permutation_Matrix(self.edge_map)], [Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
-	def adapt(self, new_source_triangulation, new_target_triangulation):
-		return Isometry(new_source_triangulation, new_target_triangulation, self.triangle_map)
+	# def adapt(self, new_source_triangulation, new_target_triangulation):
+		# return Isometry(new_source_triangulation, new_target_triangulation, self.triangle_map)
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
@@ -106,6 +104,9 @@ class Abstract_Triangulation:
 	def __iter__(self):
 		return iter(self.triangles)
 	
+	def create_lamination(self, vector):
+		return Lamination(self, vector)
+	
 	def find_corner_class(self, triangle, side):
 		for corner_class in self.corner_classes:
 			if (triangle, side) in corner_class:
@@ -121,51 +122,6 @@ class Abstract_Triangulation:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
 			self._marking_matrices = [Matrix([tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
 		return self._marking_matrices
-	
-	def is_multicurve(self, vector):
-		if vector == [0] * self.zeta: return False
-		
-		if not nonnegative_image(self.face_matrix(), vector): return False
-		
-		for vertex in self.corner_classes:
-			for triangle, side in vertex:
-				weights = [vector[index] for index in triangle]
-				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
-				for i in range(3):
-					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
-						return False
-				if dual_weights_doubled[side] == 0:
-					break
-			else:
-				return False
-		
-		return True
-	
-	def is_curve(self, vector):
-		# This is based off of self.encode_twist() see the documentation there as to why this works.
-		if not self.is_multicurve(vector): return False
-		
-		vector = list(vector)
-		working_copy = self.copy()
-		
-		time_since_last_weight_loss = 0
-		old_weight = weight(vector)
-		while weight(vector) > 2:
-			edge_index = min([i for i in range(working_copy.zeta) if vector[i] > 0], key=lambda i: weight(working_copy.flip_effect(i, vector)))
-			vector = working_copy.flip_effect(edge_index, vector)
-			working_copy = working_copy.flip_edge(edge_index)
-			
-			if weight(vector) < old_weight:
-				time_since_last_weight_loss = 0
-				old_weight = weight(vector)
-			else:
-				time_since_last_weight_loss += 1
-			
-			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
-			if time_since_last_weight_loss > 2:
-				return False
-		
-		return True
 	
 	def geometric_to_algebraic(self, vector):
 		# Converts a vector of geometric intersection numbers to a vector of algebraic intersection numbers.
@@ -205,8 +161,9 @@ class Abstract_Triangulation:
 		containing_triangles = self.find_edge(edge_index)
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
 	
-	def flip_edge(self, edge_index):
+	def flip_edge(self, edge_index, encoding=False):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
+		# Additionally returns encodings of the forwards and backwards maps if encoding is set to True.
 		assert(self.edge_is_flippable(edge_index))
 		
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
@@ -214,92 +171,19 @@ class Abstract_Triangulation:
 		
 		new_edge_indices = [list(triangle.edge_indices) for triangle in self.triangles if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
 		new_corner_labels = [list(triangle.corner_labels) for triangle in self.triangles if edge_index not in triangle] + [[r,s,v], [u,v,s]]
-		return Abstract_Triangulation(new_edge_indices, new_corner_labels)
-	
-	def flip_effect(self, edge_index, vector):
-		# Computes the effect of an edge flip on a vector.
-		assert(self.edge_is_flippable(edge_index))
+		new_triangulation = Abstract_Triangulation(new_edge_indices, new_corner_labels)
 		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		new_vector = list(vector)
-		new_vector[edge_index] = max(vector[a] + vector[c], vector[b] + vector[d]) - vector[edge_index]
-		return new_vector
-	
-	def flipping_edge_improves(self, edge_index, vector):
-		assert(self.edge_is_flippable(edge_index))
-		
-		return weight(self.flip_effect(edge_index, vector)) < weight(vector)
-	
-	def encode_swap(self, i, j, target_triangulation):
-		# !?! TO DO: Should use an Isometry.
-		A = Id_Matrix(self.zeta)
-		A[i][i] = 0
-		A[j][j] = 0
-		A[i][j] = 1
-		A[j][i] = 1
-		return Encoding([A], [Empty_Matrix(self.zeta)], self, target_triangulation)
-	
-	def encode_flip(self, edge_index):
-		# Returns a pair of Encodings, one from this triangulation to the flipped version and
-		# the second its inverse.
-		assert(self.edge_is_flippable(edge_index))
-		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
 		A1 = Id_Matrix(self.zeta)
 		tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
 		C1 = Matrix(tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
 		A2 = Id_Matrix(self.zeta)
 		tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
 		C2 = Matrix(tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
-		new_triangulation = self.flip_edge(edge_index)
-		return Encoding([A1, A2], [C1, C2], self, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, self)
-	
-	def encode_twist(self, vector, k=1):
-		''' Returns an Encoding of a left Dehn twist about vector raised to the power k.
-		If k is zero this will return the identity Encoding. If k is negative this 
-		will return an Encoding of a right Dehn twist about vector raised to the power -k.
-		Assumes that vector represents a curve and not a multicurve, if given a multicurve an
-		AssumptionError is thrown. '''
-		if not self.is_curve(vector):
-			raise AssumptionError('Not a curve.')
 		
-		if k == 0: return Id_Encoding_Sequence(self)
-		
-		vector = list(vector)
-		
-		# We'll keep track of what we have conjugated by as well as it's inverse
-		# we could compute this at the end by doing:
-		#   conjugation_inverse = conjugation.inverse()
-		# but this is much faster as we don't need to invert a load of matrices.
-		conjugation = Id_Encoding_Sequence(self)
-		conjugation_inverse = Id_Encoding_Sequence(self)
-		
-		while weight(vector) > 2:
-			# Find the edge which decreases our weight the most.
-			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			working_copy = conjugation.target_triangulation
-			edge_index = min([i for i in range(working_copy.zeta) if vector[i] > 0], key=lambda i: weight(working_copy.flip_effect(i, vector)))
-			
-			vector = working_copy.flip_effect(edge_index, vector)
-			forward, backwards = conjugation.target_triangulation.encode_flip(edge_index)
-			conjugation = forward * conjugation
-			conjugation_inverse = conjugation_inverse * backwards
-		
-		working_copy = conjugation.target_triangulation
-		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(self.zeta) if vector[edge_index] > 0]
-		# We might need to swap these edge indices so we have a good frame of reference.
-		containing_triangles = working_copy.find_edge(e1)
-		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
-		# But to do a right twist we'll need to switch framing again.
-		if k < 0: e1, e2 = e2, e1
-		# Finally we can encode the twist.
-		forwards, backwards = conjugation.target_triangulation.encode_flip(e1)
-		swap = forwards.target_triangulation.encode_swap(e1, e2, working_copy)
-		T = Encoding_Sequence([swap, forwards], working_copy, working_copy)
-		
-		return conjugation_inverse * T**abs(k) * conjugation
+		if encoding:
+			return new_triangulation, Encoding([A1, A2], [C1, C2], self, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, self)
+		else:
+			return new_triangulation
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
@@ -309,12 +193,12 @@ class Abstract_Triangulation:
 			for triangle, side in corner_class:
 				if triangle[side+2] != edge_index:
 					vector[triangle[side+2]] += 1
-		return vector
+		return self.create_lamination(vector)
 	
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
-	def extend_isometry(self, other, source_triangle, target_triangle, cycle, as_Encoding=False):
+	def extend_isometry(self, other, source_triangle, target_triangle, cycle):
 		if self.zeta != other.zeta: return None
 		permutation = {}
 		
@@ -337,12 +221,9 @@ class Abstract_Triangulation:
 		# Check that the thing that we've built is actually a permutation.
 		if any(d[i] == d[j] for i, j in combinations(range(self.zeta), 2)): return None
 		
-		if as_Encoding:
-			return Isometry(self, other, permutation).encoding()
-		else:
-			return Isometry(self, other, permutation)
+		return Isometry(self, other, permutation)
 	
-	def all_isometries(self, other, as_Encodings=False):
+	def all_isometries(self, other):
 		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
 		# to the edges of other by an orientation preserving isometry.
 		if self.zeta != other.zeta: return []
@@ -350,7 +231,7 @@ class Abstract_Triangulation:
 		isometries = []
 		for triangle in other:
 			for i in range(3):
-				isometry = self.extend_isometry(other, self.triangles[0], triangle, i, as_Encodings)
+				isometry = self.extend_isometry(other, self.triangles[0], triangle, i)
 				if isometry is not None:
 						isometries.append(isometry)
 		

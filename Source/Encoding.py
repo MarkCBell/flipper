@@ -3,10 +3,12 @@ from __future__ import print_function
 from functools import reduce
 from itertools import product, combinations
 try:
+	# from Source.Lamination import Lamination
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
 	from Source.Symbolic_Computation import Perron_Frobenius_eigen
 except ImportError:
+	# from Lamination import Lamination
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
 	from Symbolic_Computation import Perron_Frobenius_eigen
@@ -51,13 +53,12 @@ class Encoding:
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
+		# Should have some more asserts here to check we're going between matching triangulations.
 		if isinstance(other, Encoding_Sequence):
 			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
-			X = [self.action_matrices[i] * other.action_matrices[j] for i in range(self.size) for j in range(other.size)]
-			Y = [other.condition_matrices[j].join(self.condition_matrices[i]*other.action_matrices[j]) for i in range(self.size) for j in range(other.size)]
-			return Encoding(X, Y, other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, list):  # other is a vector.
+			return Encoding_Sequence([self, other], other.source_triangulation, self.target_triangulation)
+		elif isinstance(other, list):
 			for i in range(self.size):
 				if nonnegative_image(self.condition_matrices[i], other):
 					return self.action_matrices[i] * other
@@ -100,18 +101,17 @@ class Encoding_Sequence:
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
-		assert(isinstance(other, (Encoding_Sequence, Encoding, list)))
 		if isinstance(other, Encoding_Sequence):
 			assert(self.source_triangulation == other.target_triangulation)
 			return Encoding_Sequence(self.sequence + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			assert(self.source_triangulation == other.target_triangulation)
 			return Encoding_Sequence(self.sequence + [other], other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, list):
-			vector = list(other)
+		else:
+			other = other.copy()
 			for A in reversed(self.sequence):
-				vector = A * vector
-			return vector
+				other = A * other
+			return other
 	def __pow__(self, k):
 		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
@@ -323,8 +323,8 @@ class Encoding_Sequence:
 			except AssumptionError:  # action_matrix was not Perron-Frobenius.
 				raise ComputationError('Could not estimate stable lamination.')
 			if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 
-				return eigenvector, eigenvalue
+				return self.source_triangulation.create_lamination(eigenvector), eigenvalue
 			else:
 				raise ComputationError('Could not estimate stable lamination.')  # If not then the curve failed to get close enough to the stable lamination.
 		else:
-			return curve, float((self * curve)[0]) / curve[0]
+			return self.source_triangulation.create_lamination(curve), float((self * curve)[0]) / curve[0]

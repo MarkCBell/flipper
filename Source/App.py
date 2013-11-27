@@ -251,14 +251,22 @@ class App:
 			task, arguements = sections[0], sections[1:]
 			combined = ' '.join(arguements)
 			try:
-				if task == 'clear': self.initialise()
-				elif task == 'erase': self.destroy_curve()
+				if task == '': pass
+				
+				elif task == 'save': self.save(combined)
+				elif task == 'load': self.load(combined)
+				elif task == 'open': self.load(combined)
+				elif task == 'export': self.export_image(combined)
 				elif task == 'options': self.show_options()
+				elif task == 'about': self.show_about()
+				elif task == 'exit': self.parent.quit()
+				
 				elif task == 'debug': self.debug()
 				elif task == 'profile': self.profile()
 				elif task == 'stats': self.stats()
-				elif task == 'exit': self.parent.quit()
 				
+				elif task == 'clear': self.initialise()
+				elif task == 'erase': self.destroy_curve()
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				
@@ -276,17 +284,10 @@ class App:
 				elif task == 'periodic': self.is_periodic(combined)
 				elif task == 'reducible': self.is_reducible(combined)
 				elif task == 'pA': self.is_pseudo_Anosov(combined)
-				elif task == 'lamination': print(self.stable_lamination(combined))
-				elif task == 'lamination_exact': print(self.stable_lamination(combined, exact=True))
+				elif task == 'lamination': self.stable_lamination(combined)
+				elif task == 'lamination_exact': self.stable_lamination(combined, exact=True)
 				
 				elif task == 'split': self.splitting_sequence(combined)
-				
-				elif task == 'save': self.save(combined)
-				elif task == 'load': self.load(combined)
-				elif task == 'open': self.load(combined)
-				elif task == 'export': self.export_image(combined)
-				elif task == 'about': self.show_about()
-				
 				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -776,11 +777,11 @@ class App:
 		else:
 			try:
 				if mapping_class.is_periodic():
-					tkMessageBox.showinfo('pseudo Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
+					tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
 				elif mapping_class.is_reducible(certify=False, show_progress=Progress_App(self), options=self.options):
-					tkMessageBox.showinfo('pseudo Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
+					tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 				else:
-					tkMessageBox.showinfo('pseudo Anosov', '%s is pseudo-Anosov.' % composition)
+					tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
 			except AbortError:
 				pass
 	
@@ -795,21 +796,33 @@ class App:
 			pass
 		else:
 			try:
-				return mapping_class.stable_lamination(exact)
-			except AbortError:
-				tkMessageBox.showinfo('Dilatation', 'Could not estimate the stable lamination of %s.' % composition)
+				lamination, dilatation = mapping_class.stable_lamination(exact)
+			except ComputationError:
+				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s.  It is probably reducible.' % composition)
+			else:
+				tkMessageBox.showinfo('Lamination', '%s has lamination: %s \nand dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
 		try:
-			start_time = time()
-			V, dilatation = self.stable_lamination(composition, exact=True)
-			if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
+			mapping_class = self.create_composition(composition.split('.'))
 		except AbortError:
-			tkMessageBox.showinfo('Dilatation', 'Could not estimate the stable lamination of %s.' % composition)
+			pass
 		else:
-			start_time = time()
-			print(compute_splitting_sequence(V))
-			if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
+			try:
+				start_time = time()
+				lamination, dilatation = mapping_class.stable_lamination(exact=True)
+			except ComputationError:
+				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s. It is probably reducible.' % composition)
+			else:
+				if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
+				try:
+					start_time = time()
+					preperiodic, periodic, dilatation = compute_splitting_sequence(self.abstract_triangulation, lamination)
+				except AssumptionError:
+					tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
+				else:
+					if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
+					tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
 	
 	
 	######################################################################

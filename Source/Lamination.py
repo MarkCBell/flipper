@@ -1,10 +1,10 @@
 
 try:
-	from Source.Encoding import Id_Encoding_Sequence
+	# from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
-	from Encoding import Id_Encoding_Sequence
+	# from AbstractTriangulation import Abstract_Triangulation
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
 
@@ -28,9 +28,12 @@ class Lamination:
 	
 	def __rmul__(self, other):
 		try:
-			return Lamination(self.abstract_triangulation, other * self.vector)
+			return Lamination(other.target_triangulation, other * self.vector)
 		except TypeError:
 			return NotImplemented
+	
+	def __eq__(self, other):
+		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	
 	def weight(self):
 		return sum(self.vector)
@@ -83,17 +86,15 @@ class Lamination:
 	
 	def flip_edge(self, edge_index, encoding=False):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
+		# If encoding is set to True then it also returns the encodings from the old triangulation
+		# to the new and vice versa.
 		assert(self.abstract_triangulation.edge_is_flippable(edge_index))
 		
-		new_triangulation, forwards, backwards = self.abstract_triangulation.flip_edge(edge_index, True)
-		
-		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
-		new_vector = list(self.vector)
-		new_vector[edge_index] = max(self.vector[a] + self.vector[c], self.vector[b] + self.vector[d]) - self.vector[edge_index]
+		forwards, backwards = self.abstract_triangulation.encode_flip_edge(edge_index)
 		if encoding:
-			return Lamination(new_triangulation, new_vector), forwards, backwards
+			return (forwards * self), forwards, backwards
 		else:
-			return Lamination(new_triangulation, new_vector)
+			return forwards * self
 	
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
@@ -101,13 +102,13 @@ class Lamination:
 	
 	def encode_twist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return the identity Encoding. If k is negative this 
+		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
 		if not self.is_curve():
 			raise AssumptionError('Not a curve.')
 		
-		if k == 0: return Id_Encoding_Sequence(self.abstract_triangulation)
+		if k == 0: return None
 		
 		lamination_copy = self.copy()
 		
@@ -115,8 +116,8 @@ class Lamination:
 		# we could compute this at the end by doing:
 		#   conjugation_inverse = conjugation.inverse()
 		# but this is much faster as we don't need to invert a load of matrices.
-		conjugation = Id_Encoding_Sequence(self.abstract_triangulation)
-		conjugation_inverse = Id_Encoding_Sequence(self.abstract_triangulation)
+		conjugation = None
+		conjugation_inverse = None
 		
 		while lamination_copy.weight() > 2:
 			# Find the edge which decreases our weight the most.
@@ -146,29 +147,3 @@ class Lamination:
 		T = map_back * forwards
 		
 		return conjugation_inverse * T**abs(k) * conjugation
-	
-	def puncture_trigons(self):
-		# We label real punctures with a 0 and fake ones created by this process with a 1.
-		new_labels = []
-		new_corner_labels = []
-		new_vector = list(lamination)
-		zeta = self.zeta
-		for triangle in self.abstract_triangulation.triangles:
-			a, b, c = triangle.edge_indices
-			if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
-				x, y, z = zeta, zeta+1, zeta+2
-				new_labels.append([a,z,y])
-				new_labels.append([b,x,z])
-				new_labels.append([c,y,x])
-				new_corner_labels.append([1,0,0])
-				new_corner_labels.append([1,0,0])
-				new_corner_labels.append([1,0,0])
-				new_vector.append((new_vector[b] + new_vector[c] - new_vector[a]) / 2)
-				new_vector.append((new_vector[c] + new_vector[a] - new_vector[b]) / 2)
-				new_vector.append((new_vector[a] + new_vector[b] - new_vector[c]) / 2)
-				zeta = zeta + 3
-			else:
-				new_labels.append([a,b,c])
-				new_corner_labels.append([0,0,0])
-		
-		return Abstract_Triangulation(new_labels, new_corner_labels), new_vector

@@ -663,7 +663,7 @@ class Flipper_App:
 				tkMessageBox.showwarning('Curve', 'Unknown curve: %s' % twist)
 				raise AbortError()
 		
-		mapping_class = mapping_class.compactify()
+		# mapping_class = mapping_class.compactify()  # !?! Broken.
 		if self.options.debugging: print('Mapping class size: %d' % mapping_class.size)
 		return mapping_class
 	

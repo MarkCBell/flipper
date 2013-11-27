@@ -15,7 +15,7 @@ def Example_12():
 	b = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]).encode_twist()
 	B = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]).encode_twist(k =-1)
 	p = T.all_isometries(T)[1].encoding()  # This is a 1/12 click.
-	return {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
+	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def Example_24():
 	# A 24-gon.
@@ -29,7 +29,7 @@ def Example_24():
 	b = Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
 	B = Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
 	p = T.all_isometries(T)[1].encoding()  # This is a 1/24 click.
-	return {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
+	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def Example_36():
 	# A 36-gon
@@ -43,7 +43,7 @@ def Example_36():
 	b = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
 	B = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
 	p = T.all_isometries(T)[1].encoding()  # This is a 1/36 click.
-	return {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
+	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def Example_S_1_2():
 	# S_1_2 and its standard (Twister) curves:
@@ -55,4 +55,4 @@ def Example_S_1_2():
 	A = Lamination(T, [0,0,1,1,1,0]).encode_twist(k=-1)
 	B = Lamination(T, [0,1,0,1,0,1]).encode_twist(k=-1)
 	C = Lamination(T, [1,0,0,0,1,1]).encode_twist(k=-1)
-	return {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}
+	return T, {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}

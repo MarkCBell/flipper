@@ -9,12 +9,12 @@ except ImportError: # Python 3
 try:
 	from Source.Lamination import Lamination
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
-	from Source.Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
+	from Source.Encoding import Encoding
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
 	from Lamination import Lamination
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
-	from Encoding import Encoding, Encoding_Sequence, Id_Encoding_Sequence
+	from Encoding import Encoding
 	from Error import AbortError, ComputationError, AssumptionError
 
 def tweak_vector(v, add, subtract):
@@ -104,9 +104,6 @@ class Abstract_Triangulation:
 	def __iter__(self):
 		return iter(self.triangles)
 	
-	def create_lamination(self, vector):
-		return Lamination(self, vector)
-	
 	def find_corner_class(self, triangle, side):
 		for corner_class in self.corner_classes:
 			if (triangle, side) in corner_class:
@@ -161,7 +158,7 @@ class Abstract_Triangulation:
 		containing_triangles = self.find_edge(edge_index)
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
 	
-	def flip_edge(self, edge_index, encoding=False):
+	def encode_flip_edge(self, edge_index):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
 		# Additionally returns encodings of the forwards and backwards maps if encoding is set to True.
 		assert(self.edge_is_flippable(edge_index))
@@ -180,10 +177,7 @@ class Abstract_Triangulation:
 		tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
 		C2 = Matrix(tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
 		
-		if encoding:
-			return new_triangulation, Encoding([A1, A2], [C1, C2], self, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, self)
-		else:
-			return new_triangulation
+		return Encoding([A1, A2], [C1, C2], self, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, self)
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
@@ -193,7 +187,7 @@ class Abstract_Triangulation:
 			for triangle, side in corner_class:
 				if triangle[side+2] != edge_index:
 					vector[triangle[side+2]] += 1
-		return self.create_lamination(vector)
+		return Lamination(self, vector)
 	
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]

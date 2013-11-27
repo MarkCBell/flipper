@@ -3,12 +3,12 @@ from __future__ import print_function
 from functools import reduce
 from itertools import product, combinations
 try:
-	# from Source.Lamination import Lamination
+	from Source.Lamination import Lamination
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
 	from Source.Symbolic_Computation import Perron_Frobenius_eigen
 except ImportError:
-	# from Lamination import Lamination
+	from Lamination import Lamination
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
 	from Symbolic_Computation import Perron_Frobenius_eigen
@@ -46,10 +46,6 @@ class Encoding:
 			if all(self.action_matrices[i] != other.action_matrices[j] or not self.condition_matrices[i].equivalent(other.condition_matrices[j]) for j in range(other.size)):
 				return False
 		return True
-	def equivalent(self, other):
-		# !?! TO DO: Check if self and other act equivalently.
-		if self.zeta != other.zeta: return False
-		return False
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
@@ -63,6 +59,13 @@ class Encoding:
 				if nonnegative_image(self.condition_matrices[i], other):
 					return self.action_matrices[i] * other
 			raise IndexError
+		elif other is None:
+			return Encoding_Sequence([self], self.source_triangulation, self.target_triangulation)
+		else:
+			return NotImplemented
+	def __rmul__(self, other):
+		if other is None:
+			return Encoding_Sequence([self], self.source_triangulation, self.target_triangulation)
 		else:
 			return NotImplemented
 	def __pow__(self, n):
@@ -90,8 +93,10 @@ def Id_Encoding_Sequence(triangulation):
 
 class Encoding_Sequence:
 	def __init__(self, L, source_triangulation, target_triangulation):
-		# Should make sure L is a list of encodings all coming from the same source.
+		# Should make sure the triangulations of the encodings in L chain together.
 		assert(source_triangulation.zeta == target_triangulation.zeta)
+		assert(all(isinstance(x, Encoding) for x in L))
+		
 		self.sequence = L
 		self.zeta = source_triangulation.zeta
 		self.source_triangulation = source_triangulation
@@ -107,11 +112,18 @@ class Encoding_Sequence:
 		elif isinstance(other, Encoding):
 			assert(self.source_triangulation == other.target_triangulation)
 			return Encoding_Sequence(self.sequence + [other], other.source_triangulation, self.target_triangulation)
+		elif other is None:
+			return self
 		else:
 			other = other.copy()
 			for A in reversed(self.sequence):
 				other = A * other
 			return other
+	def __rmul__(self, other):
+		if other is None:
+			return self
+		else:
+			return NotImplemented
 	def __pow__(self, k):
 		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
@@ -135,7 +147,8 @@ class Encoding_Sequence:
 			raise TypeError('Invalid argument type.')
 	
 	def compactify(self):
-		''' Returns an Encoding_Sequence which acts equivalently to this one but which only no Encoding of size 1. '''
+		''' Returns an Encoding_Sequence which acts equivalently to this one but which has no Encoding of size 1. '''
+		# !?! Broken!
 		X = []
 		for encoding in self:
 			if len(X) > 0 and len(encoding) == 1:
@@ -262,8 +275,7 @@ class Encoding_Sequence:
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:
-						certificate = [2*i for i in certificate]
-						print(certificate)
+						certificate = Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
 						if options is not None and options.statistics: print(buckets)
@@ -287,7 +299,7 @@ class Encoding_Sequence:
 	
 	def check_fixedpoint(self, certificate):
 		assert(self.source_triangulation == self.target_triangulation)
-		return self.source_triangulation.is_multicurve(certificate) and self * certificate == certificate
+		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def stable_lamination(self, exact=False):
 		# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
@@ -312,7 +324,7 @@ class Encoding_Sequence:
 			if i > 3 and all(projective_difference(curve_A, curve_B, 1000000000) for curve_A, curve_B in combinations(curves, 2)):  # Make sure to apply at least 4 iterations.
 				break
 		else:
-			raise ComputationError('Could not estimate stable lamination.')
+			if not exact raise ComputationError('Could not estimate stable lamination.')
 		
 		curve = curves[0]  # They're all pretty much the same so just get this one.
 		
@@ -323,8 +335,8 @@ class Encoding_Sequence:
 			except AssumptionError:  # action_matrix was not Perron-Frobenius.
 				raise ComputationError('Could not estimate stable lamination.')
 			if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 
-				return self.source_triangulation.create_lamination(eigenvector), eigenvalue
+				return Lamination(self.source_triangulation, eigenvector), eigenvalue
 			else:
 				raise ComputationError('Could not estimate stable lamination.')  # If not then the curve failed to get close enough to the stable lamination.
 		else:
-			return self.source_triangulation.create_lamination(curve), float((self * curve)[0]) / curve[0]
+			return Lamination(self.source_triangulation, curve), float((self * curve)[0]) / curve[0]

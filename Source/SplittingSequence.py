@@ -1,13 +1,11 @@
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Encoding import Id_Encoding_Sequence
 	from Source.Lamination import Lamination
 	from Source.Error import AssumptionError
 	from Source.Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
-	from Encoding import Id_Encoding_Sequence
 	from Lamination import Lamination
 	from Error import AssumptionError
 	from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
@@ -16,9 +14,9 @@ def puncture_trigons(lamination):
 	# We label real punctures with a 0 and fake ones created by this process with a 1.
 	new_labels = []
 	new_corner_labels = []
-	new_vector = list(lamination)
+	new_vector = list(lamination.vector)
 	zeta = lamination.zeta
-	for triangle in lamination.abstract_triangulation.triangles:
+	for triangle in lamination.abstract_triangulation:
 		a, b, c = triangle.edge_indices
 		if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
 			x, y, z = zeta, zeta+1, zeta+2
@@ -51,7 +49,7 @@ def collapse_trivial_weight(lamination, edge_index):
 	# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 	if a == b or c == d:
 		# This means that lamination[a] (respectively lamination[c] == 0).
-		raise AssumptionError('Additional weightless edges.')
+		raise AssumptionError('Additional weightless edge.')
 	
 	# There is at most one duplicated pair.
 	if a == d and b == c:
@@ -120,7 +118,8 @@ def compute_splitting_sequence(lamination):
 		return tuple([simplify(v * s) for v in lamination])
 	
 	# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
-	# We take the coefficients of the minimal polynomial of each entry and sort them.
+	# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
+	# uniform bound on the number of collisions.
 	def hash_lamination(lamination):
 		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(lamination)])))
 	
@@ -133,7 +132,7 @@ def compute_splitting_sequence(lamination):
 	seen = {hash_lamination(lamination_copy):[[0, lamination_copy.copy(), projective_weights(lamination_copy)]]}
 	while True:
 		i = max(range(lamination.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
-		lamination_copy = lamination_copy.flip_edge(i)
+		lamination_copy = lamination_copy.flip_edge(i, encoding=True)
 		
 		if lamination_copy[i] == 0:
 			try:
@@ -144,28 +143,35 @@ def compute_splitting_sequence(lamination):
 		
 		flipped.append(i)
 		
-		projective_lamination = projective_weights(lamination_copy)
 		# if len(flipped) % 20 == 0: print(flipped[-20:])  # Every once in a while show how we're progressing.
 		
 		# Check if it (projectively) matches a lamination we've already seen.
 		target = hash_lamination(lamination_copy)
 		current_triangulation = lamination_copy.abstract_triangulation
+		current_projective_weights = projective_weights(lamination_copy)
 		if target in seen:
 			for index, old_lamination, old_projective_weights in seen[target]:
 				old_triangulation = old_lamination.abstract_triangulation
 				for isometry in current_triangulation.all_isometries(old_triangulation):
 					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination_copy.zeta)])
-					if projective_lamination == permuted_old_projective_weights:
+					if current_projective_weights == permuted_old_projective_weights:
 						# Return: the pre-periodic part, the periodic part, the dilatation.
 						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination_copy[0])
-			seen[target].append([len(flipped), lamination_copy.copy(), list(projective_lamination)])
+			seen[target].append([len(flipped), lamination_copy.copy(), tuple(current_projective_weights)])
 		else:
-			seen[target] = [[len(flipped), lamination_copy.copy(), list(projective_lamination)]]
+			seen[target] = [[len(flipped), lamination_copy.copy(), tuple(current_projective_weights)]]
 
+# class MaximalSplittingSequence:
+	# def __init__(self, encodings, period_target, isometry):
+		# self.encodings = encodings
+		# self.isometry = isometry
+		# self.isometry_target = isometry_target
+	
 def splitting_sequence_to_encoding(abstract_triangulation, sequence):
-	encoding = Id_Encoding_Sequence(abstract_triangulation)
+	encoding = None
+	triangulation = abstract_triangulation.copy()
 	for edge_index in sequence:
-		new_triangulation = forwards, backwards = encoding.target_triangulation.flip_edge(edge_index, encoding=True)
+		triangulation = forwards, backwards = triangulation.flip_edge(edge_index, encoding=True)
 		encoding = forwards * encoding
 	
 	return encoding
@@ -190,15 +196,17 @@ def determine_type(mapping_class):
 		except AssumptionError:
 			print(' -- Reducible.')
 	print('      (Time: %0.4fs)' % (time() - start_time))
+	return time() - start_time
 
 if __name__ == '__main__':
 	from random import choice
 	from time import time
+	from Encoding import Id_Encoding_Sequence
 	
 	print('Start')
 	
 	# from Examples import Example_24
-	# twists = Example_24()
+	# T, twists = Example_24()
 	# h = (twists['a']*twists['B']*twists['B']*twists['a']*twists['p'])**3
 	# print('Lamination')
 	# lamination, dilatation = h.stable_lamination(exact=True)
@@ -207,11 +215,11 @@ if __name__ == '__main__':
 	# print(len(preperiodic), len(periodic), compute_powers(dilatation, new_dilatation))
 	
 	from Examples import Example_S_1_2
-	twists = Example_S_1_2()
+	T, twists = Example_S_1_2()
 	
 	def expand_class(string):
 		print(string)
-		h = Id_Encoding_Sequence(twists['a'].source_triangulation)
+		h = Id_Encoding_Sequence(T)
 		for letter in string:
 			h = twists[letter] * h
 		return h
@@ -228,12 +236,8 @@ if __name__ == '__main__':
 	
 	random_length = 50
 	num_trials = 50
-	total_time = 0
+	times = []
 	for k in range(num_trials):
-		h = expand_class(random_mapping_class(random_length))
-		
-		start_time = time()
-		determine_type(h)
-		total_time += time() - start_time
+		times.append(determine_type(expand_class(random_mapping_class(random_length))))
 	
-	print('Average decision time for %d trials: %0.4fs' % (num_trials, total_time / num_trials))
+	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))

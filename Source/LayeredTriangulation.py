@@ -2,6 +2,9 @@
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 
+# Warning: Layered_Triangulation modifies itself in place!
+# Perhaps when I'm feeling purer I'll come back and redo this.
+
 from itertools import permutations, combinations
 try:
 	from Source.Error import AbortError, ComputationError, AssumptionError
@@ -19,6 +22,8 @@ class Permutation:
 		return Permutation([self[other[i]] for i in range(4)])
 	def __str__(self):
 		return '%d%d%d%d' % tuple(self.permutation)
+	def __eq__(self, other):
+		return self.permutation == other.permutation
 	def inverse(self):
 		return Permutation(tuple([j for i in range(4) for j in range(4) if self[j] == i]))
 	def is_even(self):
@@ -34,6 +39,12 @@ odd_permutations = [perm for perm in all_permutations if not perm.is_even()]
 def permutation_from_mapping(i, i_image, j, j_image, even):
 	return [perm for perm in (even_permutations if even else odd_permutations) if perm[i] == i_image and perm[j] == j_image][0]
 
+# Edge veerings:
+UNKNOWN = None
+LEFT = 0
+RIGHT = 1
+vertices_meeting = {0:(1,2,3), 1:(0,2,3), 2:(0,1,3), 3:(0,1,2)}
+
 class Tetrahedra:
 	def __init__(self, label=None):
 		self.label = label
@@ -41,12 +52,14 @@ class Tetrahedra:
 		self.cusp_indices = [-1, -1, -1, -1]
 		self.meridians = [[0,0,0,0] for i in range(4)]
 		self.longitudes = [[0,0,0,0] for i in range(4)]
+		self.edge_labels = {(0,1):UNKNOWN, (0,2):UNKNOWN, (0,3):UNKNOWN, (1,2):UNKNOWN, (1,3):UNKNOWN, (2,3):UNKNOWN}
+		self.vertex_labels = [None, None, None, None]
 	
 	def __repr__(self):
 		return str(self.label)
 	
 	def __str__(self):
-		return '%s: %s' % (self.label, self.glued_to)
+		return 'Label: %s, Gluings: %s, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
 	
 	def glue(self, side, target, permutation):
 		if self.glued_to[side] is None:
@@ -56,8 +69,20 @@ class Tetrahedra:
 			
 			self.glued_to[side] = (target, permutation)
 			target.glued_to[permutation[side]] = (self, permutation.inverse())
+			
+			# Move across the edge veerings too.
+			for a, b in combinations(vertices_meeting[side], 2):
+				x, y = sorted([permutation[a], permutation[b]])
+				my_edge_veering = self.edge_labels[(a, b)]
+				his_edge_veering = target.edge_labels[(x, y)]
+				if my_edge_veering == UNKNOWN and his_edge_veering != UNKNOWN:
+					self.edge_labels[(a, b)] = his_edge_veering
+				elif my_edge_veering != UNKNOWN and his_edge_veering == UNKNOWN:
+					target.edge_labels[(x, y)] = my_edge_veering
+				elif my_edge_veering != UNKNOWN and his_edge_veering != UNKNOWN:
+					assert(my_edge_veering == his_edge_veering)
 		else:
-			assert(target, permutation == self.glued_to[side])
+			assert((target, permutation) == self.glued_to[side])
 	
 	def unglue(self, side):
 		if self.glued_to[side] is not None:
@@ -82,7 +107,7 @@ class Triangulation:
 		self.num_cusps = 1  # 0
 	
 	def copy(self):
-		# Returns a copy of this triangulation. We gurantee that the tetrahedra in the copy will come in the same order.
+		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
 		new_triangulation = Triangulation(self.num_tetrahedra)
 		forwards = dict(zip(self.tetrahedra, new_triangulation.tetrahedra))
 		
@@ -91,6 +116,13 @@ class Triangulation:
 				if tetrahedron.glued_to[side] is not None:
 					neighbour, permutation = tetrahedron.glued_to[side]
 					forwards[tetrahedron].glue(side, forwards[neighbour], permutation)
+			
+			forwards[tetrahedron].cusp_indices = list(tetrahedron.cusp_indices)
+			forwards[tetrahedron].meridians = [list(meridian) for meridian in tetrahedron.meridians]
+			forwards[tetrahedron].longitudes = [list(longitude) for longitude in tetrahedron.longitudes]
+			forwards[tetrahedron].edge_labels = dict(tetrahedron.edge_labels)
+			forwards[tetrahedron].vertex_labels = tetrahedron.vertex_labels
+		
 		return new_triangulation
 	
 	def __repr__(self):
@@ -136,8 +168,6 @@ class Triangulation:
 		return s
 
 # A class to represent a layered triangulation over a surface specified by an Abstract_Triangulation.
-# Warning: Layered_Triangulation modifies itself in place!
-# Perhaps when I'm feeling purer I'll come back and redo this.
 class Layered_Triangulation:
 	def __init__(self, abstract_triangulation):
 		self.closed = False
@@ -170,6 +200,10 @@ class Layered_Triangulation:
 		
 		# Get a new tetrahedra.
 		new_tetrahedra = self.core_triangulation.create_tetrahedra()
+		new_tetrahedra.edge_labels[(0,1)] = RIGHT
+		new_tetrahedra.edge_labels[(1,2)] = LEFT
+		new_tetrahedra.edge_labels[(2,3)] = RIGHT
+		new_tetrahedra.edge_labels[(0,3)] = LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
@@ -200,6 +234,7 @@ class Layered_Triangulation:
 				corresponding_triangle = new_upper_triangulation.find_triangle(triangle.edge_indices)
 				new_upper_map[corresponding_triangle] = self.upper_map[triangle]
 		
+		# This relies on knowing how the upper_triangulation.flip_edge() function works.
 		(new_A, new_side_A), (new_B, new_side_B) = new_upper_triangulation.find_edge(edge_index)
 		new_upper_map[new_A] = (object_A, Permutation((0,2,1,3)))
 		new_upper_map[new_B] = (object_B, Permutation((0,2,1,3)))
@@ -208,14 +243,15 @@ class Layered_Triangulation:
 		self.upper_triangulation = new_upper_triangulation
 		self.upper_map = new_upper_map
 	
-	def flip_sequence(self, sequence):
+	def flips(self, sequence):
 		for edge_index in sequence:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
 		closed_triangulation = self.core_triangulation.copy()
-		# The tetrahedra in the closed triangulation are guranteed to be in the same order so we can get away with this.
+		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation.tetrahedra, closed_triangulation.tetrahedra))
+		# Probably should install longitudes and meridians now.
 		
 		for triangle in self.upper_triangulation:
 			matching_triangle, cycle = isometry[triangle]
@@ -238,17 +274,16 @@ if __name__ == '__main__':
 	from AbstractTriangulation import Abstract_Triangulation
 	
 	L = Layered_Triangulation(Abstract_Triangulation([[0,2,1], [0,2,1]]))
-	print(L)
-	L.flip_sequence([2, 1, 1])
+	L.flips([2, 1, 2, 1])
 	print('------------------------------')
 	print(L)
-	isoms = L.upper_triangulation.all_isometries(L.lower_triangulation)
-	isom = isoms[0]
+	isom = L.upper_triangulation.all_isometries(L.lower_triangulation)[0]
 	print('------------------------------')
 	print('Isometry: ', isom)
 	print('------------------------------')
 	M = L.close(isom)
 	print(M)
-	print(M.is_closed())
+	print('M is closed: %s' % M.is_closed())
+	print('M\'s SnapPy string:')
 	print(M.SnapPy_string())
 	

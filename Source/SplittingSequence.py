@@ -163,21 +163,6 @@ def compute_splitting_sequence(lamination):
 		else:
 			seen[target] = [[len(flipped), lamination, current_projective_weights]]
 
-# class MaximalSplittingSequence:
-	# def __init__(self, encodings, period_target, isometry):
-		# self.encodings = encodings
-		# self.isometry = isometry
-		# self.isometry_target = isometry_target
-	
-def splitting_sequence_to_encoding(abstract_triangulation, sequence):
-	encoding = None
-	triangulation = abstract_triangulation.copy()
-	for edge_index in sequence:
-		triangulation = forwards, backwards = triangulation.flip_edge(edge_index, encoding=True)
-		encoding = forwards * encoding
-	
-	return encoding
-
 def determine_type(mapping_class):
 	from Error import ComputationError, AssumptionError
 	from time import time
@@ -232,10 +217,10 @@ if __name__ == '__main__':
 	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
 	# determine_type(h)
 	# exit(1)
-	import cProfile
-	h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
-	cProfile.run('determine_type(h)', sort='cumtime')
-	exit(1)
+	# import cProfile
+	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
+	# cProfile.run('determine_type(h)', sort='cumtime')
+	# exit(1)
 	
 	random_length = 50
 	num_trials = 50

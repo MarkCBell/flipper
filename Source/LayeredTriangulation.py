@@ -248,6 +248,8 @@ class Layered_Triangulation:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
+		# Should assume that all edges of the underlying triangulation have been flipped.
+		
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation.tetrahedra, closed_triangulation.tetrahedra))
@@ -269,11 +271,11 @@ class Layered_Triangulation:
 		
 		return closed_triangulation
 
-
 if __name__ == '__main__':
-	from AbstractTriangulation import Abstract_Triangulation
+	from Examples import Example_S_1_1
 	
-	L = Layered_Triangulation(Abstract_Triangulation([[0,2,1], [0,2,1]]))
+	T, twists = Example_S_1_1()
+	L = Layered_Triangulation(T)
 	L.flips([2, 1, 2, 1])
 	print('------------------------------')
 	print(L)
@@ -286,4 +288,3 @@ if __name__ == '__main__':
 	print('M is closed: %s' % M.is_closed())
 	print('M\'s SnapPy string:')
 	print(M.SnapPy_string())
-	

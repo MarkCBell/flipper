@@ -63,18 +63,17 @@ class Options_App:
 		self.scale_draw_thickness = TK.Scale(self.frame, from_=1, to=10, orient=TK.HORIZONTAL, command=self.draw_thickness_update)
 		self.scale_draw_thickness.grid(row=0, column=1, sticky='e')
 		
-		self.check_compress_curve = TK.Checkbutton(self.frame, text='Compress curve', anchor='w', variable=self.compress_curve_variable, command=self.compress_curve_update)
-		self.check_compress_curve.grid(row=1, sticky='we')
+		self.label_edge_labels = TK.Label(self.frame, text='Edge labels:')
+		self.label_edge_labels.grid(row=1, column=0, sticky='w')
+		
+		self.combo_edge_labels = TTK.Combobox(self.frame, state='readonly', values=['None', 'Index', 'Geometric', 'Algebraic'])
+		self.combo_edge_labels.grid(row=1, column=1, sticky='we')
 		
 		self.check_show_internals = TK.Checkbutton(self.frame, text='Show internal edges', anchor='w', variable=self.show_internals_variable, command=self.show_internals_update)
 		self.check_show_internals.grid(row=2, sticky='we')
 		
-		# self.check_label_edges = TK.Checkbutton(self.frame, text='Label edges', anchor='w', variable=self.label_edges_variable, command=self.label_edges_update)
-		self.label_edge_labels = TK.Label(self.frame, text='Edge labels:')
-		self.label_edge_labels.grid(row=3, column=0, sticky='w')
-		
-		self.combo_edge_labels = TTK.Combobox(self.frame, state='readonly', values=['None', 'Index', 'Geometric', 'Algebraic'])
-		self.combo_edge_labels.grid(row=3, column=1, sticky='we')
+		self.check_compress_curve = TK.Checkbutton(self.frame, text='Compress curve', anchor='w', variable=self.compress_curve_variable, command=self.compress_curve_update)
+		self.check_compress_curve.grid(row=3, sticky='we')
 		
 		self.button_ok = TK.Button(self.frame, text='Ok', command=self.close_window)
 		self.button_ok.grid(row=4, column=1, sticky='e')

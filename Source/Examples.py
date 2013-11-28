@@ -58,3 +58,13 @@ def Example_S_1_2():
 	B = encode_twist(Lamination(T, [0,1,0,1,0,1]), k=-1)
 	C = encode_twist(Lamination(T, [1,0,0,0,1,1]), k=-1)
 	return T, {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}
+
+def Example_S_1_1():
+	# S_1_1 and its standard (Twister) curves:
+	T = Abstract_Triangulation([[0,2,1], [0,2,1]])
+	
+	a = encode_twist(Lamination(T, [1,0,1]))
+	b = encode_twist(Lamination(T, [0,1,1]))
+	A = encode_twist(Lamination(T, [1,0,1]), k=-1)
+	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
+	return T, {'a':a, 'b':b, 'A':A, 'B':B}

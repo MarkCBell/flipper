@@ -125,7 +125,7 @@ class Triangulation:
 		s += 'oriented_manifold\n'
 		s += 'CS_unknown\n'
 		s += '\n'
-		s += '%d 0' % self.num_cusps
+		s += '%d 0\n' % self.num_cusps
 		for i in range(self.num_cusps):
 			s += '    torus   0.000000000000   0.000000000000\n'
 		s += '\n'

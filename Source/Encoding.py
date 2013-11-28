@@ -346,20 +346,20 @@ def encode_twist(lamination, k=1):
 	conjugation = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
 	conjugation_inverse = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
 	
-	while lamination_copy.weight() > 2:
+	while lamination.weight() > 2:
 		# Find the edge which decreases our weight the most.
 		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-		edge_index = min([i for i in range(lamination_copy.zeta) if lamination_copy[i] > 0], key=lambda i: lamination_copy.weight_difference_flip_edge(i))
+		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
 		
-		forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, edge_index)
+		forwards, backwards = encode_flip(lamination.abstract_triangulation, edge_index)
 		conjugation = forwards * conjugation
 		conjugation_inverse = conjugation_inverse * backwards
-		lamination_copy = forwards * lamination_copy
+		lamination = forwards * lamination
 	
-	triangulation = lamination_copy.abstract_triangulation
+	triangulation = lamination.abstract_triangulation
 	# Grab the indices of the two edges we meet.
-	e1, e2 = [edge_index for edge_index in range(lamination_copy.zeta) if lamination_copy[edge_index] > 0]
+	e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
 	# We might need to swap these edge indices so we have a good frame of reference.
 	containing_triangles = triangulation.find_edge(e1)
 	if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
@@ -367,9 +367,9 @@ def encode_twist(lamination, k=1):
 	if k < 0: e1, e2 = e2, e1
 	
 	# Finally we can encode the twist.
-	forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, e1)
-	lamination_copy = forwards * lamination_copy
-	new_triangulation = lamination_copy.abstract_triangulation
+	forwards, backwards = encode_flip(lamination.abstract_triangulation, e1)
+	lamination = forwards * lamination
+	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
 	map_back = encode_isometry([isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])

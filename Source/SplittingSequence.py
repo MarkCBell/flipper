@@ -115,54 +115,53 @@ def compute_splitting_sequence(lamination):
 	# We continually use Symbolic_Computation.simplify() just to be safe.
 	# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 	
-	def projective_weights(lamination):
-		s = simplify(1 / sum(lamination))
-		return tuple([simplify(v * s) for v in lamination])
+	def projective_weights(x):
+		s = simplify(1 / sum(x))
+		return tuple([simplify(v * s) for v in x])
 	
 	# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
 	# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
 	# uniform bound on the number of collisions.
-	def hash_lamination(lamination):
-		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(lamination)])))
+	def hash_lamination(x):
+		return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
 	
 	# Check if vector is obviously reducible.
 	if any(v == 0 for v in lamination.vector):
 		raise AssumptionError('Lamination is not filling.')
 	
-	lamination_copy = puncture_trigons(lamination)  # Puncture out all trigon regions.
+	lamination = puncture_trigons(lamination)  # Puncture out all trigon regions.
 	flipped = []
-	seen = {hash_lamination(lamination_copy):[[0, lamination_copy.copy(), projective_weights(lamination_copy)]]}
+	seen = {hash_lamination(lamination):[[0, lamination, projective_weights(lamination)]]}
 	while True:
-		i = max(range(lamination.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
-		forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, i)
-		lamination_copy = forwards * lamination_copy
+		edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
+		lamination = lamination.flip_edge(edge_index)
 		
-		if lamination_copy[i] == 0:
+		if lamination[edge_index] == 0:
 			try:
 				# If this fails it's because the lamination isn't filling.
-				lamination_copy = collapse_trivial_weight(lamination_copy, i)
+				lamination = collapse_trivial_weight(lamination, edge_index)
 			except AssumptionError:
 				raise AssumptionError('Lamination is not filling.')
 		
-		flipped.append(i)
+		flipped.append(edge_index)
 		
 		# if len(flipped) % 20 == 0: print(flipped[-20:])  # Every once in a while show how we're progressing.
 		
 		# Check if it (projectively) matches a lamination we've already seen.
-		target = hash_lamination(lamination_copy)
-		current_triangulation = lamination_copy.abstract_triangulation
-		current_projective_weights = projective_weights(lamination_copy)
+		target = hash_lamination(lamination)
+		current_triangulation = lamination.abstract_triangulation
+		current_projective_weights = projective_weights(lamination)
 		if target in seen:
 			for index, old_lamination, old_projective_weights in seen[target]:
 				old_triangulation = old_lamination.abstract_triangulation
 				for isometry in current_triangulation.all_isometries(old_triangulation):
-					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination_copy.zeta)])
+					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination.zeta)])
 					if current_projective_weights == permuted_old_projective_weights:
 						# Return: the pre-periodic part, the periodic part, the dilatation.
-						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination_copy[0])
-			seen[target].append([len(flipped), lamination_copy.copy(), tuple(current_projective_weights)])
+						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0])
+			seen[target].append([len(flipped), lamination, current_projective_weights])
 		else:
-			seen[target] = [[len(flipped), lamination_copy.copy(), tuple(current_projective_weights)]]
+			seen[target] = [[len(flipped), lamination, current_projective_weights]]
 
 # class MaximalSplittingSequence:
 	# def __init__(self, encodings, period_target, isometry):
@@ -230,9 +229,9 @@ if __name__ == '__main__':
 	def random_mapping_class(n):
 		return ''.join(choice('abcABC') for i in range(n))
 	
-	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
-	# determine_type(h)
-	# exit(1)
+	h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
+	determine_type(h)
+	exit(1)
 	# import cProfile
 	# cProfile.run('determine_type(h)', sort='time')
 	# exit(1)

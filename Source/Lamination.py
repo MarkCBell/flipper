@@ -7,23 +7,23 @@ from itertools import product, combinations
 try:
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.Symbolic_Computation import Perron_Frobenius_eigen
+	from Source.Symbolic_Computation import Perron_Frobenius_eigen, simplify
 except ImportError:
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
-	from Symbolic_Computation import Perron_Frobenius_eigen
+	from Symbolic_Computation import Perron_Frobenius_eigen, simplify
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
-		self.vector = vector
+		self.vector = [v if isinstance(v, (int, long)) else simplify(v) for v in vector]
 		self.zeta = self.abstract_triangulation.zeta
 	
 	def copy(self):
-		return Lamination(self.abstract_triangulation, self.vector)
+		return Lamination(self.abstract_triangulation, list(self.vector))
 	
 	def __repr__(self):
-		return str(self.vector)
+		return ' '.join('%0.4f' % float(v) for v in self.vector)
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -45,7 +45,7 @@ class Lamination:
 	
 	def is_multicurve(self):
 		# Need to test if integral?
-		
+		if not all(v == int(v) for v in self.vector): return False
 		if not nonnegative(self.vector): return False
 		if self.vector == [0] * self.zeta: return False
 		
@@ -69,21 +69,17 @@ class Lamination:
 		# This is based off of Source.Encoding.encode_twist(). See the documentation there as to why this works.
 		if not self.is_multicurve(): return False
 		
-		lamination_copy = self.copy()
+		lamination = self.copy()
 		
 		time_since_last_weight_loss = 0
-		old_weight = lamination_copy.weight()
-		while lamination_copy.weight() > 2:
-			edge_index = min([i for i in range(lamination_copy.zeta) if lamination_copy[i] > 0], key=lambda i: lamination_copy.weight_difference_flip_edge(i))
+		old_weight = lamination.weight()
+		while lamination.weight() > 2:
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
+			lamination = lamination.flip_edge(edge_index)
 			
-			a, b, c, d = lamination_copy.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
-			new_vector = list(lamination_copy.vector)
-			new_vector[edge_index] = max(lamination_copy[a] + lamination_copy[c], lamination_copy[b] + lamination_copy[d]) - lamination_copy[edge_index]
-			lamination_copy = Lamination(lamination_copy.abstract_triangulation.flip_edge(edge_index), new_vector)
-			
-			if lamination_copy.weight() < old_weight:
+			if lamination.weight() < old_weight:
 				time_since_last_weight_loss = 0
-				old_weight = lamination_copy.weight()
+				old_weight = lamination.weight()
 			else:
 				time_since_last_weight_loss += 1
 			
@@ -96,6 +92,12 @@ class Lamination:
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self.vector[a] + self.vector[c], self.vector[b] + self.vector[d]) - self.vector[edge_index] - self.vector[edge_index]
+	
+	def flip_edge(self, edge_index):
+		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
+		new_vector = list(self.vector)
+		new_vector[edge_index] = max(self[a] + self[c], self[b] + self[d]) - self[edge_index]
+		return Lamination(self.abstract_triangulation.flip_edge(edge_index), new_vector)
 
 #### Some special Laminations we know how to build.
 

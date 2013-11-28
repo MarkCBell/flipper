@@ -1,12 +1,14 @@
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Lamination import Lamination
+	from Source.Encoding import encode_flip
+	from Source.Lamination import Lamination, stable_lamination
 	from Source.Error import AssumptionError
 	from Source.Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
-	from Lamination import Lamination
+	from Encoding import encode_flip
+	from Lamination import Lamination, key_curves, stable_lamination
 	from Error import AssumptionError
 	from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
@@ -132,7 +134,8 @@ def compute_splitting_sequence(lamination):
 	seen = {hash_lamination(lamination_copy):[[0, lamination_copy.copy(), projective_weights(lamination_copy)]]}
 	while True:
 		i = max(range(lamination.zeta), key=lambda i: lamination_copy[i])  # Find the index of the largest entry
-		lamination_copy = lamination_copy.flip_edge(i, encoding=True)
+		forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, i)
+		lamination_copy = forwards * lamination_copy
 		
 		if lamination_copy[i] == 0:
 			try:
@@ -187,7 +190,7 @@ def determine_type(mapping_class):
 		try:
 			# We know the map cannot be periodic.
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
-			lamination, dilatation = mapping_class.stable_lamination(exact=True)
+			lamination, dilatation = stable_lamination(mapping_class, exact=True)
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 			preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
 			print(' -- Pseudo-Anosov.')

@@ -1,12 +1,17 @@
 
+# We can also produce Laminations using:
+#	1) key_curves(triangulation), and
+#	2) stable_lamination(encoding)
+
+from itertools import product, combinations
 try:
-	# from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
+	from Source.Symbolic_Computation import Perron_Frobenius_eigen
 except ImportError:
-	# from AbstractTriangulation import Abstract_Triangulation
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
+	from Symbolic_Computation import Perron_Frobenius_eigen
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
@@ -61,7 +66,7 @@ class Lamination:
 		return True
 	
 	def is_curve(self):
-		# This is based off of Lamination.encode_twist(). See the documentation there as to why this works.
+		# This is based off of Source.Encoding.encode_twist(). See the documentation there as to why this works.
 		if not self.is_multicurve(): return False
 		
 		lamination_copy = self.copy()
@@ -70,7 +75,11 @@ class Lamination:
 		old_weight = lamination_copy.weight()
 		while lamination_copy.weight() > 2:
 			edge_index = min([i for i in range(lamination_copy.zeta) if lamination_copy[i] > 0], key=lambda i: lamination_copy.weight_difference_flip_edge(i))
-			lamination_copy = lamination_copy.flip_edge(edge_index)
+			
+			a, b, c, d = lamination_copy.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
+			new_vector = list(lamination_copy.vector)
+			new_vector[edge_index] = max(lamination_copy[a] + lamination_copy[c], lamination_copy[b] + lamination_copy[d]) - lamination_copy[edge_index]
+			lamination_copy = Lamination(lamination_copy.abstract_triangulation.flip_edge(edge_index), new_vector)
 			
 			if lamination_copy.weight() < old_weight:
 				time_since_last_weight_loss = 0
@@ -84,66 +93,61 @@ class Lamination:
 		
 		return True
 	
-	def flip_edge(self, edge_index, encoding=False):
-		# Returns a new triangulation obtained by flipping the edge of index edge_index.
-		# If encoding is set to True then it also returns the encodings from the old triangulation
-		# to the new and vice versa.
-		assert(self.abstract_triangulation.edge_is_flippable(edge_index))
-		
-		forwards, backwards = self.abstract_triangulation.encode_flip_edge(edge_index)
-		if encoding:
-			return (forwards * self), forwards, backwards
-		else:
-			return forwards * self
-	
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self.vector[a] + self.vector[c], self.vector[b] + self.vector[d]) - self.vector[edge_index] - self.vector[edge_index]
+
+#### Some special Laminations we know how to build.
+
+def regular_neighbourhood(triangulation, edge_index):
+	vector = [0] * triangulation.zeta
+	(t1, s1), (t2, s2) = triangulation.find_edge(edge_index)
+	corner_classes = [corner_class for corner_class in triangulation.corner_classes if (t1, (s1+1) % 3) in corner_class or (t2, (s2+1) % 3) in corner_class]
+	for corner_class in corner_classes:
+		for triangle, side in corner_class:
+			if triangle[side+2] != edge_index:
+				vector[triangle[side+2]] += 1
+	return Lamination(triangulation, vector)
+
+def key_curves(triangulation):
+	return [regular_neighbourhood(triangulation, edge_index) for edge_index in range(triangulation.zeta)]
+
+def stable_lamination(encoding, exact=False):
+	# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
+	# quite (very) close to its stable lamination and a (floating point) estimate of the dilatation. 
+	# If one cannot be found this a ComputationError is thrown. If exact is set to True then this uses 
+	# Symbolic_Computation.Perron_Frobenius_eigen() to return the exact stable lamination (as a list of
+	# algebraic numbers) along with the exact dilatation (again as an algebraic number). Again, if a good
+	# enough approximation cannot be found to start the exact calculations with, this is detected and a
+	# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
+	# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
 	
-	def encode_twist(self, k=1):
-		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
-		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-		if not self.is_curve():
-			raise AssumptionError('Not a curve.')
-		
-		if k == 0: return None
-		
-		lamination_copy = self.copy()
-		
-		# We'll keep track of what we have conjugated by as well as it's inverse
-		# we could compute this at the end by doing:
-		#   conjugation_inverse = conjugation.inverse()
-		# but this is much faster as we don't need to invert a load of matrices.
-		conjugation = None
-		conjugation_inverse = None
-		
-		while lamination_copy.weight() > 2:
-			# Find the edge which decreases our weight the most.
-			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			edge_index = min([i for i in range(lamination_copy.zeta) if lamination_copy[i] > 0], key=lambda i: lamination_copy.weight_difference_flip_edge(i))
-			
-			lamination_copy, forwards, backwards = lamination_copy.flip_edge(edge_index, encoding=True)
-			conjugation = forwards * conjugation
-			conjugation_inverse = conjugation_inverse * backwards
-		
-		triangulation = lamination_copy.abstract_triangulation
-		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(self.zeta) if lamination_copy[edge_index] > 0]
-		# We might need to swap these edge indices so we have a good frame of reference.
-		containing_triangles = triangulation.find_edge(e1)
-		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
-		# But to do a right twist we'll need to switch framing again.
-		if k < 0: e1, e2 = e2, e1
-		
-		# Finally we can encode the twist.
-		lamination_copy, forwards, backwards = lamination_copy.flip_edge(e1, encoding=True)
-		new_triangulation = lamination_copy.abstract_triangulation
-		
-		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0].encoding()
-		T = map_back * forwards
-		
-		return conjugation_inverse * T**abs(k) * conjugation
+	assert(encoding.source_triangulation == encoding.target_triangulation)
+	curves = key_curves(encoding.source_triangulation)
+	
+	def projective_difference(A, B, error_reciprocal):
+		# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
+		A_sum, B_sum = sum(A), sum(B)
+		return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
+	
+	for i in range(1000):
+		curves = [encoding * curve for curve in curves]
+		if i > 3 and all(projective_difference(curve_A, curve_B, 1000000000) for curve_A, curve_B in combinations(curves, 2)):  # Make sure to apply at least 4 iterations.
+			break
+	else:
+		if not exact: raise ComputationError('Could not estimate stable lamination.')
+	
+	curve = curves[0]  # They're all pretty much the same so just get this one.
+	
+	if exact:
+		action_matrix, condition_matrix = encoding.applied_matrix(curve)
+		try:
+			eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix)
+		except AssumptionError:  # action_matrix was not Perron-Frobenius.
+			raise ComputationError('Could not estimate stable lamination.')
+		if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 
+			return Lamination(encoding.source_triangulation, eigenvector), eigenvalue
+		else:
+			raise ComputationError('Could not estimate stable lamination.')  # If not then the curve failed to get close enough to the stable lamination.
+	else:
+		return Lamination(encoding.source_triangulation, curve), float((encoding * curve)[0]) / curve[0]

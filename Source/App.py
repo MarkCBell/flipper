@@ -25,10 +25,10 @@ except ImportError: # Python 3
 try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Lamination import Lamination
+	from Source.Lamination import Lamination, stable_lamination
 	from Source.SplittingSequence import compute_splitting_sequence
 	from Source.Progress import Progress_App
-	from Source.Encoding import Id_Encoding_Sequence, Encoding
+	from Source.Encoding import Id_Encoding_Sequence, Encoding, encode_twist, encode_isometry
 	from Source.Matrix import Permutation_Matrix, Empty_Matrix
 	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
@@ -38,7 +38,7 @@ except ImportError:
 	from Lamination import Lamination
 	from SplittingSequence import compute_splitting_sequence
 	from Progress import Progress_App
-	from Encoding import Id_Encoding_Sequence, Encoding
+	from Encoding import Id_Encoding_Sequence, Encoding, encode_isometry
 	from Matrix import Permutation_Matrix, Empty_Matrix
 	from Options import Options, Options_App
 	from Error import AbortError, ComputationError, AssumptionError
@@ -640,8 +640,8 @@ class Flipper_App:
 			if lamination.is_curve():
 				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
 				self.curves[name] = lamination
-				self.mapping_classes[name] = lamination.encode_twist()
-				self.mapping_classes[name.swapcase()] = lamination.encode_twist(k=-1)
+				self.mapping_classes[name] = encode_twist(lamination)
+				self.mapping_classes[name.swapcase()] = encode_twist(lamination, k=-1)
 				self.destroy_curve()
 			else:
 				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
@@ -711,8 +711,8 @@ class Flipper_App:
 		source_triangle, target_triangle = source_triangles[0], target_triangles[0]
 		
 		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
-		isometry = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle).encoding()
-		isometry_inverse = self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3).encoding()
+		isometry = encode_isometry(self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle))
+		isometry_inverse = encode_isometry(self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3))
 		if isometry is None:
 			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			return
@@ -790,7 +790,7 @@ class Flipper_App:
 			pass
 		else:
 			try:
-				lamination, dilatation = mapping_class.stable_lamination(exact)
+				lamination, dilatation = stable_lamination(mapping_class, exact)
 			except ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s.  It is probably reducible.' % composition)
 			else:
@@ -804,14 +804,14 @@ class Flipper_App:
 		else:
 			try:
 				start_time = time()
-				lamination, dilatation = mapping_class.stable_lamination(exact=True)
+				lamination, dilatation = stable_lamination(mapping_class, exact=True)
 			except ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s. It is probably reducible.' % composition)
 			else:
 				if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
 				try:
 					start_time = time()
-					preperiodic, periodic, dilatation = compute_splitting_sequence(self.abstract_triangulation, lamination)
+					preperiodic, periodic, dilatation = compute_splitting_sequence(lamination)
 				except AssumptionError:
 					tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 				else:

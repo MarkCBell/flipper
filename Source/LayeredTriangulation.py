@@ -1,11 +1,12 @@
 
-# We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154.
+# We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
+# and SnapPy/kernel/peripheral_curves.c.
 
 from itertools import permutations, combinations
 try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
+	from Error import AbortError, ComputationError, AssumptionError
 
 class Permutation:
 	def __init__(self, permutation):
@@ -16,6 +17,8 @@ class Permutation:
 		return self.permutation[index]
 	def __mul__(self, other):
 		return Permutation([self[other[i]] for i in range(4)])
+	def __str__(self):
+		return '%d%d%d%d' % tuple(self.permutation)
 	def inverse(self):
 		return Permutation(tuple([j for i in range(4) for j in range(4) if self[j] == i]))
 	def is_even(self):
@@ -35,6 +38,9 @@ class Tetrahedra:
 	def __init__(self, label=None):
 		self.label = label
 		self.glued_to = [None] * 4  # None or (Tetrahedra, permutation).
+		self.cusp_indices = [-1, -1, -1, -1]
+		self.meridians = [[0,0,0,0] for i in range(4)]
+		self.longitudes = [[0,0,0,0] for i in range(4)]
 	
 	def __repr__(self):
 		return str(self.label)
@@ -43,33 +49,106 @@ class Tetrahedra:
 		return '%s: %s' % (self.label, self.glued_to)
 	
 	def glue(self, side, target, permutation):
-		assert(self.glued_to[side] is None)
-		assert(target.glued_to[permutation[side]] is None)
-		assert(not permutation.is_even())
-		
-		self.glued_to[side] = (target, permutation)
-		target.glued_to[permutation[side]] = (self, permutation.inverse())
+		if self.glued_to[side] is None:
+			assert(self.glued_to[side] is None)
+			assert(target.glued_to[permutation[side]] is None)
+			assert(not permutation.is_even())
+			
+			self.glued_to[side] = (target, permutation)
+			target.glued_to[permutation[side]] = (self, permutation.inverse())
+		else:
+			assert(target, permutation == self.glued_to[side])
 	
 	def unglue(self, side):
 		if self.glued_to[side] is not None:
 			other, perm = self.glued_to[side]
 			other.glued_to[perm[side]] = None
 			self.glued_to[side] = None
+	
+	def SnapPy_string(self):
+		s = ''
+		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
+		s += '%s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
+		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
+		for i in range(4):
+			s += '  0  0  0  0 %2d %2d %2d %2d  0  0  0  0  %2d %2d %2d %2d\n' % tuple(self.meridians[i] + self.longitudes[i])
+		s += '  0.000000000000   0.000000000000\n'
+		return s
+
+class Triangulation:
+	def __init__(self, num_tetrahedra):
+		self.num_tetrahedra = num_tetrahedra
+		self.tetrahedra = [Tetrahedra(i) for i in range(self.num_tetrahedra)]
+		self.num_cusps = 1  # 0
+	
+	def copy(self):
+		# Returns a copy of this triangulation. We gurantee that the tetrahedra in the copy will come in the same order.
+		new_triangulation = Triangulation(self.num_tetrahedra)
+		forwards = dict(zip(self.tetrahedra, new_triangulation.tetrahedra))
+		
+		for tetrahedron in self.tetrahedra:
+			for side in range(4):
+				if tetrahedron.glued_to[side] is not None:
+					neighbour, permutation = tetrahedron.glued_to[side]
+					forwards[tetrahedron].glue(side, forwards[neighbour], permutation)
+		return new_triangulation
+	
+	def __repr__(self):
+		return '\n'.join(str(tetrahedron) for tetrahedron in self.tetrahedra)
+	
+	def create_tetrahedra(self):
+		self.tetrahedra.append(Tetrahedra(self.num_tetrahedra))
+		self.num_tetrahedra += 1
+		return self.tetrahedra[-1]
+	
+	def destroy_tetrahedra(self, tetrahedron):
+		for side in range(4):
+			tetrahedron.unglue(side)
+		self.tetrahedra.remove(tetrahedron)
+		self.num_tetrahedra -= 1
+	
+	def reindex(self):
+		for index, tetrahedron in enumerate(self.tetrahedra):
+			tetrahedron.label = index
+	
+	def is_closed(self):
+		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self.tetrahedra for side in range(4))
+	
+	def SnapPy_string(self):
+		if not self.is_closed(): raise AssumptionError('Layered triangulation is not closed.')
+		# First make sure that all of the labellings are good.
+		self.reindex()
+		s = ''
+		s += '% Triangulation\n'
+		s += 'Flipper_triangulation\n'
+		s += 'not_attempted  0.0\n'
+		s += 'oriented_manifold\n'
+		s += 'CS_unknown\n'
+		s += '\n'
+		s += '%d 0' % self.num_cusps
+		for i in range(self.num_cusps):
+			s += '    torus   0.000000000000   0.000000000000\n'
+		s += '\n'
+		s += '%d\n' % self.num_tetrahedra
+		for tetrahedra in self.tetrahedra:
+			s += tetrahedra.SnapPy_string() + '\n'
+		
+		return s
 
 # A class to represent a layered triangulation over a surface specified by an Abstract_Triangulation.
 # Warning: Layered_Triangulation modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 class Layered_Triangulation:
 	def __init__(self, abstract_triangulation):
+		self.closed = False
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
+		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles)
 		
-		lower_tetrahedra = [Tetrahedra(i) for i in range(abstract_triangulation.num_triangles)]
-		upper_tetrahedra = [Tetrahedra(i + abstract_triangulation.num_triangles) for i in range(abstract_triangulation.num_triangles)]
+		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
+		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
 			lower.glue(3, upper, Permutation((0,2,1,3)))
-		
-		self.core_triangulation = lower_tetrahedra + upper_tetrahedra
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each Abstract_Triangle of lower/upper_triangulation to a pair (Tetrahedra, permutation).
@@ -78,28 +157,19 @@ class Layered_Triangulation:
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
-		s += '\n'.join(str(tetra) for tetra in self.core_triangulation)
+		s += '\n'.join(str(tetra) for tetra in self.core_triangulation.tetrahedra)
 		s += '\nUpper tri:\n' + str(self.upper_triangulation)
 		s += '\nLower tri:\n' + str(self.lower_triangulation)
 		s += '\nUpper map: ' + str(self.upper_map)
 		s += '\nLower map: ' + str(self.lower_map)
 		return s
 	
-	def new_tetrahedra(self):
-		self.core_triangulation.append(Tetrahedra(len(self.core_triangulation)))
-		return self.core_triangulation[-1]
-	
-	def delete_tetrahedra(self, tetra):
-		for i in range(4):
-			tetra.unglue(i)
-		self.core_triangulation.remove(tetra)
-	
 	def flip(self, edge_index):
 		# MEGA WARNINNG: This is reliant on knowing how Abstract_Triangulation.flip() relabels things!
 		assert(self.upper_triangulation.edge_is_flippable(edge_index))
 		
 		# Get a new tetrahedra.
-		new_tetrahedra = self.new_tetrahedra()
+		new_tetrahedra = self.core_triangulation.create_tetrahedra()
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
@@ -138,7 +208,15 @@ class Layered_Triangulation:
 		self.upper_triangulation = new_upper_triangulation
 		self.upper_map = new_upper_map
 	
+	def flip_sequence(self, sequence):
+		for edge_index in sequence:
+			self.flip(edge_index)
+	
 	def close(self, isometry):
+		closed_triangulation = self.core_triangulation.copy()
+		# The tetrahedra in the closed triangulation are guranteed to be in the same order so we can get away with this.
+		forwards = dict(zip(self.core_triangulation.tetrahedra, closed_triangulation.tetrahedra))
+		
 		for triangle in self.upper_triangulation:
 			matching_triangle, cycle = isometry[triangle]
 			perm = Permutation([cycle, (cycle+1)%3, (cycle+2)%3, 3])
@@ -149,27 +227,28 @@ class Layered_Triangulation:
 			below_A, perm_down_A = A.glued_to[3]
 			below_B, perm_down_B = B.glued_to[3]
 			
-			self.delete_tetrahedra(A)
-			self.delete_tetrahedra(B)
-			below_A.glue(perm_down_A[3], below_B, perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
+			closed_triangulation.destroy_tetrahedra(forwards[A])
+			closed_triangulation.destroy_tetrahedra(forwards[B])
+			forwards[below_A].glue(perm_down_A[3], forwards[below_B], perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
 		
-		# The maps are now (almost) meaningless so get rid of them.
-		self.upper_map = {}
-		self.lower_map = {}
+		return closed_triangulation
+
 
 if __name__ == '__main__':
+	from AbstractTriangulation import Abstract_Triangulation
+	
 	L = Layered_Triangulation(Abstract_Triangulation([[0,2,1], [0,2,1]]))
 	print(L)
-	L.flip(2)
-	L.flip(1)
-	L.flip(1)
+	L.flip_sequence([2, 1, 1])
 	print('------------------------------')
 	print(L)
 	isoms = L.upper_triangulation.all_isometries(L.lower_triangulation)
 	isom = isoms[0]
 	print('------------------------------')
 	print('Isometry: ', isom)
-	L.close(isom)
 	print('------------------------------')
-	print(L)
+	M = L.close(isom)
+	print(M)
+	print(M.is_closed())
+	print(M.SnapPy_string())
 	

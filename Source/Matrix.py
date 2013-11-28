@@ -4,6 +4,11 @@ from itertools import combinations, groupby
 from fractions import gcd
 from functools import reduce
 
+def tweak_vector(v, add, subtract):
+	for i in add: v[i] += 1
+	for i in subtract: v[i] -= 1
+	return v
+
 def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.
 	return all([v[i] == -w[i] for i in range(len(v))])

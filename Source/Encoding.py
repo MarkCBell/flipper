@@ -1,22 +1,25 @@
 
+# We can also produce Encodings using:
+#	1) Id_Encoding(triangulation)
+# and Encoding Sequences using:
+#	1) Id_Encoding_Sequence(triangulation)
+#	2) encode_flip(triangulation, edge_index)
+#	3) encode_twist(lamination, k=1)
+#	4) encode_isometry(isometry)
+
 from __future__ import print_function
 from functools import reduce
-from itertools import product, combinations
+from itertools import product
 try:
-	from Source.Lamination import Lamination
-	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
+	from Source.Lamination import Lamination, key_curves
+	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
 	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.Symbolic_Computation import Perron_Frobenius_eigen
 except ImportError:
-	from Lamination import Lamination
-	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image
+	from Lamination import Lamination, key_curves
+	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
 	from Error import AbortError, ComputationError, AssumptionError
-	from Symbolic_Computation import Perron_Frobenius_eigen
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
-
-def Id_Encoding(triangulation):
-	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
 
 class Encoding:
 	def __init__(self, actions, conditions, source_triangulation, target_triangulation):
@@ -87,9 +90,6 @@ class Encoding:
 		X = [self.action_matrices[i].inverse() for i in range(self.size)]  # This is the very slow bit.
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
-
-def Id_Encoding_Sequence(triangulation):
-	return Encoding_Sequence([], triangulation, triangulation)
 
 class Encoding_Sequence:
 	def __init__(self, L, source_triangulation, target_triangulation):
@@ -202,8 +202,8 @@ class Encoding_Sequence:
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		key_curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
-		orders = [i for i in range(1,max_order+1) if all(self**i * v == v for v in key_curves)]
+		curves, max_order = key_curves(self.source_triangulation), self.source_triangulation.max_order
+		orders = [i for i in range(1,max_order+1) if all(self**i * v == v for v in curves)]
 		return orders[0] if len(orders) > 0 else 0
 	
 	def is_periodic(self):
@@ -300,43 +300,82 @@ class Encoding_Sequence:
 	def check_fixedpoint(self, certificate):
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
+
+#### Some special Encodings we know how to build.
+
+def Id_Encoding(triangulation):
+	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
+
+#### Some special Encoding_Sequences we know how to build.
+
+def Id_Encoding_Sequence(triangulation):
+	return Encoding_Sequence([], triangulation, triangulation)
+
+def encode_flip(triangulation, edge_index):
+	# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
+	assert(triangulation.edge_is_flippable(edge_index))
 	
-	def stable_lamination(self, exact=False):
-		# If this is an encoding of a pseudo-Anosov mapping class then this returns a curve that is 
-		# quite (very) close to its stable lamination and a (floating point) estimate of the dilatation. 
-		# If one cannot be found this a ComputationError is thrown. If exact is set to True then this uses 
-		# Symbolic_Computation.Perron_Frobenius_eigen() to return the exact stable lamination (as a list of
-		# algebraic numbers) along with the exact dilatation (again as an algebraic number). Again, if a good
-		# enough approximation cannot be found to start the exact calculations with, this is detected and a
-		# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
-		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
+	new_triangulation = triangulation.flip_edge(edge_index)
+	
+	a, b, c, d = triangulation.find_indicies_of_square_about_edge(edge_index)
+	A1 = Id_Matrix(triangulation.zeta)
+	tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
+	C1 = Matrix(tweak_vector([0] * triangulation.zeta, [a, c], [b, d]), triangulation.zeta)
+	A2 = Id_Matrix(triangulation.zeta)
+	tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
+	C2 = Matrix(tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
+	
+	return Encoding([A1, A2], [C1, C2], triangulation, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, triangulation)
+
+def encode_twist(lamination, k=1):
+	''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
+	If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
+	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
+	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
+	if not lamination.is_curve():
+		raise AssumptionError('Not a curve.')
+	
+	if k == 0: return None
+	
+	lamination_copy = lamination.copy()
+	
+	# We'll keep track of what we have conjugated by as well as it's inverse
+	# we could compute this at the end by doing:
+	#   conjugation_inverse = conjugation.inverse()
+	# but this is much faster as we don't need to invert a load of matrices.
+	conjugation = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
+	conjugation_inverse = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
+	
+	while lamination_copy.weight() > 2:
+		# Find the edge which decreases our weight the most.
+		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
+		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
+		edge_index = min([i for i in range(lamination_copy.zeta) if lamination_copy[i] > 0], key=lambda i: lamination_copy.weight_difference_flip_edge(i))
 		
-		assert(self.source_triangulation == self.target_triangulation)
-		curves = self.source_triangulation.key_curves()
-		
-		def projective_difference(A, B, error_reciprocal):
-			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
-			A_sum, B_sum = sum(A), sum(B)
-			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
-		
-		for i in range(1000):
-			curves = [self * curve for curve in curves]
-			if i > 3 and all(projective_difference(curve_A, curve_B, 1000000000) for curve_A, curve_B in combinations(curves, 2)):  # Make sure to apply at least 4 iterations.
-				break
-		else:
-			if not exact raise ComputationError('Could not estimate stable lamination.')
-		
-		curve = curves[0]  # They're all pretty much the same so just get this one.
-		
-		if exact:
-			action_matrix, condition_matrix = self.applied_matrix(curve)
-			try:
-				eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix)
-			except AssumptionError:  # action_matrix was not Perron-Frobenius.
-				raise ComputationError('Could not estimate stable lamination.')
-			if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 
-				return Lamination(self.source_triangulation, eigenvector), eigenvalue
-			else:
-				raise ComputationError('Could not estimate stable lamination.')  # If not then the curve failed to get close enough to the stable lamination.
-		else:
-			return Lamination(self.source_triangulation, curve), float((self * curve)[0]) / curve[0]
+		forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, edge_index)
+		conjugation = forwards * conjugation
+		conjugation_inverse = conjugation_inverse * backwards
+		lamination_copy = forwards * lamination_copy
+	
+	triangulation = lamination_copy.abstract_triangulation
+	# Grab the indices of the two edges we meet.
+	e1, e2 = [edge_index for edge_index in range(lamination_copy.zeta) if lamination_copy[edge_index] > 0]
+	# We might need to swap these edge indices so we have a good frame of reference.
+	containing_triangles = triangulation.find_edge(e1)
+	if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
+	# But to do a right twist we'll need to switch framing again.
+	if k < 0: e1, e2 = e2, e1
+	
+	# Finally we can encode the twist.
+	forwards, backwards = encode_flip(lamination_copy.abstract_triangulation, e1)
+	lamination_copy = forwards * lamination_copy
+	new_triangulation = lamination_copy.abstract_triangulation
+	
+	# Find the correct isometry to take us back.
+	map_back = encode_isometry([isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
+	T = map_back * forwards
+	
+	return conjugation_inverse * T**abs(k) * conjugation
+
+def encode_isometry(isometry):
+	return Encoding([Permutation_Matrix(isometry.edge_map)], [Empty_Matrix(isometry.source_triangulation.zeta)], isometry.source_triangulation, isometry.target_triangulation)

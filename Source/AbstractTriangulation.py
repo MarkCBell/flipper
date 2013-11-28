@@ -1,4 +1,21 @@
 
+# Just to keep an eye out for circular imports, here is a hierarchy of imports:
+	# AbstractTriangulation imports:
+		# Matrix
+	# Encoding imports:
+		# Lamination
+		# Matrix
+	# Lamination imports:
+		# Matrix
+		# Symbolic_Computation
+	# SplittingSequence imports:
+		# AbstractTriangulation
+		# Encoding
+		# Lamination
+		# Symbolic_Computation
+	# LayeredTriangulation imports:
+		# 
+
 from __future__ import print_function
 from itertools import product, combinations
 try:
@@ -7,20 +24,11 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
-	from Source.Lamination import Lamination
-	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
-	from Source.Encoding import Encoding
+	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
-	from Lamination import Lamination
-	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
-	from Encoding import Encoding
+	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
 	from Error import AbortError, ComputationError, AssumptionError
-
-def tweak_vector(v, add, subtract):
-	for i in add: v[i] += 1
-	for i in subtract: v[i] -= 1
-	return v
 
 class Isometry:
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
@@ -37,10 +45,6 @@ class Isometry:
 		return str(self.triangle_map)
 	def __getitem__(self, index):
 		return self.triangle_map[index]
-	def encoding(self):
-		return Encoding([Permutation_Matrix(self.edge_map)], [Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
-	# def adapt(self, new_source_triangulation, new_target_triangulation):
-		# return Isometry(new_source_triangulation, new_target_triangulation, self.triangle_map)
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
@@ -143,6 +147,17 @@ class Abstract_Triangulation:
 		containing_triangles = self.find_edge(edge_index)
 		return containing_triangles[0][0] != containing_triangles[1][0]
 	
+	def flip_edge(self, edge_index):
+		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
+		assert(self.edge_is_flippable(edge_index))
+		
+		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
+		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(edge_index)
+		
+		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
+		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r,s,v], [u,v,s]]
+		return Abstract_Triangulation(new_edge_indices, new_corner_labels)
+	
 	def find_triangle(self, edge_indices):
 		return [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)][0]
 	
@@ -157,40 +172,6 @@ class Abstract_Triangulation:
 		
 		containing_triangles = self.find_edge(edge_index)
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
-	
-	def encode_flip_edge(self, edge_index):
-		# Returns a new triangulation obtained by flipping the edge of index edge_index.
-		# Additionally returns encodings of the forwards and backwards maps if encoding is set to True.
-		assert(self.edge_is_flippable(edge_index))
-		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(edge_index)
-		
-		new_edge_indices = [list(triangle.edge_indices) for triangle in self.triangles if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
-		new_corner_labels = [list(triangle.corner_labels) for triangle in self.triangles if edge_index not in triangle] + [[r,s,v], [u,v,s]]
-		new_triangulation = Abstract_Triangulation(new_edge_indices, new_corner_labels)
-		
-		A1 = Id_Matrix(self.zeta)
-		tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-		C1 = Matrix(tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
-		A2 = Id_Matrix(self.zeta)
-		tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-		C2 = Matrix(tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
-		
-		return Encoding([A1, A2], [C1, C2], self, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, self)
-	
-	def regular_neighbourhood(self, edge_index):
-		vector = [0] * self.zeta
-		(t1, s1), (t2, s2) = self.find_edge(edge_index)
-		corner_classes = [corner_class for corner_class in self.corner_classes if (t1, (s1+1) % 3) in corner_class or (t2, (s2+1) % 3) in corner_class]
-		for corner_class in corner_classes:
-			for triangle, side in corner_class:
-				if triangle[side+2] != edge_index:
-					vector[triangle[side+2]] += 1
-		return Lamination(self, vector)
-	
-	def key_curves(self):
-		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def extend_isometry(self, other, source_triangle, target_triangle, cycle):
 		if self.zeta != other.zeta: return None

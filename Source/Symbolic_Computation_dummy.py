@@ -1,6 +1,8 @@
 
 _name = 'dummy'
 
+algebraic_type = None
+
 def simplify(x):
 	return None
 

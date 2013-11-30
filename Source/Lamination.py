@@ -7,16 +7,16 @@ from itertools import product, combinations
 try:
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.Symbolic_Computation import Perron_Frobenius_eigen, simplify
+	from Source.Symbolic_Computation import Perron_Frobenius_eigen, simplify, algebraic_type
 except ImportError:
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
 	from Error import AbortError, ComputationError, AssumptionError
-	from Symbolic_Computation import Perron_Frobenius_eigen, simplify
+	from Symbolic_Computation import Perron_Frobenius_eigen, simplify, algebraic_type
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
-		self.vector = [v if isinstance(v, (int, long)) else simplify(v) for v in vector]
+		self.vector = [simplify(v) if isinstance(v, algebraic_type) else v for v in vector]
 		self.zeta = self.abstract_triangulation.zeta
 	
 	def copy(self):

@@ -5,11 +5,19 @@
 # Warning: Layered_Triangulation modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
-from itertools import permutations, combinations
+from itertools import permutations, combinations, product
+from time import sleep
 try:
-	from Source.Error import AbortError, ComputationError, AssumptionError
+	from Queue import Queue
+except ImportError: # Python 3
+	from queue import Queue
+
+try:
+	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Error import AssumptionError
 except ImportError:
-	from Error import AbortError, ComputationError, AssumptionError
+	from AbstractTriangulation import Abstract_Triangulation
+	from Error import AssumptionError
 
 class Permutation:
 	def __init__(self, permutation):
@@ -93,10 +101,12 @@ class Tetrahedra:
 	def SnapPy_string(self):
 		s = ''
 		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-		s += '%s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
+		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
 		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
-		for i in range(4):
-			s += '  0  0  0  0 %2d %2d %2d %2d  0  0  0  0  %2d %2d %2d %2d\n' % tuple(self.meridians[i] + self.longitudes[i])
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(self.meridians[0] + self.meridians[1] + self.meridians[2] + self.meridians[3])
+		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(self.longitudes[0] + self.longitudes[1] + self.longitudes[2] + self.longitudes[3])
+		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		s += '  0.000000000000   0.000000000000\n'
 		return s
 
@@ -104,14 +114,14 @@ class Triangulation:
 	def __init__(self, num_tetrahedra):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedra(i) for i in range(self.num_tetrahedra)]
-		self.num_cusps = 1  # 0
+		self.num_cusps = -1  # 0
 	
 	def copy(self):
 		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
 		new_triangulation = Triangulation(self.num_tetrahedra)
-		forwards = dict(zip(self.tetrahedra, new_triangulation.tetrahedra))
+		forwards = dict(zip(self, new_triangulation))
 		
-		for tetrahedron in self.tetrahedra:
+		for tetrahedron in self:
 			for side in range(4):
 				if tetrahedron.glued_to[side] is not None:
 					neighbour, permutation = tetrahedron.glued_to[side]
@@ -126,7 +136,10 @@ class Triangulation:
 		return new_triangulation
 	
 	def __repr__(self):
-		return '\n'.join(str(tetrahedron) for tetrahedron in self.tetrahedra)
+		return '\n'.join(str(tetrahedron) for tetrahedron in self)
+	
+	def __iter__(self):
+		return iter(self.tetrahedra)
 	
 	def create_tetrahedra(self):
 		self.tetrahedra.append(Tetrahedra(self.num_tetrahedra))
@@ -140,11 +153,44 @@ class Triangulation:
 		self.num_tetrahedra -= 1
 	
 	def reindex(self):
-		for index, tetrahedron in enumerate(self.tetrahedra):
+		for index, tetrahedron in enumerate(self):
 			tetrahedron.label = index
 	
 	def is_closed(self):
-		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self.tetrahedra for side in range(4))
+		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
+	
+	def assign_cusp_indices(self):
+		# Find the vertex classes.
+		remaining_vertices = set(product(self, range(4)))
+		
+		vertex_classes = []
+		while len(remaining_vertices) > 0:
+			new_vertex_class = set([])
+			to_explore = Queue()
+			to_explore.put(remaining_vertices.pop())
+			while not to_explore.empty():
+				current_vertex = to_explore.get()
+				new_vertex_class.add(current_vertex)
+				current_tetrahedron, current_side = current_vertex
+				for side in vertices_meeting[current_side]:
+					if current_tetrahedron.glued_to[side] is not None:
+						neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
+						neighbour_side = permutation[current_side]
+						neighbour_vertex = neighbour_tetrahedron, neighbour_side
+						if neighbour_vertex in remaining_vertices:
+							to_explore.put(neighbour_vertex)
+							remaining_vertices.remove(neighbour_vertex)
+			
+			vertex_classes.append(list(new_vertex_class))
+		
+		# Then iterate through each one assigning cusp indices.
+		for index, vertex_class in enumerate(vertex_classes):
+			for tetrahedron, side in vertex_class:
+				tetrahedron.cusp_indices[side] = index
+		
+		self.num_cusps = len(vertex_classes)
+		
+		return vertex_classes
 	
 	def SnapPy_string(self):
 		if not self.is_closed(): raise AssumptionError('Layered triangulation is not closed.')
@@ -162,7 +208,7 @@ class Triangulation:
 			s += '    torus   0.000000000000   0.000000000000\n'
 		s += '\n'
 		s += '%d\n' % self.num_tetrahedra
-		for tetrahedra in self.tetrahedra:
+		for tetrahedra in self:
 			s += tetrahedra.SnapPy_string() + '\n'
 		
 		return s
@@ -187,7 +233,7 @@ class Layered_Triangulation:
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
-		s += '\n'.join(str(tetra) for tetra in self.core_triangulation.tetrahedra)
+		s += '\n'.join(str(tetra) for tetra in self.core_triangulation)
 		s += '\nUpper tri:\n' + str(self.upper_triangulation)
 		s += '\nLower tri:\n' + str(self.lower_triangulation)
 		s += '\nUpper map: ' + str(self.upper_map)
@@ -248,13 +294,41 @@ class Layered_Triangulation:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
-		# Should assume that all edges of the underlying triangulation have been flipped.
+		# Should assume that *almost* all edges of the underlying triangulation have been flipped.
 		
+		isometry = isometry.adapt(self.upper_triangulation, self.lower_triangulation)
+		
+		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
+		print(closed_triangulation)
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
-		forwards = dict(zip(self.core_triangulation.tetrahedra, closed_triangulation.tetrahedra))
-		# Probably should install longitudes and meridians now.
+		forwards = dict(zip(self.core_triangulation, closed_triangulation))
 		
+		# Find a copy of the fibre surface.
+		
+		fibre_surface_above = set()
+		fibre_surface_below = set()
+		for triangle in self.upper_triangulation:
+			A, perm_A = self.upper_map[triangle]
+			below_A, perm_down_A = A.glued_to[3]
+			fibre_surface_below.add((forwards[below_A], perm_down_A[3]))
+		
+		for triangle in self.lower_triangulation:
+			B, perm_B = self.lower_map[triangle]
+			below_B, perm_down_B = B.glued_to[3]
+			fibre_surface_above.add((forwards[below_B], perm_down_B[3]))
+		
+		fibre_surface = fibre_surface_above.union(fibre_surface_below)
+		
+		# Remove the boundary tetrahedra.
+		for triangle in self.upper_triangulation:
+			A, perm_A = self.upper_map[triangle]
+			closed_triangulation.destroy_tetrahedra(forwards[A])
+		for triangle in self.lower_triangulation:
+			B, perm_B = self.lower_map[triangle]
+			closed_triangulation.destroy_tetrahedra(forwards[B])
+		
+		# Now close the bundle up.
 		for triangle in self.upper_triangulation:
 			matching_triangle, cycle = isometry[triangle]
 			perm = Permutation([cycle, (cycle+1)%3, (cycle+2)%3, 3])
@@ -264,27 +338,118 @@ class Layered_Triangulation:
 			
 			below_A, perm_down_A = A.glued_to[3]
 			below_B, perm_down_B = B.glued_to[3]
-			
-			closed_triangulation.destroy_tetrahedra(forwards[A])
-			closed_triangulation.destroy_tetrahedra(forwards[B])
 			forwards[below_A].glue(perm_down_A[3], forwards[below_B], perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
 		
-		return closed_triangulation
+		# Install the cusp indices.
+		cusps = closed_triangulation.assign_cusp_indices()
+		
+		# Install the meridians and longitudes.
+		# We'll define some maps to help us move around.
+		exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
+		exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
+		
+		# We'll work on each cusp one at a time.
+		for cusp in cusps:
+			# Find just the right starting spot. We want one such that when we do one step to the left we don't pass through the fibre.
+			for starting_tetrahedron, starting_side in cusp:
+				if (starting_side == 0 and (starting_tetrahedron, 2) in fibre_surface) or (starting_side == 2 and (starting_tetrahedron, 0) in fibre_surface):
+					# Put in the meridian.
+					current_tetrahedron, current_side = starting_tetrahedron, starting_side
+					
+					# Do one step to the right.
+					leave = 1 if starting_side == 0 else 3
+					current_tetrahedron.meridians[current_side][leave] = -1
+					current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+					current_side = permutation[starting_side]
+					arrive = permutation[leave]
+					current_tetrahedron.meridians[current_side][arrive] = +1
+					
+					# Then start walking until you reach the starting cusp again, initially turn left.
+					turn_left = True
+					while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
+						leave = (exit_cusp_left if turn_left else exit_cusp_right)[(current_side, arrive)]
+						# But switch direction every time you pass through the fibre surface.
+						if (current_tetrahedron, leave) in fibre_surface: turn_left = not turn_left
+						
+						current_tetrahedron.meridians[current_side][leave] = -1
+						print(current_tetrahedron)
+						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+						current_side = permutation[current_side]
+						arrive = permutation[leave]
+						current_tetrahedron.meridians[current_side][arrive] = +1
+					
+					# Put in the longitude.
+					current_tetrahedron, current_side = starting_tetrahedron, starting_side
+					
+					# Do one step to the right.
+					leave = 1 if starting_side == 0 else 3
+					current_tetrahedron.longitudes[current_side][leave] = -1
+					current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+					current_side = permutation[starting_side]
+					arrive = permutation[leave]
+					current_tetrahedron.longitudes[current_side][arrive] = +1
+					
+					# Go upwards until you reach a cusp which contains the meridian.
+					while True:
+						print(current_tetrahedron, current_side)
+						leave = 1
+						current_tetrahedron.longitudes[current_side][leave] = -1
+						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+						current_side = permutation[current_side]
+						arrive = permutation[leave]
+						current_tetrahedron.longitudes[current_side][arrive] = +1
+						
+						if current_tetrahedron.meridians[current_side] != [0,0,0,0]: break
+					
+					# Then follow through whatever side the meridian leaves through until you reach the starting cusp again.
+					while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
+						leave = [side for side in range(4) if current_tetrahedron.meridians[current_side][side] == -1][0]
+						current_tetrahedron.longitudes[current_side][leave] = -1
+						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+						current_side = permutation[current_side]
+						arrive = permutation[leave]
+						current_tetrahedron.longitudes[current_side][arrive] = +1
+					
+					break
+		
+		# Compute degeneracy slopes.
+		degeneracy_slopes = []
+		
+		return closed_triangulation, degeneracy_slopes
+	
+	def close_somehow(self):
+		# Be really careful with this!
+		if not self.upper_triangulation.is_isometric_to(L.lower_triangulation): raise AssumptionError('Upper and lower triangulations are not isometric')
+		isometries = self.upper_triangulation.all_isometries(L.lower_triangulation)
+		return self.close(isometries[3])
 
 if __name__ == '__main__':
-	from Examples import Example_S_1_1
+	from Examples import Example_S_1_2 as Example, build_example_mapping_class
+	from SplittingSequence import compute_splitting_sequence_MCG
 	
-	T, twists = Example_S_1_1()
+	print('Start')
+	word, h = build_example_mapping_class(Example, random_length=10)
+	print(word)
+	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h)
+	
+	T = correct_lamination.abstract_triangulation
 	L = Layered_Triangulation(T)
-	L.flips([2, 1, 2, 1])
-	print('------------------------------')
-	print(L)
-	isom = L.upper_triangulation.all_isometries(L.lower_triangulation)[0]
-	print('------------------------------')
-	print('Isometry: ', isom)
-	print('------------------------------')
-	M = L.close(isom)
-	print(M)
-	print('M is closed: %s' % M.is_closed())
-	print('M\'s SnapPy string:')
+	L.flips(periodic)
+	M = L.close(isometry)
+	print(M.SnapPy_string())
+	exit(0)
+	
+	
+	from Examples import Example_S_1_1 as Example
+	
+	T, twists = Example()
+	L = Layered_Triangulation(T)
+	L.flips([1, 0])
+	# print('------------------------------')
+	# print(L)
+	# print('------------------------------')
+	M = L.close_somehow()[0]
+	# print(M)
+	# print('M is closed: %s' % M.is_closed())
+	# print('M\'s SnapPy string:')
 	print(M.SnapPy_string())

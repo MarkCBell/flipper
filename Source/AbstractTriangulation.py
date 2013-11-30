@@ -45,6 +45,13 @@ class Isometry:
 		return str(self.triangle_map)
 	def __getitem__(self, index):
 		return self.triangle_map[index]
+	def adapt(self, new_source_triangulation, new_target_triangulation):
+		# Assumes some stuff.
+		
+		f = lambda triangle: (new_target_triangulation.find_triangle(self.triangle_map[triangle][0].edge_indices), self.triangle_map[triangle][1])
+		new_triangle_map = dict( (new_source_triangulation.find_triangle(triangle.edge_indices), f(triangle))  for triangle in self.triangle_map)
+		
+		return Isometry(new_source_triangulation, new_target_triangulation, new_triangle_map)
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
@@ -211,3 +218,6 @@ class Abstract_Triangulation:
 						isometries.append(isometry)
 		
 		return isometries
+	
+	def is_isometric_to(self, other):
+		return len(self.all_isometries(other)) > 0

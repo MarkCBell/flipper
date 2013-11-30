@@ -157,11 +157,18 @@ def compute_splitting_sequence(lamination):
 				for isometry in current_triangulation.all_isometries(old_triangulation):
 					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination.zeta)])
 					if current_projective_weights == permuted_old_projective_weights:
-						# Return: the pre-periodic part, the periodic part, the dilatation.
-						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0])
+						if all(i in flipped[index:] for i in range(lamination.zeta)):
+							# Return: the pre-periodic part, the periodic part, the dilatation.
+							return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometry
 			seen[target].append([len(flipped), lamination, current_projective_weights])
 		else:
 			seen[target] = [[len(flipped), lamination, current_projective_weights]]
+
+def compute_splitting_sequence_MCG(mapping_class):
+	lamination, dilatation = stable_lamination(mapping_class, exact=True)
+	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
+	preperiodic, periodic, new_dilatation, lamination, isometry = compute_splitting_sequence(lamination)
+	return preperiodic, periodic, new_dilatation, lamination, isometry
 
 def determine_type(mapping_class):
 	from Error import ComputationError, AssumptionError
@@ -176,7 +183,9 @@ def determine_type(mapping_class):
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
 			lamination, dilatation = stable_lamination(mapping_class, exact=True)
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
+			preperiodic, periodic, new_dilatation, lamination, isometry = compute_splitting_sequence(lamination)
+			print(lamination.abstract_triangulation)
+			print(preperiodic, periodic)
 			print(' -- Pseudo-Anosov.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')
@@ -185,15 +194,23 @@ def determine_type(mapping_class):
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-if __name__ == '__main__':
-	from random import choice
+def random_test(Example, word=None, num_trials=50):
 	from time import time
 	from Encoding import Id_Encoding_Sequence
+	from Example import build_example_mapping_class
 	
 	print('Start')
 	
-	# from Examples import Example_24
-	# T, twists = Example_24()
+	times = []
+	for k in range(num_trials):
+		times.append(determine_type(build_example_mapping_class(Example)))
+	
+	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
+
+
+if __name__ == '__main__':
+	# from Examples import Example_24 as Example
+	# T, twists = Example()
 	# h = (twists['a']*twists['B']*twists['B']*twists['a']*twists['p'])**3
 	# print('Lamination')
 	# lamination, dilatation = h.stable_lamination(exact=True)
@@ -201,31 +218,9 @@ if __name__ == '__main__':
 	# preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
 	# print(len(preperiodic), len(periodic), compute_powers(dilatation, new_dilatation))
 	
-	from Examples import Example_S_1_2
-	T, twists = Example_S_1_2()
-	
-	def expand_class(string):
-		print(string)
-		h = Id_Encoding_Sequence(T)
-		for letter in string:
-			h = twists[letter] * h
-		return h
-	
-	def random_mapping_class(n):
-		return ''.join(choice('abcABC') for i in range(n))
-	
-	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
-	# determine_type(h)
-	# exit(1)
-	# import cProfile
-	# h = expand_class('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa')
-	# cProfile.run('determine_type(h)', sort='cumtime')
-	# exit(1)
-	
-	random_length = 50
-	num_trials = 50
-	times = []
-	for k in range(num_trials):
-		times.append(determine_type(expand_class(random_mapping_class(random_length))))
-	
-	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
+	# from Examples import Example_S_1_1 as Example
+	from Examples import Example_S_1_2 as Example
+	random_test(Example)
+	# random_test(Example, 'aBC')
+	# random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
+	# cProfile.run('random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)', sort='cumtime')

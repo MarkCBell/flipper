@@ -1,11 +1,14 @@
 
 import sympy
+from sympy.core.add import Add
 try:
 	from Source.Error import AssumptionError
 except ImportError:
 	from Error import AssumptionError
 
 _name = 'sympy'
+
+algebraic_type = Add
 
 def simplify(x):
 	return x.simplify()

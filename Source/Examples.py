@@ -68,3 +68,15 @@ def Example_S_1_1():
 	A = encode_twist(Lamination(T, [1,0,1]), k=-1)
 	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
 	return T, {'a':a, 'b':b, 'A':A, 'B':B}
+
+def build_example_mapping_class(Example, word=None, random_length=50):
+	from random import choice
+	from Encoding import Id_Encoding_Sequence
+	
+	T, twists = Example()
+	
+	if word is None: word = ''.join(choice(list(twists.keys())) for i in range(random_length))
+	h = Id_Encoding_Sequence(T)
+	for letter in word:
+		h = twists[letter] * h
+	return word, h

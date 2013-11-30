@@ -1,11 +1,14 @@
 
 from sage.all import Matrix
+from sage.rings.qqbar import AlgebraicNumber
 try:
 	from Source.Error import AssumptionError
 except ImportError:
 	from Error import AssumptionError
 
 _name = 'sage'
+
+algebraic_type = AlgebraicNumber
 
 def simplify(x):
 	x.simplify()

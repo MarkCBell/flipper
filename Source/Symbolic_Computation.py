@@ -3,42 +3,44 @@
 #	compute the stable lamination exactly.
 #	compute splitting sequences.
 
-# This module provides three functions which return types storing algebraic numbers.
-#	1) simplify(x):
-#		Given a type representing an algebraic number this must return that algebraic number in a standard form.
-#	2) Perron_Frobenius_eigen(matrix):
+# This module provides four things to do with algebraic numbers.
+#	1) algebraic_type:
+#		The type used to represent algebraic numbers. We will only ever call simplify on things of this type.
+#	2) simplify(x):
+#		Given an algebraic_type this must return that number in a standard form.
+#	3) Perron_Frobenius_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue.
 #		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
-#		The eigenvalue must be an algebraic number and the eigenvector must be a list of algebraic numbers.
-#	3) minimal_polynomial_coefficients(number):
-#		Returns the coefficients of the minimal polynomial of an algebraic number as a tuple of integers.
+#		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types.
+#	4) minimal_polynomial_coefficients(number):
+#		Returns the coefficients of the minimal polynomial of an algebraic_type as a tuple of integers.
 
 # Notes: 
-#	1) We do not actually care what type is used to represent the algebraic numbers however we require that they implement;
+#	1) We do not actually care what algebraic_type is but it must implement;
 #		addition, subtraction, division, comparison, equality (+, -, /, <, ==).
-#		both with integers and other algebraic numbers of the same type.
-#		Some debugging code (currently commented out) may try and print out floating point representations by using float().
-#	2) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
+#		both with integers and other algebraic_types.
+#	2) Some debugging code (currently commented out) may try and print out floating point representations by using float(algebraic_type).
+#	3) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
 #		requirement by multiplication.
-#	3) We actually provide interfaces to several different libraries such as sympy and sage.
+#	4) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.
 
 # We select a library interface here. we first try sage, then sympy and finally just load the dummy library which can't do anything.
 try:
-	from Source.Symbolic_Computation_sage import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
+	from Source.Symbolic_Computation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
 except ImportError:
 	try:
-		from Source.Symbolic_Computation_sympy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
+		from Source.Symbolic_Computation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
 	except ImportError:
 		try:
-			from Source.Symbolic_Computation_dummy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
+			from Source.Symbolic_Computation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
 		except:
 			try:
-				from Symbolic_Computation_sage import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
+				from Symbolic_Computation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
 			except ImportError:
 				try:
-					from Symbolic_Computation_sympy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
+					from Symbolic_Computation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
 				except ImportError:
-					from Symbolic_Computation_dummy import simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
+					from Symbolic_Computation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

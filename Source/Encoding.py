@@ -13,10 +13,12 @@ from itertools import product
 try:
 	from Source.Lamination import Lamination, key_curves
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
+	from Source.Isometry import all_isometries
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
 	from Lamination import Lamination, key_curves
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
+	from Isometry import all_isometries
 	from Error import AbortError, ComputationError, AssumptionError
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
@@ -372,7 +374,7 @@ def encode_twist(lamination, k=1):
 	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
+	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
 	T = map_back * forwards
 	
 	return conjugation_inverse * T**abs(k) * conjugation

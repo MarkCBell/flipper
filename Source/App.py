@@ -25,6 +25,7 @@ except ImportError: # Python 3
 try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Isometry import extend_isometry
 	from Source.Lamination import Lamination, stable_lamination
 	from Source.SplittingSequence import compute_splitting_sequence
 	from Source.Progress import Progress_App
@@ -35,6 +36,7 @@ try:
 except ImportError:
 	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
+	from Isometry import extend_isometry
 	from Lamination import Lamination
 	from SplittingSequence import compute_splitting_sequence
 	from Progress import Progress_App
@@ -711,16 +713,16 @@ class Flipper_App:
 		source_triangle, target_triangle = source_triangles[0], target_triangles[0]
 		
 		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
-		isometry = encode_isometry(self.abstract_triangulation.extend_isometry(self.abstract_triangulation, source_triangle, target_triangle, cycle))
-		isometry_inverse = encode_isometry(self.abstract_triangulation.extend_isometry(self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3))
-		if isometry is None:
+		try:
+			isometry = encode_isometry(extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle))
+			isometry_inverse = encode_isometry(extend_isometry(self.abstract_triangulation, self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3))
+		except AssumptionError:
 			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
-			return
-		
-		if name != '' and name != '_':
-			if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-			self.mapping_classes[name] = isometry
-			self.mapping_classes[name.swapcase()] = isometry_inverse
+		else:
+			if name != '' and name != '_':
+				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+				self.mapping_classes[name] = isometry
+				self.mapping_classes[name.swapcase()] = isometry_inverse
 	
 	
 	######################################################################

@@ -3,12 +3,14 @@ try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Encoding import encode_flip
 	from Source.Lamination import Lamination, stable_lamination
+	from Source.Isometry import all_isometries
 	from Source.Error import AssumptionError
 	from Source.Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Encoding import encode_flip
 	from Lamination import Lamination, key_curves, stable_lamination
+	from Isometry import all_isometries
 	from Error import AssumptionError
 	from Symbolic_Computation import simplify, compute_powers, minimal_polynomial_coefficients
 
@@ -108,7 +110,7 @@ def collapse_trivial_weight(lamination, edge_index):
 	
 	return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 
-def compute_splitting_sequence(lamination):
+def compute_splitting_sequence(lamination, split_all_edges=False):
 	# Assumes that lamination is a filling lamination. If not, it will discover this along the way and throw an 
 	# AssumptionError
 	# We assume that lamination is given as a list of algebraic numbers. 
@@ -154,20 +156,20 @@ def compute_splitting_sequence(lamination):
 		if target in seen:
 			for index, old_lamination, old_projective_weights in seen[target]:
 				old_triangulation = old_lamination.abstract_triangulation
-				for isometry in current_triangulation.all_isometries(old_triangulation):
+				for isometry in all_isometries(current_triangulation, old_triangulation):
 					permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination.zeta)])
 					if current_projective_weights == permuted_old_projective_weights:
-						if all(i in flipped[index:] for i in range(lamination.zeta)):
+						if not split_all_edges or all(i in flipped[index:] for i in range(lamination.zeta)):
 							# Return: the pre-periodic part, the periodic part, the dilatation.
 							return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometry
 			seen[target].append([len(flipped), lamination, current_projective_weights])
 		else:
 			seen[target] = [[len(flipped), lamination, current_projective_weights]]
 
-def compute_splitting_sequence_MCG(mapping_class):
+def compute_splitting_sequence_MCG(mapping_class, split_all_edges=False):
 	lamination, dilatation = stable_lamination(mapping_class, exact=True)
 	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-	preperiodic, periodic, new_dilatation, lamination, isometry = compute_splitting_sequence(lamination)
+	preperiodic, periodic, new_dilatation, lamination, isometry = compute_splitting_sequence(lamination, split_all_edges)
 	return preperiodic, periodic, new_dilatation, lamination, isometry
 
 def determine_type(mapping_class):

@@ -18,40 +18,15 @@
 
 from __future__ import print_function
 from itertools import product, combinations
-try:
-	from Queue import Queue
-except ImportError: # Python 3
-	from queue import Queue
 
 try:
 	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
+	from Source.Isometry import Isometry
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
+	from Isometry import Isometry
 	from Error import AbortError, ComputationError, AssumptionError
-
-class Isometry:
-	def __init__(self, source_triangulation, target_triangulation, triangle_map):
-		# source_triangulation and target_triangulation are two Abstract_Triangulations
-		# triangle_map is a dictionary sending each Abstract_Triangle of source_triangulation to a pair
-		# (Abstract_Triangle, cycle).
-		self.source_triangulation = source_triangulation
-		self.target_triangulation = target_triangulation
-		self.triangle_map = triangle_map
-		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0][i+self.triangle_map[triangle][1]]) for triangle in self.source_triangulation for i in range(3)])
-		# Check that the thing that we've built is actually a permutation.
-		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)): self = None
-	def __repr__(self):
-		return str(self.triangle_map)
-	def __getitem__(self, index):
-		return self.triangle_map[index]
-	def adapt(self, new_source_triangulation, new_target_triangulation):
-		# Assumes some stuff.
-		
-		f = lambda triangle: (new_target_triangulation.find_triangle(self.triangle_map[triangle][0].edge_indices), self.triangle_map[triangle][1])
-		new_triangle_map = dict( (new_source_triangulation.find_triangle(triangle.edge_indices), f(triangle))  for triangle in self.triangle_map)
-		
-		return Isometry(new_source_triangulation, new_target_triangulation, new_triangle_map)
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
@@ -155,7 +130,7 @@ class Abstract_Triangulation:
 		return containing_triangles[0][0] != containing_triangles[1][0]
 	
 	def flip_edge(self, edge_index):
-		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
+		# Returns a new triangulation obtained by flipping the edge of index edge_index.
 		assert(self.edge_is_flippable(edge_index))
 		
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
@@ -163,7 +138,9 @@ class Abstract_Triangulation:
 		
 		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
 		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r,s,v], [u,v,s]]
-		return Abstract_Triangulation(new_edge_indices, new_corner_labels)
+		new_triangulation = Abstract_Triangulation(new_edge_indices, new_corner_labels)
+		
+		return new_triangulation
 	
 	def find_triangle(self, edge_indices):
 		return [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)][0]
@@ -179,45 +156,3 @@ class Abstract_Triangulation:
 		
 		containing_triangles = self.find_edge(edge_index)
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
-	
-	def extend_isometry(self, other, source_triangle, target_triangle, cycle):
-		if self.zeta != other.zeta: return None
-		permutation = {}
-		
-		triangles_to_process = Queue()
-		# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
-		triangles_to_process.put((source_triangle, target_triangle, cycle))
-		seen_triangles = set([source_triangle])
-		permutation[source_triangle] = (target_triangle, cycle)
-		while not triangles_to_process.empty():
-			from_triangle, to_triangle, cycle = triangles_to_process.get()
-			for side in range(3):
-				permutation[from_triangle] = (to_triangle, cycle)
-				from_triangle_neighbour, from_neighbour_side = self.find_neighbour(from_triangle, side)
-				to_triangle_neighbour, to_neighbour_side = other.find_neighbour(to_triangle, (side+cycle)%3)
-				if from_triangle_neighbour not in seen_triangles:
-					triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
-					seen_triangles.add(from_triangle_neighbour)
-		
-		d = dict([(triangle[i], permutation[triangle][0][i+permutation[triangle][1]]) for triangle in self for i in range(3)])
-		# Check that the thing that we've built is actually a permutation.
-		if any(d[i] == d[j] for i, j in combinations(range(self.zeta), 2)): return None
-		
-		return Isometry(self, other, permutation)
-	
-	def all_isometries(self, other):
-		# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
-		# to the edges of other by an orientation preserving isometry.
-		if self.zeta != other.zeta: return []
-		
-		isometries = []
-		for triangle in other:
-			for i in range(3):
-				isometry = self.extend_isometry(other, self.triangles[0], triangle, i)
-				if isometry is not None:
-						isometries.append(isometry)
-		
-		return isometries
-	
-	def is_isometric_to(self, other):
-		return len(self.all_isometries(other)) > 0

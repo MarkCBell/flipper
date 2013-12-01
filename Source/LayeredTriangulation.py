@@ -14,9 +14,11 @@ except ImportError: # Python 3
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Isometry import adapt_isometry
 	from Source.Error import AssumptionError
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
+	from Isometry import adapt_isometry
 	from Error import AssumptionError
 
 class Permutation:
@@ -216,7 +218,6 @@ class Triangulation:
 # A class to represent a layered triangulation over a surface specified by an Abstract_Triangulation.
 class Layered_Triangulation:
 	def __init__(self, abstract_triangulation):
-		self.closed = False
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
 		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles)
@@ -275,13 +276,12 @@ class Layered_Triangulation:
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
 		# Rebuild the upper_map.
 		new_upper_map = dict()
-		for triangle in self.upper_triangulation:
-			if edge_index not in triangle.edge_indices:
-				corresponding_triangle = new_upper_triangulation.find_triangle(triangle.edge_indices)
-				new_upper_map[corresponding_triangle] = self.upper_map[triangle]
+		
+		(new_A, new_side_A), (new_B, new_side_B) = new_upper_triangulation.find_edge(edge_index)
+		for old_triangle, new_triangle in zip([triangle for triangle in self.upper_triangulation if triangle != A and triangle != B], [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]):
+			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		(new_A, new_side_A), (new_B, new_side_B) = new_upper_triangulation.find_edge(edge_index)
 		new_upper_map[new_A] = (object_A, Permutation((0,2,1,3)))
 		new_upper_map[new_B] = (object_B, Permutation((0,2,1,3)))
 		
@@ -295,12 +295,10 @@ class Layered_Triangulation:
 	
 	def close(self, isometry):
 		# Should assume that *almost* all edges of the underlying triangulation have been flipped.
-		
-		isometry = isometry.adapt(self.upper_triangulation, self.lower_triangulation)
+		isometry = adapt_isometry(isometry, self.upper_triangulation, self.lower_triangulation)
 		
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
-		print(closed_triangulation)
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation, closed_triangulation))
 		
@@ -372,7 +370,7 @@ class Layered_Triangulation:
 						if (current_tetrahedron, leave) in fibre_surface: turn_left = not turn_left
 						
 						current_tetrahedron.meridians[current_side][leave] = -1
-						print(current_tetrahedron)
+						# print(current_tetrahedron)
 						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
 						current_side = permutation[current_side]
 						arrive = permutation[leave]
@@ -391,7 +389,7 @@ class Layered_Triangulation:
 					
 					# Go upwards until you reach a cusp which contains the meridian.
 					while True:
-						print(current_tetrahedron, current_side)
+						# print(current_tetrahedron, current_side)
 						leave = 1
 						current_tetrahedron.longitudes[current_side][leave] = -1
 						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
@@ -416,26 +414,22 @@ class Layered_Triangulation:
 		degeneracy_slopes = []
 		
 		return closed_triangulation, degeneracy_slopes
-	
-	def close_somehow(self):
-		# Be really careful with this!
-		if not self.upper_triangulation.is_isometric_to(L.lower_triangulation): raise AssumptionError('Upper and lower triangulations are not isometric')
-		isometries = self.upper_triangulation.all_isometries(L.lower_triangulation)
-		return self.close(isometries[3])
 
 if __name__ == '__main__':
 	from Examples import Example_S_1_2 as Example, build_example_mapping_class
 	from SplittingSequence import compute_splitting_sequence_MCG
 	
 	print('Start')
-	word, h = build_example_mapping_class(Example, random_length=10)
+	word, h = build_example_mapping_class(Example, word='aBC', random_length=10)
 	print(word)
-	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h)
+	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h, split_all_edges=True)
 	
 	T = correct_lamination.abstract_triangulation
 	L = Layered_Triangulation(T)
+	print(periodic)
 	L.flips(periodic)
-	M = L.close(isometry)
+	print('Closing: %s' % isometry)
+	M, degeneracy_slopes = L.close(isometry)
 	print(M.SnapPy_string())
 	exit(0)
 	

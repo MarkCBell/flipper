@@ -374,7 +374,8 @@ def encode_twist(lamination, k=1):
 	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] ==  x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
+	# dict([(x, x) for x in range(new_triangulation.zeta)] + [(e1, e2), (e2, e1)])
+	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
 	T = map_back * forwards
 	
 	return conjugation_inverse * T**abs(k) * conjugation

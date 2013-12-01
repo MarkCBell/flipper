@@ -2,6 +2,7 @@
 # Just to keep an eye out for circular imports, here is a hierarchy of imports:
 	# AbstractTriangulation imports:
 		# Matrix
+		# Isometry
 	# Encoding imports:
 		# Lamination
 		# Matrix
@@ -11,9 +12,12 @@
 	# SplittingSequence imports:
 		# AbstractTriangulation
 		# Encoding
+		# Isometry
 		# Lamination
 		# Symbolic_Computation
 	# LayeredTriangulation imports:
+		# 
+	# Isometry imports:
 		# 
 
 from __future__ import print_function

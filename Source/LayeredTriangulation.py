@@ -113,14 +113,15 @@ class Tetrahedra:
 		return s
 
 class Triangulation:
-	def __init__(self, num_tetrahedra):
+	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedra(i) for i in range(self.num_tetrahedra)]
 		self.num_cusps = -1  # 0
+		self.name = name
 	
 	def copy(self):
 		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
-		new_triangulation = Triangulation(self.num_tetrahedra)
+		new_triangulation = Triangulation(self.num_tetrahedra, self.name)
 		forwards = dict(zip(self, new_triangulation))
 		
 		for tetrahedron in self:
@@ -200,7 +201,7 @@ class Triangulation:
 		self.reindex()
 		s = ''
 		s += '% Triangulation\n'
-		s += 'Flipper_triangulation\n'
+		s += '%s\n' % self.name
 		s += 'not_attempted  0.0\n'
 		s += 'oriented_manifold\n'
 		s += 'CS_unknown\n'
@@ -217,10 +218,10 @@ class Triangulation:
 
 # A class to represent a layered triangulation over a surface specified by an Abstract_Triangulation.
 class Layered_Triangulation:
-	def __init__(self, abstract_triangulation):
+	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
-		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles)
+		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles, name)
 		
 		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
 		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
@@ -419,16 +420,14 @@ if __name__ == '__main__':
 	from Examples import Example_S_1_2 as Example, build_example_mapping_class
 	from SplittingSequence import compute_splitting_sequence_MCG
 	
-	print('Start')
+	# print('Start')
 	word, h = build_example_mapping_class(Example, word='aBC', random_length=10)
-	print(word)
+	# print(word)
 	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h, split_all_edges=True)
 	
 	T = correct_lamination.abstract_triangulation
-	L = Layered_Triangulation(T)
-	print(periodic)
+	L = Layered_Triangulation(T, word)
 	L.flips(periodic)
-	print('Closing: %s' % isometry)
 	M, degeneracy_slopes = L.close(isometry)
 	print(M.SnapPy_string())
 	exit(0)

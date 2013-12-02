@@ -854,7 +854,7 @@ class Flipper_App:
 				try:
 					lamination, dilatation = invariant_lamination(mapping_class, exact)
 				except AssumptionError:
-					tkMessageBox.showwarning('Lamination', '%s is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
 				except ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
 				else:

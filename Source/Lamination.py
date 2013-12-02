@@ -6,13 +6,13 @@
 from itertools import product, combinations
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
+	from Source.Matrix import nonnegative, nonnegative_image
 	from Source.Isometry import all_isometries
 	from Source.Error import AbortError, ComputationError, AssumptionError
 	from Source.Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
-	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image
+	from Matrix import nonnegative, nonnegative_image
 	from Isometry import all_isometries
 	from Error import AbortError, ComputationError, AssumptionError
 	from Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type

@@ -6,18 +6,15 @@
 	# Encoding imports:
 		# Lamination
 		# Matrix
+		# Isometry
 	# Lamination imports:
 		# AbstractTriangulation
 		# Matrix
-		# Symbolic_Computation
-	# SplittingSequence imports:
-		# AbstractTriangulation
-		# Encoding
 		# Isometry
-		# Lamination
 		# Symbolic_Computation
 	# LayeredTriangulation imports:
-		# 
+		# Lamination
+		# Isometry
 	# Isometry imports:
 		# 
 
@@ -25,13 +22,11 @@ from __future__ import print_function
 from itertools import product, combinations
 
 try:
-	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
+	from Source.Matrix import Matrix, tweak_vector
 	from Source.Isometry import Isometry
-	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
-	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative, nontrivial, nonnegative_image, tweak_vector
+	from Matrix import Matrix, tweak_vector
 	from Isometry import Isometry
-	from Error import AbortError, ComputationError, AssumptionError
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?

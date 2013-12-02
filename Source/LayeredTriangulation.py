@@ -13,12 +13,10 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Lamination import invariant_lamination
 	from Source.Isometry import adapt_isometry
 	from Source.Error import AssumptionError
 except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
 	from Lamination import invariant_lamination
 	from Isometry import adapt_isometry
 	from Error import AssumptionError

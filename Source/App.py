@@ -109,10 +109,12 @@ class Flipper_App:
 		filemenu.add_separator()
 		filemenu.add_command(label='Exit', command=self.parent.quit)
 		
-		toolmenu = TK.Menu(menubar, tearoff=0)
-		toolmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE))
-		toolmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE))
-		toolmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE))
+		editmenu = TK.Menu(menubar, tearoff=0)
+		editmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE))
+		editmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE))
+		editmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE))
+		editmenu.add_separator()
+		editmenu.add_command(label='Erase Curve', command=self.destroy_curve)
 		
 		helpmenu = TK.Menu(menubar, tearoff=0)
 		helpmenu.add_command(label='Help')  # !?!
@@ -120,7 +122,7 @@ class Flipper_App:
 		helpmenu.add_command(label='About', command=self.show_about)
 		
 		menubar.add_cascade(label='File', menu=filemenu)
-		menubar.add_cascade(label='Tools', menu=toolmenu)
+		menubar.add_cascade(label='Edit', menu=editmenu)
 		menubar.add_command(label='Options', command=self.show_options)
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
@@ -270,7 +272,7 @@ class Flipper_App:
 				elif task == 'profile': self.profile()
 				elif task == 'stats': self.stats()
 				
-				elif task == 'clear': self.initialise()
+				elif task == 'new': self.initialise()
 				elif task == 'erase': self.destroy_curve()
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
@@ -331,7 +333,7 @@ class Flipper_App:
 	
 	def select_object(self, selected_object):
 		self.selected_object = selected_object
-		for x in self.vertices + self.edges:
+		for x in self.vertices + self.edges + self.curve_components:
 			x.set_colour()
 		if self.selected_object is not None:
 			self.selected_object.set_colour(self.options.default_selected_colour)
@@ -630,11 +632,10 @@ class Flipper_App:
 	
 	def tighten_curve(self):
 		curve = self.curve_to_lamination()
-		if self.abstract_triangulation is not None:
-			if self.abstract_triangulation.is_multicurve(curve):
-				self.lamination_to_curve(curve)
-			else:
-				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
+		if curve.is_multicurve():
+			self.lamination_to_curve(curve)
+		else:
+			tkMessageBox.showwarning('Curve', 'Not an essential curve.')
 	
 	def store_curve(self, name):
 		if name != '' and name != '_':
@@ -689,7 +690,7 @@ class Flipper_App:
 			self.lamination_to_curve(self.curves['_'])
 	
 	def show_render(self, composition):
-		self.set_current_curve([int(i) for i in composition.split(',')])
+		self.set_current_curve([int(i) for i in composition.split('.')])
 		self.lamination_to_curve(self.curves['_'])
 	
 	def vectorise(self):
@@ -701,8 +702,8 @@ class Flipper_App:
 	def store_isometry(self, specification):
 		name, from_edges, to_edges = specification.split(' ')[:3]
 		
-		from_edges = [int(x) for x in from_edges.split(',')]
-		to_edges = [int(x) for x in to_edges.split(',')]
+		from_edges = [int(x) for x in from_edges.split('.')]
+		to_edges = [int(x) for x in to_edges.split('.')]
 		
 		source_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(from_edges)]
 		target_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(to_edges)]
@@ -714,15 +715,16 @@ class Flipper_App:
 		
 		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
 		try:
-			isometry = encode_isometry(extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle))
-			isometry_inverse = encode_isometry(extend_isometry(self.abstract_triangulation, self.abstract_triangulation, target_triangle, source_triangle, (cycle * 2) % 3))
+			isometry = extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle)
+			mapping_class = encode_isometry(isometry)
+			mapping_class_inverse = encode_isometry(isometry.inverse())
 		except AssumptionError:
 			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 		else:
 			if name != '' and name != '_':
 				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-				self.mapping_classes[name] = isometry
-				self.mapping_classes[name.swapcase()] = isometry_inverse
+				self.mapping_classes[name] = mapping_class
+				self.mapping_classes[name.swapcase()] = mapping_class_inverse
 	
 	
 	######################################################################
@@ -941,6 +943,8 @@ class Flipper_App:
 						self.destroy_curve_component(self.selected_object)
 						self.select_object(None)
 						self.set_current_curve()
+		elif key == 'Escape':
+			self.canvas_right_click(None)
 		elif key == 'Up':
 			if self.history_position > 0:
 				self.history_position -= 1

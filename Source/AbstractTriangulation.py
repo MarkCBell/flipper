@@ -94,6 +94,9 @@ class Abstract_Triangulation:
 	def __iter__(self):
 		return iter(self.triangles)
 	
+	def __getitem__(self, index):
+		return self.triangles[index]
+	
 	def find_corner_class(self, triangle, side):
 		for corner_class in self.corner_classes:
 			if (triangle, side) in corner_class:

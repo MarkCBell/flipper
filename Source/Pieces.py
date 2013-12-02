@@ -182,6 +182,7 @@ class Curve_Component:
 	def __init__(self, canvas, source_point, options, multiplicity=None):
 		self.options = options
 		self.default_colour = self.options.default_curve_colour
+		self.colour = self.default_colour
 		self.vertices = [source_point]
 		self.drawn_segments = []
 		self.canvas = canvas
@@ -190,7 +191,7 @@ class Curve_Component:
 	
 	def append_point(self, point):
 		self.vertices.append(point)
-		self.drawn_segments.append(self.canvas.create_line(self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1], width=self.options.line_size, fill=self.default_colour, tag='curve'))
+		self.drawn_segments.append(self.canvas.create_line(self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1], width=self.options.line_size, fill=self.colour, tag='curve'))
 		if self.multiplicity is not None:
 			self.drawn_labels.append(self.canvas.create_text((self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2, text=str(self.multiplicity), tag='label', font=self.options.custom_font, fill=self.options.default_curve_label_colour))
 		return self
@@ -206,7 +207,9 @@ class Curve_Component:
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
-		self.canvas.itemconfig(self.drawn_segments, fill=colour)
+		self.colour = colour
+		for segment in self.drawn_segments:
+			self.canvas.itemconfig(segment, fill=colour)
 	
 	def set_default_colour(self, colour):
 		self.default_colour = colour

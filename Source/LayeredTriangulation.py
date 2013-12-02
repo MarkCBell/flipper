@@ -347,83 +347,91 @@ class Layered_Triangulation:
 		exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
 		exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
 		
-		# We'll work on each cusp one at a time.
-		for cusp in cusps:
-			# Find just the right starting spot. We want one such that when we do one step to the left we don't pass through the fibre.
-			for starting_tetrahedron, starting_side in cusp:
-				if (starting_side == 0 and (starting_tetrahedron, 2) in fibre_surface) or (starting_side == 2 and (starting_tetrahedron, 0) in fibre_surface):
-					# Put in the meridian.
-					current_tetrahedron, current_side = starting_tetrahedron, starting_side
-					
-					# Do one step to the right.
-					leave = 1 if starting_side == 0 else 3
-					current_tetrahedron.meridians[current_side][leave] = -1
-					current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-					current_side = permutation[starting_side]
-					arrive = permutation[leave]
-					current_tetrahedron.meridians[current_side][arrive] = +1
-					
-					# Then start walking until you reach the starting cusp again, initially turn left.
-					turn_left = True
-					while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
-						leave = (exit_cusp_left if turn_left else exit_cusp_right)[(current_side, arrive)]
-						# But switch direction every time you pass through the fibre surface.
-						if (current_tetrahedron, leave) in fibre_surface: turn_left = not turn_left
+		if False:
+			# We'll work on each cusp one at a time.
+			for cusp in cusps:
+				# Find just the right starting spot. We want one such that when we do one step to the left we don't pass through the fibre.
+				for starting_tetrahedron, starting_side in cusp:
+					if (starting_side == 0 and (starting_tetrahedron, 2) in fibre_surface) or (starting_side == 2 and (starting_tetrahedron, 0) in fibre_surface):
+						# Put in the meridian.
+						current_tetrahedron, current_side = starting_tetrahedron, starting_side
 						
-						current_tetrahedron.meridians[current_side][leave] = -1
-						# print(current_tetrahedron)
-						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-						current_side = permutation[current_side]
-						arrive = permutation[leave]
-						current_tetrahedron.meridians[current_side][arrive] = +1
-					
-					# Put in the longitude.
-					current_tetrahedron, current_side = starting_tetrahedron, starting_side
-					
-					# Do one step to the right.
-					leave = 1 if starting_side == 0 else 3
-					current_tetrahedron.longitudes[current_side][leave] = -1
-					current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-					current_side = permutation[starting_side]
-					arrive = permutation[leave]
-					current_tetrahedron.longitudes[current_side][arrive] = +1
-					
-					# Go upwards until you reach a cusp which contains the meridian.
-					while True:
-						# print(current_tetrahedron, current_side)
-						leave = 1
-						current_tetrahedron.longitudes[current_side][leave] = -1
-						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-						current_side = permutation[current_side]
-						arrive = permutation[leave]
-						current_tetrahedron.longitudes[current_side][arrive] = +1
+						arrive = 3 if starting_side == 0 else 1
+						leave = UNKNOWN
+						path = [(starting_tetrahedron, starting_side, arrive, leave, UNKNOWN)]
 						
-						if current_tetrahedron.meridians[current_side] != [0,0,0,0]: break
-					
-					# Then follow through whatever side the meridian leaves through until you reach the starting cusp again.
-					while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
-						leave = [side for side in range(4) if current_tetrahedron.meridians[current_side][side] == -1][0]
-						current_tetrahedron.longitudes[current_side][leave] = -1
-						current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-						current_side = permutation[current_side]
-						arrive = permutation[leave]
-						current_tetrahedron.longitudes[current_side][arrive] = +1
-					
-					break
-		
+						while len(path) <= 1 or current_tetrahedron != starting_tetrahedron or current_side != starting_side:
+							current_tetrahedron, current_side, arrive, leave, turn = path[-1]
+							if turn == UNKNOWN:
+								leave = exit_cusp_left[(current_side, arrive)]
+								path[-1] = (current_tetrahedron, current_side, arrive, leave, LEFT)
+								if (current_tetrahedron, leave) not in fibre_surface:
+									current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+									current_side = permutation[current_side]
+									arrive = permutation[leave]
+									leave = UNKNOWN
+									path.append((current_tetrahedron, current_side, arrive, leave, UNKNOWN))
+							elif turn == LEFT:
+								leave = exit_cusp_right[(current_side, arrive)]
+								path[-1] = (current_tetrahedron, current_side, arrive, leave, RIGHT)
+								if (current_tetrahedron, leave) not in fibre_surface:
+									current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+									current_side = permutation[current_side]
+									arrive = permutation[leave]
+									leave = UNKNOWN
+									path.append((current_tetrahedron, current_side, arrive, leave, UNKNOWN))
+							elif turn == RIGHT:
+								assert(len(path) > 0)
+								path.pop()
+						
+						# print(path)
+						
+						for tetrahedron, side, arrive, leave, turn in path[:-1]:
+							tetrahedron.meridians[side][arrive] = +1
+							tetrahedron.meridians[side][leave] = -1
+						
+						# Put in the longitude.
+						current_tetrahedron, current_side = starting_tetrahedron, starting_side
+						
+						# Go upwards until you reach a cusp which contains the meridian.
+						arrive = 3
+						passed_through_fibre_surface = False
+						while not passed_through_fibre_surface or current_tetrahedron.meridians[current_side] == [0,0,0,0]:
+							leave = 1
+							current_tetrahedron.longitudes[current_side][leave] = -1
+							current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+							current_side = permutation[current_side]
+							arrive = permutation[leave]
+							current_tetrahedron.longitudes[current_side][arrive] = +1
+							if (current_tetrahedron, arrive) not in fibre_surface: passed_through_fibre_surface = True
+						
+						# Then follow through whatever side the meridian leaves through until you reach the starting cusp again.
+						while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
+							# print(starting_tetrahedron, starting_side, current_tetrahedron, current_side)
+							# print(current_tetrahedron.meridians[current_side])
+							leave = [side for side in range(4) if current_tetrahedron.meridians[current_side][side] == -1][0]
+							current_tetrahedron.longitudes[current_side][leave] = -1
+							current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
+							current_side = permutation[current_side]
+							arrive = permutation[leave]
+							current_tetrahedron.longitudes[current_side][arrive] = +1
+						
+						break
+			
 		# Compute degeneracy slopes.
 		degeneracy_slopes = []
 		
 		return closed_triangulation, degeneracy_slopes
 
 if __name__ == '__main__':
-	from Examples import Example_S_1_2 as Example, build_example_mapping_class
+	from Examples import Example_S_1_1 as Example, build_example_mapping_class
 	from SplittingSequence import compute_splitting_sequence_MCG
 	
 	# print('Start')
-	word, h = build_example_mapping_class(Example, word='aBC', random_length=10)
+	word, h = build_example_mapping_class(Example, word='aB', random_length=10)
 	# print(word)
-	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h, split_all_edges=True)
+	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h, split_all_edges=False)
+	# print('Layering')
 	
 	T = correct_lamination.abstract_triangulation
 	L = Layered_Triangulation(T, word)

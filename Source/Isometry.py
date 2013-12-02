@@ -26,8 +26,9 @@ class Isometry:
 	def __getitem__(self, index):
 		return self.triangle_map[index]
 	def inverse(self):
-		pass
-		return Isometry(self.target_triangulation, self.source_triangulation)
+		target_triangle = self.source_triangulation[0]
+		source_triangle, cycle = self[target_triangle]
+		return extend_isometry(self.target_triangulation, self.source_triangulation, source_triangle, target_triangle, cycle * 2)
 
 #### Some special Isometries we know how to build.
 

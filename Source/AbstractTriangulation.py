@@ -7,6 +7,7 @@
 		# Lamination
 		# Matrix
 	# Lamination imports:
+		# AbstractTriangulation
 		# Matrix
 		# Symbolic_Computation
 	# SplittingSequence imports:

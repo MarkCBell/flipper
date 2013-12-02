@@ -14,10 +14,12 @@ except ImportError: # Python 3
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Lamination import invariant_lamination
 	from Source.Isometry import adapt_isometry
 	from Source.Error import AssumptionError
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
+	from Lamination import invariant_lamination
 	from Isometry import adapt_isometry
 	from Error import AssumptionError
 
@@ -425,12 +427,13 @@ class Layered_Triangulation:
 
 if __name__ == '__main__':
 	from Examples import Example_S_1_1 as Example, build_example_mapping_class
-	from SplittingSequence import compute_splitting_sequence_MCG
 	
 	# print('Start')
 	word, h = build_example_mapping_class(Example, word='aB', random_length=10)
 	# print(word)
-	preperiodic, periodic, new_dilatation, correct_lamination, isometry = compute_splitting_sequence_MCG(h, split_all_edges=False)
+	lamination, dilatation = invariant_lamination(h, exact=True)
+	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
+	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges)
 	# print('Layering')
 	
 	T = correct_lamination.abstract_triangulation

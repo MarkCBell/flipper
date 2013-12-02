@@ -243,7 +243,7 @@ class Encoding_Sequence:
 				raise IndexError
 		
 		def progress(indices):
-			return sum(index * scale for index, scale in zip(indices, reciprocal_sizes_mul))
+			return sum(index * scale for index, scale in zip(indices, reciprocal_sizes_mul)) / 2
 		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		

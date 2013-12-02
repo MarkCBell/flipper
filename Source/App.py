@@ -26,8 +26,7 @@ try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Isometry import extend_isometry
-	from Source.Lamination import Lamination, stable_lamination
-	from Source.SplittingSequence import compute_splitting_sequence
+	from Source.Lamination import Lamination, invariant_lamination
 	from Source.Progress import Progress_App
 	from Source.Encoding import Id_Encoding_Sequence, Encoding, encode_twist, encode_isometry
 	from Source.Matrix import Permutation_Matrix, Empty_Matrix
@@ -38,7 +37,6 @@ except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Isometry import extend_isometry
 	from Lamination import Lamination
-	from SplittingSequence import compute_splitting_sequence
 	from Progress import Progress_App
 	from Encoding import Id_Encoding_Sequence, Encoding, encode_isometry
 	from Matrix import Permutation_Matrix, Empty_Matrix
@@ -107,9 +105,10 @@ class Flipper_App:
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
-		self.list_mapping_classes.bind('<Button-1>', self.list_left_click)
-		self.list_mapping_classes.bind('<Button-3>', self.list_right_click)
-		self.list_mapping_classes.bind('<Shift-Button-1>', self.list_shift_click)
+		self.list_curves.bind('<Button-1>', self.list_curves_left_click)
+		self.list_mapping_classes.bind('<Button-1>', self.list_mapping_classes_left_click)
+		self.list_mapping_classes.bind('<Button-3>', self.list_mapping_classes_right_click)
+		self.list_mapping_classes.bind('<Shift-Button-1>', self.list_mapping_classes_shift_click)
 		
 		###
 		
@@ -131,6 +130,9 @@ class Flipper_App:
 		editmenu.add_separator()
 		editmenu.add_command(label='Erase Curve', command=self.destroy_curve)
 		
+		settingsmenu = TK.Menu(menubar, tearoff=0)
+		settingsmenu.add_command(label='Options', command=self.show_options)
+		
 		helpmenu = TK.Menu(menubar, tearoff=0)
 		helpmenu.add_command(label='Help')  # !?!
 		helpmenu.add_separator()
@@ -138,7 +140,7 @@ class Flipper_App:
 		
 		menubar.add_cascade(label='File', menu=filemenu)
 		menubar.add_cascade(label='Edit', menu=editmenu)
-		menubar.add_command(label='Options', command=self.show_options)
+		menubar.add_cascade(label='Settings', menu=settingsmenu)
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
 		
@@ -309,8 +311,8 @@ class Flipper_App:
 				elif task == 'periodic': self.is_periodic(combined)
 				elif task == 'reducible': self.is_reducible(combined)
 				elif task == 'pA': self.is_pseudo_Anosov(combined)
-				elif task == 'lamination': self.stable_lamination(combined)
-				elif task == 'lamination_exact': self.stable_lamination(combined, exact=True)
+				elif task == 'lamination': self.invariant_lamination(combined)
+				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
 				elif task == 'split': self.splitting_sequence(combined)
 				# elif task == '':
 				else:
@@ -481,12 +483,13 @@ class Flipper_App:
 			n, gluing = int(specification), ''
 		else:
 			n, gluing = len(specification), specification
+		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
-		
+		r = min(w, h)
 		self.create_vertex((w / 2, h / 2))
 		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * w * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * h * self.options.n_gon_fraction))
+			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction))
 		for i in range(1,n):
 			self.create_edge(self.vertices[i], self.vertices[i+1])
 		self.create_edge(self.vertices[n], self.vertices[1])
@@ -510,8 +513,9 @@ class Flipper_App:
 		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
+		r = min(w, h)
 		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * w * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * h * self.options.n_gon_fraction))
+			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction))
 		for i in range(n):
 			self.create_edge(self.vertices[i], self.vertices[i-1])
 		
@@ -633,7 +637,7 @@ class Flipper_App:
 	def lamination_to_curve(self, lamination):
 		self.destroy_curve()
 		for triangle in self.triangles:
-			weights = [lamination.vector[edge.index] for edge in triangle.edges]
+			weights = [lamination[edge.index] for edge in triangle.edges]
 			dual_weights = [(weights[1] + weights[2] - weights[0]) // 2, (weights[2] + weights[0] - weights[1]) // 2, (weights[0] + weights[1] - weights[2]) // 2]
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
@@ -759,8 +763,9 @@ class Flipper_App:
 				self.lamination_to_curve(self.curves['_'])
 	
 	def show_render(self, composition):
+	# !?! Broken.
 		if self.abstract_triangulation is not None:
-			self.set_current_curve([int(i) for i in composition.split('.')])
+			self.set_current_curve(Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
 			self.lamination_to_curve(self.curves['_'])
 	
 	def vectorise(self):
@@ -839,7 +844,7 @@ class Flipper_App:
 	######################################################################
 	
 	
-	def stable_lamination(self, composition, exact=False):
+	def invariant_lamination(self, composition, exact=False):
 		if self.abstract_triangulation is not None:
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
@@ -847,11 +852,13 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = stable_lamination(mapping_class, exact)
+					lamination, dilatation = invariant_lamination(mapping_class, exact)
+				except AssumptionError:
+					tkMessageBox.showwarning('Lamination', '%s is periodic.' % composition)
 				except ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s.  It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
 				else:
-					tkMessageBox.showinfo('Lamination', '%s has lamination: %s \nand dilatation: %s' % (composition, lamination, dilatation))
+					tkMessageBox.showinfo('Lamination', '%s has invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
 		if self.abstract_triangulation is not None:
@@ -862,14 +869,16 @@ class Flipper_App:
 			else:
 				try:
 					start_time = time()
-					lamination, dilatation = stable_lamination(mapping_class, exact=True)
+					lamination, dilatation = invariant_lamination(mapping_class, exact=True)
+				except AssumptionError:
+					tkMessageBox.showwarning('Lamination', '%s is periodic.' % composition) 
 				except ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s. It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
 				else:
 					if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
 					try:
 						start_time = time()
-						preperiodic, periodic, dilatation, lamination, isometry = compute_splitting_sequence(lamination)
+						preperiodic, periodic, dilatation, lamination, isometry = lamination.splitting_sequence()
 					except AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
@@ -1010,15 +1019,19 @@ class Flipper_App:
 				self.entry_command.delete(0, TK.END)
 				self.entry_command.insert(0, self.command_history[self.history_position])
 	
-	def list_left_click(self, event):
+	def list_curves_left_click(self, event):
+		if self.list_curves.size() > 0:
+			self.show_curve(self.list_curves.get(self.list_curves.nearest(event.y)))
+	
+	def list_mapping_classes_left_click(self, event):
 		if self.list_mapping_classes.size() > 0:
 			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
 	
-	def list_right_click(self, event):
+	def list_mapping_classes_right_click(self, event):
 		if self.list_mapping_classes.size() > 0:
 			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)).swapcase())
 	
-	def list_shift_click(self, event):
+	def list_mapping_classes_shift_click(self, event):
 		if self.list_mapping_classes.size() > 0:
 			self.show_curve(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
 

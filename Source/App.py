@@ -365,6 +365,9 @@ class Flipper_App:
 		if any(set([edge.source_vertex, edge.target_vertex]) == set([v1, v2]) for edge in self.edges):
 			return None
 		
+		if any(lines_intersect(edge.source_vertex, edge.target_vertex, v1, v2, self.options.float_error, True)[1] for edge in self.edges):
+			return None
+		
 		e0 = Edge(v1, v2, self.options)
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1.free_sides() > 0 and e2.free_sides() > 0:

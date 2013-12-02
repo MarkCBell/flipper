@@ -51,6 +51,15 @@ GLUING_MODE = 1
 CURVE_MODE = 2
 CURVE_DRAWING_MODE = 3
 
+# !?! TO DO: write a proper version of this.
+# Should check name matches \w* and contains at least one letter.
+def valid_name(name):
+	if name != '' and name != '_':
+		return True
+	else:
+		tkMessageBox.showwarning('Name', '%s is not a valid name.')
+		return False
+
 class Flipper_App:
 	def __init__(self, parent):
 		self.parent = parent
@@ -65,6 +74,12 @@ class Flipper_App:
 		self.frame_interface.grid(column=1, sticky='nse')
 		
 		###
+		self.label_curves = TK.Label(self.frame_interface, text='Curves:', anchor='w', font=self.options.custom_font)
+		self.label_curves.pack(fill='x')
+		
+		self.list_curves = TK.Listbox(self.frame_interface, font=self.options.custom_font)
+		self.list_curves.pack(fill='both', expand=True)
+		
 		self.label_mapping_classes = TK.Label(self.frame_interface, text='Mapping Classes:', anchor='w', font=self.options.custom_font)
 		self.label_mapping_classes.pack(fill='x')
 		
@@ -144,6 +159,7 @@ class Flipper_App:
 		self.curve_components = []
 		self.mapping_classes = {}
 		self.selected_object = None
+		self.list_curves.delete(0, TK.END)
 		self.list_mapping_classes.delete(0, TK.END)
 		
 		self.build_complete_structure()
@@ -259,12 +275,16 @@ class Flipper_App:
 			combined = ' '.join(arguements)
 			try:
 				if task == '': pass
-				
+				elif task == 'new': self.initialise()
 				elif task == 'save': self.save(combined)
-				elif task == 'load': self.load(combined)
 				elif task == 'open': self.load(combined)
 				elif task == 'export': self.export_image(combined)
+				elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
+				elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
+				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
+				elif task == 'erase': self.destroy_curve()
 				elif task == 'options': self.show_options()
+				elif task == 'help': pass  # !?! TO DO
 				elif task == 'about': self.show_about()
 				elif task == 'exit': self.parent.quit()
 				
@@ -272,8 +292,6 @@ class Flipper_App:
 				elif task == 'profile': self.profile()
 				elif task == 'stats': self.stats()
 				
-				elif task == 'new': self.initialise()
-				elif task == 'erase': self.destroy_curve()
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				
@@ -282,7 +300,8 @@ class Flipper_App:
 				elif task == 'render': self.show_render(combined)
 				elif task == 'vectorise': self.vectorise()
 				
-				elif task == 'twist': self.store_curve(combined)
+				elif task == 'curve': self.store_curve(combined)
+				elif task == 'twist': self.store_twist(combined)
 				elif task == 'isometry': self.store_isometry(combined)
 				elif task == 'apply': self.show_apply(combined)
 				
@@ -362,9 +381,11 @@ class Flipper_App:
 		self.build_complete_structure()
 	
 	def create_edge(self, v1, v2):
+		# Don't create a new edge if one already exists.
 		if any(set([edge.source_vertex, edge.target_vertex]) == set([v1, v2]) for edge in self.edges):
 			return None
 		
+		# Don't create a new edge if it would intersect one that already exists.
 		if any(lines_intersect(edge.source_vertex, edge.target_vertex, v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
@@ -634,196 +655,226 @@ class Flipper_App:
 		self.set_current_curve(lamination)
 	
 	def tighten_curve(self):
-		curve = self.curve_to_lamination()
-		if curve.is_multicurve():
-			self.lamination_to_curve(curve)
-		else:
-			tkMessageBox.showwarning('Curve', 'Not an essential curve.')
+		if self.abstract_triangulation is not None:
+			curve = self.curve_to_lamination()
+			if curve.is_multicurve():
+				self.lamination_to_curve(curve)
+			else:
+				tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
 	
 	def store_curve(self, name):
-		if name != '' and name != '_':
-			lamination = self.curve_to_lamination()
-			if lamination.is_curve():
-				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-				self.curves[name] = lamination
-				self.mapping_classes[name] = encode_twist(lamination)
-				self.mapping_classes[name.swapcase()] = encode_twist(lamination, k=-1)
-				self.destroy_curve()
-			else:
-				tkMessageBox.showwarning('Curve', 'Not an essential curve.')
+		if self.abstract_triangulation is not None:
+			if valid_name(name):
+				lamination = self.curve_to_lamination()
+				if lamination.is_multicurve():
+					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					self.curves[name] = lamination
+					self.destroy_curve()
+				else:
+					tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
+				
 	
-	def show_curve(self, name):
-		if name in self.curves:
-			self.destroy_curve()
-			self.lamination_to_curve(self.curves[name])
-			self.set_current_curve(self.curves[name])
-		else:
-			tkMessageBox.showwarning('Curve', '%s is not a curve.' % name)
-	
-	def create_composition(self, twists):
-		mapping_class = Id_Encoding_Sequence(self.abstract_triangulation)
-		for twist in twists[::-1]:
-			if twist in self.mapping_classes:
-				mapping_class = self.mapping_classes[twist] * mapping_class
-			else:
-				tkMessageBox.showwarning('Curve', 'Unknown curve: %s' % twist)
-				raise AbortError()
-		
-		# mapping_class = mapping_class.compactify()  # !?! Broken.
-		if self.options.debugging: print('Mapping class size: %d' % mapping_class.size)
-		return mapping_class
-	
-	def show_composition(self, composition):
-		curves = composition.split('.')
-		twists, name = curves[:-1], curves[-1]
-		if name in self.curves:
-			curve = self.curves[name]
-		elif name.swapcase() in self.curves:
-			curve = self.curves[name.swapcase()]
-		else:
-			tkMessageBox.showwarning('Curve', 'Unknown curve: %s' % name)
-			return
-		
-		try:
-			mapping_class = self.create_composition(twists)
-		except AbortError:
-			pass
-		else:
-			self.set_current_curve(mapping_class * curve)
-			self.lamination_to_curve(self.curves['_'])
-	
-	def show_render(self, composition):
-		self.set_current_curve([int(i) for i in composition.split('.')])
-		self.lamination_to_curve(self.curves['_'])
-	
-	def vectorise(self):
-		tkMessageBox.showinfo('Curve', '%s' % self.curve_to_lamination().vector)
-	
-	def show_apply(self, composition):
-		self.show_composition(composition + '._')
+	def store_twist(self, name):
+		if self.abstract_triangulation is not None:
+			if valid_name(name):
+				lamination = self.curve_to_lamination()
+				if lamination.is_curve():
+					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					self.curves[name] = lamination
+					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					self.mapping_classes[name] = encode_twist(lamination)
+					self.mapping_classes[name.swapcase()] = encode_twist(lamination, k=-1)
+					self.destroy_curve()
+				else:
+					tkMessageBox.showwarning('Curve', 'Not an essential curve.')
 	
 	def store_isometry(self, specification):
-		name, from_edges, to_edges = specification.split(' ')[:3]
+		if self.abstract_triangulation is not None:
+			name, from_edges, to_edges = specification.split(' ')[:3]
+			
+			from_edges = [int(x) for x in from_edges.split('.')]
+			to_edges = [int(x) for x in to_edges.split('.')]
+			
+			source_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(from_edges)]
+			target_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(to_edges)]
+			if len(source_triangles) != 1 or len(source_triangles) != 1:
+				tkMessageBox.showwarning('Isometry', 'Information does not specify a triangle.')
+				return
+			
+			source_triangle, target_triangle = source_triangles[0], target_triangles[0]
+			
+			cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
+			try:
+				isometry = extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle)
+				mapping_class = encode_isometry(isometry)
+				mapping_class_inverse = encode_isometry(isometry.inverse())
+			except AssumptionError:
+				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
+			else:
+				if valid_name(name):
+					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					self.mapping_classes[name] = mapping_class
+					self.mapping_classes[name.swapcase()] = mapping_class_inverse
+	
+	def show_curve(self, name):
+		if self.abstract_triangulation is not None:
+			if name in self.curves:
+				self.destroy_curve()
+				self.lamination_to_curve(self.curves[name])
+				self.set_current_curve(self.curves[name])
+			else:
+				tkMessageBox.showwarning('Curve', '%s is not a multicurve.' % name)
+	
+	def create_composition(self, twists):
+		if self.abstract_triangulation is not None:
+			mapping_class = Id_Encoding_Sequence(self.abstract_triangulation)
+			for twist in twists[::-1]:
+				if twist in self.mapping_classes:
+					mapping_class = self.mapping_classes[twist] * mapping_class
+				else:
+					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
+					raise AbortError()
 		
-		from_edges = [int(x) for x in from_edges.split('.')]
-		to_edges = [int(x) for x in to_edges.split('.')]
-		
-		source_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(from_edges)]
-		target_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(to_edges)]
-		if len(source_triangles) != 1 or len(source_triangles) != 1:
-			tkMessageBox.showwarning('Isometry', 'Information does not specify a triangle.')
-			return
-		
-		source_triangle, target_triangle = source_triangles[0], target_triangles[0]
-		
-		cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
-		try:
-			isometry = extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle)
-			mapping_class = encode_isometry(isometry)
-			mapping_class_inverse = encode_isometry(isometry.inverse())
-		except AssumptionError:
-			tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
-		else:
-			if name != '' and name != '_':
-				if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-				self.mapping_classes[name] = mapping_class
-				self.mapping_classes[name.swapcase()] = mapping_class_inverse
+			if self.options.debugging: print('Mapping class size: %d' % mapping_class.size)
+			return mapping_class
+	
+	def show_composition(self, composition):
+		if self.abstract_triangulation is not None:
+			curves = composition.split('.')
+			twists, name = curves[:-1], curves[-1]
+			if name in self.curves:
+				curve = self.curves[name]
+			elif name.swapcase() in self.curves:
+				curve = self.curves[name.swapcase()]
+			else:
+				tkMessageBox.showwarning('Curve', 'Unknown curve: %s' % name)
+				return
+			
+			try:
+				mapping_class = self.create_composition(twists)
+			except AbortError:
+				pass
+			else:
+				self.set_current_curve(mapping_class * curve)
+				self.lamination_to_curve(self.curves['_'])
+	
+	def show_render(self, composition):
+		if self.abstract_triangulation is not None:
+			self.set_current_curve([int(i) for i in composition.split('.')])
+			self.lamination_to_curve(self.curves['_'])
+	
+	def vectorise(self):
+		if self.abstract_triangulation is not None:
+			tkMessageBox.showinfo('Curve', '%s' % self.curve_to_lamination().vector)
+	
+	def show_apply(self, composition):
+		if self.abstract_triangulation is not None:
+			self.show_composition(composition + '._')
 	
 	
 	######################################################################
 	
 	
 	def order(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
-			order = mapping_class.order()
-			tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, ('infinite' if order == 0 else str(order))))
+		if self.abstract_triangulation is not None:
+			try:
+				mapping_class = self.create_composition(composition.split('.'))
+			except AbortError:
+				pass
+			else:
+				order = mapping_class.order()
+				if order == 0:
+					tkMessageBox.showinfo('Order', '%s has infinite order.' % composition)
+				else:
+					tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, order))
 	
 	def is_periodic(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
-			if mapping_class.is_periodic():
-				tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
+		if self.abstract_triangulation is not None:
+			try:
+				mapping_class = self.create_composition(composition.split('.'))
+			except AbortError:
+				pass
 			else:
-				tkMessageBox.showinfo('Periodic', '%s is not periodic.' % composition)
+				if mapping_class.is_periodic():
+					tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
+				else:
+					tkMessageBox.showinfo('Periodic', '%s is not periodic.' % composition)
 	
 	def is_reducible(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
+		if self.abstract_triangulation is not None:
 			try:
-				start_time = time()
-				result = mapping_class.is_reducible(certify=True, show_progress=Progress_App(self), options=self.options)
-				if self.options.profiling: print('Determined reducibility of %s in %0.1fs.' % (composition, time() - start_time))
-				if result[0]:
-					tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
-				else:
-					tkMessageBox.showinfo('Reducible', '%s is irreducible.' % composition)
+				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
 				pass
+			else:
+				try:
+					start_time = time()
+					result = mapping_class.is_reducible(certify=True, show_progress=Progress_App(self), options=self.options)
+					if self.options.profiling: print('Determined reducibility of %s in %0.1fs.' % (composition, time() - start_time))
+					if result[0]:
+						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
+					else:
+						tkMessageBox.showinfo('Reducible', '%s is irreducible.' % composition)
+				except AbortError:
+					pass
 	
 	def is_pseudo_Anosov(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
+		if self.abstract_triangulation is not None:
 			try:
-				if mapping_class.is_periodic():
-					tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-				elif mapping_class.is_reducible(certify=False, show_progress=Progress_App(self), options=self.options):
-					tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
-				else:
-					tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
+				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
 				pass
+			else:
+				try:
+					if mapping_class.is_periodic():
+						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
+					elif mapping_class.is_reducible(certify=False, show_progress=Progress_App(self), options=self.options):
+						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
+					else:
+						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
+				except AbortError:
+					pass
 	
 	
 	######################################################################
 	
 	
 	def stable_lamination(self, composition, exact=False):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
+		if self.abstract_triangulation is not None:
 			try:
-				lamination, dilatation = stable_lamination(mapping_class, exact)
-			except ComputationError:
-				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s.  It is probably reducible.' % composition)
+				mapping_class = self.create_composition(composition.split('.'))
+			except AbortError:
+				pass
 			else:
-				tkMessageBox.showinfo('Lamination', '%s has lamination: %s \nand dilatation: %s' % (composition, lamination, dilatation))
+				try:
+					lamination, dilatation = stable_lamination(mapping_class, exact)
+				except ComputationError:
+					tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s.  It is probably reducible.' % composition)
+				else:
+					tkMessageBox.showinfo('Lamination', '%s has lamination: %s \nand dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
-		try:
-			mapping_class = self.create_composition(composition.split('.'))
-		except AbortError:
-			pass
-		else:
+		if self.abstract_triangulation is not None:
 			try:
-				start_time = time()
-				lamination, dilatation = stable_lamination(mapping_class, exact=True)
-			except ComputationError:
-				tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s. It is probably reducible.' % composition)
+				mapping_class = self.create_composition(composition.split('.'))
+			except AbortError:
+				pass
 			else:
-				if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
 				try:
 					start_time = time()
-					preperiodic, periodic, dilatation = compute_splitting_sequence(lamination)
-				except AssumptionError:
-					tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
+					lamination, dilatation = stable_lamination(mapping_class, exact=True)
+				except ComputationError:
+					tkMessageBox.showwarning('Lamination', 'Could not estimate the stable lamination of %s. It is probably reducible.' % composition)
 				else:
-					if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
-					tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
+					if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
+					try:
+						start_time = time()
+						preperiodic, periodic, dilatation, lamination, isometry = compute_splitting_sequence(lamination)
+					except AssumptionError:
+						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
+					else:
+						if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
+						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
 	
 	
 	######################################################################

@@ -7,13 +7,13 @@
 from itertools import product, combinations
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Matrix import nonnegative, nonnegative_image
+	from Source.Matrix import nonnegative, nonnegative_image, nontrivial
 	from Source.Isometry import all_isometries
 	from Source.Error import AbortError, ComputationError, AssumptionError
 	from Source.Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
-	from Matrix import nonnegative, nonnegative_image
+	from Matrix import nonnegative, nonnegative_image, nontrivial
 	from Isometry import all_isometries
 	from Error import AbortError, ComputationError, AssumptionError
 	from Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
@@ -28,10 +28,10 @@ class Lamination:
 		return Lamination(self.abstract_triangulation, list(self.vector))
 	
 	def __repr__(self):
-		if isinstance(self.vector[0], algebraic_type):
-			return '[' + ', '.join('%0.4f' % float(v) for v in self.vector) + ']'
+		if isinstance(self[0], algebraic_type):
+			return '[' + ', '.join('%0.4f' % float(v) for v in self) + ']'
 		else:
-			return '[' + ', '.join('%d' % v for v in self.vector) + ']'
+			return '[' + ', '.join('%d' % v for v in self) + ']'
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -40,6 +40,7 @@ class Lamination:
 		return self.vector[index]
 	
 	def __rmul__(self, other):
+		# Handles multiplication on the left by an Encoding.
 		try:
 			return Lamination(other.target_triangulation, other * self.vector)
 		except TypeError:
@@ -52,11 +53,9 @@ class Lamination:
 		return sum(self.vector)
 	
 	def is_multicurve(self):
-		# Need to test if integral?
-		if not all(v == int(v) for v in self.vector): return False
+		if not all(v == int(v) for v in self.vector): return False  # Redundant?
+		if not nontrivial(self.vector): return False
 		if not nonnegative(self.vector): return False
-		if self.vector == [0] * self.zeta: return False
-		
 		if not nonnegative_image(self.abstract_triangulation.face_matrix(), self.vector): return False
 		
 		for vertex in self.abstract_triangulation.corner_classes:
@@ -99,7 +98,7 @@ class Lamination:
 	
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
-		return max(self.vector[a] + self.vector[c], self.vector[b] + self.vector[d]) - self.vector[edge_index] - self.vector[edge_index]
+		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
 	
 	def flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
@@ -361,7 +360,7 @@ def random_test(Example, word=None, num_trials=50):
 	
 	times = []
 	for k in range(num_trials):
-		word, mapping_class = build_example_mapping_class(Example)
+		word, mapping_class = build_example_mapping_class(Example, word)
 		print(word)
 		times.append(determine_type(mapping_class))
 	

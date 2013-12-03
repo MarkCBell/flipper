@@ -769,7 +769,7 @@ class Flipper_App:
 	
 	def vectorise(self):
 		if self.abstract_triangulation is not None:
-			tkMessageBox.showinfo('Curve', '%s' % self.curve_to_lamination().vector)
+			tkMessageBox.showinfo('Curve', 'Current curve is: %s' % self.curves['_'])
 	
 	def show_apply(self, composition):
 		if self.abstract_triangulation is not None:

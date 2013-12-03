@@ -2,11 +2,9 @@
 # Just to keep an eye out for circular imports, here is a hierarchy of imports:
 	# AbstractTriangulation imports:
 		# Matrix
-		# Isometry
 	# Encoding imports:
 		# Lamination
 		# Matrix
-		# Isometry
 	# Lamination imports:
 		# AbstractTriangulation
 		# Matrix
@@ -23,13 +21,11 @@ from itertools import product, combinations
 
 try:
 	from Source.Matrix import Matrix, tweak_vector
-	from Source.Isometry import Isometry
 except ImportError:
 	from Matrix import Matrix, tweak_vector
-	from Isometry import Isometry
 
 class Abstract_Triangle:
-	__slots__ = ['index', 'edge_indices', 'corner_labels']  # !?! Force minimal RAM usage?
+	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	
 	def __init__(self, index=None, edge_indices=None, corner_labels=None):
 		# Edges are ordered anti-clockwise.

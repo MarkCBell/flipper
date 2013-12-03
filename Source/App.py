@@ -9,6 +9,7 @@ from math import sin, cos, pi
 from itertools import combinations
 from time import time
 import pickle
+import re
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -49,10 +50,9 @@ GLUING_MODE = 1
 CURVE_MODE = 2
 CURVE_DRAWING_MODE = 3
 
-# !?! TO DO: write a proper version of this.
-# Should check name matches \w* and contains at least one letter.
+# A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
-	if name != '' and name != '_':
+	if re.match('\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
 		return True
 	else:
 		tkMessageBox.showwarning('Name', '%s is not a valid name.')
@@ -108,7 +108,6 @@ class Flipper_App:
 		self.list_curves.bind('<Button-1>', self.list_curves_left_click)
 		self.list_mapping_classes.bind('<Button-1>', self.list_mapping_classes_left_click)
 		self.list_mapping_classes.bind('<Button-3>', self.list_mapping_classes_right_click)
-		self.list_mapping_classes.bind('<Shift-Button-1>', self.list_mapping_classes_shift_click)
 		
 		###
 		
@@ -134,7 +133,7 @@ class Flipper_App:
 		settingsmenu.add_command(label='Options', command=self.show_options)
 		
 		helpmenu = TK.Menu(menubar, tearoff=0)
-		helpmenu.add_command(label='Help')  # !?!
+		helpmenu.add_command(label='Help', command=self.show_help)
 		helpmenu.add_separator()
 		helpmenu.add_command(label='About', command=self.show_about)
 		
@@ -286,7 +285,7 @@ class Flipper_App:
 				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
 				elif task == 'erase': self.destroy_curve()
 				elif task == 'options': self.show_options()
-				elif task == 'help': pass  # !?! TO DO
+				elif task == 'help': self.show_help()
 				elif task == 'about': self.show_about()
 				elif task == 'exit': self.parent.quit()
 				
@@ -340,6 +339,9 @@ class Flipper_App:
 	def show_options(self):
 		self.options_app.parent.state('normal')
 		self.options_app.parent.lift()
+	
+	def show_help(self):
+		pass  # !?! TO DO
 	
 	def debug(self):
 		self.options.debugging = not self.options.debugging
@@ -868,14 +870,12 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					start_time = time()
 					lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 				except AssumptionError:
-					tkMessageBox.showwarning('Lamination', '%s is periodic.' % composition) 
+					tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
 				except ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
 				else:
-					if self.options.profiling: print('Computed initial data of %s in %0.1fs.' % (composition, time() - start_time))
 					try:
 						start_time = time()
 						preperiodic, periodic, dilatation, lamination, isometry = lamination.splitting_sequence()
@@ -1021,19 +1021,24 @@ class Flipper_App:
 	
 	def list_curves_left_click(self, event):
 		if self.list_curves.size() > 0:
-			self.show_curve(self.list_curves.get(self.list_curves.nearest(event.y)))
+			index = self.list_mapping_classes.nearest(event.y)
+			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
+			if yoffset <= event.y <= yoffset + height:
+				self.show_curve(self.list_curves.get(index))
 	
 	def list_mapping_classes_left_click(self, event):
 		if self.list_mapping_classes.size() > 0:
-			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
+			index = self.list_mapping_classes.nearest(event.y)
+			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
+			if yoffset <= event.y <= yoffset + height:
+				self.show_apply(self.list_mapping_classes.get(index))
 	
 	def list_mapping_classes_right_click(self, event):
 		if self.list_mapping_classes.size() > 0:
-			self.show_apply(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)).swapcase())
-	
-	def list_mapping_classes_shift_click(self, event):
-		if self.list_mapping_classes.size() > 0:
-			self.show_curve(self.list_mapping_classes.get(self.list_mapping_classes.nearest(event.y)))
+			index = self.list_mapping_classes.nearest(event.y)
+			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
+			if yoffset <= event.y <= yoffset + height:
+				self.show_apply(self.list_mapping_classes.get(index).swapcase())
 
 def main():
 	root = TK.Tk()

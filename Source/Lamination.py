@@ -1,4 +1,5 @@
 
+# !?! TO DO: Update this.
 # We can also produce Laminations using:
 #	1) key_curves(triangulation), and
 #	2) invariant_lamination(encoding)

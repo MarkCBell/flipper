@@ -12,7 +12,7 @@ except ImportError: # Python 3
 ''' A simple progress bar widget for TK.
 
 INITIALIZATION OPTIONS:
-The widget accepts all options of a TK.Frame plus the following:
+The widget subclasses a TK.Frame and adds:
 
     fillcolour -- the colour that is used to indicate the progress of the
                  corresponding process; default is "orchid1".

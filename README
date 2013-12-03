@@ -1,0 +1,10 @@
+Flipper is a program for computing the action of mapping classes on curves 
+and laminations on a punctured surface using ideal triangulation coordinates. 
+Eventually it will also be able to construct the canonical triangulation of 
+the surface bundle associated to pseudo-Anosov mapping class.
+
+Flipper is available from:
+	https://bitbucket.org/Mark_Bell/flipper
+
+You can download the latest version directly from:
+	https://bitbucket.org/Mark_Bell/flipper/get/default.zip

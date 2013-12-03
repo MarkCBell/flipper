@@ -1,12 +1,16 @@
+
+# Some standard example surfaces with mapping classes defined on them.
+# Mainly used for running tests on.
+
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Isometry import all_isometries
-	from Source.Encoding import encode_twist
+	from Source.Encoding import encode_twist, encode_isometry
 	from Source.Lamination import Lamination
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Isometry import all_isometries
-	from Encoding import encode_twist
+	from Encoding import encode_twist, encode_isometry
 	from Lamination import Lamination
 
 def Example_12():

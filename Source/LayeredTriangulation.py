@@ -13,12 +13,8 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
-	from Source.Lamination import invariant_lamination
-	from Source.Isometry import adapt_isometry
 	from Source.Error import AssumptionError
 except ImportError:
-	from Lamination import invariant_lamination
-	from Isometry import adapt_isometry
 	from Error import AssumptionError
 
 class Permutation:
@@ -296,7 +292,7 @@ class Layered_Triangulation:
 	
 	def close(self, isometry):
 		# Should assume that *almost* all edges of the underlying triangulation have been flipped.
-		isometry = adapt_isometry(isometry, self.upper_triangulation, self.lower_triangulation)
+		isometry = isometry.adapt_isometry(self.upper_triangulation, self.lower_triangulation)
 		
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
@@ -424,12 +420,13 @@ class Layered_Triangulation:
 		return closed_triangulation, degeneracy_slopes
 
 if __name__ == '__main__':
+	from Lamination import invariant_lamination
 	from Examples import Example_S_1_1 as Example, build_example_mapping_class
 	
 	# print('Start')
-	word, h = build_example_mapping_class(Example, word='aB', random_length=10)
+	word, mapping_class = build_example_mapping_class(Example, word='aB', random_length=10)
 	# print(word)
-	lamination, dilatation = invariant_lamination(h, exact=True)
+	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges)
 	# print('Layering')

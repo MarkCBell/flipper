@@ -1,8 +1,8 @@
 
-# !?! TO DO: Update this.
 # We can also produce Laminations using:
-#	1) key_curves(triangulation), and
-#	2) invariant_lamination(encoding)
+#	1) regular_neighbourhood(triangulation, edge_index),
+#	2) key_curves(triangulation), and
+#	3) invariant_lamination(encoding)
 
 from itertools import product, combinations
 try:
@@ -355,7 +355,6 @@ def determine_type(mapping_class):
 
 def random_test(Example, word=None, num_trials=50):
 	from time import time
-	from Encoding import Id_Encoding_Sequence
 	from Examples import build_example_mapping_class
 	
 	print('Start')
@@ -369,18 +368,11 @@ def random_test(Example, word=None, num_trials=50):
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 if __name__ == '__main__':
-	# from Examples import Example_24 as Example
-	# T, twists = Example()
-	# h = (twists['a']*twists['B']*twists['B']*twists['a']*twists['p'])**3
-	# print('Lamination')
-	# lamination, dilatation = h.stable_lamination(exact=True)
-	# print('Splitting')
-	# preperiodic, periodic, new_dilatation = compute_splitting_sequence(lamination)
-	# print(len(preperiodic), len(periodic), compute_powers(dilatation, new_dilatation))
-	
+	from Examples import Example_24 as Example
 	# from Examples import Example_S_1_1 as Example
-	from Examples import Example_S_1_2 as Example
-	random_test(Example)
-	# random_test(Example, 'aBC')
+	# from Examples import Example_S_1_2 as Example
+	# random_test(Example, 'aBC', num_trials=1)
+	random_test(Example, 'aBBap' * 3, num_trials=1)
 	# random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
 	# cProfile.run('random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)', sort='cumtime')
+	# random_test(Example)

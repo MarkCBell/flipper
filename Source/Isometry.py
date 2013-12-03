@@ -1,4 +1,9 @@
 
+# We can also produce Isometries using:
+#	1) isometry_from_edge_map(source_triangulation, target_triangulation, edge_map),
+#	2) extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle),
+#	3) all_isometries(source_triangulation, target_triangulation)
+
 from itertools import combinations
 try:
 	from Queue import Queue
@@ -18,7 +23,7 @@ class Isometry:
 		self.target_triangulation = target_triangulation
 		self.triangle_map = triangle_map
 		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0][i+self.triangle_map[triangle][1]]) for triangle in self.source_triangulation for i in range(3)])
-		# Check that the thing that we've built is actually a permutation.
+		# Check that the thing that we've built is actually well defined.
 		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
 			raise AssumptionError('Map does not induce a well defined map on edges.')
 	def __repr__(self):
@@ -29,6 +34,9 @@ class Isometry:
 		target_triangle = self.source_triangulation[0]
 		source_triangle, cycle = self[target_triangle]
 		return extend_isometry(self.target_triangulation, self.source_triangulation, source_triangle, target_triangle, cycle * 2)
+	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
+		# Assumes some stuff.
+		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
 
 #### Some special Isometries we know how to build.
 
@@ -78,8 +86,3 @@ def all_isometries(source_triangulation, target_triangulation):
 
 def is_isometric_to(source_triangulation, target_triangulation):
 	return len(all_isometries(source_triangulation, target_triangulation)) > 0
-
-def adapt_isometry(isometry, new_source_triangulation, new_target_triangulation):
-	# Assumes some stuff.
-	
-	return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, isometry.edge_map)

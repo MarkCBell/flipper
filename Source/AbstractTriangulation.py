@@ -12,7 +12,6 @@
 		# Symbolic_Computation
 	# LayeredTriangulation imports:
 		# Lamination
-		# Isometry
 	# Isometry imports:
 		# 
 
@@ -54,7 +53,7 @@ class Abstract_Triangulation:
 		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
 		self.triangles = [Abstract_Triangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
 		
-		# Now build all the equivalence classes of corners.
+		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
 		corners = set(product(self.triangles, range(3)))
 		self.corner_classes = []
 		while len(corners) > 0:

@@ -853,11 +853,11 @@ class Flipper_App:
 				try:
 					lamination, dilatation = invariant_lamination(mapping_class, exact)
 				except AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
-					tkMessageBox.showinfo('Lamination', '%s has invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
+					tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
 		if self.abstract_triangulation is not None:

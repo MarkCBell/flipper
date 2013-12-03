@@ -298,22 +298,39 @@ class Layered_Triangulation:
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation, closed_triangulation))
+		lower_tetrahedra = closed_triangulation.tetrahedra[:self.lower_triangulation.num_triangles]
+		upper_tetrahedra = closed_triangulation.tetrahedra[self.lower_triangulation.num_triangles:2*self.lower_triangulation.num_triangles]
+		middle_tetrahedra = closed_triangulation.tetrahedra[2*self.lower_triangulation.num_triangles:]
 		
-		# Find a copy of the fibre surface.
-		
-		fibre_surface_above = set()
-		fibre_surface_below = set()
-		for triangle in self.upper_triangulation:
-			A, perm_A = self.upper_map[triangle]
-			below_A, perm_down_A = A.glued_to[3]
-			fibre_surface_below.add((forwards[below_A], perm_down_A[3]))
-		
+		# Find how the fibre surface immerses.
+		new_lower_map = dict()
 		for triangle in self.lower_triangulation:
 			B, perm_B = self.lower_map[triangle]
-			below_B, perm_down_B = B.glued_to[3]
-			fibre_surface_above.add((forwards[below_B], perm_down_B[3]))
+			new_lower_map[triangle] = (forwards[B], perm_B)
 		
-		fibre_surface = fibre_surface_above.union(fibre_surface_below)
+		new_upper_map_inverse = dict()
+		for triangle in self.upper_triangulation:
+			A, perm_A = self.upper_map[triangle]
+			new_upper_map_inverse[forwards[A]] = (A, perm_A.inverse())
+		
+		fibre_map = dict()
+		for triangle in self.lower_triangulation:
+			B, perm_B = new_lower_map[triangle]
+			below_B, down_perm_B = B.glued_to[3]
+			perm_B = down_perm_B * perm_B
+			
+			while below_B in upper_tetrahedra:
+				new_upper_triangle, move_perm = new_upper_map_inverse[below_B]
+				new_lower_triangle, cycle = isometry[new_upper_triangle]
+				perm = Permutation(cycle, (cycle+1) % 3, (cycle+2) % 3, 3)
+				new_B, new_perm_B = new_lower_map[new_lower_triangle]
+				below_B, down_perm_B = new_B.glued_to[3]
+				perm_B = down_perm_B * new_perm_B * perm * move_perm * perm_B
+			
+			fibre_map[triangle] = (below_B, perm_B)
+		
+		# print(fibre_map)
+		
 		
 		# Remove the boundary tetrahedra.
 		for triangle in self.upper_triangulation:
@@ -428,7 +445,7 @@ if __name__ == '__main__':
 	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 	# At the minute we assume that it doesn't.
-	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges)
+	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges=False)
 	# print('Layering')
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)

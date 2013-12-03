@@ -225,7 +225,7 @@ class Flipper_App:
 		except IOError:
 			tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
-	def export_image(self, path):
+	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
 		if path is None: return
 		

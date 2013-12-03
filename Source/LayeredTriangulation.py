@@ -425,14 +425,13 @@ if __name__ == '__main__':
 	
 	# print('Start')
 	word, mapping_class = build_example_mapping_class(Example, word='aB', random_length=10)
-	# print(word)
 	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
+	# At the minute we assume that it doesn't.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges)
 	# print('Layering')
 	
-	T = correct_lamination.abstract_triangulation
-	L = Layered_Triangulation(T, word)
+	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	M, degeneracy_slopes = L.close(isometry)
 	print(M.SnapPy_string())
@@ -447,8 +446,8 @@ if __name__ == '__main__':
 	# print('------------------------------')
 	# print(L)
 	# print('------------------------------')
-	M = L.close_somehow()[0]
+	# M = L.close(??)
 	# print(M)
 	# print('M is closed: %s' % M.is_closed())
 	# print('M\'s SnapPy string:')
-	print(M.SnapPy_string())
+	# print(M.SnapPy_string())

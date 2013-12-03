@@ -1,5 +1,5 @@
 
-# Just to keep an eye out for circular imports, here is a hierarchy of imports:
+# Just to keep an eye out for circular imports, here is a hierarchy:
 	# AbstractTriangulation imports:
 		# Matrix
 	# Encoding imports:

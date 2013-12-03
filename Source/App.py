@@ -26,21 +26,19 @@ except ImportError: # Python 3
 try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_isometry
 	from Source.Isometry import extend_isometry
 	from Source.Lamination import Lamination, invariant_lamination
 	from Source.Progress import Progress_App
-	from Source.Encoding import Id_Encoding_Sequence, Encoding, encode_twist, encode_isometry
-	from Source.Matrix import Permutation_Matrix, Empty_Matrix
 	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
 	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
+	from Encoding import Id_Encoding_Sequence, encode_twist, encode_isometry
 	from Isometry import extend_isometry
 	from Lamination import Lamination
 	from Progress import Progress_App
-	from Encoding import Id_Encoding_Sequence, Encoding, encode_isometry
-	from Matrix import Permutation_Matrix, Empty_Matrix
 	from Options import Options, Options_App
 	from Error import AbortError, ComputationError, AssumptionError
 
@@ -678,7 +676,6 @@ class Flipper_App:
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
-				
 	
 	def store_twist(self, name):
 		if self.abstract_triangulation is not None:

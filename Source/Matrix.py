@@ -54,7 +54,7 @@ def Empty_Matrix(dim):
 
 def Permutation_Matrix(perm):
 	dim = len(perm)
-	return Matrix([[1 if j == perm[i] else 0 for j in range(dim)] for i in range(dim)], dim)
+	return Matrix([[1 if i == perm[j] else 0 for j in range(dim)] for i in range(dim)], dim)
 
 class Matrix:
 	def __init__(self, data, width):

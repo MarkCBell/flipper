@@ -334,10 +334,10 @@ def encode_twist(lamination, k=1):
 	If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
 	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-	if not lamination.is_curve():
-		raise AssumptionError('Not a curve.')
+	if not lamination.is_good_curve():
+		raise AssumptionError('Not a good curve.')
 	
-	if k == 0: return None
+	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
 	
 	lamination_copy = lamination.copy()
 	
@@ -352,7 +352,7 @@ def encode_twist(lamination, k=1):
 		# Find the edge which decreases our weight the most.
 		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
+		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
 		
 		forwards, backwards = encode_flip(lamination.abstract_triangulation, edge_index)
 		conjugation = forwards * conjugation
@@ -374,9 +374,72 @@ def encode_twist(lamination, k=1):
 	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
-	# dict([(x, x) for x in range(new_triangulation.zeta)] + [(e1, e2), (e2, e1)])
-	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(new_triangulation.zeta) if x not in [e1, e2])][0])
+	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0])
 	T = map_back * forwards
+	
+	return conjugation_inverse * T**abs(k) * conjugation
+
+def encode_halftwist(lamination, k=1):
+	''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
+	If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
+	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
+	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
+	if not lamination.is_pants_boundary():
+		raise AssumptionError('Not a boundary of a pair of pants.')
+	
+	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
+	
+	lamination_copy = lamination.copy()
+	
+	# We'll keep track of what we have conjugated by as well as it's inverse
+	# we could compute this at the end by doing:
+	#   conjugation_inverse = conjugation.inverse()
+	# but this is much faster as we don't need to invert a load of matrices.
+	conjugation = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
+	conjugation_inverse = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
+	
+	while lamination.weight() > 2:
+		# Find the edge which decreases our weight the most.
+		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
+		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
+		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+		
+		forwards, backwards = encode_flip(lamination.abstract_triangulation, edge_index)
+		conjugation = forwards * conjugation
+		conjugation_inverse = conjugation_inverse * backwards
+		lamination = forwards * lamination
+	
+	triangulation = lamination.abstract_triangulation
+	# Grab the indices of the two edges we meet.
+	e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
+	# We might need to swap these edge indices so we have a good frame of reference.
+	containing_triangles = triangulation.find_edge(e1)
+	if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
+	# But to do a right twist we'll need to switch framing again.
+	if k < 0: e1, e2 = e2, e1
+	
+	x, y = [edge_indices for edge_indices in triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
+	for triangle in triangulation:
+		if (x in triangle or y in triangle) and len(set(triangle)) == 2:
+			bottom = x if x in triangle else y
+			other = triangle[0] if triangle[0] != bottom else triangle[1]
+			print(triangle)
+	
+	# Finally we can encode the twist.
+	forwards, backwards = encode_flip(lamination.abstract_triangulation, bottom)
+	lamination = forwards * lamination
+	
+	forwards2, backwards2 = encode_flip(lamination.abstract_triangulation, e1)
+	lamination = forwards2 * lamination
+	
+	forwards3, backwards3 = encode_flip(lamination.abstract_triangulation, e2)
+	lamination = forwards3 * lamination
+	
+	new_triangulation = lamination.abstract_triangulation
+	
+	# Find the correct isometry to take us back.
+	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0])
+	T = map_back * forwards3 * forwards2 * forwards
 	
 	return conjugation_inverse * T**abs(k) * conjugation
 

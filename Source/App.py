@@ -26,7 +26,7 @@ except ImportError: # Python 3
 try:
 	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_isometry
+	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Source.Isometry import extend_isometry
 	from Source.Lamination import Lamination, invariant_lamination
 	from Source.Progress import Progress_App
@@ -35,7 +35,7 @@ try:
 except ImportError:
 	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
-	from Encoding import Id_Encoding_Sequence, encode_twist, encode_isometry
+	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Isometry import extend_isometry
 	from Lamination import Lamination
 	from Progress import Progress_App
@@ -70,7 +70,7 @@ class Flipper_App:
 		self.frame_interface.grid(column=1, sticky='nse')
 		
 		###
-		self.label_curves = TK.Label(self.frame_interface, text='Curves:', anchor='w', font=self.options.custom_font)
+		self.label_curves = TK.Label(self.frame_interface, text='Multicurves:', anchor='w', font=self.options.custom_font)
 		self.label_curves.pack(fill='x')
 		
 		self.list_curves = TK.Listbox(self.frame_interface, font=self.options.custom_font)
@@ -272,51 +272,52 @@ class Flipper_App:
 			sections = command.split(' ')
 			task, arguements = sections[0], sections[1:]
 			combined = ' '.join(arguements)
-			try:
-				if task == '': pass
-				elif task == 'new': self.initialise()
-				elif task == 'save': self.save(combined)
-				elif task == 'open': self.load(combined)
-				elif task == 'export': self.export_image(combined)
-				elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
-				elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
-				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
-				elif task == 'erase': self.destroy_curve()
-				elif task == 'options': self.show_options()
-				elif task == 'help': self.show_help()
-				elif task == 'about': self.show_about()
-				elif task == 'exit': self.parent.quit()
-				
-				elif task == 'debug': self.debug()
-				elif task == 'profile': self.profile()
-				elif task == 'stats': self.stats()
-				
-				elif task == 'ngon': self.initialise_circular_n_gon(combined)
-				elif task == 'rngon': self.initialise_radial_n_gon(combined)
-				
-				elif task == 'tighten': self.tighten_curve()
-				elif task == 'show': self.show_composition(combined)
-				elif task == 'render': self.show_render(combined)
-				elif task == 'vectorise': self.vectorise()
-				
-				elif task == 'curve': self.store_curve(combined)
-				elif task == 'twist': self.store_twist(combined)
-				elif task == 'isometry': self.store_isometry(combined)
-				elif task == 'apply': self.show_apply(combined)
-				
-				elif task == 'order': self.order(combined)
-				elif task == 'periodic': self.is_periodic(combined)
-				elif task == 'reducible': self.is_reducible(combined)
-				elif task == 'pA': self.is_pseudo_Anosov(combined)
-				elif task == 'lamination': self.invariant_lamination(combined)
-				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
-				elif task == 'split': self.splitting_sequence(combined)
+			# try:
+			if task == '': pass
+			elif task == 'new': self.initialise()
+			elif task == 'save': self.save(combined)
+			elif task == 'open': self.load(combined)
+			elif task == 'export': self.export_image(combined)
+			elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
+			elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
+			elif task == 'curve_mode': self.set_mode(CURVE_MODE)
+			elif task == 'erase': self.destroy_curve()
+			elif task == 'options': self.show_options()
+			elif task == 'help': self.show_help()
+			elif task == 'about': self.show_about()
+			elif task == 'exit': self.parent.quit()
+			
+			elif task == 'debug': self.debug()
+			elif task == 'profile': self.profile()
+			elif task == 'stats': self.stats()
+			
+			elif task == 'ngon': self.initialise_circular_n_gon(combined)
+			elif task == 'rngon': self.initialise_radial_n_gon(combined)
+			
+			elif task == 'tighten': self.tighten_curve()
+			elif task == 'show': self.show_composition(combined)
+			elif task == 'render': self.show_render(combined)
+			elif task == 'vectorise': self.vectorise()
+			
+			elif task == 'curve': self.store_curve(combined)
+			elif task == 'twist': self.store_twist(combined)
+			elif task == 'half': self.store_halftwist(combined)
+			elif task == 'isometry': self.store_isometry(combined)
+			elif task == 'apply': self.show_apply(combined)
+			
+			elif task == 'order': self.order(combined)
+			elif task == 'periodic': self.is_periodic(combined)
+			elif task == 'reducible': self.is_reducible(combined)
+			elif task == 'pA': self.is_pseudo_Anosov(combined)
+			elif task == 'lamination': self.invariant_lamination(combined)
+			elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
+			elif task == 'split': self.splitting_sequence(combined)
 				# elif task == '':
-				else:
-					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
-				self.entry_command.delete(0, TK.END)
-			except IndexError:
-				tkMessageBox.showwarning('Command', 'Command requires more arguments.')
+			else:
+				tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
+			self.entry_command.delete(0, TK.END)
+			# except IndexError:
+				# tkMessageBox.showwarning('Command', 'Command requires more arguments.')
 	
 	def object_here(self, p):
 		for object in self.vertices + self.edges + self.triangles:
@@ -660,7 +661,8 @@ class Flipper_App:
 	
 	def tighten_curve(self):
 		if self.abstract_triangulation is not None:
-			curve = self.curve_to_lamination()
+			# curve = self.curve_to_lamination()
+			curve = self.curves['_']
 			if curve.is_multicurve():
 				self.lamination_to_curve(curve)
 			else:
@@ -669,7 +671,8 @@ class Flipper_App:
 	def store_curve(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				lamination = self.curve_to_lamination()
+				# lamination = self.curve_to_lamination()
+				lamination = self.curves['_']
 				if lamination.is_multicurve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
@@ -680,8 +683,9 @@ class Flipper_App:
 	def store_twist(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				lamination = self.curve_to_lamination()
-				if lamination.is_curve():
+				# lamination = self.curve_to_lamination()
+				lamination = self.curves['_']
+				if lamination.is_good_curve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
@@ -689,7 +693,22 @@ class Flipper_App:
 					self.mapping_classes[name.swapcase()] = encode_twist(lamination, k=-1)
 					self.destroy_curve()
 				else:
-					tkMessageBox.showwarning('Curve', 'Not an essential curve.')
+					tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
+	
+	def store_halftwist(self, name):
+		if self.abstract_triangulation is not None:
+			if valid_name(name):
+				# lamination = self.curve_to_lamination()
+				lamination = self.curves['_']
+				if lamination.is_pants_boundary():
+					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					self.curves[name] = lamination
+					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					self.mapping_classes[name] = encode_halftwist(lamination)
+					self.mapping_classes[name.swapcase()] = encode_halftwist(lamination, k=-1)
+					self.destroy_curve()
+				else:
+					tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
 	
 	def store_isometry(self, specification):
 		if self.abstract_triangulation is not None:
@@ -1018,8 +1037,8 @@ class Flipper_App:
 	
 	def list_curves_left_click(self, event):
 		if self.list_curves.size() > 0:
-			index = self.list_mapping_classes.nearest(event.y)
-			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
+			index = self.list_curves.nearest(event.y)
+			xoffset, yoffset, width, height = self.list_curves.bbox(index)
 			if yoffset <= event.y <= yoffset + height:
 				self.show_curve(self.list_curves.get(index))
 	

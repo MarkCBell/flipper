@@ -36,7 +36,8 @@ class Abstract_Triangle:
 		return iter(self.edge_indices)
 	
 	def __repr__(self):
-		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
+		# return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
+		return '(%s, %s)' % (self.index, self.edge_indices)
 	
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]
@@ -141,7 +142,11 @@ class Abstract_Triangulation:
 		return new_triangulation
 	
 	def find_triangle(self, edge_indices):
-		return [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)][0]
+		matches = [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)]
+		if matches != []:
+			return matches[0]
+		else:
+			return None
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
 		assert(self.edge_is_flippable(edge_index))

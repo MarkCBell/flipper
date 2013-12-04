@@ -7,6 +7,7 @@ fat train tracks
 algebraic intersection number
 translate, zoom, autoscale
 
+is_curve (and encode twist) fails if the a component of S - gamma has no punctures!
 train track splittings
 floating point approximations
 fast algebra

@@ -72,7 +72,7 @@ class Lamination:
 		
 		return True
 	
-	def is_curve(self):
+	def is_good_curve(self):
 		# This is based off of Source.Encoding.encode_twist(). See the documentation there as to why this works.
 		if not self.is_multicurve(): return False
 		
@@ -81,7 +81,7 @@ class Lamination:
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
 		while lamination.weight() > 2:
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
 			lamination = lamination.flip_edge(edge_index)
 			
 			if lamination.weight() < old_weight:
@@ -92,9 +92,29 @@ class Lamination:
 			
 			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
 			if time_since_last_weight_loss > 1:
+				print(lamination.abstract_triangulation)
+				print(lamination.vector)
 				return False
 		
 		return True
+	
+	def is_pants_boundary(self):
+		# This is based off of Source.Encoding.encode_halftwist(). See the documentation there as to why this works.
+		if not self.is_good_curve(): return False
+		
+		lamination = self.copy()
+		
+		while lamination.weight() > 2:
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
+			lamination = lamination.flip_edge(edge_index)
+		
+		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
+		x, y = [edge_indices for edge_indices in lamination.abstract_triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
+		for triangle in lamination.abstract_triangulation:
+			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
+				return True
+		
+		return False
 	
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)

@@ -66,7 +66,7 @@ class Options_App:
 		self.label_edge_labels = TK.Label(self.frame, text='Edge labels:')
 		self.label_edge_labels.grid(row=1, column=0, sticky='w')
 		
-		self.combo_edge_labels = TTK.Combobox(self.frame, state='readonly', values=['None', 'Index', 'Geometric', 'Algebraic'])
+		self.combo_edge_labels = TTK.Combobox(self.frame, state='readonly', values=['None', 'Index', 'Geometric'])  # !?! Add 'Algebraic' here once working.
 		self.combo_edge_labels.grid(row=1, column=1, sticky='we')
 		
 		self.check_show_internals = TK.Checkbutton(self.frame, text='Show internal edges', anchor='w', variable=self.show_internals_variable, command=self.show_internals_update)

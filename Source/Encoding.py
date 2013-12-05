@@ -423,7 +423,6 @@ def encode_halftwist(lamination, k=1):
 		if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 			bottom = x if x in triangle else y
 			other = triangle[0] if triangle[0] != bottom else triangle[1]
-			print(triangle)
 	
 	# Finally we can encode the twist.
 	forwards, backwards = encode_flip(lamination.abstract_triangulation, bottom)

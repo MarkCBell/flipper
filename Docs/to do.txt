@@ -1,14 +1,14 @@
 sum / disjoint union
 handle commands better
-fat train tracks
-algebraic intersection number
 translate, zoom, autoscale
+fatten train tracks
 
-train track splittings
-bundles
+algebraic intersection number
+build bundles
 floating point approximations
 fast algebra
 
 more documentation
 
 is_curve (and encode twist) fails if a component of S - curve has no punctures!
+Currently we can only (half) twist along "good" curves.

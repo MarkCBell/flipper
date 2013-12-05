@@ -10,6 +10,7 @@ from itertools import combinations
 from time import time
 import pickle
 import re
+import sys
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -47,6 +48,11 @@ TRIANGULATION_MODE = 0
 GLUING_MODE = 1
 CURVE_MODE = 2
 CURVE_DRAWING_MODE = 3
+
+COMMAND_MODIFIERS = {'darwin':'Command', 'win32':'Ctrl', 'linux2':'Ctrl', 'linux3':'Ctrl'}
+COMMAND_MODIFIER = COMMAND_MODIFIERS[sys.platform] if sys.platform in COMMAND_MODIFIERS else 'Ctrl'
+COMMAND_MODIFIER_BINDINGS = {'darwin':'Command', 'win32':'Control', 'linux2':'Control', 'linux3':'Control'}
+COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platform in COMMAND_MODIFIER_BINDINGS else 'Control'
 
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
@@ -113,25 +119,25 @@ class Flipper_App:
 		menubar = TK.Menu(self.parent)
 		
 		filemenu = TK.Menu(menubar, tearoff=0)
-		filemenu.add_command(label='New', command=self.initialise)
-		filemenu.add_command(label='Open', command=lambda : self.load())
-		filemenu.add_command(label='Save', command=lambda : self.save())
-		filemenu.add_command(label='Export', command=lambda : self.export_image())
+		filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Open', command=lambda : self.load(), accelerator='%s+O' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Save', command=lambda : self.save(), accelerator='%s+S' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Export', command=lambda : self.export_image(), accelerator='%s+E' % COMMAND_MODIFIER)
 		filemenu.add_separator()
-		filemenu.add_command(label='Exit', command=self.parent.quit)
+		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+Q' % COMMAND_MODIFIER)
 		
 		editmenu = TK.Menu(menubar, tearoff=0)
-		editmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE))
-		editmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE))
-		editmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE))
+		editmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE), accelerator='F2')
+		editmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE), accelerator='F3')
+		editmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE), accelerator='F4')
 		editmenu.add_separator()
-		editmenu.add_command(label='Erase Curve', command=self.destroy_curve)
+		editmenu.add_command(label='Erase Curve', command=self.destroy_curve, accelerator='F5')
 		
 		settingsmenu = TK.Menu(menubar, tearoff=0)
 		settingsmenu.add_command(label='Options', command=self.show_options)
 		
 		helpmenu = TK.Menu(menubar, tearoff=0)
-		helpmenu.add_command(label='Help', command=self.show_help)
+		helpmenu.add_command(label='Help', command=self.show_help, accelerator='F1')
 		helpmenu.add_separator()
 		helpmenu.add_command(label='About', command=self.show_about)
 		
@@ -141,7 +147,12 @@ class Flipper_App:
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
 		
-		parent.bind('<Key>', self.parent_key_press)
+		parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
+		parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
+		parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
+		parent.bind('<%s-e>' % COMMAND_MODIFIER_BINDING, lambda event: self.export_image())
+		parent.bind('<%s-q>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
+		parent.bind('<Key>', self.parent_key_press) 
 		
 		self.parent.columnconfigure(0, weight=1)
 		self.parent.rowconfigure(0, weight=1)
@@ -156,6 +167,7 @@ class Flipper_App:
 		self.triangles = []
 		self.abstract_triangulation = None
 		self.curve_components = []
+		self.curves = {}
 		self.mapping_classes = {}
 		self.selected_object = None
 		self.list_curves.delete(0, TK.END)
@@ -173,7 +185,8 @@ class Flipper_App:
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
-		if path is None: return
+		if path == '': return
+		
 		try:
 			spec = 'A Flipper file.'
 			vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
@@ -189,7 +202,7 @@ class Flipper_App:
 	
 	def load(self, path=''):
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-		if path is None: return
+		if path == '': return
 		
 		try:
 			spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names = pickle.load(open(path, 'rb'))
@@ -234,8 +247,30 @@ class Flipper_App:
 		except IOError:
 			tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 	
+	def quit(self):
+		self.parent.quit()
+	
+	def show_options(self):
+		self.options_app.parent.state('normal')
+		self.options_app.parent.lift()
+	
+	def show_help(self):
+		# !?! TO DO
+		tkMessageBox.showwarning('Help', 'Not yet implemented. See "A users guide to Flipper" for more information.')
+	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
+	
+	def debug(self):
+		self.options.debugging = not self.options.debugging
+		if self.options.debugging and self.is_complete():
+			print([triangle.edge_indices for triangle in self.abstract_triangulation])
+	
+	def profile(self):
+		self.options.profiling = not self.options.profiling
+	
+	def stats(self):
+		self.options.statistics = not self.options.statistics
 	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:
@@ -285,7 +320,7 @@ class Flipper_App:
 				elif task == 'options': self.show_options()
 				elif task == 'help': self.show_help()
 				elif task == 'about': self.show_about()
-				elif task == 'exit': self.parent.quit()
+				elif task == 'exit': self.quit()
 				
 				elif task == 'debug': self.debug()
 				elif task == 'profile': self.profile()
@@ -312,7 +347,7 @@ class Flipper_App:
 				elif task == 'lamination': self.invariant_lamination(combined)
 				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
 				elif task == 'split': self.splitting_sequence(combined)
-					# elif task == '':
+				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
 				self.entry_command.delete(0, TK.END)
@@ -334,24 +369,6 @@ class Flipper_App:
 		self.canvas.tag_raise('curve')
 		self.canvas.tag_raise('label')
 		self.canvas.tag_raise('edge_label')
-	
-	def show_options(self):
-		self.options_app.parent.state('normal')
-		self.options_app.parent.lift()
-	
-	def show_help(self):
-		pass  # !?! TO DO
-	
-	def debug(self):
-		self.options.debugging = not self.options.debugging
-		if self.options.debugging and self.is_complete():
-			print([triangle.edge_indices for triangle in self.abstract_triangulation])
-	
-	def profile(self):
-		self.options.profiling = not self.options.profiling
-	
-	def stats(self):
-		self.options.statistics = not self.options.statistics
 	
 	def select_object(self, selected_object):
 		self.selected_object = selected_object
@@ -1034,6 +1051,16 @@ class Flipper_App:
 				self.history_position += 1
 				self.entry_command.delete(0, TK.END)
 				self.entry_command.insert(0, self.command_history[self.history_position])
+		elif key == 'F1':
+			self.show_help()
+		elif key == 'F2':
+			self.set_mode(TRIANGULATION_MODE)
+		elif key == 'F3':
+			self.set_mode(GLUING_MODE)
+		elif key == 'F4':
+			self.set_mode(CURVE_MODE)
+		elif key == 'F5':
+			self.destroy_curve()
 	
 	def list_curves_left_click(self, event):
 		if self.list_curves.size() > 0:

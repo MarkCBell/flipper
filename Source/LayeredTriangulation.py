@@ -45,6 +45,9 @@ odd_permutations = [perm for perm in all_permutations if not perm.is_even()]
 def permutation_from_mapping(i, i_image, j, j_image, even):
 	return [perm for perm in (even_permutations if even else odd_permutations) if perm[i] == i_image and perm[j] == j_image][0]
 
+def cyclic_permutation(cycle):
+	return Permutation((cycle, (cycle+1) % 3, (cycle+2) % 3, 3))
+
 # Edge veerings:
 UNKNOWN = None
 LEFT = 0
@@ -243,11 +246,11 @@ class Layered_Triangulation:
 		assert(self.upper_triangulation.edge_is_flippable(edge_index))
 		
 		# Get a new tetrahedra.
-		new_tetrahedra = self.core_triangulation.create_tetrahedra()
-		new_tetrahedra.edge_labels[(0,1)] = RIGHT
-		new_tetrahedra.edge_labels[(1,2)] = LEFT
-		new_tetrahedra.edge_labels[(2,3)] = RIGHT
-		new_tetrahedra.edge_labels[(0,3)] = LEFT
+		new_tetrahedron = self.core_triangulation.create_tetrahedra()
+		new_tetrahedron.edge_labels[(0,1)] = RIGHT
+		new_tetrahedron.edge_labels[(1,2)] = LEFT
+		new_tetrahedron.edge_labels[(2,3)] = RIGHT
+		new_tetrahedron.edge_labels[(0,3)] = LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
@@ -263,11 +266,11 @@ class Layered_Triangulation:
 		# Do some gluings.
 		new_glue_perm_A = permutation_from_mapping(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[3], even=False)
 		new_glue_perm_B = permutation_from_mapping(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[3], even=False)
-		new_tetrahedra.glue(2, below_A, new_glue_perm_A)
-		new_tetrahedra.glue(0, below_B, new_glue_perm_B)
+		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
+		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		
-		new_tetrahedra.glue(1, object_A, Permutation((2,3,1,0)))
-		new_tetrahedra.glue(3, object_B, Permutation((1,0,2,3)))
+		new_tetrahedron.glue(1, object_A, Permutation((2,3,1,0)))
+		new_tetrahedron.glue(3, object_B, Permutation((1,0,2,3)))
 		
 		# Get the new upper triangulation
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
@@ -322,7 +325,7 @@ class Layered_Triangulation:
 			while below_B in upper_tetrahedra:
 				new_upper_triangle, move_perm = new_upper_map_inverse[below_B]
 				new_lower_triangle, cycle = isometry[new_upper_triangle]
-				perm = Permutation(cycle, (cycle+1) % 3, (cycle+2) % 3, 3)
+				perm = cyclic_permutation(cycle)
 				new_B, new_perm_B = new_lower_map[new_lower_triangle]
 				below_B, down_perm_B = new_B.glued_to[3]
 				perm_B = down_perm_B * new_perm_B * perm * move_perm * perm_B
@@ -343,7 +346,7 @@ class Layered_Triangulation:
 		# !?! Wrong. This doesn't take into account flat tetrahedra.
 		for triangle in self.upper_triangulation:
 			matching_triangle, cycle = isometry[triangle]
-			perm = Permutation([cycle, (cycle+1)%3, (cycle+2)%3, 3])
+			perm = cyclic_permutation(cycle)
 			
 			A, perm_A = self.upper_map[triangle]
 			B, perm_B = self.lower_map[matching_triangle]

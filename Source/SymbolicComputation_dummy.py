@@ -1,7 +1,9 @@
 
+import types
+
 _name = 'dummy'
 
-algebraic_type = None
+algebraic_type = types.NoneType
 
 def simplify(x):
 	return None

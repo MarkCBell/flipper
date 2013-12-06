@@ -29,7 +29,8 @@ try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Source.Isometry import extend_isometry
-	from Source.Lamination import Lamination, invariant_lamination
+	from Source.Lamination import Lamination, invariant_lamination, empty_lamination
+	from Source.SymbolicComputation import algebraic_type
 	from Source.Progress import Progress_App
 	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
@@ -38,7 +39,8 @@ except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Isometry import extend_isometry
-	from Lamination import Lamination
+	from Lamination import Laminationm, invariant_lamination, empty_lamination
+	from SymbolicComputation import algebraic_type
 	from Progress import Progress_App
 	from Options import Options, Options_App
 	from Error import AbortError, ComputationError, AssumptionError
@@ -232,7 +234,7 @@ class Flipper_App:
 				self.list_mapping_classes.insert(TK.END, name)
 			
 			if self.is_complete():
-				self.lamination_to_curve(self.curves['_'])
+				self.lamination_to_canvas(self.curves['_'])
 				self.set_mode(CURVE_MODE)
 			
 		except IOError:
@@ -328,6 +330,7 @@ class Flipper_App:
 				
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
+				elif task == 'information': self.show_surface_information()
 				
 				elif task == 'tighten': self.tighten_curve()
 				elif task == 'show': self.show_composition(combined)
@@ -549,6 +552,14 @@ class Flipper_App:
 					self.create_edge_identification(self.edges[i], self.edges[j])
 			self.set_mode(CURVE_MODE)
 	
+	def show_surface_information(self):
+		if self.is_complete():
+			num_marked_points = self.abstract_triangulation.num_vertices
+			Euler_characteristic = self.abstract_triangulation.Euler_characteristic
+			genus = (2 - Euler_characteristic - num_marked_points) // 2
+			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus ,num_marked_points, Euler_characteristic))
+		else:
+			tkMessageBox.showwarning('Surface information', 'Cannot compute information about an incomplete surface.')
 	
 	######################################################################
 	
@@ -594,8 +605,8 @@ class Flipper_App:
 	def create_abstract_triangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
-		self.curves = {'_':[0] * self.zeta}
 		self.abstract_triangulation = Abstract_Triangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
+		self.curves = {'_':empty_lamination(self.abstract_triangulation)}
 		self.create_edge_labels()
 	
 	def destroy_abstract_triangulation(self):
@@ -617,11 +628,11 @@ class Flipper_App:
 	
 	
 	def set_current_curve(self, vector=None):
-		if vector is None: vector = self.curve_to_lamination()
+		if vector is None: vector = self.canvas_to_lamination()
 		self.curves['_'] = vector
 		self.create_edge_labels()
 	
-	def curve_to_lamination(self):
+	def canvas_to_lamination(self):
 		vector = [0] * self.zeta
 		
 		# This version takes into account bigons between interior edges.
@@ -639,28 +650,17 @@ class Flipper_App:
 			for index, double in meets:
 				vector[index] += (2 if double else 1) * (1 if curve.multiplicity is None else curve.multiplicity)
 		
-		return Lamination(self.abstract_triangulation, [i // 2 for i in vector])
-		
-		# for edge in self.edges:  # We'll double count everything!
-			# for curve in self.curve_components:
-				# for i in range(len(curve.vertices)-1):
-					# if lines_intersect(edge.source_vertex, edge.target_vertex, curve.vertices[i], curve.vertices[i+1], self.options.float_error):
-						# if lines_intersect(edge.source_vertex, edge.target_vertex, curve.vertices[i], curve.vertices[i+1], self.options.float_error, properly=True) and edge.equivalent_edge is None:
-							# vector[edge.index] += 2 * (1 if curve.multiplicity is None else curve.multiplicity)
-						# else:
-							# vector[edge.index] += 1 * (1 if curve.multiplicity is None else curve.multiplicity)
-		
-		# return [i // 2 for i in vector]
+		return Lamination(self.abstract_triangulation, [i / 2 for i in vector])
 	
-	def lamination_to_curve(self, lamination):
+	def lamination_to_canvas(self, lamination):
 		self.destroy_curve()
 		for triangle in self.triangles:
 			weights = [lamination[edge.index] for edge in triangle.edges]
-			dual_weights = [(weights[1] + weights[2] - weights[0]) // 2, (weights[2] + weights[0] - weights[1]) // 2, (weights[0] + weights[1] - weights[2]) // 2]
+			dual_weights = [(weights[1] + weights[2] - weights[0]) / 2, (weights[2] + weights[0] - weights[1]) / 2, (weights[0] + weights[1] - weights[2]) / 2]
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
-				if self.options.compress_curve:
+				if self.options.compress_curve and not isinstance(dual_weights[i], algebraic_type):
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
@@ -678,17 +678,17 @@ class Flipper_App:
 	
 	def tighten_curve(self):
 		if self.abstract_triangulation is not None:
-			# curve = self.curve_to_lamination()
+			# curve = self.canvas_to_lamination()
 			curve = self.curves['_']
 			if curve.is_multicurve():
-				self.lamination_to_curve(curve)
+				self.lamination_to_canvas(curve)
 			else:
 				tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
 	
 	def store_curve(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.curve_to_lamination()
+				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
@@ -700,7 +700,7 @@ class Flipper_App:
 	def store_twist(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.curve_to_lamination()
+				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
@@ -715,7 +715,7 @@ class Flipper_App:
 	def store_halftwist(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.curve_to_lamination()
+				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
@@ -759,7 +759,7 @@ class Flipper_App:
 		if self.abstract_triangulation is not None:
 			if name in self.curves:
 				self.destroy_curve()
-				self.lamination_to_curve(self.curves[name])
+				self.lamination_to_canvas(self.curves[name])
 				self.set_current_curve(self.curves[name])
 			else:
 				tkMessageBox.showwarning('Curve', '%s is not a multicurve.' % name)
@@ -795,13 +795,13 @@ class Flipper_App:
 				pass
 			else:
 				self.set_current_curve(mapping_class * curve)
-				self.lamination_to_curve(self.curves['_'])
+				self.lamination_to_canvas(self.curves['_'])
 	
 	def show_render(self, composition):
 	# !?! Broken.
 		if self.abstract_triangulation is not None:
 			self.set_current_curve(Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
-			self.lamination_to_curve(self.curves['_'])
+			self.lamination_to_canvas(self.curves['_'])
 	
 	def vectorise(self):
 		if self.abstract_triangulation is not None:

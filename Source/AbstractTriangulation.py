@@ -9,7 +9,7 @@
 		# AbstractTriangulation
 		# Matrix
 		# Isometry
-		# Symbolic_Computation
+		# SymbolicComputation
 	# LayeredTriangulation imports:
 		# Lamination
 	# Isometry imports:
@@ -69,6 +69,7 @@ class Abstract_Triangulation:
 			
 			self.corner_classes.append(new_corner_class)
 		
+		self.num_vertices = len(self.corner_classes)
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
 		self.max_order = 6 - self.Euler_characteristic  # The maximum order of a periodic mapping class.
 		self._face_matrix = None

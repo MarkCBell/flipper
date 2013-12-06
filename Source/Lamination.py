@@ -1,8 +1,9 @@
 
 # We can also produce Laminations using:
-#	1) regular_neighbourhood(triangulation, edge_index),
-#	2) key_curves(triangulation), and
-#	3) invariant_lamination(encoding)
+#	1) empty_laminaiton(triangulation),
+#	2) regular_neighbourhood(triangulation, edge_index),
+#	3) key_curves(triangulation), and
+#	4) invariant_lamination(encoding)
 
 from itertools import product, combinations
 try:
@@ -10,28 +11,26 @@ try:
 	from Source.Matrix import nonnegative, nonnegative_image, nontrivial
 	from Source.Isometry import all_isometries
 	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
+	from Source.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Matrix import nonnegative, nonnegative_image, nontrivial
 	from Isometry import all_isometries
 	from Error import AbortError, ComputationError, AssumptionError
-	from Symbolic_Computation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
+	from SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
 		self.vector = [simplify(v) if isinstance(v, algebraic_type) else v for v in vector]
 		self.zeta = self.abstract_triangulation.zeta
+		self.labels = [('%0.4f' % float(v) if isinstance(v, algebraic_type) else str(v)) for v in self.vector]
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
 	
 	def __repr__(self):
-		if isinstance(self[0], algebraic_type):
-			return '[' + ', '.join('%0.4f' % float(v) for v in self) + ']'
-		else:
-			return '[' + ', '.join('%d' % v for v in self) + ']'
+		return '[' + ', '.join(self.labels) + ']'
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -226,7 +225,7 @@ class Lamination:
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
 		# AssumptionError
 		# We assume that self is given as a list of algebraic numbers. 
-		# We continually use Symbolic_Computation.simplify() just to be safe.
+		# We continually use SymbolicComputation.simplify() just to be safe.
 		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
 		def projective_weights(x):
@@ -288,6 +287,9 @@ class Lamination:
 
 #### Some special Laminations we know how to build.
 
+def empty_lamination(triangulation):
+	return Lamination(triangulation, [0] * triangulation.zeta)
+
 def regular_neighbourhood(triangulation, edge_index):
 	vector = [0] * triangulation.zeta
 	(t1, s1), (t2, s2) = triangulation.find_edge(edge_index)
@@ -306,8 +308,8 @@ def invariant_lamination(encoding, exact=False):
 	# (floating point) estimate of the dilatation. If one cannot be found this a ComputationError is thrown. 
 	# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that the 
 	# mapping class is not periodic. If not an AssumptionError is thrown.
-	# If exact is set to True then this uses Symbolic_Computation.Perron_Frobenius_eigen() to return the exact 
-	# invariant lamination along with the exact dilatation (as an algebraic_type). Again, if a good
+	# If exact is set to True then this uses SymbolicComputation.Perron_Frobenius_eigen() to return the exact 
+	# projectively invariant lamination along with the exact dilatation (as an algebraic_type). Again, if a good
 	# enough approximation cannot be found to start the exact calculations with, this is detected and a
 	# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
 	# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.

@@ -26,21 +26,21 @@
 
 # We select a library interface here. we first try sage, then sympy and finally just load the dummy library which can't do anything.
 try:
-	from Source.Symbolic_Computation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
+	from Source.SymbolicComputation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
 except ImportError:
 	try:
-		from Source.Symbolic_Computation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
+		from Source.SymbolicComputation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
 	except ImportError:
 		try:
-			from Source.Symbolic_Computation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
+			from Source.SymbolicComputation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
 		except:
 			try:
-				from Symbolic_Computation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
+				from SymbolicComputation_sage import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sage
 			except ImportError:
 				try:
-					from Symbolic_Computation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
+					from SymbolicComputation_sympy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Sympy
 				except ImportError:
-					from Symbolic_Computation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
+					from SymbolicComputation_dummy import algebraic_type, simplify, Perron_Frobenius_eigen, minimal_polynomial_coefficients, _name  # Dummy
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

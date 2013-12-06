@@ -678,7 +678,6 @@ class Flipper_App:
 	
 	def tighten_curve(self):
 		if self.abstract_triangulation is not None:
-			# curve = self.canvas_to_lamination()
 			curve = self.curves['_']
 			if curve.is_multicurve():
 				self.lamination_to_canvas(curve)
@@ -688,7 +687,6 @@ class Flipper_App:
 	def store_curve(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
@@ -700,7 +698,6 @@ class Flipper_App:
 	def store_twist(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
@@ -715,7 +712,6 @@ class Flipper_App:
 	def store_halftwist(self, name):
 		if self.abstract_triangulation is not None:
 			if valid_name(name):
-				# lamination = self.canvas_to_lamination()
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)

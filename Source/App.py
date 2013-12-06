@@ -237,6 +237,7 @@ class Flipper_App:
 				self.lamination_to_canvas(self.curves['_'])
 				self.set_mode(CURVE_MODE)
 			
+			self.auto_zoom()
 		except IOError:
 			tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
@@ -280,6 +281,33 @@ class Flipper_App:
 			vertex.y += dy
 		
 		self.canvas.move('all', dx, dy)
+	
+	def zoom(self, scale):
+		for vertex in self.vertices:
+			vertex.x, vertex.y = scale * vertex.x, scale * vertex.y
+			vertex.update()
+		for edge in self.edges:
+			edge.update()
+		for triangle in self.triangles:
+			triangle.update()
+		for curve_component in self.curve_components:
+			for i in range(len(curve_component.vertices)):
+				curve_component.vertices[i] = scale * curve_component.vertices[i][0], scale * curve_component.vertices[i][1]
+			curve_component.update()
+		self.redraw()
+	
+	def auto_zoom(self):
+		x0, y0, x1, y1 = self.canvas.bbox('all')
+		cw = int(self.canvas.winfo_width())
+		ch = int(self.canvas.winfo_height())
+		cr = min(cw, ch)
+		
+		w, h = x1 - x0, y1 - y0
+		r = max(w, h)
+		
+		self.translate(-x0 - w / 2, -y0 - h / 2)
+		self.zoom(self.options.zoom_fraction * float(cr) / r)
+		self.translate(cw / 2, ch / 2)
 	
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
@@ -331,6 +359,8 @@ class Flipper_App:
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				elif task == 'information': self.show_surface_information()
+				
+				elif task == 'zoom': self.auto_zoom()
 				
 				elif task == 'tighten': self.tighten_curve()
 				elif task == 'show': self.show_composition(combined)
@@ -627,9 +657,9 @@ class Flipper_App:
 	######################################################################
 	
 	
-	def set_current_curve(self, vector=None):
-		if vector is None: vector = self.canvas_to_lamination()
-		self.curves['_'] = vector
+	def set_current_curve(self, lamination=None):
+		if lamination is None: lamination = self.canvas_to_lamination()
+		self.curves['_'] = lamination
 		self.create_edge_labels()
 	
 	def canvas_to_lamination(self):
@@ -1057,6 +1087,10 @@ class Flipper_App:
 			self.set_mode(CURVE_MODE)
 		elif key == 'F5':
 			self.destroy_curve()
+		elif key == 'Prior':
+			self.zoom(1.05)
+		elif key == 'Next':
+			self.zoom(0.95)
 	
 	def list_curves_left_click(self, event):
 		if self.list_curves.size() > 0:

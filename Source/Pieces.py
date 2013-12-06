@@ -69,6 +69,9 @@ class Vertex:
 	def set_default_colour(self, colour):
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
+	
+	def update(self):
+		self.canvas.coords(self.drawn_self, self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size)
 
 class Edge:
 	def __init__(self, source_vertex, target_vertex, options):
@@ -121,6 +124,9 @@ class Edge:
 	
 	def flip_orientation(self):
 		self.source_vertex, self.target_vertex = self.target_vertex, self.source_vertex
+	
+	def update(self):
+		self.canvas.coords(self.drawn_self, self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y)
 
 class Triangle:
 	def __init__(self, e1, e2, e3, options):
@@ -177,6 +183,9 @@ class Triangle:
 		v = (dot00 * dot12 - dot01 * dot02) * invDenom
 		
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
+	
+	def update(self):
+		self.canvas.coords(self.drawn_self, *[self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y])
 
 class Curve_Component:
 	def __init__(self, canvas, source_point, options, multiplicity=None):
@@ -221,4 +230,7 @@ class Curve_Component:
 			self.canvas.coords(self.drawn_segments[-1], self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1])
 			if self.multiplicity is not None:
 				self.canvas.coords(self.drawn_labels[-1], (self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2)
-
+	
+	def update(self):
+		for i in range(len(self.drawn_segments)):
+			self.canvas.coords(self.drawn_segments[i], self.vertices[i][0], self.vertices[i][1], self.vertices[i+1][0], self.vertices[i+1][1])

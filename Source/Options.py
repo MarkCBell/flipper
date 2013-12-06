@@ -101,7 +101,7 @@ class Options_App:
 	
 	def compress_curve_update(self):
 		self.host_app.options.compress_curve = bool(self.compress_curve_variable.get())
-		if self.host_app.is_complete(): self.host_app.lamination_to_curve(self.host_app.curves['_'])
+		if self.host_app.is_complete(): self.host_app.lamination_to_canvas(self.host_app.curves['_'])
 		self.host_app.redraw()
 	
 	def show_internals_update(self):

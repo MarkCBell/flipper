@@ -289,6 +289,10 @@ class Flipper_App:
 			vertex.x += dx
 			vertex.y += dy
 		
+		for curve_component in self.curve_components:
+			for i in range(len(curve_component.vertices)):
+				curve_component.vertices[i] = curve_component.vertices[i][0] + dx, curve_component.vertices[i][1] + dy
+		
 		self.canvas.move('all', dx, dy)
 	
 	def zoom(self, scale):
@@ -842,7 +846,6 @@ class Flipper_App:
 				self.lamination_to_canvas(self.curves['_'])
 	
 	def show_render(self, composition):
-	# !?! Broken.
 		if self.abstract_triangulation is not None:
 			self.set_current_curve(Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
 			self.lamination_to_canvas(self.curves['_'])
@@ -1021,7 +1024,8 @@ class Flipper_App:
 						self.select_object(possible_object)
 				else:
 					self.destroy_edge_identification(possible_object)
-					self.select_object(possible_object)
+					if self.selected_object is None:
+						self.select_object(possible_object)
 	
 	def curve_click(self, x, y):
 		if self.selected_object is None:

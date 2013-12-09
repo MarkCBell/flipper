@@ -24,7 +24,6 @@ class Options:
 		self.spacing = 10
 		
 		self.vertex_buffer = 0.2  # Must be in (0,0.5)
-		self.n_gon_fraction = 0.45 # Must be in (0,0.5)
 		self.zoom_fraction = 0.9 # Must be in (0,1)
 		
 		self.dot_size = 3

@@ -61,7 +61,7 @@ def valid_name(name):
 	if re.match('\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
 		return True
 	else:
-		tkMessageBox.showwarning('Name', '%s is not a valid name.')
+		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
 		return False
 
 class Flipper_App:
@@ -135,6 +135,14 @@ class Flipper_App:
 		editmenu.add_separator()
 		editmenu.add_command(label='Erase Curve', command=self.destroy_curve, accelerator='F5')
 		
+		viewmenu = TK.Menu(menubar, tearoff=0)
+		zoommenu = TK.Menu(menubar, tearoff=0)
+		zoommenu.add_command(label='Zoom in', command=lambda : self.zoom_centre(1.05), accelerator='Pg Up')
+		zoommenu.add_command(label='Zoom out', command=lambda : self.zoom_centre(0.95), accelerator='Pg Down')
+		zoommenu.add_command(label='Auto zoom', command=lambda : self.auto_zoom())
+		viewmenu.add_cascade(label='Zoom', menu=zoommenu)
+		# viewmenu.add_command(label='Translate', command=self.show_options)
+		
 		settingsmenu = TK.Menu(menubar, tearoff=0)
 		settingsmenu.add_command(label='Options', command=self.show_options)
 		
@@ -145,6 +153,7 @@ class Flipper_App:
 		
 		menubar.add_cascade(label='File', menu=filemenu)
 		menubar.add_cascade(label='Edit', menu=editmenu)
+		menubar.add_cascade(label='View', menu=viewmenu)
 		menubar.add_cascade(label='Settings', menu=settingsmenu)
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
@@ -296,18 +305,27 @@ class Flipper_App:
 			curve_component.update()
 		self.redraw()
 	
-	def auto_zoom(self):
-		x0, y0, x1, y1 = self.canvas.bbox('all')
+	def zoom_centre(self, scale):
 		cw = int(self.canvas.winfo_width())
 		ch = int(self.canvas.winfo_height())
-		cr = min(cw, ch)
-		
-		w, h = x1 - x0, y1 - y0
-		r = max(w, h)
-		
-		self.translate(-x0 - w / 2, -y0 - h / 2)
-		self.zoom(self.options.zoom_fraction * float(cr) / r)
+		self.translate(-cw / 2, -ch / 2)
+		self.zoom(scale)
 		self.translate(cw / 2, ch / 2)
+	
+	def auto_zoom(self):
+		box = self.canvas.bbox('all')
+		if box is not None:
+			x0, y0, x1, y1 = box
+			cw = int(self.canvas.winfo_width())
+			ch = int(self.canvas.winfo_height())
+			cr = min(cw, ch)
+			
+			w, h = x1 - x0, y1 - y0
+			r = max(w, h)
+			
+			self.translate(-x0 - w / 2, -y0 - h / 2)
+			self.zoom(self.options.zoom_fraction * float(cr) / r)
+			self.translate(cw / 2, ch / 2)
 	
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
@@ -537,10 +555,10 @@ class Flipper_App:
 		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
-		r = min(w, h)
+		r = min(w, h) * self.options.zoom_fraction / 2
 		self.create_vertex((w / 2, h / 2))
 		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction))
+			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
 		for i in range(1,n):
 			self.create_edge(self.vertices[i], self.vertices[i+1])
 		self.create_edge(self.vertices[n], self.vertices[1])
@@ -564,9 +582,9 @@ class Flipper_App:
 		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
-		r = min(w, h)
+		r = min(w, h) * self.options.zoom_fraction / 2
 		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction, h / 2 + cos(2*pi*(i+0.5) / n) * r * self.options.n_gon_fraction))
+			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
 		for i in range(n):
 			self.create_edge(self.vertices[i], self.vertices[i-1])
 		
@@ -993,7 +1011,7 @@ class Flipper_App:
 	def gluing_click(self, x, y):
 		possible_object = self.object_here((x,y))
 		if isinstance(possible_object, Edge):
-			if possible_object.free_sides() == 1:
+			if possible_object.free_sides() < 2:
 				if possible_object.equivalent_edge is None:
 					if isinstance(self.selected_object, Edge):
 						if possible_object != self.selected_object:
@@ -1088,9 +1106,9 @@ class Flipper_App:
 		elif key == 'F5':
 			self.destroy_curve()
 		elif key == 'Prior':
-			self.zoom(1.05)
+			self.zoom_centre(1.05)
 		elif key == 'Next':
-			self.zoom(0.95)
+			self.zoom_centre(0.95)
 	
 	def list_curves_left_click(self, event):
 		if self.list_curves.size() > 0:

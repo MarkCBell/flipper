@@ -126,7 +126,7 @@ class Flipper_App:
 		filemenu.add_command(label='Save', command=lambda : self.save(), accelerator='%s+S' % COMMAND_MODIFIER)
 		filemenu.add_command(label='Export', command=lambda : self.export_image(), accelerator='%s+E' % COMMAND_MODIFIER)
 		filemenu.add_separator()
-		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+Q' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
 		
 		editmenu = TK.Menu(menubar, tearoff=0)
 		editmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE), accelerator='F2')
@@ -162,7 +162,7 @@ class Flipper_App:
 		parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
 		parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
 		parent.bind('<%s-e>' % COMMAND_MODIFIER_BINDING, lambda event: self.export_image())
-		parent.bind('<%s-q>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
+		parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
 		parent.bind('<Key>', self.parent_key_press) 
 		
 		self.parent.columnconfigure(0, weight=1)
@@ -559,7 +559,8 @@ class Flipper_App:
 		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
-		r = min(w, h) * self.options.zoom_fraction / 2
+		r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+		
 		self.create_vertex((w / 2, h / 2))
 		for i in range(n):
 			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
@@ -586,7 +587,8 @@ class Flipper_App:
 		
 		w = int(self.canvas.winfo_width())
 		h = int(self.canvas.winfo_height())
-		r = min(w, h) * self.options.zoom_fraction / 2
+		r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+		
 		for i in range(n):
 			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
 		for i in range(n):

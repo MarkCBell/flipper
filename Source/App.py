@@ -960,7 +960,7 @@ class Flipper_App:
 				else:
 					try:
 						start_time = time()
-						preperiodic, periodic, dilatation, lamination, isometry = lamination.splitting_sequence()
+						preperiodic, periodic, dilatation, lamination, isometries = lamination.splitting_sequence()
 					except AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:

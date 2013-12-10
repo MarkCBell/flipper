@@ -81,6 +81,7 @@ class Tetrahedron:
 			
 			# Move across the edge veerings too.
 			for a, b in combinations(vertices_meeting[side], 2):
+				a, b = sorted([a, b])
 				x, y = sorted([permutation[a], permutation[b]])
 				my_edge_veering = self.edge_labels[(a, b)]
 				his_edge_veering = target.edge_labels[(x, y)]
@@ -357,7 +358,7 @@ class Layered_Triangulation:
 		
 		# Install the cusp indices.
 		cusps = closed_triangulation.assign_cusp_indices()
-		longitude_installed = dict((cusp, False) for cusp in cusps)
+		longitude_installed = dict((corner, False) for cusp in cusps for corner in cusp)
 		
 		# Install the meridians and longitudes.
 		# We'll define some maps to help us move around.
@@ -467,16 +468,21 @@ if __name__ == '__main__':
 	from Examples import Example_S_1_1 as Example, build_example_mapping_class
 	
 	# print('Start')
-	word, mapping_class = build_example_mapping_class(Example, word='aB', random_length=10)
+	# Get an example mapping class - this one we know is pseudo-Anosov.
+	word, mapping_class = build_example_mapping_class(Example, word='aB')
+	# If this computation fails it will throw an AssumptionError - the map _is_ reducible
+	# or a ComputationError - the map is probably reducible.
+	# At the minute we just assume that it doesn't.
 	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
-	# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-	# At the minute we assume that it doesn't.
-	preperiodic, periodic, new_dilatation, correct_lamination, isometry = lamination.splitting_sequence(split_all_edges=False)
+	# If this computation fails it will throw an AssumptionError - the lamination is not filling and so our map is not pseudo-Anosov.
+	# At the minute we just assume that it doesn't.
+	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	# print('Layering')
+	# print(isometries)
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
-	M, degeneracy_slopes = L.close(isometry)
+	M, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	print(M.SnapPy_string())
 	exit(0)
 	

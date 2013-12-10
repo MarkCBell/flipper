@@ -221,7 +221,7 @@ class Lamination:
 		
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, split_all_edges=False):
+	def splitting_sequence(self):
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
 		# AssumptionError
 		# We assume that self is given as a list of algebraic numbers. 
@@ -267,12 +267,14 @@ class Lamination:
 			if target in seen:
 				for index, old_lamination, old_projective_weights in seen[target]:
 					old_triangulation = old_lamination.abstract_triangulation
+					isometries = []
 					for isometry in all_isometries(current_triangulation, old_triangulation):
 						permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination.zeta)])
 						if current_projective_weights == permuted_old_projective_weights:
-							if not split_all_edges or all(i in flipped[index:] for i in range(lamination.zeta)):
-								# Return: the pre-periodic part, the periodic part, the dilatation.
-								return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometry
+							# Return: the pre-periodic part, the periodic part, the dilatation.
+							isometries.append(isometry)
+					if len(isometries) > 0:
+						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries
 				seen[target].append([len(flipped), lamination, current_projective_weights])
 			else:
 				seen[target] = [[len(flipped), lamination, current_projective_weights]]
@@ -365,7 +367,7 @@ def determine_type(mapping_class):
 			# In theory it could also fail by throwing an AssumptionError but we have already checked that the map is not periodic.
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation, lamination, isometry = lamination.splitting_sequence()
+			preperiodic, periodic, new_dilatation, lamination, isometries = lamination.splitting_sequence()
 			print(' -- Pseudo-Anosov.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')

@@ -223,8 +223,9 @@ class Encoding_Sequence:
 		# we are interested in. The first jumps from our current location to the next subtree, the second
 		# advances to the next index according to the lex ordering.
 		
-		reciprocal_sizes = [float(1) / encoding.size for encoding in self]
-		reciprocal_sizes_mul = [reduce(lambda x,y: x*y, reciprocal_sizes[:i], reciprocal_sizes[0]) for i in range(len(reciprocal_sizes))]
+		sizes = [encoding.size for encoding in self]
+		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(reciprocal_sizes))]
+		total = sizes[0] * sizes_mul[0]
 		
 		def jump(indices):
 			indices = list(indices)
@@ -243,7 +244,7 @@ class Encoding_Sequence:
 				raise IndexError
 		
 		def progress(indices):
-			return sum(index * scale for index, scale in zip(indices, reciprocal_sizes_mul)) / 2
+			return sum(index * scale for index, scale in zip(indices, sizes_mul)) / total
 		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		

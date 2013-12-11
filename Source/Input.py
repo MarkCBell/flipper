@@ -1,3 +1,4 @@
+
 try:
 	import Tkinter as TK
 except ImportError: # Python 3
@@ -13,8 +14,8 @@ class Input_Box(TK.Toplevel):
 		self.parent = parent
 		self.result = None
 		self.main_frame = TK.Frame(self)
+		self.body(self.main_frame)
 		self.main_frame.pack(padx=5, pady=5)
-		self.buttonbox()
 		
 		box = TK.Frame(self)
 		w = TK.Button(box, text='OK', width=10, command=self.ok, default=TK.ACTIVE)
@@ -26,7 +27,6 @@ class Input_Box(TK.Toplevel):
 		self.bind('<Escape>', self.cancel)
 		
 		box.pack()
-		
 		
 		self.grab_set()
 		self.protocol('WM_DELETE_WINDOW', self.cancel)
@@ -40,15 +40,8 @@ class Input_Box(TK.Toplevel):
 		# initial focus.  this method should be overridden
 		pass
 	
-	def buttonbox(self):
-		pass
-	
 	# standard button semantics
 	def ok(self, event=None):
-		if not self.validate():
-			self.initial_focus.focus_set() # put focus back
-			return
-		
 		self.withdraw()
 		self.update_idletasks()
 		self.apply()
@@ -58,10 +51,6 @@ class Input_Box(TK.Toplevel):
 		# put focus back to the parent window
 		self.parent.focus_set()
 		self.destroy()
-	
-	# command hooks
-	def validate(self):
-		return 1 # override
 	
 	def apply(self):
 		pass # override

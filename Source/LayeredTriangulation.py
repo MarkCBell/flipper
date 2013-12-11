@@ -347,6 +347,20 @@ class Layered_Triangulation:
 		# Install the cusp indices.
 		cusps = closed_triangulation.assign_cusp_indices()
 		
+		# Construct an immersion of the fibre surface into the closed bundle.
+		fibre_immersion = dict()
+		for source_triangle in self.upper_triangulation:
+			target_triangle, perm = paired[source_triangle]
+			
+			# We might have to map repeatedly until we get back to the core part of the triangulation.
+			while target_triangle in self.upper_triangulation:
+				new_target_triangle, new_perm = paired[target_triangle]
+				target_triangle = new_target_triangle
+				perm = new_perm * perm
+			
+			B, perm_B = core_lower_map[target_triangle]
+			fibre_immersion[triangle] = (forwards[B], perm_B * perm)
+		
 		# Install some longitude and meridian on each cusp.
 		# We will choose ones that come from pushing some curve embedded in the one-skeleton of the cusp torus triangulation 
 		# off in some direction.

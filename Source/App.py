@@ -466,11 +466,12 @@ class Flipper_App:
 			return None
 		
 		e0 = Edge(v1, v2, self.options)
-		for e1, e2 in combinations(self.edges, r=2):
-			if e1.free_sides() > 0 and e2.free_sides() > 0:
-				if len(set([e.source_vertex for e in [e0,e1,e2]] + [e.target_vertex for e in [e0,e1,e2]])) == 3:
-					self.create_triangle(e0, e1, e2)
 		self.edges.append(e0)
+		for e1, e2 in combinations(self.edges, r=2):
+			if e1 != e0 and e2 != e0:
+				if e1.free_sides() > 0 and e2.free_sides() > 0:
+					if len(set([e.source_vertex for e in [e0,e1,e2]] + [e.target_vertex for e in [e0,e1,e2]])) == 3:
+						self.create_triangle(e0, e1, e2)
 		self.redraw()
 		self.build_complete_structure()
 		return self.edges[-1]
@@ -490,7 +491,14 @@ class Flipper_App:
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		self.triangles.append(Triangle(e1,e2,e3, self.options))
+		new_triangle = Triangle(e1,e2,e3, self.options)
+		self.triangles.append(new_triangle)
+		
+		corner_vertices = [e.source_vertex for e in [e1,e2,e3]] + [e.target_vertex for e in [e1,e2,e3]]
+		if any(vertex in new_triangle and vertex not in corner_vertices for vertex in self.vertices):
+			self.destroy_triangle(new_triangle)
+			return None
+		
 		self.redraw()
 		self.build_complete_structure()
 		return self.triangles[-1]
@@ -1048,18 +1056,17 @@ class Flipper_App:
 	def gluing_click(self, x, y):
 		possible_object = self.object_here((x,y))
 		if isinstance(possible_object, Edge):
-			if possible_object.free_sides() < 2:
-				if possible_object.equivalent_edge is None:
+			if possible_object.equivalent_edge is None:
+				if possible_object.free_sides() == 1:
 					if isinstance(self.selected_object, Edge):
 						if possible_object != self.selected_object:
 							self.create_edge_identification(self.selected_object, possible_object)
 							self.select_object(None)
 					elif self.selected_object is None:
 						self.select_object(possible_object)
-				else:
-					self.destroy_edge_identification(possible_object)
-					if self.selected_object is None:
-						self.select_object(possible_object)
+			else:
+				self.destroy_edge_identification(possible_object)
+				self.select_object(possible_object)
 	
 	def curve_click(self, x, y):
 		if self.selected_object is None:
@@ -1172,7 +1179,7 @@ class Flipper_App:
 def main():
 	root = TK.Tk()
 	root.title('Flipper')
-	Flipper_App(root)
+	flipper = Flipper_App(root)
 	# Set the icon.
 	img = TK.PhotoImage(file='./Source/Icon/Icon.gif')
 	root.tk.call('wm', 'iconphoto', root._w, img)

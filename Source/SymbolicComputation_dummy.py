@@ -3,7 +3,7 @@ import types
 
 _name = 'dummy'
 
-algebraic_type = types.NoneType
+algebraic_type = type(None)
 
 def simplify_algebraic_type(x):
 	return None

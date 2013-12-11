@@ -9,6 +9,8 @@ floating point approximations
 fast algebra
 show algebraic laminations
 
+be careful about file opens
+
 more documentation
 
 is_curve (and encode twist) fails if a component of S - curve has no punctures!

@@ -245,8 +245,6 @@ class Flipper_App:
 				if self.is_complete():
 					self.lamination_to_canvas(self.curves['_'])
 					self.set_mode(CURVE_MODE)
-				
-				self.auto_zoom()
 			except IOError:
 				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
@@ -1176,10 +1174,11 @@ class Flipper_App:
 			if yoffset <= event.y <= yoffset + height:
 				self.show_apply(self.list_mapping_classes.get(index).swapcase())
 
-def main():
+def main(load_path=None):
 	root = TK.Tk()
 	root.title('Flipper')
 	flipper = Flipper_App(root)
+	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
 	img = TK.PhotoImage(file='./Source/Icon/Icon.gif')
 	root.tk.call('wm', 'iconphoto', root._w, img)

@@ -259,11 +259,14 @@ class Layered_Triangulation:
 		
 		# Get the new upper triangulation
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
+		
 		# Rebuild the upper_map.
 		new_upper_map = dict()
-		
 		(new_A, new_side_A), (new_B, new_side_B) = new_upper_triangulation.find_edge(edge_index)
-		for old_triangle, new_triangle in zip([triangle for triangle in self.upper_triangulation if triangle != A and triangle != B], [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]):
+		# Most of the triangles have stayed the same.
+		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]
+		new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
+		for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
 			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.

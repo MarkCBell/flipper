@@ -30,6 +30,7 @@ try:
 	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Source.Isometry import extend_isometry
 	from Source.Lamination import Lamination, invariant_lamination, empty_lamination
+	from Source.LayeredTriangulation import Layered_Triangulation
 	from Source.SymbolicComputation import algebraic_type
 	from Source.Progress import Progress_App
 	from Source.Options import Options, Options_App
@@ -40,6 +41,7 @@ except ImportError:
 	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Isometry import extend_isometry
 	from Lamination import Laminationm, invariant_lamination, empty_lamination
+	from LayeredTriangulation import Layered_Triangulation
 	from SymbolicComputation import algebraic_type
 	from Progress import Progress_App
 	from Options import Options, Options_App
@@ -196,68 +198,65 @@ class Flipper_App:
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
-		if path == '': return
-		
-		try:
-			spec = 'A Flipper file.'
-			vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
-			edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
-			abstract_triangulation = self.abstract_triangulation
-			curves = self.curves
-			mapping_classes = self.mapping_classes
-			list_names = self.list_mapping_classes.get(0, TK.END)
-			
-			pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names], open(path, 'wb'))
-		except IOError:
-			tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
+		if path != '':
+			try:
+				spec = 'A Flipper file.'
+				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
+				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
+				abstract_triangulation = self.abstract_triangulation
+				curves = self.curves
+				mapping_classes = self.mapping_classes
+				list_names = self.list_mapping_classes.get(0, TK.END)
+				
+				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names], open(path, 'wb'))
+			except IOError:
+				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
 	def load(self, path=''):
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-		if path == '': return
-		
-		try:
-			spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names = pickle.load(open(path, 'rb'))
-			# Might throw value error.
-			# !?! Add more error checking.
-			assert(spec == 'A Flipper file.')
-			
-			self.initialise()
-			for vertex in vertices:
-				self.create_vertex(vertex)
-			
-			for edge in edges:
-				start_index, end_index, glued_to_index = edge
-				self.create_edge(self.vertices[start_index], self.vertices[end_index])
-			
-			for index, edge in enumerate(edges):
-				start_index, end_index, glued_to_index = edge
-				if glued_to_index > index:
-					self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
-			
-			self.abstract_triangulation = abstract_triangulation
-			
-			self.curves = curves
-			self.mapping_classes = mapping_classes
-			
-			for name in list_names:
-				self.list_mapping_classes.insert(TK.END, name)
-			
-			if self.is_complete():
-				self.lamination_to_canvas(self.curves['_'])
-				self.set_mode(CURVE_MODE)
-			
-			self.auto_zoom()
-		except IOError:
-			tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
+		if path != '':
+			try:
+				spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names = pickle.load(open(path, 'rb'))
+				# Might throw value error.
+				# !?! Add more error checking.
+				assert(spec == 'A Flipper file.')
+				
+				self.initialise()
+				for vertex in vertices:
+					self.create_vertex(vertex)
+				
+				for edge in edges:
+					start_index, end_index, glued_to_index = edge
+					self.create_edge(self.vertices[start_index], self.vertices[end_index])
+				
+				for index, edge in enumerate(edges):
+					start_index, end_index, glued_to_index = edge
+					if glued_to_index > index:
+						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
+				
+				self.abstract_triangulation = abstract_triangulation
+				
+				self.curves = curves
+				self.mapping_classes = mapping_classes
+				
+				for name in list_names:
+					self.list_mapping_classes.insert(TK.END, name)
+				
+				if self.is_complete():
+					self.lamination_to_canvas(self.curves['_'])
+					self.set_mode(CURVE_MODE)
+				
+				self.auto_zoom()
+			except IOError:
+				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
 	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
-		if path is None: return
-		
-		try:
-			self.canvas.postscript(file=path, colormode='color')
-		except IOError:
-			tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
+		if path != '':
+			try:
+				self.canvas.postscript(file=path, colormode='color')
+			except IOError:
+				tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 	
 	def quit(self):
 		self.parent.quit()
@@ -307,6 +306,7 @@ class Flipper_App:
 			for i in range(len(curve_component.vertices)):
 				curve_component.vertices[i] = scale * curve_component.vertices[i][0], scale * curve_component.vertices[i][1]
 			curve_component.update()
+		self.create_edge_labels()
 		self.redraw()
 	
 	def zoom_centre(self, scale):
@@ -402,6 +402,7 @@ class Flipper_App:
 				elif task == 'lamination': self.invariant_lamination(combined)
 				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
 				elif task == 'split': self.splitting_sequence(combined)
+				elif task == 'bundle': self.bundle(combined)
 				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -960,12 +961,43 @@ class Flipper_App:
 				else:
 					try:
 						start_time = time()
-						preperiodic, periodic, dilatation, lamination, isometries = lamination.splitting_sequence()
+						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 					except AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
 						if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
 						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
+	
+	def bundle(self, composition):
+		if self.abstract_triangulation is not None:
+			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
+			if path != '':
+				try:
+					file = open(path, 'w')
+					try:
+						mapping_class = self.create_composition(composition.split('.'))
+					except AbortError:
+						pass
+					else:
+						try:
+							lamination, dilatation = invariant_lamination(mapping_class, exact=True)
+						except AssumptionError:
+							tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
+						except ComputationError:
+							tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
+						else:
+							try:
+								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+							except AssumptionError:
+								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
+							else:
+								L = Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
+								L.flips(periodic)
+								M, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+								file.write(M.SnapPy_string())
+					file.close()
+				except IOError:
+					tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
 	
 	######################################################################
@@ -1141,6 +1173,9 @@ def main():
 	root = TK.Tk()
 	root.title('Flipper')
 	Flipper_App(root)
+	# Set the icon.
+	img = TK.PhotoImage(file='./Source/Icon/Icon.gif')
+	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
 
 if __name__ == '__main__':

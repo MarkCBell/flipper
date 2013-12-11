@@ -1,4 +1,5 @@
 
+
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -7,6 +8,11 @@ except ImportError: # Python 3
 	import tkinter as TK
 	import tkinter.font as TK_FONT
 	import tkinter.ttk as TTK
+
+try:
+	from Source.Version import Flipper_version
+except ImportError:
+	from Version import Flipper_version
 
 class Options:
 	def __init__(self):
@@ -39,7 +45,7 @@ class Options:
 		
 		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
 		
-		self.version = '0.1.0'
+		self.version = Flipper_version
 
 
 class Options_App:

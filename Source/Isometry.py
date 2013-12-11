@@ -10,19 +10,21 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 try:
+	from Source.Permutation import cyclic_permutation
 	from Source.Error import AssumptionError
 except ImportError:
+	from Permutation import cyclic_permutation
 	from Error import AssumptionError
 
 class Isometry:
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
 		# source_triangulation and target_triangulation are two Abstract_Triangulations
 		# triangle_map is a dictionary sending each Abstract_Triangle of source_triangulation to a pair
-		# (Abstract_Triangle, cycle).
+		# (Abstract_Triangle, Permutation).
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.triangle_map = triangle_map
-		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0][i+self.triangle_map[triangle][1]]) for triangle in self.source_triangulation for i in range(3)])
+		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0] [self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3)])
 		# Check that the thing that we've built is actually well defined.
 		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
 			raise AssumptionError('Map does not induce a well defined map on edges.')
@@ -30,10 +32,19 @@ class Isometry:
 		return str(self.triangle_map)
 	def __getitem__(self, index):
 		return self.triangle_map[index]
+	def __iter__(self):
+		return iter(self.source_triangulation)
+	def __mul__(self, other):
+		assert(other.target_triangulation == self.source_triangulation)
+		new_triangle_map = dict((triangle, self.apply(*other[triangle])) for triangle in other.source_triangulation)
+		return Isometry(other.source_triangulation, self.target_triangulation, new_triangle_map)
+	def apply(self, triangle, permutation):
+		new_triangle, perm = self[triangle]
+		return (new_triangle, perm * permutation)
 	def inverse(self):
 		target_triangle = self.source_triangulation[0]
 		source_triangle, cycle = self[target_triangle]
-		return extend_isometry(self.target_triangulation, self.source_triangulation, source_triangle, target_triangle, cycle * 2)
+		return extend_isometry(self.target_triangulation, self.source_triangulation, source_triangle, target_triangle, cycle.inverse()[0])
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
@@ -42,7 +53,7 @@ class Isometry:
 
 def isometry_from_edge_map(source_triangulation, target_triangulation, edge_map):
 	source_triangle = source_triangulation.triangles[0]
-	target_triangle = target_triangulation.find_triangle([edge_map[x] for x in source_triangle])
+	target_triangle = target_triangulation.find_triangle([edge_map[x] for x in source_triangle])  # There is more than one solution iff S = S_1_1.
 	cycle = min(i for i in range(3) if all(edge_map[source_triangle[j]] == target_triangle[j + i] for j in range(3))) 
 	return extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle)
 
@@ -57,8 +68,8 @@ def extend_isometry(source_triangulation, target_triangulation, source_triangle,
 	triangle_map[source_triangle] = (target_triangle, cycle)
 	while not triangles_to_process.empty():
 		from_triangle, to_triangle, cycle = triangles_to_process.get()
+		triangle_map[from_triangle] = (to_triangle, cyclic_permutation(cycle, 3))
 		for side in range(3):
-			triangle_map[from_triangle] = (to_triangle, cycle)
 			from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
 			to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, (side+cycle)%3)
 			if from_triangle_neighbour not in seen_triangles:

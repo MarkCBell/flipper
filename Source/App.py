@@ -573,7 +573,7 @@ class Flipper_App:
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
-			# self.store_isometry('p %d,%d,%d %d,%d,%d' % (0,n+1,n,1,n+2,n+1))  # !?! Add in a 1/n rotation by default.
+			# self.store_isometry('p %d.%d.%d %d.%d.%d' % (0,n+1,n,1,n+2,n+1))  # !?! Add in a 1/n rotation by default.
 			self.set_mode(CURVE_MODE)
 		else:
 			self.set_mode(GLUING_MODE)

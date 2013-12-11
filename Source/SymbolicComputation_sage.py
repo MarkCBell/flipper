@@ -10,9 +10,12 @@ _name = 'sage'
 
 algebraic_type = AlgebraicNumber
 
-def simplify(x):
+def simplify_algebraic_type(x):
 	x.simplify()
 	return x
+
+def string_algebraic_type(x):
+	return '%0.4f' % float(x)
 
 def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
@@ -25,7 +28,7 @@ def Perron_Frobenius_eigen(matrix):
 	except ValueError:
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	return [simplify(x) for x in eigenvector], eigenvalue
+	return [simplify_algebraic_type(x) for x in eigenvector], eigenvalue
 
 def minimal_polynomial_coefficients(number):
 	return tuple(number.minpoly().coefficients())

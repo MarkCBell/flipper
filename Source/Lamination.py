@@ -11,20 +11,20 @@ try:
 	from Source.Matrix import nonnegative, nonnegative_image, nontrivial
 	from Source.Isometry import all_isometries
 	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
+	from Source.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Matrix import nonnegative, nonnegative_image, nontrivial
 	from Isometry import all_isometries
 	from Error import AbortError, ComputationError, AssumptionError
-	from SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, simplify, algebraic_type
+	from SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
-		self.vector = [simplify(v) if isinstance(v, algebraic_type) else v for v in vector]
 		self.zeta = self.abstract_triangulation.zeta
-		self.labels = [('%0.4f' % float(v) if isinstance(v, algebraic_type) else str(v)) for v in self.vector]
+		self.vector = [algebraic_simplify(v) for v in vector]
+		self.labels = [algebraic_string(v) for v in self.vector]
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -225,12 +225,12 @@ class Lamination:
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
 		# AssumptionError
 		# We assume that self is given as a list of algebraic numbers. 
-		# We continually use SymbolicComputation.simplify() just to be safe.
+		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
 		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
 		def projective_weights(x):
-			s = simplify(1 / sum(x))
-			return tuple([simplify(v * s) for v in x])
+			s = algebraic_simplify(1 / sum(x))
+			return tuple([algebraic_simplify(v * s) for v in x])
 		
 		# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
 		# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
@@ -274,7 +274,7 @@ class Lamination:
 							# Return: the pre-periodic part, the periodic part, the dilatation.
 							isometries.append(isometry)
 					if len(isometries) > 0:
-						return flipped[:index], flipped[index:], simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries
+						return flipped[:index], flipped[index:], algebraic_simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries
 				seen[target].append([len(flipped), lamination, current_projective_weights])
 			else:
 				seen[target] = [[len(flipped), lamination, current_projective_weights]]
@@ -394,8 +394,9 @@ if __name__ == '__main__':
 	from Examples import Example_24 as Example
 	# from Examples import Example_S_1_1 as Example
 	# from Examples import Example_S_1_2 as Example
-	# random_test(Example, 'aBC', num_trials=1)
-	random_test(Example, 'aBBap' * 3, num_trials=1)
+	random_test(Example, 'aBC', num_trials=1)
+	# random_test(Example, 'aBBap' * 3, num_trials=1)
 	# random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
-	# cProfile.run('random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)', sort='cumtime')
+	# import cProfile
+	# cProfile.run('random_test(Example, "aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='cumtime')
 	# random_test(Example)

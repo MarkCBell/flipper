@@ -17,26 +17,10 @@ try:
 except ImportError:
 	from Error import AssumptionError
 
-class Permutation:
-	def __init__(self, permutation):
-		self.permutation = permutation
-	def __repr__(self):
-		return str(self.permutation)
-	def __getitem__(self, index):
-		return self.permutation[index]
-	def __mul__(self, other):
-		return Permutation([self[other[i]] for i in range(4)])
-	def __str__(self):
-		return '%d%d%d%d' % tuple(self.permutation)
-	def __eq__(self, other):
-		return self.permutation == other.permutation
-	def inverse(self):
-		return Permutation(tuple([j for i in range(4) for j in range(4) if self[j] == i]))
-	def is_even(self):
-		even = True
-		for j, i in combinations(range(4),2):
-			if self[j] > self[i]: even = not even
-		return even
+try:
+	from Source.Permutation import Permutation, Id_Permutation
+except ImportError:
+	from Permutation import Permutation, Id_Permutation
 
 all_permutations = [Permutation(perm) for perm in permutations(range(4), 4)]
 even_permutations = [perm for perm in all_permutations if perm.is_even()]
@@ -44,9 +28,6 @@ odd_permutations = [perm for perm in all_permutations if not perm.is_even()]
 
 def permutation_from_mapping(i, i_image, j, j_image, even):
 	return [perm for perm in (even_permutations if even else odd_permutations) if perm[i] == i_image and perm[j] == j_image][0]
-
-def cyclic_permutation(cycle):
-	return Permutation((cycle, (cycle+1) % 3, (cycle+2) % 3, 3))
 
 # Edge veerings:
 UNKNOWN = None
@@ -105,9 +86,9 @@ class Tetrahedron:
 		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
 		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
 		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(self.meridians[0] + self.meridians[1] + self.meridians[2] + self.meridians[3])
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.meridians for cusp in meridian)
 		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(self.longitudes[0] + self.longitudes[1] + self.longitudes[2] + self.longitudes[3])
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.longitudes for cusp in longitude)
 		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		s += '  0.000000000000   0.000000000000\n'
 		return s
@@ -116,7 +97,7 @@ class Triangulation:
 	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
-		self.num_cusps = -1  # 0
+		self.num_cusps = 0
 		self.name = name
 	
 	def copy(self):
@@ -230,8 +211,8 @@ class Layered_Triangulation:
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each Abstract_Triangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		self.lower_map = dict((lower, (lower_tetra, Id_Permutation(4))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
+		self.upper_map = dict((upper, (upper_tetra, Id_Permutation(4))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -289,51 +270,22 @@ class Layered_Triangulation:
 		# Finally, install the new objects.
 		self.upper_triangulation = new_upper_triangulation
 		self.upper_map = new_upper_map
+		
+		return self
 	
 	def flips(self, sequence):
 		for edge_index in sequence:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
-		# Should assume that *almost* all edges of the underlying triangulation have been flipped.
-		isometry = isometry.adapt_isometry(self.upper_triangulation, self.lower_triangulation)
+		# Should assume that *almost* all edges of the underlying triangulation have been flipped. !?!
+		isometry = isometry.adapt_isometry(self.upper_triangulation, self.lower_triangulation)  # This hides involutions of S_1_1!
 		
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation, closed_triangulation))
-		lower_tetrahedra = closed_triangulation.tetrahedra[:self.lower_triangulation.num_triangles]
-		upper_tetrahedra = closed_triangulation.tetrahedra[self.lower_triangulation.num_triangles:2*self.lower_triangulation.num_triangles]
-		middle_tetrahedra = closed_triangulation.tetrahedra[2*self.lower_triangulation.num_triangles:]
-		
-		# Find how the fibre surface immerses.
-		new_lower_map = dict()
-		for triangle in self.lower_triangulation:
-			B, perm_B = self.lower_map[triangle]
-			new_lower_map[triangle] = (forwards[B], perm_B)
-		
-		new_upper_map_inverse = dict()
-		for triangle in self.upper_triangulation:
-			A, perm_A = self.upper_map[triangle]
-			new_upper_map_inverse[forwards[A]] = (A, perm_A.inverse())
-		
-		immerse_fibre_map = dict()  # An immersion of self.lower_triangulation into the bundle.
-		for triangle in self.lower_triangulation:
-			B, perm_B = new_lower_map[triangle]
-			below_B, down_perm_B = B.glued_to[3]
-			perm_B = down_perm_B * perm_B
-			
-			while below_B in upper_tetrahedra:
-				new_upper_triangle, move_perm = new_upper_map_inverse[below_B]
-				new_lower_triangle, cycle = isometry[new_upper_triangle]
-				perm = cyclic_permutation(cycle)
-				new_B, new_perm_B = new_lower_map[new_lower_triangle]
-				below_B, down_perm_B = new_B.glued_to[3]
-				perm_B = down_perm_B * new_perm_B * perm * move_perm * perm_B
-			
-			immerse_fibre_map[triangle] = (below_B, perm_B)
-		
-		# print(immerse_fibre_map)
+		upper_tetrahedra = self.core_triangulation.tetrahedra[self.lower_triangulation.num_triangles:2*self.lower_triangulation.num_triangles]
 		
 		# Remove the boundary tetrahedra.
 		for triangle in self.upper_triangulation:
@@ -343,18 +295,66 @@ class Layered_Triangulation:
 			B, perm_B = self.lower_map[triangle]
 			closed_triangulation.destroy_tetrahedra(forwards[B])
 		
-		# Now close the bundle up.
-		# !?! Wrong. This doesn't take into account flat tetrahedra.
+		# Find how the fibre surface immerses.
+		core_lower_map = dict()
+		for triangle in self.lower_triangulation:
+			B, perm_B = self.lower_map[triangle]
+			above_B, perm_up = B.glued_to[3]
+			core_lower_map[triangle] = (above_B, perm_up * perm_B)
+		
+		core_upper_map = dict()
 		for triangle in self.upper_triangulation:
-			matching_triangle, cycle = isometry[triangle]
-			perm = cyclic_permutation(cycle)
-			
 			A, perm_A = self.upper_map[triangle]
-			B, perm_B = self.lower_map[matching_triangle]
+			below_A, perm_down = A.glued_to[3]
+			core_upper_map[triangle] = (below_A, perm_down * perm_A)
+		
+		paired = dict()
+		for source_triangle in self.upper_triangulation:
+			target_triangle, perm = isometry[source_triangle]
+			B, perm_B = core_lower_map[target_triangle]
 			
-			below_A, perm_down_A = A.glued_to[3]
-			below_B, perm_down_B = B.glued_to[3]
-			forwards[below_A].glue(perm_down_A[3], forwards[below_B], perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
+			if B in upper_tetrahedra:
+				hit_triangle = [T for T in self.upper_triangulation if self.upper_map[T][0] == B][0]
+				A, perm_A = self.upper_map[hit_triangle]
+				paired[source_triangle] = (hit_triangle, perm_A.inverse() * perm_B * perm.embed(4))
+			else:
+				paired[source_triangle] = (target_triangle, perm.embed(4))
+		
+		print(isometry)
+		print(paired)
+		
+		# Now close the bundle up.
+		for source_triangle in self.upper_triangulation:
+			target_triangle, perm = paired[source_triangle]
+			
+			while target_triangle in self.upper_triangulation:
+				new_target_triangle, new_perm = paired[target_triangle]
+				target_triangle = new_target_triangle
+				perm = new_perm * perm
+			
+			A, perm_A = core_upper_map[source_triangle]
+			B, perm_B = core_lower_map[target_triangle]
+			print(forwards[A].edge_labels)
+			print(forwards[B].edge_labels)
+			print(perm_A)
+			print(perm_B * perm * perm_A.inverse())
+			forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
+		
+		# !?! Wrong. This doesn't take into account flat tetrahedra.
+		# for triangle in self.upper_triangulation:
+			# matching_triangle, cycle = isometry.apply(triangle, Id_Permutation(3))
+			# perm = cycle.embed(4)
+			# print('!!!', cycle, perm)
+			
+			# A, perm_A = self.upper_map[triangle]
+			# B, perm_B = self.lower_map[matching_triangle]
+			# print(A)
+			# print(B)
+			
+			# below_A, perm_down_A = A.glued_to[3]
+			# below_B, perm_down_B = B.glued_to[3]
+			# print(perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
+			# forwards[below_A].glue(perm_down_A[3], forwards[below_B], perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
 		
 		# Install the cusp indices.
 		cusps = closed_triangulation.assign_cusp_indices()
@@ -484,19 +484,3 @@ if __name__ == '__main__':
 	L.flips(periodic)
 	M, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	print(M.SnapPy_string())
-	exit(0)
-	
-	
-	from Examples import Example_S_1_1 as Example
-	
-	T, twists = Example()
-	L = Layered_Triangulation(T)
-	L.flips([1, 0])
-	# print('------------------------------')
-	# print(L)
-	# print('------------------------------')
-	# M = L.close(??)
-	# print(M)
-	# print('M is closed: %s' % M.is_closed())
-	# print('M\'s SnapPy string:')
-	# print(M.SnapPy_string())

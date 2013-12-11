@@ -11,9 +11,10 @@
 		# Isometry
 		# SymbolicComputation
 	# LayeredTriangulation imports:
+		# Permutation
 		# Lamination
 	# Isometry imports:
-		# 
+		# Permutation
 
 from __future__ import print_function
 from itertools import product, combinations
@@ -143,7 +144,8 @@ class Abstract_Triangulation:
 		return new_triangulation
 	
 	def find_triangle(self, edge_indices):
-		matches = [triangle for triangle in self.triangles if set(triangle.edge_indices) == set(edge_indices)]
+		# There can be more than one match in the case of S_1_1.
+		matches = [triangle for triangle in self if any(all(triangle[i+j] == edge_indices[j] for j in range(3)) for i in range(3))]
 		if matches != []:
 			return matches[0]
 		else:

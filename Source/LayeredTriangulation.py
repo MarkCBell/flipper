@@ -125,6 +125,9 @@ class Triangulation:
 	def __iter__(self):
 		return iter(self.tetrahedra)
 	
+	def __contains__(self, other):
+		return other in self.tetrahedra
+	
 	def create_tetrahedra(self):
 		self.tetrahedra.append(Tetrahedron(self.num_tetrahedra))
 		self.num_tetrahedra += 1
@@ -211,8 +214,8 @@ class Layered_Triangulation:
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each Abstract_Triangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, Id_Permutation(4))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, Id_Permutation(4))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		self.lower_map = dict((lower, (lower_tetra, Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
+		self.upper_map = dict((upper, (upper_tetra, Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -278,7 +281,6 @@ class Layered_Triangulation:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
-		# Should assume that *almost* all edges of the underlying triangulation have been flipped. !?!
 		isometry = isometry.adapt_isometry(self.upper_triangulation, self.lower_triangulation)  # This hides involutions of S_1_1!
 		
 		# Duplicate the bundle.
@@ -309,6 +311,10 @@ class Layered_Triangulation:
 			core_upper_map[triangle] = (below_A, perm_down * perm_A)
 		
 		paired = dict()
+		# This is a map which send each triangle of self.upper_triangulation via isometry to a pair:
+		#	(triangle, permutation)
+		# where triangle is either a triangle in self.lower_triangulation or a triangle in
+		# self.upper_triangulation, if it is directly paired with one.
 		for source_triangle in self.upper_triangulation:
 			target_triangle, perm = isometry[source_triangle]
 			B, perm_B = core_lower_map[target_triangle]
@@ -320,13 +326,11 @@ class Layered_Triangulation:
 			else:
 				paired[source_triangle] = (target_triangle, perm.embed(4))
 		
-		print(isometry)
-		print(paired)
-		
 		# Now close the bundle up.
 		for source_triangle in self.upper_triangulation:
 			target_triangle, perm = paired[source_triangle]
 			
+			# We might have to map repeatedly until we get back to the core part of the triangulation.
 			while target_triangle in self.upper_triangulation:
 				new_target_triangle, new_perm = paired[target_triangle]
 				target_triangle = new_target_triangle
@@ -334,60 +338,38 @@ class Layered_Triangulation:
 			
 			A, perm_A = core_upper_map[source_triangle]
 			B, perm_B = core_lower_map[target_triangle]
-			print(forwards[A].edge_labels)
-			print(forwards[B].edge_labels)
-			print(perm_A)
-			print(perm_B * perm * perm_A.inverse())
-			forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
-		
-		# !?! Wrong. This doesn't take into account flat tetrahedra.
-		# for triangle in self.upper_triangulation:
-			# matching_triangle, cycle = isometry.apply(triangle, Id_Permutation(3))
-			# perm = cycle.embed(4)
-			# print('!!!', cycle, perm)
-			
-			# A, perm_A = self.upper_map[triangle]
-			# B, perm_B = self.lower_map[matching_triangle]
-			# print(A)
-			# print(B)
-			
-			# below_A, perm_down_A = A.glued_to[3]
-			# below_B, perm_down_B = B.glued_to[3]
-			# print(perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
-			# forwards[below_A].glue(perm_down_A[3], forwards[below_B], perm_down_B * perm_B * perm * perm_A.inverse() * perm_down_A.inverse())
+			if forwards[A] in closed_triangulation:
+				forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
 		
 		# Install the cusp indices.
 		cusps = closed_triangulation.assign_cusp_indices()
-		longitude_installed = dict((corner, False) for cusp in cusps for corner in cusp)
-		
-		# Install the meridians and longitudes.
-		# We'll define some maps to help us move around.
-		exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
-		exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
 		
 		# Install some longitude and meridian on each cusp.
 		# We will choose ones that come from pushing some curve embedded in the one-skeleton of the cusp torus triangulation 
 		# off in some direction.
-		for cusp in cusps:
-			all_edges = [(tetrahedron, side, other) for tetrahedron, side in cusp for other in vertices_meeting[side]]
-			pair = dict()
-			for tetrahedron, side, other in all_edges:
-				other_tetrahedron, perm = tetrahedron.glued_to[other]
-				pair[(tetrahedron, side, other)] = (other_tetrahedron, perm[side], perm[other])
-			
-			# Find a basis for homology.
-			
-			labels = dict((key, min(key, pair[key])) for key in pair)
-		
-		# Now figure out what slope the boundary of the fibre has. (And the degeneracy slope?)
-		
 		if False:
-			# Find the correct longitude and degeneracy slope on each cusp.
+			longitude_installed = dict((corner, False) for cusp in cusps for corner in cusp)
+			# We'll define some maps to help us move around.
+			exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
+			exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
+			
+			for cusp in cusps:
+				all_edges = [(tetrahedron, side, other) for tetrahedron, side in cusp for other in vertices_meeting[side]]
+				pair = dict()
+				for tetrahedron, side, other in all_edges:
+					other_tetrahedron, perm = tetrahedron.glued_to[other]
+					pair[(tetrahedron, side, other)] = (other_tetrahedron, perm[side], perm[other])
+				
+				# Find a basis for homology.
+				
+				labels = dict((key, min(key, pair[key])) for key in pair)
+		
+			# Now figure out what slope the boundary of the fibre has. (And the degeneracy slope?)
+			# Find the fibre and degeneracy slope on each cusp.
 			# We'll work on each cusp one at a time.
 			for corner_class in self.lower_triangulation.corner_classes:
 				for triangle, side in corner_class:
 					tetrahedron, permutation = immerse_fibre_map[triangle]
-			
 			
 			for cusp in cusps:
 				# Find just the right starting spot. We want one such that when we do one step to the left we don't pass through the fibre.
@@ -424,8 +406,6 @@ class Layered_Triangulation:
 								assert(len(path) > 0)
 								path.pop()
 						
-						# print(path)
-						
 						for tetrahedron, side, arrive, leave, turn in path[:-1]:
 							tetrahedron.meridians[side][arrive] = +1
 							tetrahedron.meridians[side][leave] = -1
@@ -457,7 +437,7 @@ class Layered_Triangulation:
 							current_tetrahedron.longitudes[current_side][arrive] = +1
 						
 						break
-			
+		
 		# Compute degeneracy slopes.
 		degeneracy_slopes = []
 		
@@ -466,8 +446,8 @@ class Layered_Triangulation:
 if __name__ == '__main__':
 	from Lamination import invariant_lamination
 	from Examples import Example_S_1_1 as Example, build_example_mapping_class
+	# from Examples import Example_12 as Example, build_example_mapping_class
 	
-	# print('Start')
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	word, mapping_class = build_example_mapping_class(Example, word='aB')
 	# If this computation fails it will throw an AssumptionError - the map _is_ reducible
@@ -477,8 +457,6 @@ if __name__ == '__main__':
 	# If this computation fails it will throw an AssumptionError - the lamination is not filling and so our map is not pseudo-Anosov.
 	# At the minute we just assume that it doesn't.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
-	# print('Layering')
-	# print(isometries)
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)

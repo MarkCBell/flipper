@@ -287,7 +287,7 @@ class Layered_Triangulation:
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
 		forwards = dict(zip(self.core_triangulation, closed_triangulation))
-		upper_tetrahedra = self.core_triangulation.tetrahedra[self.lower_triangulation.num_triangles:2*self.lower_triangulation.num_triangles]
+		upper_tetrahedra = [self.upper_map[triangle][0] for triangle in self.upper_map]
 		
 		# Remove the boundary tetrahedra.
 		for triangle in self.upper_triangulation:
@@ -297,7 +297,7 @@ class Layered_Triangulation:
 			B, perm_B = self.lower_map[triangle]
 			closed_triangulation.destroy_tetrahedra(forwards[B])
 		
-		# Find how the fibre surface immerses.
+		# These are maps which push the upper and lower triangulations in just a bit.
 		core_lower_map = dict()
 		for triangle in self.lower_triangulation:
 			B, perm_B = self.lower_map[triangle]

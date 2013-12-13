@@ -359,7 +359,7 @@ class Layered_Triangulation:
 				perm = new_perm * perm
 			
 			B, perm_B = core_lower_map[target_triangle]
-			fibre_immersion[triangle] = (forwards[B], perm_B * perm)
+			fibre_immersion[source_triangle] = (forwards[B], perm_B * perm)
 		
 		# Install some longitude and meridian on each cusp.
 		# We will choose ones that come from pushing some curve embedded in the one-skeleton of the cusp torus triangulation 
@@ -370,17 +370,20 @@ class Layered_Triangulation:
 			exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
 			exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
 			
+			# The corners of the tetrahedra triangulate a torus. Each triangle is given by a pair (tetrahedron, side) and
+			# each edge is given by a triple (tetrahedron, side, other).
+			
+			# We first build a map cusp_tri_edge_pair which identifies each edge name with its other name.
+			cusp_tri_edge_pair = dict()
 			for cusp in cusps:
-				all_edges = [(tetrahedron, side, other) for tetrahedron, side in cusp for other in vertices_meeting[side]]
-				pair = dict()
-				for tetrahedron, side, other in all_edges:
-					other_tetrahedron, perm = tetrahedron.glued_to[other]
-					pair[(tetrahedron, side, other)] = (other_tetrahedron, perm[side], perm[other])
+				for tetrahedron, side in cusp:
+					for other in vertices_meeting[side]:
+						other_tetrahedron, perm = tetrahedron.glued_to[other]
+						cusp_tri_edge_pair[(tetrahedron, side, other)] = (other_tetrahedron, perm[side], perm[other])
 				
 				# Find a basis for homology.
-				
-				labels = dict((key, min(key, pair[key])) for key in pair)
-		
+				labels = dict((key, min(key, pair[key])) for key in cusp_tri_edge_pair)
+			
 			# Now figure out what slope the boundary of the fibre has. (And the degeneracy slope?)
 			# Find the fibre and degeneracy slope on each cusp.
 			# We'll work on each cusp one at a time.

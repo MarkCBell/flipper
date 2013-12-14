@@ -11,6 +11,7 @@
 		# Isometry
 		# SymbolicComputation
 	# LayeredTriangulation imports:
+		# AbstractTriangulation
 		# Permutation
 		# Lamination
 	# Isometry imports:
@@ -162,3 +163,10 @@ class Abstract_Triangulation:
 		
 		containing_triangles = self.find_edge(edge_index)
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
+	
+	def homology_basis(self):
+		# Returns a basis for H_1 of the given cusp. Each element is given as a path
+		# in the 1--skeleton. Each pair of paths is guaranteed to meet at most once. 
+		
+		# !?!
+		return [], []

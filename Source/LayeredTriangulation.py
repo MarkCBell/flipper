@@ -13,14 +13,13 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
+	from Source.AbstractTriangulation import Abstract_Triangulation
+	from Source.Permutation import Permutation, Id_Permutation
 	from Source.Error import AssumptionError
 except ImportError:
-	from Error import AssumptionError
-
-try:
-	from Source.Permutation import Permutation, Id_Permutation
-except ImportError:
+	from AbstractTriangulation import Abstract_Triangulation
 	from Permutation import Permutation, Id_Permutation
+	from Error import AssumptionError
 
 all_permutations = [Permutation(perm) for perm in permutations(range(4), 4)]
 even_permutations = [perm for perm in all_permutations if perm.is_even()]
@@ -179,6 +178,112 @@ class Triangulation:
 		
 		return vertex_classes
 	
+	def cusp_identification_map(self):
+		cusp_pairing = dict()
+		for tetrahedron in self.tetrahedra:
+			for side in range(4):
+				for other in vertices_meeting[side]:
+					neighbour_tetrahedron, permutation = tetrahedron.glued_to[other]
+					neighbour_side, neighbour_other = permutation[side], permutation[other]
+					cusp_pairing[(tetrahedron, side, other)] = (neighbour_tetrahedron, neighbour_side, neighbour_other)
+		
+		return cusp_pairing
+	
+	def install_longitudes_and_meridians(self):
+		# Install the cusp indices.
+		cusps = self.assign_cusp_indices()
+		cusp_pairing = self.cusp_identification_map()
+		
+		# Install a longitude and meridian on each cusp one at a time.
+		for cusp in cusps:
+			# Build a triangulation of the cusp neighbourhood.
+			label = 0
+			edge_label_map = dict()
+			for tetrahedron, side in cusp:
+				for other in vertices_meeting[side]:
+					key = (tetrahedron, side, other)
+					if key not in edge_label_map:
+						edge_label_map[key] = label
+						edge_label_map[cusp_pairing[key]] = label
+						label += 1
+			
+			T = Abstract_Triangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			
+			# Get a basis for H_1.
+			longitude_subcomplex, meridian_subcomplex = T.homology_basis()  # !?!
+			longitude_path = []  # !?!
+			meridian_path = []  # !?!
+			# Install the longitude.
+			self.pushoff(longitude_path, longitude=True)
+			# If the algebraic intersection number of the two generators is -1 then 
+			# reverse the direction of the meridian first.
+			p, q = self.slope(meridian_path)
+			if q < 0:
+				reversed_meridian_path = []
+				for tetrahedron, side, other in meridian_path:
+					for other in vertices_meeting[side]:
+						neighbour_tetrahedron, permutation = tetrahedron.glued_to[other]
+						neighbour_side, neighbour_other = permutation[side], permutation[other]
+						reversed_meridian_path.append((neighbour_tetrahedron, neighbour_side, neighbour_other))
+				
+				meridian_path = reversed_meridian_path[::-1]
+			# Install the meridian.
+			self.pushoff(meridian_path, longitude=False)
+		
+		return cusps
+	
+	def pushoff(self, path, longitude=True):
+		# Pushes the given path in the 1--skeleton into the longitudes if longitude is True else into the meridians. 
+		# Assumes that the given path is simple and not null-homotopic.
+		exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
+		exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
+		cusp_pairing = self.cusp_identification_map()
+		
+		# Clear out any old data.
+		for tetrahedron in self.tetrahedra:
+			if longitude:
+				tetrahedron.longitudes = [[0,0,0,0] for i in range(4)]
+			else:
+				tetrahedron.meridians = [[0,0,0,0] for i in range(4)]
+		
+		if len(path) > 0:
+			# We might need to correct the path a little bit.
+			if len(path) > 1:
+				first_tetrahedron, first_side, first_other = path[0]
+				second_tetrahedron, second_side, second_other = path[1]
+				if first_tetrahedron == second_tetrahedron and first_side == second_side and exit_cusp_right[(first_side, first_other)] == second_other: path = path[1:] + path[:1]
+			
+			current_tetrahedron, current_side, current_other = path[0]
+			turn_left = True
+			for path_segment in path:
+				while (current_tetrahedron, current_side, current_other) not in (path_segment, cusp_pairing[path_segment]):
+					if longitude:
+						current_tetrahedron.longitudes[current_side][current_other] -= 1
+					else:
+						current_tetrahedron.meridians[current_side][current_other] -= 1
+					next_tetrahedron, permutation = current_tetrahedron.glued_to[current_other]
+					current_tetrahedron, current_side, current_other = next_tetrahedron, permutation[current_side], permutation[current_other]
+					
+					if longitude:
+						current_tetrahedron.longitudes[current_side][current_other] += 1
+					else:
+						current_tetrahedron.meridians[current_side][current_other] += 1
+					
+					current_other = (exit_cusp_left if turn_left else exit_cusp_right)[(current_side, current_other)]
+				
+				# !?! Check this.
+				if (current_tetrahedron, current_side, current_other) == path[0]:
+					break
+				turn_left = not turn_left
+	
+	def slope(self, path):
+		# Returns the slope of the given path in the 1--skeleton relative to the set meridians and longitudes. Assumes that the meridian and longitude on
+		# this cusp have been set.
+		longitude_intersection = sum(current_tetrahedron.longitudes[current_side][current_other] for current_tetrahedron, current_side, current_other in path)
+		meridian_intersection = sum(current_tetrahedron.meridians[current_side][current_other] for current_tetrahedron, current_side, current_other in path)
+		
+		return (meridian_intersection, longitude_intersection)
+	
 	def SnapPy_string(self):
 		if not self.is_closed(): raise AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
@@ -313,11 +418,11 @@ class Layered_Triangulation:
 			below_A, perm_down = A.glued_to[3]
 			core_upper_map[triangle] = (below_A, perm_down * perm_A)
 		
-		paired = dict()
 		# This is a map which send each triangle of self.upper_triangulation via isometry to a pair:
 		#	(triangle, permutation)
 		# where triangle is either a triangle in self.lower_triangulation or a triangle in
 		# self.upper_triangulation, if it is directly paired with one.
+		paired = dict()
 		for source_triangle in self.upper_triangulation:
 			target_triangle, perm = isometry[source_triangle]
 			B, perm_B = core_lower_map[target_triangle]
@@ -329,139 +434,59 @@ class Layered_Triangulation:
 			else:
 				paired[source_triangle] = (target_triangle, perm.embed(4))
 		
-		# Now close the bundle up.
+		# This is the map obtained by repeatedly applying the paired map until you land in the lower triangulation.
+		full_fowards = dict()
 		for source_triangle in self.upper_triangulation:
 			target_triangle, perm = paired[source_triangle]
 			
-			# We might have to map repeatedly until we get back to the core part of the triangulation.
-			while target_triangle in self.upper_triangulation:
+			# We might have to map repeatedly until we get back to the lower triangulation.
+			while target_triangle not in self.lower_triangulation:
 				new_target_triangle, new_perm = paired[target_triangle]
 				target_triangle = new_target_triangle
 				perm = new_perm * perm
+			
+			full_fowards[source_triangle] = (target_triangle, perm)
+		
+		# Now close the bundle up.
+		for source_triangle in self.upper_triangulation:
+			target_triangle, perm = full_fowards[source_triangle]
 			
 			A, perm_A = core_upper_map[source_triangle]
 			B, perm_B = core_lower_map[target_triangle]
 			if forwards[A] in closed_triangulation:
 				forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
 		
-		# Install the cusp indices.
-		cusps = closed_triangulation.assign_cusp_indices()
-		
 		# Construct an immersion of the fibre surface into the closed bundle.
 		fibre_immersion = dict()
 		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = paired[source_triangle]
-			
-			# We might have to map repeatedly until we get back to the core part of the triangulation.
-			while target_triangle in self.upper_triangulation:
-				new_target_triangle, new_perm = paired[target_triangle]
-				target_triangle = new_target_triangle
-				perm = new_perm * perm
+			target_triangle, perm = full_fowards[source_triangle]
 			
 			B, perm_B = core_lower_map[target_triangle]
 			fibre_immersion[source_triangle] = (forwards[B], perm_B * perm)
 		
-		# Install some longitude and meridian on each cusp.
-		# We will choose ones that come from pushing some curve embedded in the one-skeleton of the cusp torus triangulation 
-		# off in some direction.
-		if False:
-			longitude_installed = dict((corner, False) for cusp in cusps for corner in cusp)
-			# We'll define some maps to help us move around.
-			exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
-			exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
-			
-			# The corners of the tetrahedra triangulate a torus. Each triangle is given by a pair (tetrahedron, side) and
-			# each edge is given by a triple (tetrahedron, side, other).
-			
-			# We first build a map cusp_tri_edge_pair which identifies each edge name with its other name.
-			cusp_tri_edge_pair = dict()
-			for cusp in cusps:
-				for tetrahedron, side in cusp:
-					for other in vertices_meeting[side]:
-						other_tetrahedron, perm = tetrahedron.glued_to[other]
-						cusp_tri_edge_pair[(tetrahedron, side, other)] = (other_tetrahedron, perm[side], perm[other])
-				
-				# Find a basis for homology.
-				labels = dict((key, min(key, pair[key])) for key in cusp_tri_edge_pair)
-			
-			# Now figure out what slope the boundary of the fibre has. (And the degeneracy slope?)
-			# Find the fibre and degeneracy slope on each cusp.
-			# We'll work on each cusp one at a time.
-			for corner_class in self.lower_triangulation.corner_classes:
-				for triangle, side in corner_class:
-					tetrahedron, permutation = immerse_fibre_map[triangle]
-			
-			for cusp in cusps:
-				# Find just the right starting spot. We want one such that when we do one step to the left we don't pass through the fibre.
-				for starting_tetrahedron, starting_side in cusp:
-					if (starting_side == 0 and (starting_tetrahedron, 2) in fibre_surface) or (starting_side == 2 and (starting_tetrahedron, 0) in fibre_surface):
-						# Put in the meridian.
-						current_tetrahedron, current_side = starting_tetrahedron, starting_side
-						
-						arrive = 3 if starting_side == 0 else 1
-						leave = UNKNOWN
-						path = [(starting_tetrahedron, starting_side, arrive, leave, UNKNOWN)]
-						
-						while len(path) <= 1 or current_tetrahedron != starting_tetrahedron or current_side != starting_side:
-							current_tetrahedron, current_side, arrive, leave, turn = path[-1]
-							if turn == UNKNOWN:
-								leave = exit_cusp_left[(current_side, arrive)]
-								path[-1] = (current_tetrahedron, current_side, arrive, leave, LEFT)
-								if (current_tetrahedron, leave) not in fibre_surface:
-									current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-									current_side = permutation[current_side]
-									arrive = permutation[leave]
-									leave = UNKNOWN
-									path.append((current_tetrahedron, current_side, arrive, leave, UNKNOWN))
-							elif turn == LEFT:
-								leave = exit_cusp_right[(current_side, arrive)]
-								path[-1] = (current_tetrahedron, current_side, arrive, leave, RIGHT)
-								if (current_tetrahedron, leave) not in fibre_surface:
-									current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-									current_side = permutation[current_side]
-									arrive = permutation[leave]
-									leave = UNKNOWN
-									path.append((current_tetrahedron, current_side, arrive, leave, UNKNOWN))
-							elif turn == RIGHT:
-								assert(len(path) > 0)
-								path.pop()
-						
-						for tetrahedron, side, arrive, leave, turn in path[:-1]:
-							tetrahedron.meridians[side][arrive] = +1
-							tetrahedron.meridians[side][leave] = -1
-						
-						# Put in the longitude.
-						current_tetrahedron, current_side = starting_tetrahedron, starting_side
-						
-						# Go upwards until you reach a cusp which contains the meridian.
-						arrive = 3
-						passed_through_fibre_surface = False
-						while not passed_through_fibre_surface or current_tetrahedron.meridians[current_side] == [0,0,0,0]:
-							leave = 1
-							current_tetrahedron.longitudes[current_side][leave] = -1
-							current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-							current_side = permutation[current_side]
-							arrive = permutation[leave]
-							current_tetrahedron.longitudes[current_side][arrive] = +1
-							if (current_tetrahedron, arrive) not in fibre_surface: passed_through_fibre_surface = True
-						
-						# Then follow through whatever side the meridian leaves through until you reach the starting cusp again.
-						while current_tetrahedron != starting_tetrahedron or current_side != starting_side:
-							# print(starting_tetrahedron, starting_side, current_tetrahedron, current_side)
-							# print(current_tetrahedron.meridians[current_side])
-							leave = [side for side in range(4) if current_tetrahedron.meridians[current_side][side] == -1][0]
-							current_tetrahedron.longitudes[current_side][leave] = -1
-							current_tetrahedron, permutation = current_tetrahedron.glued_to[leave]
-							current_side = permutation[current_side]
-							arrive = permutation[leave]
-							current_tetrahedron.longitudes[current_side][arrive] = +1
-						
-						break
+		# Install longitudes and meridians.
+		cusps = closed_triangulation.install_longitudes_and_meridians()
+		
+		# Now identify each the type of each cusp.
+		cusp_types = [None] * closed_triangulation.num_cusps
+		for triangle in self.upper_triangulation:
+			tetrahedron, permutation = fibre_immersion[triangle]
+			for side in range(3):
+				cusp_types[tetrahedron.cusp_indices[permutation[side]]] = triangle.corner_labels[side]
+		
+		# Compute longitude slopes.
+		longitude_slopes = [None] * closed_triangulation.num_cusps
+		for i in range(closed_triangulation.num_cusps):
+			longitude_path = []  # !?!
+			longitude_slopes[i] = closed_triangulation.slope(longitude_path)
 		
 		# Compute degeneracy slopes.
-		degeneracy_slopes = []
+		degeneracy_slopes = [None] * closed_triangulation.num_cusps
+		for i in range(closed_triangulation.num_cusps):
+			degeneracy_path = []  # !?!
+			degeneracy_slopes[i] = closed_triangulation.slope(degeneracy_path)
 		
-		return closed_triangulation, degeneracy_slopes
+		return closed_triangulation, longitude_slopes, degeneracy_slopes, cusp_types
 
 if __name__ == '__main__':
 	from Lamination import invariant_lamination
@@ -480,5 +505,5 @@ if __name__ == '__main__':
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
-	M, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+	M, longitude_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	print(M.SnapPy_string())

@@ -29,12 +29,12 @@
 # To use your own library add its script to this folder and add that scripts name to the list below.
 
 possible_libraries = [
-'Source.SymbolicComputation_sage',
-'SymbolicComputation_sage',
-'Source.SymbolicComputation_sympy',
-'SymbolicComputation_sympy',
-'Source.SymbolicComputation_dummy',
-'SymbolicComputation_dummy']
+	'Source.SymbolicComputation_sage',
+	'SymbolicComputation_sage',
+	'Source.SymbolicComputation_sympy',
+	'SymbolicComputation_sympy',
+	'Source.SymbolicComputation_dummy',
+	'SymbolicComputation_dummy']
 
 required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', '_name']
 def import_library(possible_libraries, required_imports):

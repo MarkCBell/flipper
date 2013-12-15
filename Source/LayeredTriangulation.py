@@ -6,7 +6,7 @@
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
 from itertools import permutations, combinations, product
-from time import sleep
+from copy import deepcopy
 try:
 	from Queue import Queue
 except ImportError: # Python 3
@@ -29,19 +29,26 @@ def permutation_from_mapping(i, i_image, j, j_image, even):
 	return [perm for perm in (even_permutations if even else odd_permutations) if perm[i] == i_image and perm[j] == j_image][0]
 
 # Edge veerings:
-UNKNOWN = None
-LEFT = 0
-RIGHT = 1
+VEERING_UNKNOWN = None
+VEERING_LEFT = 0
+VEERING_RIGHT = 1
+# Peripheral curve types:
+LONGITUDES = 0
+MERIDIANS = 1
+TEMPS = 2
+PERIPHERAL_TYPES = [LONGITUDES, MERIDIANS, TEMPS]
+# Tetrahedron geometry:
 vertices_meeting = {0:(1,2,3), 1:(0,3,2), 2:(0,1,3), 3:(0,2,1)}  # This order was chosen so they appear ordered anti-clockwise from the cusp.
+exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
+exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
 
 class Tetrahedron:
 	def __init__(self, label=None):
 		self.label = label
 		self.glued_to = [None] * 4  # None or (Tetrahedron, permutation).
 		self.cusp_indices = [-1, -1, -1, -1]
-		self.meridians = [[0,0,0,0] for i in range(4)]
-		self.longitudes = [[0,0,0,0] for i in range(4)]
-		self.edge_labels = {(0,1):UNKNOWN, (0,2):UNKNOWN, (0,3):UNKNOWN, (1,2):UNKNOWN, (1,3):UNKNOWN, (2,3):UNKNOWN}
+		self.peripheral_curves = [[[0,0,0,0] for i in range(4)] for j in PERIPHERAL_TYPES]
+		self.edge_labels = {(0,1):VEERING_UNKNOWN, (0,2):VEERING_UNKNOWN, (0,3):VEERING_UNKNOWN, (1,2):VEERING_UNKNOWN, (1,3):VEERING_UNKNOWN, (2,3):VEERING_UNKNOWN}
 		self.vertex_labels = [None, None, None, None]
 	
 	def __repr__(self):
@@ -65,11 +72,11 @@ class Tetrahedron:
 				x, y = sorted([permutation[a], permutation[b]])
 				my_edge_veering = self.edge_labels[(a, b)]
 				his_edge_veering = target.edge_labels[(x, y)]
-				if my_edge_veering == UNKNOWN and his_edge_veering != UNKNOWN:
+				if my_edge_veering == VEERING_UNKNOWN and his_edge_veering != VEERING_UNKNOWN:
 					self.edge_labels[(a, b)] = his_edge_veering
-				elif my_edge_veering != UNKNOWN and his_edge_veering == UNKNOWN:
+				elif my_edge_veering != VEERING_UNKNOWN and his_edge_veering == VEERING_UNKNOWN:
 					target.edge_labels[(x, y)] = my_edge_veering
-				elif my_edge_veering != UNKNOWN and his_edge_veering != UNKNOWN:
+				elif my_edge_veering != VEERING_UNKNOWN and his_edge_veering != VEERING_UNKNOWN:
 					assert(my_edge_veering == his_edge_veering)
 		else:
 			assert((target, permutation) == self.glued_to[side])
@@ -85,9 +92,9 @@ class Tetrahedron:
 		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
 		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
 		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.meridians for cusp in meridian)
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
 		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.longitudes for cusp in longitude)
+		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
 		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		s += '  0.000000000000   0.000000000000\n'
 		return s
@@ -111,8 +118,7 @@ class Triangulation:
 					forwards[tetrahedron].glue(side, forwards[neighbour], permutation)
 			
 			forwards[tetrahedron].cusp_indices = list(tetrahedron.cusp_indices)
-			forwards[tetrahedron].meridians = [list(meridian) for meridian in tetrahedron.meridians]
-			forwards[tetrahedron].longitudes = [list(longitude) for longitude in tetrahedron.longitudes]
+			forwards[tetrahedron].peripheral_curves = deepcopy(tetrahedron.peripheral_curves)
 			forwards[tetrahedron].edge_labels = dict(tetrahedron.edge_labels)
 			forwards[tetrahedron].vertex_labels = tetrahedron.vertex_labels
 		
@@ -136,27 +142,31 @@ class Triangulation:
 		for side in range(4):
 			tetrahedron.unglue(side)
 		self.tetrahedra.remove(tetrahedron)
-		self.num_tetrahedra -= 1
+		self.num_tetrahedra -= 1  # !?! This makes tetrahedron names non-unique.
 	
 	def reindex(self):
 		for index, tetrahedron in enumerate(self):
 			tetrahedron.label = index
+	
+	def clear_temp_peripheral_structure(self):
+		for tetrahedron in self.tetrahedra:
+			tetrahedron.peripheral_curves[TEMPS] = [[0,0,0,0] for i in range(4)]
 	
 	def is_closed(self):
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
 	
 	def assign_cusp_indices(self):
 		# Find the vertex classes.
-		remaining_vertices = set(product(self, range(4)))
+		remaining_vertices = list(product(self, range(4)))
 		
 		vertex_classes = []
 		while len(remaining_vertices) > 0:
-			new_vertex_class = set([])
+			new_vertex_class = []
 			to_explore = Queue()
 			to_explore.put(remaining_vertices.pop())
 			while not to_explore.empty():
 				current_vertex = to_explore.get()
-				new_vertex_class.add(current_vertex)
+				new_vertex_class.append(current_vertex)
 				current_tetrahedron, current_side = current_vertex
 				for side in vertices_meeting[current_side]:
 					if current_tetrahedron.glued_to[side] is not None:
@@ -167,7 +177,7 @@ class Triangulation:
 							to_explore.put(neighbour_vertex)
 							remaining_vertices.remove(neighbour_vertex)
 			
-			vertex_classes.append(list(new_vertex_class))
+			vertex_classes.append(new_vertex_class)
 		
 		# Then iterate through each one assigning cusp indices.
 		for index, vertex_class in enumerate(vertex_classes):
@@ -188,6 +198,37 @@ class Triangulation:
 					cusp_pairing[(tetrahedron, side, other)] = (neighbour_tetrahedron, neighbour_side, neighbour_other)
 		
 		return cusp_pairing
+	
+	def intersection_number(self, peripheral_type_a, peripheral_type_b):
+		# Computes the algebraic intersection number between the specified peripheral types.
+		# See SnapPy/kernel_code/intersection_numbers.c for how to do this.
+		
+		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
+		def flow(A,B): 
+			if (A < 0) != (B < 0):
+				return A if (A < 0) != (A < -B) else -B
+			else:
+				return 0
+				
+		intersection_number = 0
+		# Count intersection numbers along edges.
+		for tetrahedron in self.tetrahedra:
+			for side in range(4):
+				for other in vertices_meeting[side]:
+					intersection_number -= tetrahedron.peripheral_curves[peripheral_type_a][side][other] * tetrahedron.peripheral_curves[peripheral_type_b][side][other]
+		
+		intersection_number = intersection_number // 2
+		
+		# and then within each face.
+		for tetrahedron in self.tetrahedra:
+			for side in range(4):
+				for other in vertices_meeting[side]:
+					left = exit_cusp_left[(side, other)]
+					right = exit_cusp_right[(side, other)]
+					intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][left]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
+					intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][right]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
+		
+		return intersection_number
 	
 	def install_longitudes_and_meridians(self):
 		# Install the cusp indices.
@@ -210,77 +251,51 @@ class Triangulation:
 			T = Abstract_Triangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
-			longitude_subcomplex, meridian_subcomplex = T.homology_basis()  # !?!
-			longitude_path = []  # !?!
-			meridian_path = []  # !?!
-			# Install the longitude.
-			self.pushoff(longitude_path, longitude=True)
-			# If the algebraic intersection number of the two generators is -1 then 
-			# reverse the direction of the meridian first.
-			p, q = self.slope(meridian_path)
-			if q < 0:
-				reversed_meridian_path = []
-				for tetrahedron, side, other in meridian_path:
+			homology_basis_paths = T.homology_basis()
+			
+			for tetrahedron in self.tetrahedra:
+				tetrahedron.peripheral_curves = [[[0,0,0,0] for i in range(4)] for j in PERIPHERAL_TYPES]
+			
+			# Install the longitude and meridian.
+			for peripheral_type in [LONGITUDES, MERIDIANS]:
+				for arrive, leave in zip(homology_basis_paths[peripheral_type], homology_basis_paths[peripheral_type][1:] + homology_basis_paths[peripheral_type][:1]):
+					for tetrahedron, side in cusp:
+						for a, b in permutations(vertices_meeting[side], 2):
+							if edge_label_map[(tetrahedron, side, a)] == arrive and edge_label_map[(tetrahedron, side, b)] == leave:
+								tetrahedron.peripheral_curves[peripheral_type][side][a] = +1
+								tetrahedron.peripheral_curves[peripheral_type][side][b] = -1
+			
+			# Compute the algebraic intersection number between the longitude and meridian we just installed.
+			# If the it is -1 then we need to reverse the direction of the meridian.
+			# See SnapPy/kernel_code/intersection_numbers.c for how to do this.
+			
+			intersection_number = self.intersection_number(MERIDIANS, LONGITUDES)
+			assert(abs(intersection_number) == 1)
+			
+			# We might need to reverse the orientation of .
+			# If the it is -1 then we need to reverse the direction of one of them (we choose the meridian).
+			if intersection_number < 0:
+				for tetrahedron, side in cusp:
 					for other in vertices_meeting[side]:
-						neighbour_tetrahedron, permutation = tetrahedron.glued_to[other]
-						neighbour_side, neighbour_other = permutation[side], permutation[other]
-						reversed_meridian_path.append((neighbour_tetrahedron, neighbour_side, neighbour_other))
-				
-				meridian_path = reversed_meridian_path[::-1]
-			# Install the meridian.
-			self.pushoff(meridian_path, longitude=False)
+						tetrahedron.peripheral_curves[MERIDIANS][side][other] = -tetrahedron.peripheral_curves[MERIDIANS][side][other]
 		
 		return cusps
 	
-	def pushoff(self, path, longitude=True):
-		# Pushes the given path in the 1--skeleton into the longitudes if longitude is True else into the meridians. 
-		# Assumes that the given path is simple and not null-homotopic.
-		exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
-		exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
-		cusp_pairing = self.cusp_identification_map()
-		
-		# Clear out any old data.
-		for tetrahedron in self.tetrahedra:
-			if longitude:
-				tetrahedron.longitudes = [[0,0,0,0] for i in range(4)]
-			else:
-				tetrahedron.meridians = [[0,0,0,0] for i in range(4)]
-		
-		if len(path) > 0:
-			# We might need to correct the path a little bit.
-			if len(path) > 1:
-				first_tetrahedron, first_side, first_other = path[0]
-				second_tetrahedron, second_side, second_other = path[1]
-				if first_tetrahedron == second_tetrahedron and first_side == second_side and exit_cusp_right[(first_side, first_other)] == second_other: path = path[1:] + path[:1]
-			
-			current_tetrahedron, current_side, current_other = path[0]
-			turn_left = True
-			for path_segment in path:
-				while (current_tetrahedron, current_side, current_other) not in (path_segment, cusp_pairing[path_segment]):
-					if longitude:
-						current_tetrahedron.longitudes[current_side][current_other] -= 1
-					else:
-						current_tetrahedron.meridians[current_side][current_other] -= 1
-					next_tetrahedron, permutation = current_tetrahedron.glued_to[current_other]
-					current_tetrahedron, current_side, current_other = next_tetrahedron, permutation[current_side], permutation[current_other]
-					
-					if longitude:
-						current_tetrahedron.longitudes[current_side][current_other] += 1
-					else:
-						current_tetrahedron.meridians[current_side][current_other] += 1
-					
-					current_other = (exit_cusp_left if turn_left else exit_cusp_right)[(current_side, current_other)]
-				
-				# !?! Check this.
-				if (current_tetrahedron, current_side, current_other) == path[0]:
-					break
-				turn_left = not turn_left
-	
 	def slope(self, path):
-		# Returns the slope of the given path in the 1--skeleton relative to the set meridians and longitudes. Assumes that the meridian and longitude on
-		# this cusp have been set.
-		longitude_intersection = sum(current_tetrahedron.longitudes[current_side][current_other] for current_tetrahedron, current_side, current_other in path)
-		meridian_intersection = sum(current_tetrahedron.meridians[current_side][current_other] for current_tetrahedron, current_side, current_other in path)
+		# Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes. 
+		# Assumes that the meridian and longitude on this cusp have been set.
+		
+		longitude_intersection = sum(tetrahedron.peripheral_curves[LONGITUDES][side][other] for (tetrahedron, side, other) in path)
+		meridian_intersection = sum(tetrahedron.peripheral_curves[MERIDIANS][side][other] for (tetrahedron, side, other) in path)
+		
+		return (meridian_intersection, longitude_intersection)
+	
+	def slope_TEMPS(self):
+		# Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes. 
+		# Assumes that the meridian and longitude on this cusp have been set.
+		
+		longitude_intersection = self.intersection_number(LONGITUDES, TEMPS)
+		meridian_intersection = self.intersection_number(MERIDIANS, TEMPS)
 		
 		return (meridian_intersection, longitude_intersection)
 	
@@ -337,10 +352,10 @@ class Layered_Triangulation:
 		
 		# Get a new tetrahedra.
 		new_tetrahedron = self.core_triangulation.create_tetrahedra()
-		new_tetrahedron.edge_labels[(0,1)] = RIGHT
-		new_tetrahedron.edge_labels[(1,2)] = LEFT
-		new_tetrahedron.edge_labels[(2,3)] = RIGHT
-		new_tetrahedron.edge_labels[(0,3)] = LEFT
+		new_tetrahedron.edge_labels[(0,1)] = VEERING_RIGHT
+		new_tetrahedron.edge_labels[(1,2)] = VEERING_LEFT
+		new_tetrahedron.edge_labels[(2,3)] = VEERING_RIGHT
+		new_tetrahedron.edge_labels[(0,3)] = VEERING_LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
@@ -475,18 +490,24 @@ class Layered_Triangulation:
 				cusp_types[tetrahedron.cusp_indices[permutation[side]]] = triangle.corner_labels[side]
 		
 		# Compute longitude slopes.
-		longitude_slopes = [None] * closed_triangulation.num_cusps
+		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for i in range(closed_triangulation.num_cusps):
-			longitude_path = []  # !?!
-			longitude_slopes[i] = closed_triangulation.slope(longitude_path)
+			for triangle, side in product(self.upper_triangulation, range(3)):
+				tetrahedron, perm = fibre_immersion[triangle]
+				if tetrahedron.cusp_indices[perm[side]] == i:
+					fibre_path = [(fibre_immersion[T][0], fibre_immersion[T][1][s], fibre_immersion[T][1][3]) for T, s in self.upper_triangulation.find_corner_class(triangle, side)]
+					break
+			
+			fibre_slopes[i] = closed_triangulation.slope(fibre_path)
 		
 		# Compute degeneracy slopes.
 		degeneracy_slopes = [None] * closed_triangulation.num_cusps
 		for i in range(closed_triangulation.num_cusps):
-			degeneracy_path = []  # !?!
-			degeneracy_slopes[i] = closed_triangulation.slope(degeneracy_path)
+			closed_triangulation.clear_temp_peripheral_structure()
+			# !?! Set the degeneracy curve into the TEMPS peripheral structure.
+			degeneracy_slopes[i] = closed_triangulation.slope_TEMPS()
 		
-		return closed_triangulation, longitude_slopes, degeneracy_slopes, cusp_types
+		return closed_triangulation, fibre_slopes, degeneracy_slopes, cusp_types
 
 if __name__ == '__main__':
 	from Lamination import invariant_lamination
@@ -505,5 +526,6 @@ if __name__ == '__main__':
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
-	M, longitude_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-	print(M.SnapPy_string())
+	M, fibre_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+	open('test.tri', 'w').write(M.SnapPy_string())
+	print(fibre_slopes)

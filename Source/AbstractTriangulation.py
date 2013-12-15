@@ -25,6 +25,12 @@ try:
 except ImportError:
 	from Matrix import Matrix, tweak_vector
 
+def get_other(L, item):
+	if item not in L:
+		return None
+	else:
+		return L[0] if L[1] == item else L[1]
+
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	
@@ -57,7 +63,7 @@ class Abstract_Triangulation:
 		self.triangles = [Abstract_Triangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
 		
 		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
-		corners = set(product(self.triangles, range(3)))
+		corners = list(product(self.triangles, range(3)))
 		self.corner_classes = []
 		while len(corners) > 0:
 			new_corner_class = [corners.pop()]
@@ -69,7 +75,7 @@ class Abstract_Triangulation:
 				else:
 					break
 			
-			self.corner_classes.append(new_corner_class)
+			self.corner_classes.append(tuple(new_corner_class))
 		
 		self.num_vertices = len(self.corner_classes)
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
@@ -93,9 +99,16 @@ class Abstract_Triangulation:
 		return self.triangles[index]
 	
 	def find_corner_class(self, triangle, side):
+		side = side % 3
 		for corner_class in self.corner_classes:
 			if (triangle, side) in corner_class:
 				return corner_class
+	
+	def find_edge_corner_classes(self, edge_index):
+		# Returns the two corner classes contain the ends of the specified edge.
+		containing_triangles = self.find_edge(edge_index)
+		triangle, side = containing_triangles[0]
+		return [self.find_corner_class(triangle, side + 1), self.find_corner_class(triangle, side + 2)]
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
@@ -165,8 +178,73 @@ class Abstract_Triangulation:
 		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
 	
 	def homology_basis(self):
-		# Returns a basis for H_1 of the given cusp. Each element is given as a path
-		# in the 1--skeleton. Each pair of paths is guaranteed to meet at most once. 
+		# Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
+		# in the dual 1--skeleton. Each pair of paths is guaranteed to meet at most once. 
 		
-		# !?!
-		return [], []
+		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
+		tree = [False] * self.zeta
+		vertices_used = dict((vertex, False) for vertex in self.corner_classes)
+		vertices_used[self.corner_classes[0]] = True
+		while True:
+			for edge_index in range(self.zeta):
+				a, b = self.find_edge_corner_classes(edge_index)
+				if not tree[edge_index] and (vertices_used[a] != vertices_used[b]):
+					tree[edge_index] = True
+					vertices_used[a] = True
+					vertices_used[b] = True
+					break
+			else:
+				break  # If there are no more to add then our tree is maximal
+		
+		# Now construct a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
+		dual_tree = [False] * self.zeta
+		faces_used = dict((triangle, False) for triangle in self.triangles)
+		faces_used[self.triangles[0]] = True
+		while True:
+			for edge_index in range(self.zeta):
+				(a, side_a), (b, side_b) = self.find_edge(edge_index)
+				if not tree[edge_index] and not dual_tree[edge_index] and (faces_used[a] != faces_used[b]):
+					dual_tree[edge_index] = True
+					faces_used[a] = True
+					faces_used[b] = True
+					break
+			else:
+				break  # If there are no more to add then our tree is maximal
+		
+		# Generators are given by edges not in the tree or the dual tree (along with some segment 
+		# in the dual tree to make it into a loop).
+		dual_tree_indices = [edge_index for edge_index in range(self.zeta) if dual_tree[edge_index]]
+		homology_generators = []
+		for edge_index in range(self.zeta):
+			if not tree[edge_index] and not dual_tree[edge_index]:
+				generator = [edge_index]
+				(source, side_source), (target, side_targe) = self.find_edge(edge_index)
+				
+				# Find a path in dual_tree from source to target. This is a really
+				# inefficient way to do this. We initially define the distance to
+				# each point to be self.num_triangles+1 which we know is larger than any possible
+				# distance.
+				distance = dict((triangle, self.num_triangles+1) for triangle in self.triangles)
+				distance[source] = 0
+				while distance[target] == self.num_triangles+1:
+					for edge in dual_tree_indices:  # Only allowed to move in the tree.
+						(a, side_a), (b, side_b) = self.find_edge(edge)
+						distance[a] = min(distance[b]+1, distance[a])
+						distance[b] = min(distance[a]+1, distance[b])
+				
+				# Now find a way from the target back to the source by following the distance
+				current = target
+				while current != source:
+					for edge in dual_tree_indices:
+						(a, side_a), (b, side_b) = self.find_edge(edge)
+						if b == current: a, b = b, a
+						
+						if a == current and distance[b] == distance[a]-1:
+							generator.append(edge)
+							current = b
+							break
+				
+				# We've now made a generating loop.
+				homology_generators.append(generator)
+		
+		return homology_generators

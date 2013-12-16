@@ -220,11 +220,7 @@ class Triangulation:
 		# has intersection +1.
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
-		def flow(A,B): 
-			if (A < 0) != (B < 0):
-				return A if (A < 0) != (A < -B) else -B
-			else:
-				return 0
+		flow = lambda A, B: return 0 if (A < 0) == (B < 0) else A if (A < 0) != (A < -B) else -B
 		
 		if cusp is None: cusp = product(self.tetrahedra, range(4))
 		
@@ -251,6 +247,13 @@ class Triangulation:
 		cusps = self.assign_cusp_indices()
 		cusp_pairing = self.cusp_identification_map()
 		
+		# Blank out the longitudes and meridians.
+		for peripheral_type in [LONGITUDES, MERIDIANS]:
+			for tetrahedron in self.tetrahedra:
+				for side in range(4):
+					for other in range(4):
+						tetrahedron.peripheral_curves[peripheral_type][side][other] = 0
+		
 		# Install a longitude and meridian on each cusp one at a time.
 		for cusp in cusps:
 			# Build a triangulation of the cusp neighbourhood.
@@ -268,13 +271,6 @@ class Triangulation:
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
-			
-			# Blank out the longitudes and meridians.
-			for peripheral_type in [LONGITUDES, MERIDIANS]:
-				for tetrahedron in self.tetrahedra:
-					for side in range(4):
-						for other in range(4):
-							tetrahedron.peripheral_curves[peripheral_type][side][other] = 0
 			
 			# Install the longitude and meridian.
 			for peripheral_type in [LONGITUDES, MERIDIANS]:
@@ -538,21 +534,19 @@ class Layered_Triangulation:
 
 if __name__ == '__main__':
 	from Lamination import invariant_lamination
-	from Examples import Example_S_1_1 as Example, build_example_mapping_class
+	from Examples import Example_S_1_2 as Example, build_example_mapping_class
 	# from Examples import Example_12 as Example, build_example_mapping_class
 	
 	# Get an example mapping class - this one we know is pseudo-Anosov.
-	word, mapping_class = build_example_mapping_class(Example, word='aB')
-	# If this computation fails it will throw an AssumptionError - the map _is_ reducible
-	# or a ComputationError - the map is probably reducible.
-	# At the minute we just assume that it doesn't.
+	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
+	word, mapping_class = build_example_mapping_class(Example, word='aBc')
 	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
-	# If this computation fails it will throw an AssumptionError - the lamination is not filling and so our map is not pseudo-Anosov.
-	# At the minute we just assume that it doesn't.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	M, fibre_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	open('test.tri', 'w').write(M.SnapPy_string())
+	print('Using the first of %d isometries' % len(isometries))
+	print(cusp_types)
 	print(fibre_slopes)

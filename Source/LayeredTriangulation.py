@@ -220,7 +220,7 @@ class Triangulation:
 		# has intersection +1.
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
-		flow = lambda A, B: return 0 if (A < 0) == (B < 0) else A if (A < 0) != (A < -B) else -B
+		flow = lambda A, B: 0 if (A < 0) == (B < 0) else (A if (A < 0) != (A < -B) else -B)
 		
 		if cusp is None: cusp = product(self.tetrahedra, range(4))
 		
@@ -514,21 +514,32 @@ class Layered_Triangulation:
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
-		for i in range(closed_triangulation.num_cusps):
-			triangle, side = min((triangle, side) for triangle, side in product(self.upper_triangulation, range(3)) if fibre_immersion[triangle][0].cusp_indices[fibre_immersion[triangle][1][side]] == i)
+		for index, cusp in enumerate(cusps):
+			triangle, side = min((triangle, side) for triangle, side in product(self.upper_triangulation, range(3)) if fibre_immersion[triangle][0].cusp_indices[fibre_immersion[triangle][1][side]] == index)
 			fibre_path = [(fibre_immersion[T][0], fibre_immersion[T][1][s], fibre_immersion[T][1][3]) for T, s in self.upper_triangulation.find_corner_class(triangle, side)]
-			fibre_slopes[i] = closed_triangulation.slope(fibre_path)
+			fibre_slopes[index] = closed_triangulation.slope(fibre_path)
 		
 		# Compute degeneracy slopes.
 		degeneracy_slopes = [None] * closed_triangulation.num_cusps
-		for i in range(closed_triangulation.num_cusps):
+		cusp_pairing = closed_triangulation.cusp_identification_map()
+		for index, cusp in enumerate(cusps):
 			closed_triangulation.clear_temp_peripheral_structure()
-			# !?! Set the degeneracy curve into the TEMPS peripheral structure.
 			
-			# degeneracy_path = []
-			# tetrahedron, side other = min((tetrahedron, side, other) for tetrahedron, side in cusp for other in vertices_meeting[side] if tetrahedron.get_edge_label(side, other) == VEERING_LEFT and )
+			# Set the degeneracy curve into the TEMPS peripheral structure.
+			start_tetrahedron, start_side = cusp[0]
+			NV = vertices_meeting[start_side]
+			start_other = NV[min(i for i in range(3) if start_tetrahedron.get_edge_label(start_side, NV[(i+1) % 3]) == VEERING_RIGHT and start_tetrahedron.get_edge_label(start_side, NV[(i+2) % 3]) == VEERING_LEFT)]
 			
-			degeneracy_slopes[i] = closed_triangulation.slope_TEMPS()
+			current_tetrahedron, current_side, current_other = start_tetrahedron, start_side, start_other
+			while True:
+				current_tetrahedron.peripheral_curves[TEMPS][current_side][current_other] += 1
+				leave = (exit_cusp_left if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT else exit_cusp_right)[(current_side, current_other)]
+				current_tetrahedron.peripheral_curves[TEMPS][current_side][leave] -= 1
+				current_tetrahedron, current_side, current_other = cusp_pairing[(current_tetrahedron, current_side, leave)]
+				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):
+					break
+			
+			degeneracy_slopes[index] = closed_triangulation.slope_TEMPS()
 		
 		return closed_triangulation, fibre_slopes, degeneracy_slopes, cusp_types
 
@@ -548,5 +559,7 @@ if __name__ == '__main__':
 	M, fibre_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	open('test.tri', 'w').write(M.SnapPy_string())
 	print('Using the first of %d isometries' % len(isometries))
-	print(cusp_types)
-	print(fibre_slopes)
+	print('Cusp types: %s' % cusp_types)
+	print('Fibre slopes: %s' % fibre_slopes)
+	print('Degeneracy slopes: %s' % degeneracy_slopes)
+	print('You should fill cusps with cusp type 1 by their fibre slope to get the manifold you were expecting')

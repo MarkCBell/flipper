@@ -32,9 +32,9 @@ try:
 	from Source.Lamination import Lamination, invariant_lamination, empty_lamination
 	from Source.LayeredTriangulation import Layered_Triangulation
 	from Source.SymbolicComputation import algebraic_type
-	from Source.Progress import Progress_App
 	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
+	from App.Progress import Progress_App
 except ImportError:
 	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
@@ -43,9 +43,9 @@ except ImportError:
 	from Lamination import Laminationm, invariant_lamination, empty_lamination
 	from LayeredTriangulation import Layered_Triangulation
 	from SymbolicComputation import algebraic_type
-	from Progress import Progress_App
 	from Options import Options, Options_App
 	from Error import AbortError, ComputationError, AssumptionError
+	from Progress import Progress_App
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -1057,9 +1057,11 @@ class Flipper_App:
 							else:
 								L = Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
 								L.flips(periodic)
-								M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+								closing_isometries = [isometry for isometery in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
+								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+								M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(closing_isometries[0])
 								file.write(M.SnapPy_string())
-								description = 'It was built using the first of %d isometries.\n' % len(isometries) + \
+								description = 'It was built using the first of %d isometries.\n' % len(closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
 								'Cusp types: %s\n' % cusp_types + \
 								'Fibre slopes: %s\n' % fibre_slopes + \

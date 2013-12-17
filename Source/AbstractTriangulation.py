@@ -12,6 +12,7 @@
 		# SymbolicComputation
 	# LayeredTriangulation imports:
 		# AbstractTriangulation
+		# Isometry
 		# Permutation
 		# Lamination
 	# Isometry imports:

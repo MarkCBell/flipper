@@ -78,7 +78,7 @@ def Example_S_1_1():
 def build_example_mapping_class(example, word=None, random_length=50):
 	from random import choice
 	
-	T, twists = Example()
+	T, twists = example()
 	
 	if word is None: word = ''.join(choice(list(twists.keys())) for i in range(random_length))
 	h = Id_Encoding_Sequence(T)

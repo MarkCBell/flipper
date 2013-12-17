@@ -14,11 +14,13 @@ except ImportError: # Python 3
 
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Permutation import Permutation, Id_Permutation
+	from Source.Isometry import all_isometries
+	from Source.Permutation import Permutation
 	from Source.Error import AssumptionError
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
-	from Permutation import Permutation, Id_Permutation
+	from Isometry import all_isometries
+	from Permutation import Permutation
 	from Error import AssumptionError
 
 all_permutations = [Permutation(perm) for perm in permutations(range(4), 4)]
@@ -426,9 +428,13 @@ class Layered_Triangulation:
 		for edge_index in sequence:
 			self.flip(edge_index)
 	
+	def upper_lower_isometries(self):
+		# Returns a list of all isometries that can currently be used to close the layered triangulation
+		# up into a bundle.
+		return all_isometries(self.upper_triangulation, self.lower_triangulation)
+	
+	
 	def close(self, isometry):
-		isometry = isometry.adapt_isometry(self.upper_triangulation, self.lower_triangulation)  # This hides involutions of S_1_1!
-		
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
@@ -556,11 +562,13 @@ if __name__ == '__main__':
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
-	M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
+	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+	M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(closing_isometries[0])
 	with open('test.tri', 'w') as file:
 		file.write(M.SnapPy_string())  # Write the manifold to a file.
 	print('I stored the bundle with monodromy \'%s\' in \'test.tri\'.' % word)
-	print('It was built using the first of %d isometries.' % len(isometries))
+	print('It was built using the first of %d isometries.' % len(closing_isometries))
 	print('It has %d cusp(s) with the following properties (in order):' % M.num_cusps)
 	print('Cusp types: %s' % cusp_types)
 	print('Fibre slopes: %s' % fibre_slopes)

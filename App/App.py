@@ -25,26 +25,28 @@ except ImportError: # Python 3
 	import tkinter.simpledialog as tkSimpleDialog
 
 try:
-	from Source.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Source.Isometry import extend_isometry
 	from Source.Lamination import Lamination, invariant_lamination, empty_lamination
 	from Source.LayeredTriangulation import Layered_Triangulation
 	from Source.SymbolicComputation import algebraic_type
-	from Source.Options import Options, Options_App
 	from Source.Error import AbortError, ComputationError, AssumptionError
+	
+	from App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
+	from App.Options import Options, Options_App
 	from App.Progress import Progress_App
 except ImportError:
-	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
 	from AbstractTriangulation import Abstract_Triangulation
 	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 	from Isometry import extend_isometry
 	from Lamination import Laminationm, invariant_lamination, empty_lamination
 	from LayeredTriangulation import Layered_Triangulation
 	from SymbolicComputation import algebraic_type
-	from Options import Options, Options_App
 	from Error import AbortError, ComputationError, AssumptionError
+	
+	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
+	from Options import Options, Options_App
 	from Progress import Progress_App
 
 # Modes.

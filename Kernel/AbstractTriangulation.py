@@ -22,7 +22,7 @@ from __future__ import print_function
 from itertools import product, combinations
 
 try:
-	from Source.Matrix import Matrix, tweak_vector
+	from Flipper.Kernel.Matrix import Matrix, tweak_vector
 except ImportError:
 	from Matrix import Matrix, tweak_vector
 

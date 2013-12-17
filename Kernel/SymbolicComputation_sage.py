@@ -1,17 +1,18 @@
 
-import sympy
-from sympy.core.add import Add
+from sage.all import Matrix
+from sage.rings.qqbar import AlgebraicNumber
 try:
-	from Source.Error import AssumptionError
+	from Flipper.Kernel.Error import AssumptionError
 except ImportError:
 	from Error import AssumptionError
 
-_name = 'sympy'
+_name = 'sage'
 
-algebraic_type = Add
+algebraic_type = AlgebraicNumber
 
 def simplify_algebraic_type(x):
-	return x.simplify()
+	x.simplify()
+	return x
 
 def string_algebraic_type(x):
 	return '%0.4f' % float(x)
@@ -19,15 +20,15 @@ def string_algebraic_type(x):
 def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
-	M = sympy.Matrix(matrix.rows)
-	eigenvalue = max(M.eigenvals())
-	N = M - eigenvalue * sympy.eye(matrix.width)
+	M = Matrix(matrix.rows)
+	eigenvalue = max(M.eigenvalues())
+	N = M - eigenvalue
 	try:
-		[eigenvector] = N.nullspace(simplify=True)
+		[eigenvector] = N.right_kernel().basis()
 	except ValueError:
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	return [simplify_algebraic_type(x) for x in eigenvector], eigenvalue
 
 def minimal_polynomial_coefficients(number):
-	return tuple(sympy.Poly(sympy.minpoly(number)).all_coeffs())
+	return tuple(number.minpoly().coefficients())

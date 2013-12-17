@@ -25,17 +25,17 @@ except ImportError: # Python 3
 	import tkinter.simpledialog as tkSimpleDialog
 
 try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
-	from Source.Isometry import extend_isometry
-	from Source.Lamination import Lamination, invariant_lamination, empty_lamination
-	from Source.LayeredTriangulation import Layered_Triangulation
-	from Source.SymbolicComputation import algebraic_type
-	from Source.Error import AbortError, ComputationError, AssumptionError
+	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+	from Flipper.Kernel.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
+	from Flipper.Kernel.Isometry import extend_isometry
+	from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_lamination
+	from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
+	from Flipper.Kernel.SymbolicComputation import algebraic_type
+	from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
 	
-	from App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
-	from App.Options import Options, Options_App
-	from App.Progress import Progress_App
+	from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
+	from Flipper.App.Options import Options, Options_App
+	from Flipper.App.Progress import Progress_App
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
@@ -272,10 +272,10 @@ class Flipper_App:
 					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
 					
 					example = 'try:\n' + \
-					'	from Source.AbstractTriangulation import Abstract_Triangulation\n' + \
-					'	from Source.Isometry import all_isometries\n' + \
-					'	from Source.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
-					'	from Source.Lamination import Lamination\n' + \
+					'	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation\n' + \
+					'	from Flipper.Kernel.Isometry import all_isometries\n' + \
+					'	from Flipper.Kernel.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
+					'	from Flipper.Kernel.Lamination import Lamination\n' + \
 					'except ImportError:\n' + \
 					'	from AbstractTriangulation import Abstract_Triangulation\n' + \
 					'	from Isometry import all_isometries\n' + \
@@ -1248,12 +1248,14 @@ class Flipper_App:
 				self.show_apply(self.list_mapping_classes.get(index).swapcase())
 
 def main(load_path=None):
+	import os
 	root = TK.Tk()
 	root.title('Flipper')
 	flipper = Flipper_App(root)
 	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
-	img = TK.PhotoImage(file='./Source/Icon/Icon.gif')
+	print(__file__)
+	img = TK.PhotoImage(file='./App/Icon/Icon.gif')
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
 

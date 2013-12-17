@@ -1,7 +1,7 @@
 
 if __name__ == '__main__':
-	from Lamination import invariant_lamination
-	from Examples import Example_S_1_2 as Example, build_example_mapping_class
+	from Flipper.Kernel.Lamination import invariant_lamination
+	from Examples.Examples import Example_S_1_2 as Example, build_example_mapping_class
 	# from Examples import Example_12 as Example, build_example_mapping_class
 	
 	# Get an example mapping class - this one we know is pseudo-Anosov.

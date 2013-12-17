@@ -1,6 +1,6 @@
 from distutils.core import setup
 import os
-from Source.Version import Flipper_version
+from Kernel.Version import Flipper_version
 
 main_src = ['./lib/py_wrapper.cpp']
 kernel_path = './lib/kernel/'
@@ -15,6 +15,6 @@ setup(
 	author_email='M.C.Bell@warwick.ac.uk',
 	url='https://bitbucket.org/Mark_Bell/flipper',
 	packages=['Flipper'],
-	package_dir={'Flipper':'Source'}
-	package_data={'Flipper': ['surfaces/*']},
+	package_dir={'Flipper':''},
+	package_data={'Flipper': ['Examples/*.py', 'Kernel/*.py', 'App/*.py']}
 	)

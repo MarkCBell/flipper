@@ -1,6 +1,6 @@
 
 try:
-	from Source.Error import AbortError
+	from Flipper.Kernel.Error import AbortError
 except ImportError:
 	from Error import AbortError
 

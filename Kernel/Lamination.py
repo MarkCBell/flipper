@@ -7,11 +7,11 @@
 
 from itertools import product, combinations
 try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Matrix import nonnegative, nonnegative_image, nontrivial
-	from Source.Isometry import all_isometries
-	from Source.Error import AbortError, ComputationError, AssumptionError
-	from Source.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
+	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+	from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
+	from Flipper.Kernel.Isometry import all_isometries
+	from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
+	from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Matrix import nonnegative, nonnegative_image, nontrivial

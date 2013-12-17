@@ -11,10 +11,10 @@ from __future__ import print_function
 from functools import reduce
 from itertools import product
 try:
-	from Source.Lamination import Lamination, key_curves
-	from Source.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
-	from Source.Isometry import all_isometries
-	from Source.Error import AbortError, ComputationError, AssumptionError
+	from Flipper.Kernel.Lamination import Lamination, key_curves
+	from Flipper.Kernel.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
+	from Flipper.Kernel.Isometry import all_isometries
+	from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
 except ImportError:
 	from Lamination import Lamination, key_curves
 	from Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector

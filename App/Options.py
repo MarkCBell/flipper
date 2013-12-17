@@ -10,7 +10,7 @@ except ImportError: # Python 3
 	import tkinter.ttk as TTK
 
 try:
-	from Source.Version import Flipper_version
+	from Flipper.Kernel.Version import Flipper_version
 except ImportError:
 	from Version import Flipper_version
 

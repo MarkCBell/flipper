@@ -10,8 +10,8 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 try:
-	from Source.Permutation import cyclic_permutation
-	from Source.Error import AssumptionError
+	from Flipper.Kernel.Permutation import cyclic_permutation
+	from Flipper.Kernel.Error import AssumptionError
 except ImportError:
 	from Permutation import cyclic_permutation
 	from Error import AssumptionError

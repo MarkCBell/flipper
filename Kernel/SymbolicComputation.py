@@ -29,11 +29,11 @@
 # To use your own library add its script to this folder and add that scripts name to the list below.
 
 possible_libraries = [
-	'Source.SymbolicComputation_sage',
+	'Flipper.Kernel.SymbolicComputation_sage',
 	'SymbolicComputation_sage',
-	'Source.SymbolicComputation_sympy',
+	'Flipper.Kernel.SymbolicComputation_sympy',
 	'SymbolicComputation_sympy',
-	'Source.SymbolicComputation_dummy',
+	'Flipper.Kernel.SymbolicComputation_dummy',
 	'SymbolicComputation_dummy']
 
 required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', '_name']

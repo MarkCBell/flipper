@@ -13,10 +13,10 @@ except ImportError: # Python 3
 	from queue import Queue
 
 try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Isometry import all_isometries
-	from Source.Permutation import Permutation
-	from Source.Error import AssumptionError
+	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+	from Flipper.Kernel.Isometry import all_isometries
+	from Flipper.Kernel.Permutation import Permutation
+	from Flipper.Kernel.Error import AssumptionError
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Isometry import all_isometries

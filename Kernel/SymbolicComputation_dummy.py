@@ -1,6 +1,4 @@
 
-import types
-
 _name = 'dummy'
 
 algebraic_type = type(None)

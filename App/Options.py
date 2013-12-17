@@ -1,5 +1,4 @@
 
-
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -9,10 +8,7 @@ except ImportError: # Python 3
 	import tkinter.font as TK_FONT
 	import tkinter.ttk as TTK
 
-try:
-	from Flipper.Kernel.Version import Flipper_version
-except ImportError:
-	from Version import Flipper_version
+from Flipper.Kernel.Version import Flipper_version
 
 class Options:
 	def __init__(self):

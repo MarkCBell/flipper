@@ -1,9 +1,9 @@
 
+import os
 try:
 	import Tkinter as TK
 except ImportError: # Python 3
 	import tkinter as TK
-import os
 
 class Input_Box(TK.Toplevel):
 	def __init__(self, parent, title=None):

@@ -6,18 +6,12 @@
 #	4) invariant_lamination(encoding)
 
 from itertools import product, combinations
-try:
-	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-	from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
-	from Flipper.Kernel.Isometry import all_isometries
-	from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
-	from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
-except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
-	from Matrix import nonnegative, nonnegative_image, nontrivial
-	from Isometry import all_isometries
-	from Error import AbortError, ComputationError, AssumptionError
-	from SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
+
+from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
+from Flipper.Kernel.Isometry import all_isometries
+from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):

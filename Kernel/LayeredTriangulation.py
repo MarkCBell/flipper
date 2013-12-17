@@ -12,16 +12,10 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 
-try:
-	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-	from Flipper.Kernel.Isometry import all_isometries
-	from Flipper.Kernel.Permutation import Permutation
-	from Flipper.Kernel.Error import AssumptionError
-except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
-	from Isometry import all_isometries
-	from Permutation import Permutation
-	from Error import AssumptionError
+from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+from Flipper.Kernel.Isometry import all_isometries
+from Flipper.Kernel.Permutation import Permutation
+from Flipper.Kernel.Error import AssumptionError
 
 all_permutations = [Permutation(perm) for perm in permutations(range(4), 4)]
 even_permutations = [perm for perm in all_permutations if perm.is_even()]

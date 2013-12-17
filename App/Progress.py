@@ -1,13 +1,10 @@
 
 try:
-	from Flipper.Kernel.Error import AbortError
-except ImportError:
-	from Error import AbortError
-
-try:
 	import Tkinter as TK
 except ImportError: # Python 3
 	import tkinter as TK
+
+from Flipper.Error import AbortError
 
 ''' A simple progress bar widget for TK.
 

@@ -9,12 +9,9 @@ try:
 	from Queue import Queue
 except ImportError: # Python 3
 	from queue import Queue
-try:
-	from Flipper.Kernel.Permutation import cyclic_permutation
-	from Flipper.Kernel.Error import AssumptionError
-except ImportError:
-	from Permutation import cyclic_permutation
-	from Error import AssumptionError
+
+from Flipper.Kernel.Permutation import cyclic_permutation
+from Flipper.Kernel.Error import AssumptionError
 
 class Isometry:
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):

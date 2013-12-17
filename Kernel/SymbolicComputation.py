@@ -30,11 +30,8 @@
 
 possible_libraries = [
 	'Flipper.Kernel.SymbolicComputation_sage',
-	'SymbolicComputation_sage',
 	'Flipper.Kernel.SymbolicComputation_sympy',
-	'SymbolicComputation_sympy',
-	'Flipper.Kernel.SymbolicComputation_dummy',
-	'SymbolicComputation_dummy']
+	'Flipper.Kernel.SymbolicComputation_dummy']
 
 required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', '_name']
 def import_library(possible_libraries, required_imports):

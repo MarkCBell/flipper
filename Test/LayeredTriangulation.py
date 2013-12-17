@@ -1,12 +1,15 @@
 
-if __name__ == '__main__':
-	from Flipper.Kernel.Lamination import invariant_lamination
-	from Examples.Examples import Example_S_1_2 as Example, build_example_mapping_class
-	# from Examples import Example_12 as Example, build_example_mapping_class
-	
+from Flipper.Kernel.Lamination import invariant_lamination
+from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
+from Flipper.Examples.Examples import build_example_mapping_class
+
+from Flipper.Examples.Examples import Example_S_1_2 as Example
+# from Flipper.Examples.Examples import Example_12 as Example
+
+def main(word='aBc'):
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
-	word, mapping_class = build_example_mapping_class(Example, word='aBc')
+	word, mapping_class = build_example_mapping_class(Example, word)
 	lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
@@ -27,3 +30,6 @@ if __name__ == '__main__':
 	print('these are the ones with puncture type 1.')
 	print('You should fill them with their fibre slope to get')
 	print('the manifold you were expecting')
+
+if __name__ == '__main__':
+	main()

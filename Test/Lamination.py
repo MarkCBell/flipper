@@ -3,9 +3,16 @@
 # Some Tests #
 ###########################################################################
 
+from time import time
+
+from Flipper.Kernel.Error import ComputationError, AssumptionError
+from Flipper.Examples.Examples import build_example_mapping_class
+
+from Flipper.Examples.Examples import Example_24 as Example
+# from Flipper.Examples.Examples import Example_S_1_1 as Example
+# from Flipper.Examples.Examples import Example_S_1_2 as Example
+
 def determine_type(mapping_class):
-	from Error import ComputationError, AssumptionError
-	from time import time
 	
 	start_time = time()
 	if mapping_class.is_periodic():
@@ -26,10 +33,7 @@ def determine_type(mapping_class):
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-def random_test(Example, word=None, num_trials=50):
-	from time import time
-	from Examples import build_example_mapping_class
-	
+def random_test(word=None, num_trials=50):
 	print('Start')
 	
 	times = []
@@ -40,13 +44,13 @@ def random_test(Example, word=None, num_trials=50):
 	
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
-if __name__ == '__main__':
-	from Examples import Example_24 as Example
-	# from Examples import Example_S_1_1 as Example
-	# from Examples import Example_S_1_2 as Example
-	random_test(Example, 'aBC', num_trials=1)
-	# random_test(Example, 'aBBap' * 3, num_trials=1)
-	# random_test(Example, 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
+def main():
+	random_test('aBC', num_trials=1)
+	# random_test('aBBap' * 3, num_trials=1)
+	# random_test('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
 	# import cProfile
-	# cProfile.run('random_test(Example, "aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='cumtime')
-	# random_test(Example)
+	# cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='cumtime')
+	# random_test()
+
+if __name__ == '__main__':
+	main()

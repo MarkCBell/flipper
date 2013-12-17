@@ -24,30 +24,17 @@ except ImportError: # Python 3
 	import tkinter.messagebox as tkMessageBox
 	import tkinter.simpledialog as tkSimpleDialog
 
-try:
-	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-	from Flipper.Kernel.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
-	from Flipper.Kernel.Isometry import extend_isometry
-	from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_lamination
-	from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
-	from Flipper.Kernel.SymbolicComputation import algebraic_type
-	from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
-	
-	from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
-	from Flipper.App.Options import Options, Options_App
-	from Flipper.App.Progress import Progress_App
-except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
-	from Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
-	from Isometry import extend_isometry
-	from Lamination import Laminationm, invariant_lamination, empty_lamination
-	from LayeredTriangulation import Layered_Triangulation
-	from SymbolicComputation import algebraic_type
-	from Error import AbortError, ComputationError, AssumptionError
-	
-	from Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
-	from Options import Options, Options_App
-	from Progress import Progress_App
+from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+from Flipper.Kernel.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
+from Flipper.Kernel.Isometry import extend_isometry
+from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_lamination
+from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
+from Flipper.Kernel.SymbolicComputation import algebraic_type
+from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
+
+from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
+from Flipper.App.Options import Options, Options_App
+from Flipper.App.Progress import Progress_App
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -1254,8 +1241,8 @@ def main(load_path=None):
 	flipper = Flipper_App(root)
 	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
-	print(__file__)
-	img = TK.PhotoImage(file='./App/Icon/Icon.gif')
+	icon_path = os.path.join(os.path.dirname(__file__), 'Icon', 'Icon.gif')
+	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
 

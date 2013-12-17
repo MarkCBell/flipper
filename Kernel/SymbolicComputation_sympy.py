@@ -1,10 +1,8 @@
 
 import sympy
 from sympy.core.add import Add
-try:
-	from Flipper.Kernel.Error import AssumptionError
-except ImportError:
-	from Error import AssumptionError
+
+from Flipper.Kernel.Error import AssumptionError
 
 _name = 'sympy'
 

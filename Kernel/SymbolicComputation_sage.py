@@ -1,10 +1,8 @@
 
 from sage.all import Matrix
 from sage.rings.qqbar import AlgebraicNumber
-try:
-	from Flipper.Kernel.Error import AssumptionError
-except ImportError:
-	from Error import AssumptionError
+
+from Flipper.Kernel.Error import AssumptionError
 
 _name = 'sage'
 

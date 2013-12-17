@@ -2,16 +2,32 @@
 # Some standard example surfaces with mapping classes defined on them.
 # Mainly used for running tests on.
 
-try:
-	from Source.AbstractTriangulation import Abstract_Triangulation
-	from Source.Isometry import all_isometries
-	from Source.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
-	from Source.Lamination import Lamination
-except ImportError:
-	from AbstractTriangulation import Abstract_Triangulation
-	from Isometry import all_isometries
-	from Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
-	from Lamination import Lamination
+from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
+from Flipper.Kernel.Isometry import all_isometries
+from Flipper.Kernel.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
+from Flipper.Kernel.Lamination import Lamination
+
+def Example_S_1_1():
+	# S_1_1 and its standard (Twister) curves:
+	T = Abstract_Triangulation([[0,2,1], [0,2,1]])
+	
+	a = encode_twist(Lamination(T, [1,0,1]))
+	b = encode_twist(Lamination(T, [0,1,1]))
+	A = encode_twist(Lamination(T, [1,0,1]), k=-1)
+	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
+	return T, {'a':a, 'b':b, 'A':A, 'B':B}
+
+def Example_S_1_2():
+	# S_1_2 and its standard (Twister) curves:
+	T = Abstract_Triangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
+	
+	a = encode_twist(Lamination(T, [0,0,1,1,1,0]))
+	b = encode_twist(Lamination(T, [1,0,0,0,1,1]))
+	c = encode_twist(Lamination(T, [0,1,0,1,0,1]))
+	A = encode_twist(Lamination(T, [0,0,1,1,1,0]), k=-1)
+	B = encode_twist(Lamination(T, [1,0,0,0,1,1]), k=-1)
+	C = encode_twist(Lamination(T, [0,1,0,1,0,1]), k=-1)
+	return T, {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}
 
 def Example_12():
 	# A 12-gon:
@@ -52,28 +68,6 @@ def Example_36():
 	B = encode_twist(Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), k=-1)
 	p = encode_isometry(all_isometries(T, T)[1])  # This is a 1/36 click.
 	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
-
-def Example_S_1_2():
-	# S_1_2 and its standard (Twister) curves:
-	T = Abstract_Triangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
-	
-	a = encode_twist(Lamination(T, [0,0,1,1,1,0]))
-	b = encode_twist(Lamination(T, [1,0,0,0,1,1]))
-	c = encode_twist(Lamination(T, [0,1,0,1,0,1]))
-	A = encode_twist(Lamination(T, [0,0,1,1,1,0]), k=-1)
-	B = encode_twist(Lamination(T, [1,0,0,0,1,1]), k=-1)
-	C = encode_twist(Lamination(T, [0,1,0,1,0,1]), k=-1)
-	return T, {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}
-
-def Example_S_1_1():
-	# S_1_1 and its standard (Twister) curves:
-	T = Abstract_Triangulation([[0,2,1], [0,2,1]])
-	
-	a = encode_twist(Lamination(T, [1,0,1]))
-	b = encode_twist(Lamination(T, [0,1,1]))
-	A = encode_twist(Lamination(T, [1,0,1]), k=-1)
-	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
-	return T, {'a':a, 'b':b, 'A':A, 'B':B}
 
 def build_example_mapping_class(example, word=None, random_length=50):
 	from random import choice

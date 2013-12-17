@@ -5,12 +5,12 @@
 try:
 	from Source.AbstractTriangulation import Abstract_Triangulation
 	from Source.Isometry import all_isometries
-	from Source.Encoding import encode_twist, encode_isometry
+	from Source.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
 	from Source.Lamination import Lamination
 except ImportError:
 	from AbstractTriangulation import Abstract_Triangulation
 	from Isometry import all_isometries
-	from Encoding import encode_twist, encode_isometry
+	from Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
 	from Lamination import Lamination
 
 def Example_12():
@@ -75,9 +75,8 @@ def Example_S_1_1():
 	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
 	return T, {'a':a, 'b':b, 'A':A, 'B':B}
 
-def build_example_mapping_class(Example, word=None, random_length=50):
+def build_example_mapping_class(example, word=None, random_length=50):
 	from random import choice
-	from Encoding import Id_Encoding_Sequence
 	
 	T, twists = Example()
 	

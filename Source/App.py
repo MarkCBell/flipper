@@ -60,7 +60,7 @@ COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platfo
 
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
-	if re.match('\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
+	if re.match('\w+', name) is not None and re.match('\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
 		return True
 	else:
 		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
@@ -126,7 +126,10 @@ class Flipper_App:
 		filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER)
 		filemenu.add_command(label='Open', command=lambda : self.load(), accelerator='%s+O' % COMMAND_MODIFIER)
 		filemenu.add_command(label='Save', command=lambda : self.save(), accelerator='%s+S' % COMMAND_MODIFIER)
-		filemenu.add_command(label='Export', command=lambda : self.export_image(), accelerator='%s+E' % COMMAND_MODIFIER)
+		exportmenu = TK.Menu(menubar, tearoff=0)
+		exportmenu.add_command(label='Export script', command=lambda : self.export_script())
+		exportmenu.add_command(label='Export image', command=lambda : self.export_image())
+		filemenu.add_cascade(label='Export', menu=exportmenu)
 		filemenu.add_separator()
 		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
 		
@@ -163,7 +166,6 @@ class Flipper_App:
 		parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
 		parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
 		parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
-		parent.bind('<%s-e>' % COMMAND_MODIFIER_BINDING, lambda event: self.export_image())
 		parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
 		parent.bind('<Key>', self.parent_key_press) 
 		
@@ -255,6 +257,61 @@ class Flipper_App:
 				self.canvas.postscript(file=path, colormode='color')
 			except IOError:
 				tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
+	
+	def export_script(self, path=''):
+		if self.is_complete():
+			if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.py', filetypes=[('Python files', '.py'), ('all files', '.*')], title='Export Image')
+			if path != '':
+				try:
+					file = open(path, 'w')
+					
+					twists = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'twist' and self.mapping_classes[mapping_class][1][2] == +1]
+					halfs  = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half'  and self.mapping_classes[mapping_class][1][2] == +1]
+					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
+					
+					example = 'try:\n' + \
+					'	from Source.AbstractTriangulation import Abstract_Triangulation\n' + \
+					'	from Source.Isometry import all_isometries\n' + \
+					'	from Source.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
+					'	from Source.Lamination import Lamination\n' + \
+					'except ImportError:\n' + \
+					'	from AbstractTriangulation import Abstract_Triangulation\n' + \
+					'	from Isometry import all_isometries\n' + \
+					'	from Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
+					'	from Lamination import Lamination\n' + \
+					'\n' + \
+					'def Example():\n' + \
+					'	T = Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
+					'	\n' + \
+					''.join('\t%s = encode_twist(Lamination(T, %s))\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = encode_twist(Lamination(T, %s), k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = encode_halftwist(Lamination(T, %s))\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = encode_halftwist(Lamination(T, %s), k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = encode_isometry(isometry_from_edge_map(T, T, %s))\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
+					''.join('\t%s = encode_isometry(isometry_from_edge_map(T, T, %s).inverse())\n' % (mapping_class.swapcase(), edge_map) for (mapping_class, edge_map) in isoms) + \
+					'	\n' + \
+					'	return T, {%s}\n' % ', '.join('\'%s\':%s' % (mapping_class, mapping_class) for mapping_class in self.mapping_classes) + \
+					'	\n' + \
+					'def build_example_mapping_class(example, word=None, random_length=50):\n' + \
+					'	from random import choice\n' + \
+					'	\n' + \
+					'	T, twists = example()\n' + \
+					'	\n' + \
+					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for i in range(random_length))\n' + \
+					'	h = Id_Encoding_Sequence(T)\n' + \
+					'	for letter in word:\n' + \
+					'		h = twists[letter] * h\n' + \
+					'	return word, h\n' + \
+					'\n'
+					
+					file.write(example)
+				except IOError:
+					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
+				finally:
+					file.close()
+		else:
+			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
+			
 	
 	def quit(self):
 		self.parent.quit()
@@ -362,7 +419,8 @@ class Flipper_App:
 				elif task == 'new': self.initialise()
 				elif task == 'save': self.save(combined)
 				elif task == 'open': self.load(combined)
-				elif task == 'export': self.export_image(combined)
+				elif task == 'export_image': self.export_image(combined)
+				elif task == 'export_script': self.export_surface(combined)
 				elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
 				elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
 				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
@@ -400,7 +458,7 @@ class Flipper_App:
 				elif task == 'lamination': self.invariant_lamination(combined)
 				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
 				elif task == 'split': self.splitting_sequence(combined)
-				elif task == 'bundle': self.bundle(combined)
+				elif task == 'bundle': self.build_bundle(combined)
 				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -738,7 +796,7 @@ class Flipper_App:
 		self.set_current_curve(lamination)
 	
 	def tighten_curve(self):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			curve = self.curves['_']
 			if curve.is_multicurve():
 				self.lamination_to_canvas(curve)
@@ -746,7 +804,7 @@ class Flipper_App:
 				tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
 	
 	def store_curve(self, name):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
@@ -757,35 +815,35 @@ class Flipper_App:
 					tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
 	
 	def store_twist(self, name):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-					self.mapping_classes[name] = encode_twist(lamination)
-					self.mapping_classes[name.swapcase()] = encode_twist(lamination, k=-1)
+					self.mapping_classes[name] = (encode_twist(lamination), ('twist', lamination, +1))
+					self.mapping_classes[name.swapcase()] = (encode_twist(lamination, k=-1), ('twist', lamination, -1))
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
 	
 	def store_halftwist(self, name):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-					self.mapping_classes[name] = encode_halftwist(lamination)
-					self.mapping_classes[name.swapcase()] = encode_halftwist(lamination, k=-1)
+					self.mapping_classes[name] = (encode_halftwist(lamination), ('half', lamination, +1))
+					self.mapping_classes[name.swapcase()] = (encode_halftwist(lamination, k=-1), ('half', lamination, -1))
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
 	
 	def store_isometry(self, specification):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			name, from_edges, to_edges = specification.split(' ')[:3]
 			
 			from_edges = [int(x) for x in from_edges.split('.')]
@@ -809,11 +867,11 @@ class Flipper_App:
 			else:
 				if valid_name(name):
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-					self.mapping_classes[name] = mapping_class
-					self.mapping_classes[name.swapcase()] = mapping_class_inverse
+					self.mapping_classes[name] = (mapping_class, ('isometry', isometry, +1))
+					self.mapping_classes[name.swapcase()] = (mapping_class_inverse, ('isometry', isometry, -1))
 	
 	def show_curve(self, name):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			if name in self.curves:
 				self.destroy_curve()
 				self.lamination_to_canvas(self.curves[name])
@@ -822,11 +880,11 @@ class Flipper_App:
 				tkMessageBox.showwarning('Curve', '%s is not a multicurve.' % name)
 	
 	def create_composition(self, twists):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			mapping_class = Id_Encoding_Sequence(self.abstract_triangulation)
 			for twist in twists[::-1]:
 				if twist in self.mapping_classes:
-					mapping_class = self.mapping_classes[twist] * mapping_class
+					mapping_class = self.mapping_classes[twist][0] * mapping_class
 				else:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 					raise AbortError()
@@ -835,7 +893,7 @@ class Flipper_App:
 			return mapping_class
 	
 	def show_composition(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			curves = composition.split('.')
 			twists, name = curves[:-1], curves[-1]
 			if name in self.curves:
@@ -855,16 +913,16 @@ class Flipper_App:
 				self.lamination_to_canvas(self.curves['_'])
 	
 	def show_render(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			self.set_current_curve(Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
 			self.lamination_to_canvas(self.curves['_'])
 	
 	def vectorise(self):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			tkMessageBox.showinfo('Curve', 'Current curve is: %s' % self.curves['_'])
 	
 	def show_apply(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			self.show_composition(composition + '._')
 	
 	
@@ -872,7 +930,7 @@ class Flipper_App:
 	
 	
 	def order(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -885,7 +943,7 @@ class Flipper_App:
 					tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, order))
 	
 	def is_periodic(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -897,7 +955,7 @@ class Flipper_App:
 					tkMessageBox.showinfo('Periodic', '%s is not periodic.' % composition)
 	
 	def is_reducible(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -915,7 +973,7 @@ class Flipper_App:
 					pass
 	
 	def is_pseudo_Anosov(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -936,7 +994,7 @@ class Flipper_App:
 	
 	
 	def invariant_lamination(self, composition, exact=False):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -952,7 +1010,7 @@ class Flipper_App:
 					tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
-		if self.abstract_triangulation is not None:
+		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
 			except AbortError:
@@ -961,9 +1019,9 @@ class Flipper_App:
 				try:
 					lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 				except AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
 					try:
 						start_time = time()
@@ -974,8 +1032,8 @@ class Flipper_App:
 						if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
 						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
 	
-	def bundle(self, composition):
-		if self.abstract_triangulation is not None:
+	def build_bundle(self, composition):
+		if self.is_complete():
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':
 				try:
@@ -988,9 +1046,9 @@ class Flipper_App:
 						try:
 							lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 						except AssumptionError:
-							tkMessageBox.showwarning('Lamination', 'Can not find any invariant laminations of %s, it is periodic.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except ComputationError:
-							tkMessageBox.showwarning('Lamination', 'Could not find any invariant laminations of %s. It is probably reducible.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						else:
 							try:
 								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
@@ -999,11 +1057,22 @@ class Flipper_App:
 							else:
 								L = Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
 								L.flips(periodic)
-								M, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+								M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 								file.write(M.SnapPy_string())
-					file.close()
+								description = 'It was built using the first of %d isometries.\n' % len(isometries) + \
+								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
+								'Cusp types: %s\n' % cusp_types + \
+								'Fibre slopes: %s\n' % fibre_slopes + \
+								'Degeneracy slopes: %s\n' % degeneracy_slopes + \
+								'To build this bundle I had to create some artificial punctures,\n' + \
+								'these are the ones with puncture type 1.\n' + \
+								'You should fill them with their fibre slope to get\n' + \
+								'the manifold you were expecting'
+								tkMessageBox.showinfo('Bundle', description)
 				except IOError:
-					tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
+					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
+				finally:
+					file.close()
 	
 	
 	######################################################################

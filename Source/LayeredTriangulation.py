@@ -541,7 +541,7 @@ class Layered_Triangulation:
 			
 			degeneracy_slopes[index] = closed_triangulation.slope_TEMPS()
 		
-		return closed_triangulation, fibre_slopes, degeneracy_slopes, cusp_types
+		return closed_triangulation, cusp_types, fibre_slopes, degeneracy_slopes
 
 if __name__ == '__main__':
 	from Lamination import invariant_lamination
@@ -556,10 +556,16 @@ if __name__ == '__main__':
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
-	M, fibre_slopes, degeneracy_slopes, cusp_types = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-	open('test.tri', 'w').write(M.SnapPy_string())
-	print('Using the first of %d isometries' % len(isometries))
+	M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(isometries[0])  # There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+	with open('test.tri', 'w') as file:
+		file.write(M.SnapPy_string())  # Write the manifold to a file.
+	print('I stored the bundle with monodromy \'%s\' in \'test.tri\'.' % word)
+	print('It was built using the first of %d isometries.' % len(isometries))
+	print('It has %d cusp(s) with the following properties (in order):' % M.num_cusps)
 	print('Cusp types: %s' % cusp_types)
 	print('Fibre slopes: %s' % fibre_slopes)
 	print('Degeneracy slopes: %s' % degeneracy_slopes)
-	print('You should fill cusps with cusp type 1 by their fibre slope to get the manifold you were expecting')
+	print('To build this bundle I had to create some artificial punctures,')
+	print('these are the ones with puncture type 1.')
+	print('You should fill them with their fibre slope to get')
+	print('the manifold you were expecting')

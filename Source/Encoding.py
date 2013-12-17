@@ -224,7 +224,7 @@ class Encoding_Sequence:
 		# advances to the next index according to the lex ordering.
 		
 		sizes = [encoding.size for encoding in self]
-		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(reciprocal_sizes))]
+		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(sizes))]
 		total = sizes[0] * sizes_mul[0]
 		
 		def jump(indices):

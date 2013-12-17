@@ -4,13 +4,11 @@ translate, zoom, autoscale
 fatten train tracks
 
 algebraic intersection number
-assign meridians, longitudes, fibre slopes, degeneracy slopes
 floating point approximations
 fast algebra
 show algebraic laminations
 
 Create / use InputBox
-be careful about file opens
 more documentation
 
 

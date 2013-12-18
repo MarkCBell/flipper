@@ -26,7 +26,7 @@ setup(
 	description='Flipper',
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',
-	url='https://bitbucket.org/Mark_Bell/flipper',
+	url='https://bitbucket.org/Mark_Bell/Flipper',
 	packages=['Flipper'],
 	package_dir={'Flipper':''},
 	package_data={'Flipper': ['Examples/*.py', 'Kernel/*.py', 'App/*.py', 'App/Icon/*', 'Test/*.py']},

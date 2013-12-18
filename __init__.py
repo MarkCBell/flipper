@@ -10,4 +10,10 @@ import Flipper.Kernel.Permutation as Permutation
 import Flipper.Kernel.SymbolicComputation as SymbolicComputation
 from Flipper.Kernel.Version import Flipper_version as __version__
 
+import Flipper.App.Main as Main
+import Flipper.App.Input as Input
+import Flipper.App.Options as Options
+import Flipper.App.Pieces as Pieces
+import Flipper.App.Progress as Progress
+
 import Flipper.Examples.Examples as Examples

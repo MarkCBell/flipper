@@ -4,7 +4,7 @@ try:
 except ImportError: # Python 3
 	import tkinter as TK
 
-from Flipper.Error import AbortError
+from Flipper.Kernel.Error import AbortError
 
 ''' A simple progress bar widget for TK.
 

@@ -11,6 +11,8 @@ show algebraic laminations
 Create / use InputBox
 more documentation
 
+Add unit tests
+
 
 
 is_curve (and encode twist) fails if a component of S - curve has no punctures!

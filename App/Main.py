@@ -24,6 +24,10 @@ except ImportError: # Python 3
 	import tkinter.messagebox as tkMessageBox
 	import tkinter.simpledialog as tkSimpleDialog
 
+from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
+from Flipper.App.Options import Options, Options_App
+from Flipper.App.Progress import Progress_App
+
 from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Encoding import Id_Encoding_Sequence, encode_twist, encode_halftwist, encode_isometry
 from Flipper.Kernel.Isometry import extend_isometry
@@ -31,10 +35,6 @@ from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_la
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
 from Flipper.Kernel.SymbolicComputation import algebraic_type
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
-
-from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
-from Flipper.App.Options import Options, Options_App
-from Flipper.App.Progress import Progress_App
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -258,16 +258,11 @@ class Flipper_App:
 					halfs  = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half'  and self.mapping_classes[mapping_class][1][2] == +1]
 					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
 					
-					example = 'try:\n' + \
-					'	from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation\n' + \
-					'	from Flipper.Kernel.Isometry import all_isometries\n' + \
-					'	from Flipper.Kernel.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
-					'	from Flipper.Kernel.Lamination import Lamination\n' + \
-					'except ImportError:\n' + \
-					'	from AbstractTriangulation import Abstract_Triangulation\n' + \
-					'	from Isometry import all_isometries\n' + \
-					'	from Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
-					'	from Lamination import Lamination\n' + \
+					example = '\n' + \
+					'from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation\n' + \
+					'from Flipper.Kernel.Isometry import all_isometries\n' + \
+					'from Flipper.Kernel.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence\n' + \
+					'from Flipper.Kernel.Lamination import Lamination\n' + \
 					'\n' + \
 					'def Example():\n' + \
 					'	T = Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
@@ -409,7 +404,7 @@ class Flipper_App:
 				elif task == 'save': self.save(combined)
 				elif task == 'open': self.load(combined)
 				elif task == 'export_image': self.export_image(combined)
-				elif task == 'export_script': self.export_surface(combined)
+				elif task == 'export_script': self.export_script(combined)
 				elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
 				elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
 				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
@@ -1046,7 +1041,7 @@ class Flipper_App:
 							else:
 								L = Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
 								L.flips(periodic)
-								closing_isometries = [isometry for isometery in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
+								closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 								M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(closing_isometries[0])
 								file.write(M.SnapPy_string())
@@ -1058,7 +1053,7 @@ class Flipper_App:
 								'To build this bundle I had to create some artificial punctures,\n' + \
 								'these are the ones with puncture type 1.\n' + \
 								'You should fill them with their fibre slope to get\n' + \
-								'the manifold you were expecting'
+								'the manifold you were expecting.'
 								tkMessageBox.showinfo('Bundle', description)
 				except IOError:
 					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)

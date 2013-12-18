@@ -18,7 +18,7 @@ class TestCommand(Command):
 		import Flipper.Test.LayeredTriangulation
 		import Flipper.Test.Matrix
 		
-		print('Matrix test: %s' % Flipper.Test.Matrix.main())
+		print('Passed matrix test: %s' % Flipper.Test.Matrix.main())
 
 setup(
 	name='Flipper',

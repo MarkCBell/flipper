@@ -3,10 +3,10 @@ from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
 from Flipper.Examples.Examples import build_example_mapping_class
 
-from Flipper.Examples.Examples import Example_S_1_2 as Example
+from Flipper.Examples.Examples import Example_S_1_1 as Example
 # from Flipper.Examples.Examples import Example_12 as Example
 
-def main(word='aBc'):
+def main(word):
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
 	word, mapping_class = build_example_mapping_class(Example, word)
@@ -32,4 +32,6 @@ def main(word='aBc'):
 	print('the manifold you were expecting')
 
 if __name__ == '__main__':
-	main()
+	import cProfile
+	main('aB')
+	# cProfile.run('main("aBBBBaBB")', sort='time')

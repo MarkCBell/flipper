@@ -230,7 +230,10 @@ class Lamination:
 		# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
 		# uniform bound on the number of collisions.
 		def hash_lamination(x):
-			return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
+			if isinstance(x[0], algebraic_type):
+				return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
+			else:  # We assume this type supports exact division.
+				pass
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
@@ -251,8 +254,6 @@ class Lamination:
 					raise AssumptionError('Lamination is not filling.')
 			
 			flipped.append(edge_index)
-			
-			# if len(flipped) % 20 == 0: print(flipped[-20:])  # Every once in a while show how we're progressing.
 			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = hash_lamination(lamination)
@@ -342,3 +343,4 @@ def invariant_lamination(encoding, exact=False):
 						return Lamination(encoding.source_triangulation, curve), float((encoding * curve).weight()) / curve.weight()
 	else:
 		raise ComputationError('Could not estimate invariant lamination.')
+

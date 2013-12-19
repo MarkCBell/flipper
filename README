@@ -4,7 +4,11 @@ Eventually it will also be able to construct the canonical triangulation of
 the surface bundle associated to pseudo-Anosov mapping class.
 
 Flipper is available from:
-	https://bitbucket.org/Mark_Bell/flipper
+	https://bitbucket.org/Mark_Bell/Flipper
 
 You can download the latest version directly from:
-	https://bitbucket.org/Mark_Bell/flipper/get/default.zip
+	https://bitbucket.org/Mark_Bell/Flipper/get/default.zip
+
+For more information about installing and using Flipper see "A users guide to 
+Flipper" located at:
+	/Docs/Flipper.pdf

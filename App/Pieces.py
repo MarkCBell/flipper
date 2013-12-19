@@ -138,7 +138,7 @@ class Triangle:
 		
 		# We reorder the vertices to guarantee that the vertices are cyclically ordered anticlockwise in the plane. 
 		d10, d20 = self.vertices[1] - self.vertices[0], self.vertices[2] - self.vertices[0]
-		if d10[0]*d20[1] - d10[1]*d20[0] < 0: self.vertices = [self.vertices[0], self.vertices[2], self.vertices[1]]
+		if d10[0]*d20[1] - d10[1]*d20[0] > 0: self.vertices = [self.vertices[0], self.vertices[2], self.vertices[1]]
 		# Now we reorder the edges such that edges[i] does not meet vertices[i].
 		self.edges = [edge for vertex in self.vertices for edge in self.edges if edge.source_vertex != vertex and edge.target_vertex != vertex]
 		# And reorient any edges so that they point anti-clockwise. This wont hold for internal edges as they will be overwritten later

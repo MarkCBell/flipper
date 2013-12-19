@@ -25,7 +25,7 @@
 #		requirement by multiplication.
 #	3) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.
 
-# We select a library interface here. we first try sage, then sympy and finally just load the dummy library which can't do anything.
+# We select a library interface here. We first try sage, then sympy and finally just load the dummy library which can't do anything.
 # To use your own library add its script to this folder and add that scripts name to the list below.
 
 possible_libraries = [

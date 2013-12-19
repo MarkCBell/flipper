@@ -5,15 +5,15 @@
 
 from time import time
 
+from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.Error import ComputationError, AssumptionError
 from Flipper.Examples.Examples import build_example_mapping_class
 
-from Flipper.Examples.Examples import Example_24 as Example
+# from Flipper.Examples.Examples import Example_24 as Example
 # from Flipper.Examples.Examples import Example_S_1_1 as Example
-# from Flipper.Examples.Examples import Example_S_1_2 as Example
+from Flipper.Examples.Examples import Example_S_1_2 as Example
 
 def determine_type(mapping_class):
-	
 	start_time = time()
 	if mapping_class.is_periodic():
 		print(' -- Periodic.')
@@ -24,7 +24,7 @@ def determine_type(mapping_class):
 			# In theory it could also fail by throwing an AssumptionError but we have already checked that the map is not periodic.
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation, lamination, isometries = lamination.splitting_sequence()
+			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 			print(' -- Pseudo-Anosov.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')
@@ -45,12 +45,13 @@ def random_test(word=None, num_trials=50):
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 def main():
-	random_test('aBC', num_trials=1)
+	# random_test('aBC', num_trials=1)
 	# random_test('aBBap' * 3, num_trials=1)
 	# random_test('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
-	# import cProfile
-	# cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='cumtime')
+	import cProfile
+	cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='time')
 	# random_test()
+	pass
 
 if __name__ == '__main__':
 	main()

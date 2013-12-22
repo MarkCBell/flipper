@@ -21,3 +21,9 @@ class AssumptionError(Exception):
 		self.code = code
 	def __str__(self):
 		return repr(self.code)
+
+class ApproximationError(Exception):
+	def __init__(self, code=None):
+		self.code = code
+	def __str__(self):
+		return repr(self.code)

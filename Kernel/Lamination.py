@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string, algebraic_type
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
@@ -215,6 +215,7 @@ class Lamination:
 		
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
+	# @profile
 	def splitting_sequence(self):
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
 		# AssumptionError
@@ -230,10 +231,7 @@ class Lamination:
 		# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
 		# uniform bound on the number of collisions.
 		def hash_lamination(x):
-			if isinstance(x[0], algebraic_type):
-				return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
-			else:  # We assume this type supports exact division.
-				pass
+			return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):

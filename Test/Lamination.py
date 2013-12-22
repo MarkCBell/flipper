@@ -47,9 +47,9 @@ def random_test(word=None, num_trials=50):
 def main():
 	# random_test('aBC', num_trials=1)
 	# random_test('aBBap' * 3, num_trials=1)
-	# random_test('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
-	import cProfile
-	cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='time')
+	random_test('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1)
+	# import cProfile
+	# cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='time')
 	# random_test()
 	pass
 

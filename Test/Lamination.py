@@ -23,8 +23,10 @@ def determine_type(mapping_class):
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
 			# In theory it could also fail by throwing an AssumptionError but we have already checked that the map is not periodic.
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
+			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+			print(len(preperiodic), len(periodic))
 			print(' -- Pseudo-Anosov.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')

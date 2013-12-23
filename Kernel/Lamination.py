@@ -9,9 +9,10 @@ from itertools import product, combinations
 
 from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
-from Flipper.Kernel.Isometry import all_isometries
-from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string, algebraic_type
+from Flipper.Kernel.Isometry import Isometry, all_isometries
+from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string, algebraic_type, symbolic_degree, symbolic_height
+from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_algebraic
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
@@ -33,17 +34,16 @@ class Lamination:
 		return self.vector[index]
 	
 	def __rmul__(self, other):
-		# Handles multiplication on the left by an Encoding.
-		try:
-			return Lamination(other.target_triangulation, other * self.vector)
-		except TypeError:
+		if isinstance(other, Isometry) and other.source_triangulation == self.abstract_triangulation:
+			return Lamination(other.target_triangulation, [self[j] for i in range(self.zeta) for j in range(self.zeta) if i == other.edge_map[j]])
+		else:
 			return NotImplemented
 	
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	
 	def weight(self):
-		return sum(self.vector)
+		return algebraic_simplify(sum(self.vector))
 	
 	def is_multicurve(self):
 		if not all(v == int(v) for v in self.vector): return False  # Redundant?
@@ -85,8 +85,6 @@ class Lamination:
 			
 			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
 			if time_since_last_weight_loss > 1:
-				print(lamination.abstract_triangulation)
-				print(lamination.vector)
 				return False
 		
 		return True
@@ -271,6 +269,63 @@ class Lamination:
 				seen[target].append([len(flipped), lamination, current_projective_weights])
 			else:
 				seen[target] = [[len(flipped), lamination, current_projective_weights]]
+	
+	# @profile
+	def splitting_sequence2(self):
+		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
+		# AssumptionError
+		# We assume that self is given as a list of algebraic numbers. 
+		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
+		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
+		
+		def projectively_equal(v1, v2):
+			return all(v1[i] * v2[0] == v2[i] * v1[0] for i in range(1, len(v1)))
+		
+		# Check if vector is obviously reducible.
+		if any(v == 0 for v in self.vector):
+			raise AssumptionError('Lamination is not filling.')
+		
+		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
+		
+		# Replace the lamination with a close approximation.
+		
+		w = initial_lamination.weight()
+		places = 10
+		while True:
+			try:
+				lamination = Lamination(initial_lamination.abstract_triangulation, [algebraic_approximation_from_algebraic(algebraic_simplify(x / w), places) for x in initial_lamination])
+				
+				flipped = []
+				seen = [lamination]
+				while True:
+					edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
+					lamination = lamination.flip_edge(edge_index)
+					
+					if lamination[edge_index] == 0:
+						try:
+							# If this fails it's because the lamination isn't filling.
+							lamination = lamination.collapse_trivial_weight(edge_index)
+						except AssumptionError:
+							raise AssumptionError('Lamination is not filling.')
+					
+					flipped.append(edge_index)
+					
+					# Check if it (projectively) matches a lamination we've already seen.
+					current_triangulation = lamination.abstract_triangulation
+					for index, old_lamination in enumerate(seen):
+						old_triangulation = old_lamination.abstract_triangulation
+						isometries = []
+						for isometry in all_isometries(current_triangulation, old_triangulation):
+							if projectively_equal((isometry * lamination).vector, old_lamination.vector):
+								isometries.append(isometry)
+						if len(isometries) > 0:
+							# return flipped[:index], flipped[index:], algebraic_simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries
+							return flipped[:index], flipped[index:], 1, old_lamination, isometries
+					else:
+						seen.append(lamination)
+			except ApproximationError:
+				# We just needed more precision.
+				places = places * 2
 	
 	def is_filling(self):
 		try:

@@ -14,3 +14,6 @@ def Perron_Frobenius_eigen(matrix):
 
 def minimal_polynomial_coefficients(number):
 	return None
+
+def symbolic_approximate(number, precision):
+	return None

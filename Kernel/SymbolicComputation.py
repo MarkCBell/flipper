@@ -2,8 +2,9 @@
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
 #	compute the stable lamination exactly.
 #	compute splitting sequences.
+#	Construct Algebric_Approximations.
 
-# This module provides four things to do with algebraic numbers.
+# This module provides 8 things to do with algebraic numbers.
 #	1) algebraic_type:
 #		The type used to represent algebraic numbers.
 #	2) algebraic_string(x):
@@ -16,6 +17,12 @@
 #		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types.
 #	5) minimal_polynomial_coefficients(number):
 #		Returns the coefficients of the minimal polynomial of an algebraic_type as a tuple of integers.
+#	6) symbolic_approximate(number, precision):
+#		Returns a string containing number to precision digits of accuracy.
+#	7) degree(number):
+#		Returns the degree of an algebraic number.
+#	8) height(number):
+#		Returns the height of an algebraic number.
 
 # Notes: 
 #	1) We do not actually care what algebraic_type is but it must implement;
@@ -33,7 +40,7 @@ possible_libraries = [
 	'Flipper.Kernel.SymbolicComputation_sympy',
 	'Flipper.Kernel.SymbolicComputation_dummy']
 
-required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', '_name']
+required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', 'symbolic_approximate', '_name']
 def import_library(possible_libraries, required_imports):
 	for library in possible_libraries:
 		try:
@@ -47,19 +54,26 @@ simplify_algebraic_type = library.simplify_algebraic_type
 string_algebraic_type = library.string_algebraic_type
 Perron_Frobenius_eigen = library.Perron_Frobenius_eigen
 minimal_polynomial_coefficients = library.minimal_polynomial_coefficients
+symbolic_approximate = library.symbolic_approximate
 _name = library._name
 
 def algebraic_simplify(x):
 	if isinstance(x, algebraic_type):
 		return simplify_algebraic_type(x)
 	else:
-		return int(x)
+		return x
 
 def algebraic_string(x):
 	if isinstance(x, algebraic_type):
 		return string_algebraic_type(x)
 	else:
 		return str(x)
+
+def symbolic_degree(x):
+	return len(minimal_polynomial_coefficients(x)) - 1
+
+def symbolic_height(x):
+	return max(map(abs, minimal_polynomial_coefficients(x)))
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 
@@ -74,3 +88,4 @@ def compute_powers(a, b):
 	else:
 		m2, n2 = compute_powers(a, b / a)
 		return (m2, n2 + m2)
+

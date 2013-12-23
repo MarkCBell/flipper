@@ -21,7 +21,7 @@ class Isometry:
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.triangle_map = triangle_map
-		self.edge_map = dict([(triangle[i], self.triangle_map[triangle][0] [self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3)])
+		self.edge_map = dict((triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3))
 		# Check that the thing that we've built is actually well defined.
 		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
 			raise AssumptionError('Map does not induce a well defined map on edges.')
@@ -32,9 +32,12 @@ class Isometry:
 	def __iter__(self):
 		return iter(self.source_triangulation)
 	def __mul__(self, other):
-		assert(other.target_triangulation == self.source_triangulation)
-		new_triangle_map = dict((triangle, self.apply(*other[triangle])) for triangle in other.source_triangulation)
-		return Isometry(other.source_triangulation, self.target_triangulation, new_triangle_map)
+		if isinstance(other, Isometry):
+			assert(other.target_triangulation == self.source_triangulation)
+			new_triangle_map = dict((triangle, self.apply(*other[triangle])) for triangle in other.source_triangulation)
+			return Isometry(other.source_triangulation, self.target_triangulation, new_triangle_map)
+		else:
+			return NotImplemented
 	def apply(self, triangle, permutation):
 		new_triangle, perm = self[triangle]
 		return (new_triangle, perm * permutation)
@@ -54,10 +57,9 @@ def isometry_from_edge_map(source_triangulation, target_triangulation, edge_map)
 	cycle = min(i for i in range(3) if all(edge_map[source_triangle[j]] == target_triangle[j + i] for j in range(3))) 
 	return extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle)
 
+# @profile
 def extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle):
-	if source_triangulation.zeta != target_triangulation.zeta: return None
 	triangle_map = {}
-	
 	triangles_to_process = Queue()
 	# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
 	triangles_to_process.put((source_triangle, target_triangle, cycle))
@@ -76,8 +78,7 @@ def extend_isometry(source_triangulation, target_triangulation, source_triangle,
 	return Isometry(source_triangulation, target_triangulation, triangle_map)
 
 def all_isometries(source_triangulation, target_triangulation):
-	# Returns a list of permutations of [0,...,self.zeta], each of which maps the edges of self 
-	# to the edges of target_triangulation by an orientation preserving isometry.
+	# Returns a list of all orientation preserving isometries from source_triangulation to target_triangulation.
 	if source_triangulation.zeta != target_triangulation.zeta: return []
 	
 	isometries = []

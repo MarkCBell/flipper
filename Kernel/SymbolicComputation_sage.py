@@ -1,5 +1,5 @@
 
-from sage.all import Matrix
+from sage.all import Matrix, lcm
 from sage.rings.qqbar import AlgebraicNumber
 
 from Flipper.Kernel.Error import AssumptionError
@@ -29,4 +29,9 @@ def Perron_Frobenius_eigen(matrix):
 	return [simplify_algebraic_type(x) for x in eigenvector], eigenvalue
 
 def minimal_polynomial_coefficients(number):
-	return tuple(number.minpoly().coefficients())
+	X = tuple(number.minpoly().coefficients())
+	scale = lcm([x.denominator() for x in X])
+	return tuple(int(scale * x) for x in X)
+
+def symbolic_approximate(number, precision):
+	return str(number.n(digits=precision))

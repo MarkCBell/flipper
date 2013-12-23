@@ -54,6 +54,8 @@ class Encoding:
 			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			return Encoding_Sequence([self, other], other.source_triangulation, self.target_triangulation)
+		elif isinstance(other, Lamination):
+			return Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
 				if nonnegative_image(self.condition_matrices[i], other):

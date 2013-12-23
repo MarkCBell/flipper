@@ -1,4 +1,6 @@
 
+from math import log10 as log
+
 from Flipper.Kernel.Error import ApproximationError
 
 # This class represents rationals of the form p / 10^q. That is, decimals correct to q places.
@@ -13,38 +15,57 @@ class Decimal:
 	def demote(self, new_q):
 		# Assumes that we are requesting less precision.
 		if new_q > self.q:
-			raise ApproximationError
-		
-		return Decimal(self.p // 10**(self.q - new_q), new_q)
-	def negate(self):
+			raise ApproximationError('Not enough precision available.')
+		elif new_q == self.q:
+			return self
+		elif new_q > 0:
+			n = self.p // 10**(self.q - new_q)
+			return Decimal(n, new_q)
+		else:
+			raise ApproximationError('Cannot round to less than one decimal place.')
+	def __neg__(self):
 		return Decimal(-self.p, self.q)
 	def __add__(self, other):
 		if isinstance(other, Decimal):
 			common_precision = min(self.q, other.q)
-			return Decimal(self.demote(common_precision).p + other.demote(common_precision).p, common_precision)
+			return Decimal(self.demote(common_precision).p + other.demote(common_precision).p, common_precision).demote(common_precision - 1)
 		elif isinstance(other, int):
 			return Decimal(self.p + other * 10**self.q, self.q)
-		return NotImplemented
+		else:
+			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, Decimal):
 			common_precision = min(self.q, other.q)
-			return Decimal(self.demote(common_precision).p - other.demote(common_precision).p, common_precision)
+			return Decimal(self.demote(common_precision).p - other.demote(common_precision).p, common_precision).demote(common_precision - 1)
 		elif isinstance(other, int):
 			return Decimal(self.p - other * 10**self.q, self.q)
-		return NotImplemented
+		else:
+			return NotImplemented
 	def __rsub__(self, other):
-		return (self - other).negate()
+		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Decimal):
 			common_precision = min(self.q, other.q)
-			return Decimal(self.demote(common_precision).p * other.demote(common_precision).p // 10**common_precision, common_precision)
+			return Decimal(self.demote(common_precision).p * other.demote(common_precision).p, 2*common_precision).demote(common_precision-1)
 		elif isinstance(other, int):
 			return Decimal(self.p * other, self.q)
-		return NotImplemented
+		else:
+			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
+	def __div__(self, other):
+		if isinstance(other, Decimal):
+			return NotImplemented
+		elif isinstance(other, int):
+			return Decimal(self.p // other, self.q)
+		else:
+			return NotImplemented
+	def __abs__(self):
+		return self if self >= 0 else -self
+	def log(self):
+		return log(self.p) - self.q
 	def sign(self):
 		return -1 if self.p < 0 else 0 if self.p == 0 else +1
 	def __lt__(self, other):
@@ -59,6 +80,9 @@ class Decimal:
 def decimal_from_string(string):
 	i, r = string.split('.') if '.' in string else (string, '')
 	return Decimal(int(i + r), len(r))
+
+def decimal_epsilon(integer, precision):
+	return Decimal(10**(precision - integer), precision)
 
 if __name__ == '__main__':
 	w = decimal_from_string('1')

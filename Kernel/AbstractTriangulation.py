@@ -59,6 +59,7 @@ class Abstract_Triangulation:
 		
 		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
 		self.triangles = [Abstract_Triangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
+		self.edge_contained_in = dict((edge_index, [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]) for edge_index in range(self.zeta))
 		
 		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
 		corners = list(product(self.triangles, range(3)))
@@ -125,7 +126,8 @@ class Abstract_Triangulation:
 		return vector
 	
 	def find_edge(self, edge_index):
-		return [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]
+		return self.edge_contained_in[edge_index]
+		# return [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]
 	
 	def find_neighbour(self, triangle, side):
 		# Returns the (triangle, side) opposite to this one.

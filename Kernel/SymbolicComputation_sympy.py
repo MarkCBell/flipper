@@ -1,12 +1,14 @@
 
 import sympy
 from sympy.core.add import Add
+from sympy.core.mul import Mul
+from sympy.core.power import Pow
 
 from Flipper.Kernel.Error import AssumptionError
 
 _name = 'sympy'
 
-algebraic_type = Add
+algebraic_type = (Add, Mul, Pow)
 
 def simplify_algebraic_type(x):
 	return x.simplify()
@@ -28,4 +30,7 @@ def Perron_Frobenius_eigen(matrix):
 	return [simplify_algebraic_type(x) for x in eigenvector], eigenvalue
 
 def minimal_polynomial_coefficients(number):
-	return tuple(sympy.Poly(sympy.minpoly(number)).all_coeffs())
+	return tuple(sympy.Poly(sympy.minpoly(number)).all_coeffs()[::-1])
+
+def symbolic_approximate(number, precision):
+	return str(number.evalf(n=precision))

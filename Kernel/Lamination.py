@@ -14,6 +14,9 @@ from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, 
 from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string, algebraic_type, symbolic_degree, symbolic_height
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_algebraic
 
+# The common denominator to switch Algebraic_Approximations to before hashing.
+HASH_DENOMINATOR = 5
+
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation

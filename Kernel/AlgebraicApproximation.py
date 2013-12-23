@@ -78,6 +78,8 @@ class Algebraic_Approximation:
 			return interval_epsilon(self.precision_needed, self.interval.q) < self.interval - other
 		else:
 			return NotImplemented
+	def __hash__(self):
+		return hash(self.interval)
 
 #### Some special Algebraic approximations we know how to build.
 
@@ -105,3 +107,4 @@ if __name__ == '__main__':
 	print(y * y + x == 2 + x)
 	print(x * x == y * y)
 	print((x + x) > 0)
+	print(hash(x))

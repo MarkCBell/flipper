@@ -325,6 +325,7 @@ class Lamination:
 						seen.append(lamination)
 			except ApproximationError:
 				# We just needed more precision.
+				print('Calculations failed when using %d places.' % places)
 				places = places * 2
 	
 	def is_filling(self):

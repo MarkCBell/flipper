@@ -327,10 +327,6 @@ class Lamination:
 						isometries = []
 						for isometry in all_isometries(current_triangulation, old_triangulation):
 							if projectively_equal((isometry * lamination).vector, old_lamination.vector):
-								print('a')
-								print(hash_lamination(lamination))
-								print('b')
-								print(hash_lamination(old_lamination))
 								isometries.append(isometry)
 						if len(isometries) > 0:
 							# return flipped[:index], flipped[index:], algebraic_simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries

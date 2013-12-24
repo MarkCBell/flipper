@@ -1,8 +1,7 @@
 
-from Flipper.Kernel.Error import ApproximationError
+from math import log10 as log
 
-# The common denominator to amount to 
-HASH_DENOMINATOR = 5
+from Flipper.Kernel.Error import ApproximationError
 
 # This class represents a number in the interval (lower / 10^q, upper / 10^q). That is, a decimal correct to q places.
 class Interval:
@@ -109,8 +108,14 @@ class Interval:
 			return False
 		except ApproximationError:
 			return True
+	def tuple(self):
+		return (self.lower, self.upper, self.q)
 	def __hash__(self):
-		return hash((self.lower, self.upper, self.q))
+		return hash(self.tuple())
+	def size(self):
+		# Returns an integer greater than the log of the width of the interval.
+		return int(log(self.upper - self.lower)) - self.q + 1
+		
 
 #### Some special Intervals we know how to build.
 

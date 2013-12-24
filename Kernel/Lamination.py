@@ -349,12 +349,9 @@ class Lamination:
 		def projectively_equal(v1, v2):
 			return all(v1[i] * v2[0] == v2[i] * v1[0] for i in range(1, len(v1)))
 		
-		def projective_weights(x):
-			s = x.weight()
-			return tuple(v / s for v in x)
-		
 		def hash_lamination(x):
-			return tuple(sorted([v.interval.change_denominator(HASH_DENOMINATOR).lower for v in projective_weights(x)]))
+			s = x.weight()
+			return tuple(sorted([(v / s).interval.change_denominator(HASH_DENOMINATOR).tuple() for v in x]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
@@ -368,6 +365,7 @@ class Lamination:
 		places = 10
 		while True:
 			try:
+				# Start by taking an approximation of the initial lamination which is correct to places decimal places.
 				lamination = Lamination(initial_lamination.abstract_triangulation, [algebraic_approximation_from_algebraic(algebraic_simplify(x / w), places) for x in initial_lamination])
 				
 				flipped = []
@@ -391,7 +389,7 @@ class Lamination:
 						for index, old_lamination in seen[target]:
 							isometries = [isometry for isometry in all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal((isometry * lamination).vector, old_lamination.vector)]
 							if len(isometries) > 0:
-								return flipped[:index], flipped[index:], 1, old_lamination, isometries
+								return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]] / lamination[0], old_lamination, isometries
 						seen[target].append((len(flipped), lamination))
 					else:
 						seen[target] = [(len(flipped), lamination)]

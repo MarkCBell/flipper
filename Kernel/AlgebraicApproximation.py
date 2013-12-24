@@ -16,7 +16,9 @@ class Algebraic_Approximation:
 		# An algebraic approximation is good if it is known to more interval places
 		# than its precision needed. That is if self.interval.q >= self.precision_needed.
 		if self.interval.q < self.precision_needed:
-			raise ApproximationError('%s does not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.height))
+			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.height))
+	def change_denominator(self, new_q):
+		return Algebraic_Approximation(self.interval.change_denominator(new_q), self.degree, self.height)
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.height))
 	def __neg__(self):
@@ -51,11 +53,15 @@ class Algebraic_Approximation:
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.height + abs(other))
+			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.height + other.height)
 		elif isinstance(other, int):
 			return Algebraic_Approximation(self.interval / other, self.degree, self.height + abs(other))
 		else:
 			return NotImplemented
+	def __truediv__(self, other):
+		return self.__div__(other)
+	def __rdiv__(self, other):
+		return NotImplemented  # !?!
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):

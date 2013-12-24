@@ -73,6 +73,8 @@ class Interval:
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Interval):
+			if other.possibly_equal(0):
+				raise ApproximationError('Denominator is possibly 0')
 			common_precision = max(self.q, other.q)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			# !?! RECHECK THESE!
@@ -82,11 +84,10 @@ class Interval:
 			return Interval(self.lower // other, self.upper // other, self.q)
 		else:
 			return NotImplemented
+	def __truediv__(self, other):
+		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, int):
-			pass
-		else:
-			return NotImplemented
+		return NotImplemented  # !?!
 	def __abs__(self):
 		new_lower = 0
 		new_upper = max(abs(self.lower), abs(self.upper))
@@ -140,6 +141,7 @@ if __name__ == '__main__':
 	print(x * 3 > 3 * y)
 	print(max([x,y,z]) == x)
 	print(max([z,x,y]) == x)
+	print(sorted([x,y,z,a]))
 	a = interval_from_string('1.4142135623730951')
 	print(2 in (a * a))
 	print(w > y)

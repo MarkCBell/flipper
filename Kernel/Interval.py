@@ -14,7 +14,7 @@ class Interval:
 		# Remember to take into account that the - sign uses a character.
 		s = str(self.lower).zfill(self.q + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.q + (1 if self.upper >= 0 else 2))
-		return '[%s.%s, %s.%s]' % (s[:len(s)-self.q], s[len(s)-self.q:], t[:len(t)-self.q], t[len(t)-self.q:])
+		return '(%s.%s, %s.%s)' % (s[:len(s)-self.q], s[len(s)-self.q:], t[:len(t)-self.q], t[len(t)-self.q:])
 	def change_denominator(self, new_q):
 		d = new_q - self.q
 		if d > 0:

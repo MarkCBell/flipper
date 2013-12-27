@@ -396,7 +396,7 @@ class Lamination:
 				
 			except ApproximationError:
 				# We just needed more precision.
-				print('Calculations failed when using %d places.' % places)
+				print('Calculations failed after %d steps when using %d places.' % (len(flipped), places))
 				places = places * 2
 	
 	def is_filling(self):

@@ -28,7 +28,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.height + other.height + 1)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.height + abs(other) + 1)
+			return Algebraic_Approximation(self.interval + other, self.degree, self.height + max(abs(other), 1) + 1)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -37,7 +37,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.height + other.height + 1)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.height + abs(other) + 1)
+			return Algebraic_Approximation(self.interval - other, self.degree, self.height + max(abs(other), 1) + 1)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
@@ -46,7 +46,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.height + other.height)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval * other, self.degree, self.height + abs(other))
+			return Algebraic_Approximation(self.interval * other, self.degree, self.height + max(abs(other), 1))
 		else:
 			return NotImplemented
 	def __rmult__(self, other):
@@ -55,7 +55,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.height + other.height)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval / other, self.degree, self.height + abs(other))
+			return Algebraic_Approximation(self.interval / other, self.degree, self.height + max(abs(other), 1))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -85,7 +85,7 @@ class Algebraic_Approximation:
 		else:
 			return NotImplemented
 	def __hash__(self):
-		return hash(self.interval)
+		return hash((self.interval, self.degree, self.height))
 
 #### Some special Algebraic approximations we know how to build.
 
@@ -96,7 +96,7 @@ def algebraic_approximation_from_algebraic(number, precision):
 	if isinstance(number, algebraic_type):
 		return algebraic_approximation_from_string(symbolic_approximate(number, precision), symbolic_degree(number), symbolic_height(number))
 	elif isinstance(number, int):
-		return algebraic_approximation_from_string(str(number) + '.' + '0' * precision, 1, abs(number))
+		return algebraic_approximation_from_string(str(number) + '.' + '0' * precision, 1, max(abs(number), 1))
 	else:
 		raise TypeError
 

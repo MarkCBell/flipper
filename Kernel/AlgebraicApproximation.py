@@ -1,11 +1,17 @@
 
 # A library for manipulating real algebraic numbers via interval approximations.
 
+# This relies on the following facts:
+# ???
+
 from math import log10 as log
 
 from Flipper.Kernel.Interval import Interval, interval_from_string, interval_epsilon
 from Flipper.Kernel.Error import AssumptionError, ApproximationError
 from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_degree, symbolic_height, algebraic_type
+
+def height(integer):
+	return max(abs(integer), 1)
 
 class Algebraic_Approximation:
 	def __init__(self, interval, degree, height):
@@ -28,7 +34,8 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.height + other.height + 1)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.height + max(abs(other), 1) + 1)
+			# return self + algebraic_approximation_from_integer(other, self.degree)
+			return Algebraic_Approximation(self.interval + other, self.degree, self.height + height(other) + 1)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -37,7 +44,8 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.height + other.height + 1)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.height + max(abs(other), 1) + 1)
+			# return self - algebraic_approximation_from_integer(other, self.degree)
+			return Algebraic_Approximation(self.interval - other, self.degree, self.height + height(other) + 1)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
@@ -46,7 +54,8 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.height + other.height)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval * other, self.degree, self.height + max(abs(other), 1))
+			# return self * algebraic_approximation_from_integer(other, self.degree)
+			return Algebraic_Approximation(self.interval * other, self.degree, self.height + height(other))
 		else:
 			return NotImplemented
 	def __rmult__(self, other):
@@ -55,7 +64,8 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.height + other.height)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval / other, self.degree, self.height + max(abs(other), 1))
+			# return self / algebraic_approximation_from_integer(other, self.degree)
+			return Algebraic_Approximation(self.interval / other, self.degree, self.height + height(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -88,6 +98,9 @@ class Algebraic_Approximation:
 		return hash((self.interval, self.degree, self.height))
 
 #### Some special Algebraic approximations we know how to build.
+
+def algebraic_approximation_from_integer(integer, degree):
+	return Algebraic_Approximation(interval_from_string('%d.0' % integer), degree, height(integer))
 
 def algebraic_approximation_from_string(string, degree, height):
 	return Algebraic_Approximation(interval_from_string(string), degree, height)

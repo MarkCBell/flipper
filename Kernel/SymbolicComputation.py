@@ -73,7 +73,7 @@ def symbolic_degree(x):
 	return len(minimal_polynomial_coefficients(x)) - 1
 
 def symbolic_height(x):
-	return max(map(abs, minimal_polynomial_coefficients(x)))
+	return max(abs(x) for x in minimal_polynomial_coefficients(x))
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

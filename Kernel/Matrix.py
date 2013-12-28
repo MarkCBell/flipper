@@ -1,6 +1,6 @@
 
 from __future__ import print_function
-from itertools import combinations, groupby
+from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce
 
@@ -46,16 +46,6 @@ def dot(a, b):
 	return sum([a[i] * b[i] for i in range(len(a))])
 	# return sum(x * y for x, y in zip(a,b))
 
-def Id_Matrix(dim):
-	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)], dim)
-
-def Empty_Matrix(dim):
-	return Matrix([], dim)
-
-def Permutation_Matrix(perm):
-	dim = len(perm)
-	return Matrix([[1 if i == perm[j] else 0 for j in range(dim)] for i in range(dim)], dim)
-
 class Matrix:
 	def __init__(self, data, width):
 		if not data or isinstance(data[0], (list, tuple)):
@@ -80,6 +70,8 @@ class Matrix:
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == len(other))
 			return [dot(row, other) for row in self.rows]
+		elif isinstance(other, int):
+			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
 			return NotImplemented
 	def __add__(self, other):
@@ -110,6 +102,20 @@ class Matrix:
 		return Matrix(A, self.width)
 	def transpose(self):
 		return Matrix(list(zip(*self.rows)), self.height)
+	def trace(self):
+		return sum(self[i][i] for i in range(self.width))
+	def tensor(self, other):
+		return Matrix([[self[i][j] * other[a][b] for j, b in product(range(self.width), range(other.width))] for i, a in product(range(self.height), range(other.height))], self.width * other.width)
+	def __xor__(self, other):
+		return self.tensor(other)
+	def char_poly(self):
+		A = self.copy()
+		p = [1]
+		for i in range(1, self.width+1):
+			ci = -A.trace() // i
+			p.append(ci)
+			A = self * (A + Id_Matrix(self.width) * ci)
+		return p[::-1]
 	def substitute_row(self, index, new_row):
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)], self.width)
 	def discard_column(self, column):
@@ -272,3 +278,15 @@ class Matrix:
 	def contracting(self, action):
 		M = self * action
 		return all(nonnegative_image(M, v) for v in self.edge_vectors())
+
+#### Some special Matrices we know how to build.
+
+def Id_Matrix(dim):
+	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)], dim)
+
+def Empty_Matrix(dim):
+	return Matrix([], dim)
+
+def Permutation_Matrix(perm):
+	dim = len(perm)
+	return Matrix([[1 if i == perm[j] else 0 for j in range(dim)] for i in range(dim)], dim)

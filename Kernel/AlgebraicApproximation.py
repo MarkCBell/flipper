@@ -10,62 +10,62 @@ from Flipper.Kernel.Interval import Interval, interval_from_string, interval_eps
 from Flipper.Kernel.Error import AssumptionError, ApproximationError
 from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_degree, symbolic_height, algebraic_type
 
-def height(integer):
-	return max(abs(integer), 1)
+def log_height(number):
+	return log(symbolic_height(number))
 
 class Algebraic_Approximation:
-	def __init__(self, interval, degree, height):
+	def __init__(self, interval, degree, log_height):
 		self.interval = interval
 		self.degree = degree
-		self.height = height
-		self.precision_needed = int(log(self.degree) + log(self.height)) + 1
+		self.log_height = log_height
+		self.precision_needed = int(log(self.degree)) + int(self.log_height) + 2
 		# An algebraic approximation is good if it is known to more interval places
 		# than its precision needed. That is if self.interval.q >= self.precision_needed.
 		if self.interval.q < self.precision_needed:
-			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.height))
+			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.log_height))
 	def change_denominator(self, new_q):
-		return Algebraic_Approximation(self.interval.change_denominator(new_q), self.degree, self.height)
+		return Algebraic_Approximation(self.interval.change_denominator(new_q), self.degree, self.log_height)
 	def __repr__(self):
-		return repr((self.interval, self.degree, self.height))
+		return repr((self.interval, self.degree, self.log_height))
 	def __neg__(self):
-		return Algebraic_Approximation(-self.interval, self.degree, self.height)
+		return Algebraic_Approximation(-self.interval, self.degree, self.log_height)
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.height + other.height + 1)
+			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 1)
 		elif isinstance(other, int):
 			# return self + algebraic_approximation_from_integer(other, self.degree)
-			return Algebraic_Approximation(self.interval + other, self.degree, self.height + height(other) + 1)
+			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height(other) + 1)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.height + other.height + 1)
+			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 1)
 		elif isinstance(other, int):
 			# return self - algebraic_approximation_from_integer(other, self.degree)
-			return Algebraic_Approximation(self.interval - other, self.degree, self.height + height(other) + 1)
+			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height(other) + 1)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.height + other.height)
+			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, int):
 			# return self * algebraic_approximation_from_integer(other, self.degree)
-			return Algebraic_Approximation(self.interval * other, self.degree, self.height + height(other))
+			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height(other))
 		else:
 			return NotImplemented
 	def __rmult__(self, other):
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.height + other.height)
+			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, int):
 			# return self / algebraic_approximation_from_integer(other, self.degree)
-			return Algebraic_Approximation(self.interval / other, self.degree, self.height + height(other))
+			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -95,21 +95,21 @@ class Algebraic_Approximation:
 		else:
 			return NotImplemented
 	def __hash__(self):
-		return hash((self.interval, self.degree, self.height))
+		return hash((self.interval, self.degree, self.log_height))
 
 #### Some special Algebraic approximations we know how to build.
 
 def algebraic_approximation_from_integer(integer, degree):
-	return Algebraic_Approximation(interval_from_string('%d.0' % integer), degree, height(integer))
+	return Algebraic_Approximation(interval_from_string('%d.0' % integer), degree, log_height(integer))
 
 def algebraic_approximation_from_string(string, degree, height):
 	return Algebraic_Approximation(interval_from_string(string), degree, height)
 
-def algebraic_approximation_from_algebraic(number, precision):
+def algebraic_approximation_from_symbolic(number, precision):
 	if isinstance(number, algebraic_type):
-		return algebraic_approximation_from_string(symbolic_approximate(number, precision), symbolic_degree(number), symbolic_height(number))
+		return algebraic_approximation_from_string(symbolic_approximate(number, precision), symbolic_degree(number), log(symbolic_height(number)))
 	elif isinstance(number, int):
-		return algebraic_approximation_from_string(str(number) + '.' + '0' * precision, 1, max(abs(number), 1))
+		return algebraic_approximation_from_string(str(number) + '.' + '0' * precision, 1, log_height(number))
 	else:
 		raise TypeError
 

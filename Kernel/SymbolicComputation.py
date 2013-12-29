@@ -72,8 +72,13 @@ def algebraic_string(x):
 def symbolic_degree(x):
 	return len(minimal_polynomial_coefficients(x)) - 1
 
-def symbolic_height(x):
-	return max(abs(x) for x in minimal_polynomial_coefficients(x))
+def symbolic_height(number):
+	if isinstance(number, algebraic_type):
+		return max(abs(x) for x in minimal_polynomial_coefficients(number))
+	elif isinstance(number, int):
+		return max(abs(number), 1)
+	else:
+		return NotImplemented
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

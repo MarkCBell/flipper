@@ -25,7 +25,7 @@ def determine_type(mapping_class, verbose=False):
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence3()
+			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence4()
 			if verbose: print('Perperiodic, periodic length: %d, %d' %(len(preperiodic), len(periodic)))
 			if verbose: print('Dilatation: %s, %s' % (dilatation, new_dilatation))
 			print(' -- Pseudo-Anosov.')
@@ -36,21 +36,27 @@ def determine_type(mapping_class, verbose=False):
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-def random_test(word=None, num_trials=50, verbose=False):
+def random_test(words=None, num_trials=50, verbose=False):
 	print('Start')
 	
 	times = []
-	for k in range(num_trials):
-		word, mapping_class = build_example_mapping_class(Example, word)
-		print(word)
-		times.append(determine_type(mapping_class, verbose))
+	if words is None:
+		for k in range(num_trials):
+			word, mapping_class = build_example_mapping_class(Example)
+			print(word)
+			times.append(determine_type(mapping_class, verbose))
+	else:
+		for word in words:
+			word, mapping_class = build_example_mapping_class(Example, word)
+			print(word)
+			times.append(determine_type(mapping_class, verbose))
 	
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 def main():
 	# random_test('aBC', num_trials=1)
 	# random_test('aBBap' * 3, num_trials=1)
-	random_test('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', num_trials=1, verbose=True)
+	random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], num_trials=1, verbose=True)
 	# import cProfile
 	# cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='time')
 	# random_test()

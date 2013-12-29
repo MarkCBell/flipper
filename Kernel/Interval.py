@@ -65,7 +65,8 @@ class Interval:
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
 		elif isinstance(other, int):
-			return Interval(self.lower * other, self.upper * other, self.q)
+			values = [self.lower * other, self.upper * other]
+			return Interval(min(values), max(values), self.q)
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
@@ -80,7 +81,8 @@ class Interval:
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
 		elif isinstance(other, int):
-			return Interval(self.lower // other, self.upper // other, self.q)
+			values = [self.lower // other, self.upper // other]
+			return Interval(min(values), max(values), self.q)
 		else:
 			return NotImplemented
 	def __truediv__(self, other):

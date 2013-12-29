@@ -3,20 +3,20 @@ from math import log10 as log
 
 from Flipper.Kernel.Error import ApproximationError
 
-# This class represents a number in the interval (lower / 10^q, upper / 10^q). That is, a decimal correct to q places.
+# This class represents the interval (lower / 10^precision, upper / 10^precision).
 class Interval:
-	def __init__(self, lower, upper, q):
+	def __init__(self, lower, upper, precision):
 		assert(lower < upper)
 		self.lower = lower
 		self.upper = upper
-		self.q = q
+		self.precision = precision
 	def __repr__(self):
 		# Remember to take into account that the - sign uses a character.
-		s = str(self.lower).zfill(self.q + (1 if self.lower >= 0 else 2))
-		t = str(self.upper).zfill(self.q + (1 if self.upper >= 0 else 2))
-		return '(%s.%s, %s.%s)' % (s[:len(s)-self.q], s[len(s)-self.q:], t[:len(t)-self.q], t[len(t)-self.q:])
+		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
+		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
+		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
 	def change_denominator(self, new_q):
-		d = new_q - self.q
+		d = new_q - self.precision
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_q)
 		elif d == 0:
@@ -27,62 +27,63 @@ class Interval:
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
 		elif isinstance(other, int):
-			return self.lower < other * 10**self.q < self.upper
+			return self.lower < other * 10**self.precision < self.upper
 		else:
 			return NotImplemented
 	def __neg__(self):
-		return Interval(-self.upper, -self.lower, self.q)
+		return Interval(-self.upper, -self.lower, self.precision)
 	def __add__(self, other):
 		if isinstance(other, Interval):
-			common_precision = max(self.q, other.q)
+			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			new_lower = P.lower + Q.lower
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
 		elif isinstance(other, int):
-			return Interval(self.lower + other * 10**self.q, self.upper + other * 10**self.q, self.q)
+			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, Interval):
-			common_precision = max(self.q, other.q)
+			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			new_lower = P.lower - Q.upper
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
 		elif isinstance(other, int):
-			return Interval(self.lower - other * 10**self.q, self.upper - other * 10**self.q, self.q)
+			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Interval):
-			common_precision = max(self.q, other.q)
+			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
 		elif isinstance(other, int):
+			# Multiplication by 0 could cause problems here as these represent open intervals.
 			values = [self.lower * other, self.upper * other]
-			return Interval(min(values), max(values), self.q)
+			return Interval(min(values), max(values), self.precision)
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Interval):
-			if other.possibly_equal(0):
-				raise ApproximationError('Denominator is possibly 0')
-			common_precision = max(self.q, other.q)
+			if 0 in other:
+				raise ApproximationError('Denominator contains 0.')
+			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			# !?! RECHECK THESE!
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
 		elif isinstance(other, int):
 			values = [self.lower // other, self.upper // other]
-			return Interval(min(values), max(values), self.q)
+			return Interval(min(values), max(values), self.precision)
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -92,7 +93,7 @@ class Interval:
 	def __abs__(self):
 		new_lower = 0
 		new_upper = max(abs(self.lower), abs(self.upper))
-		return Interval(new_lower, new_upper, self.q)
+		return Interval(new_lower, new_upper, self.precision)
 	def sign(self):
 		if self.upper < 0:
 			return -1
@@ -111,12 +112,12 @@ class Interval:
 		except ApproximationError:
 			return True
 	def tuple(self):
-		return (self.lower, self.upper, self.q)
+		return (self.lower, self.upper, self.precision)
 	def __hash__(self):
 		return hash(self.tuple())
 	def size(self):
 		# Returns an integer greater than the log of the width of the interval.
-		return int(log(self.upper - self.lower)) - self.q + 1
+		return int(log(self.upper - self.lower)) - self.precision + 1
 		
 
 #### Some special Intervals we know how to build.

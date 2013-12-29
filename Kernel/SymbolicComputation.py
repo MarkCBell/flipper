@@ -19,9 +19,9 @@
 #		Returns the coefficients of the minimal polynomial of an algebraic_type as a tuple of integers.
 #	6) symbolic_approximate(number, precision):
 #		Returns a string containing number to precision digits of accuracy.
-#	7) degree(number):
+#	7) symbolic_degree(number):
 #		Returns the degree of an algebraic number.
-#	8) height(number):
+#	8) symbolic_height(number):
 #		Returns the height of an algebraic number.
 
 # Notes: 
@@ -69,8 +69,13 @@ def algebraic_string(x):
 	else:
 		return str(x)
 
-def symbolic_degree(x):
-	return len(minimal_polynomial_coefficients(x)) - 1
+def symbolic_degree(number):
+	if isinstance(number, algebraic_type):
+		return len(minimal_polynomial_coefficients(number)) - 1
+	elif isinstance(number, int):
+		return 1
+	else:
+		return NotImplemented
 
 def symbolic_height(number):
 	if isinstance(number, algebraic_type):

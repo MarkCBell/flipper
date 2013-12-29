@@ -425,12 +425,11 @@ class Lamination:
 		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
 		
 		w = initial_lamination.weight()
-		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([v / w for v in initial_lamination]))
+		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
 		
 		flipped = []
 		seen = {hash_lamination(lamination):[(0, lamination)]}
 		while True:
-			# print(lamination)
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
 			lamination = lamination.flip_edge(edge_index)
 			

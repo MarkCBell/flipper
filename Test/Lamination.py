@@ -58,7 +58,7 @@ def main():
 	# random_test('aBBap' * 3, num_trials=1)
 	random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], num_trials=1, verbose=True)
 	# import cProfile
-	# cProfile.run('random_test("aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa", num_trials=1)', sort='time')
+	# cProfile.run('random_test(["aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa"], num_trials=1)', sort='time')
 	# random_test()
 	pass
 

@@ -13,6 +13,7 @@ from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_de
 def log_height(number):
 	return log(symbolic_height(number))
 
+# This class uses an interval to represent an algebraic number exactly.
 class Algebraic_Approximation:
 	def __init__(self, interval, degree, log_height):
 		self.interval = interval
@@ -20,8 +21,8 @@ class Algebraic_Approximation:
 		self.log_height = log_height
 		self.precision_needed = int(log(self.degree)) + int(self.log_height) + 2
 		# An algebraic approximation is good if it is known to more interval places
-		# than its precision needed. That is if self.interval.q >= self.precision_needed.
-		if self.interval.q < self.precision_needed:
+		# than its precision needed. That is if self.interval.precision >= self.precision_needed.
+		if self.interval.precision < self.precision_needed:
 			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.log_height))
 	def change_denominator(self, new_q):
 		return Algebraic_Approximation(self.interval.change_denominator(new_q), self.degree, self.log_height)
@@ -34,7 +35,6 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 1)
 		elif isinstance(other, int):
-			# return self + algebraic_approximation_from_integer(other, self.degree)
 			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height(other) + 1)
 		else:
 			return NotImplemented
@@ -44,7 +44,6 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 1)
 		elif isinstance(other, int):
-			# return self - algebraic_approximation_from_integer(other, self.degree)
 			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height(other) + 1)
 		else:
 			return NotImplemented
@@ -54,7 +53,8 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, int):
-			# return self * algebraic_approximation_from_integer(other, self.degree)
+			# Multiplication by 0 would cause problems here as we work with open intervals.
+			if other == 0: return 0
 			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height(other))
 		else:
 			return NotImplemented
@@ -64,7 +64,6 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, int):
-			# return self / algebraic_approximation_from_integer(other, self.degree)
 			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height(other))
 		else:
 			return NotImplemented
@@ -75,23 +74,23 @@ class Algebraic_Approximation:
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return self.interval - other.interval < interval_epsilon(self.precision_needed, self.interval.q)
+			return self.interval - other.interval < interval_epsilon(self.precision_needed, self.interval.precision)
 		elif isinstance(other, int):
-			return self.interval - other < interval_epsilon(self.precision_needed, self.interval.q)
+			return self.interval - other < interval_epsilon(self.precision_needed, self.interval.precision)
 		else:
 			return NotImplemented
 	def __eq__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return -interval_epsilon(self.precision_needed, self.interval.q) < self.interval - other.interval < interval_epsilon(self.precision_needed, self.interval.q)
+			return -interval_epsilon(self.precision_needed, self.interval.precision) < self.interval - other.interval < interval_epsilon(self.precision_needed, self.interval.precision)
 		elif isinstance(other, int):
-			return -interval_epsilon(self.precision_needed, self.interval.q) < self.interval - other < interval_epsilon(self.precision_needed, self.interval.q)
+			return -interval_epsilon(self.precision_needed, self.interval.precision) < self.interval - other < interval_epsilon(self.precision_needed, self.interval.precision)
 		else:
 			return NotImplemented
 	def __gt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return interval_epsilon(self.precision_needed, self.interval.q) < self.interval - other.interval
+			return interval_epsilon(self.precision_needed, self.interval.precision) < self.interval - other.interval
 		elif isinstance(other, int):
-			return interval_epsilon(self.precision_needed, self.interval.q) < self.interval - other
+			return interval_epsilon(self.precision_needed, self.interval.precision) < self.interval - other
 		else:
 			return NotImplemented
 	def __hash__(self):

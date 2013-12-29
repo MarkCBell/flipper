@@ -36,29 +36,32 @@ def determine_type(mapping_class, verbose=False):
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-def random_test(words=None, num_trials=50, verbose=False):
+def random_test(words=None, num_trials=None, verbose=False):
 	print('Start')
 	
 	times = []
-	if words is None:
+	if num_trials is not None:
 		for k in range(num_trials):
 			word, mapping_class = build_example_mapping_class(Example)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
-	else:
+	elif words is not None:
+		num_trials = len(words)
 		for word in words:
 			word, mapping_class = build_example_mapping_class(Example, word)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
+	else:
+		raise TypeError('words or num_trials must be set')
 	
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 def main():
-	# random_test('aBC', num_trials=1)
-	# random_test('aBBap' * 3, num_trials=1)
-	random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], num_trials=1, verbose=True)
+	# random_test(['aBC'])
+	# random_test(['aBBap' * 3])
+	random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	# import cProfile
-	# cProfile.run('random_test(["aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa"], num_trials=1)', sort='time')
+	# cProfile.run('random_test(["aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa"])', sort='time')
 	# random_test()
 	pass
 

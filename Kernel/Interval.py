@@ -10,8 +10,11 @@ class Interval:
 		self.lower = lower
 		self.upper = upper
 		self.precision = precision
+		# The width of this interval is at most 10^-self.accuracy.
+		# That is, this interval defines a number correct to self.accuracy decimal places.
+		self.accuracy = self.precision - int(log(self.upper - self.lower))
 	def __repr__(self):
-		# Remember to take into account that the - sign uses a character.
+		# Remember to take into account that the '-' sign uses a character.
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
 		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
@@ -66,6 +69,8 @@ class Interval:
 			return Interval(min(values), max(values), 2*common_precision)
 		elif isinstance(other, int):
 			# Multiplication by 0 could cause problems here as these represent open intervals.
+			if other == 0: return 0
+			
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -105,20 +110,10 @@ class Interval:
 		return (self-other).sign() < 0
 	def __gt__(self, other):
 		return (self-other).sign() > 0
-	def possibly_equal(self, other):
-		try:
-			(self-other).sign()
-			return False
-		except ApproximationError:
-			return True
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
 	def __hash__(self):
 		return hash(self.tuple())
-	def size(self):
-		# Returns an integer greater than the log of the width of the interval.
-		return int(log(self.upper - self.lower)) - self.precision + 1
-		
 
 #### Some special Intervals we know how to build.
 
@@ -153,5 +148,3 @@ if __name__ == '__main__':
 	a = interval_from_string('1.4142135623730951')
 	print(2 in (a * a))
 	print(w > y)
-	print(x.possibly_equal(w))
-	print(not x.possibly_equal(y))

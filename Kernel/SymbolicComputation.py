@@ -33,29 +33,29 @@
 #	3) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.
 
 # We select a library interface here. We first try sage, then sympy and finally just load the dummy library which can't do anything.
-# To use your own library add its script to this folder and add that scripts name to the list below.
+# To use your own library add its script to this folder and duplicate one of the blocks below.
 
-possible_libraries = [
-	'Flipper.Kernel.SymbolicComputation_sage',
-	'Flipper.Kernel.SymbolicComputation_sympy',
-	'Flipper.Kernel.SymbolicComputation_dummy']
+_name = None
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_sage import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+	except ImportError:
+		pass
 
-required_imports = ['algebraic_type', 'simplify_algebraic_type', 'string_algebraic_type', 'Perron_Frobenius_eigen', 'minimal_polynomial_coefficients', 'symbolic_approximate', '_name']
-def import_library(possible_libraries, required_imports):
-	for library in possible_libraries:
-		try:
-			return __import__(library, fromlist=required_imports)
-		except ImportError:
-			pass
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_sympy import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+	except ImportError:
+		pass
 
-library = import_library(possible_libraries, required_imports)
-algebraic_type = library.algebraic_type
-simplify_algebraic_type = library.simplify_algebraic_type
-string_algebraic_type = library.string_algebraic_type
-Perron_Frobenius_eigen = library.Perron_Frobenius_eigen
-minimal_polynomial_coefficients = library.minimal_polynomial_coefficients
-symbolic_approximate = library.symbolic_approximate
-_name = library._name
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_dummy import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+	except ImportError:
+		pass
+
+#############################################################################
+# We also build some helper functions using these.
 
 def algebraic_simplify(x):
 	if isinstance(x, algebraic_type):

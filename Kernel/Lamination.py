@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string, algebraic_type, symbolic_degree, symbolic_height
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_symbolic
 from Flipper.Kernel.NumberSystem import number_system_basis
 
@@ -412,7 +412,9 @@ class Lamination:
 		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
 		def projectively_equal(v1, v2):
-			return all(v1[i].algebraic_approximation(factor=2) * v2[0].algebraic_approximation(factor=2) == v2[i].algebraic_approximation(factor=2) * v1[0].algebraic_approximation(factor=2) for i in range(1, len(v1)))
+			w1 = [v.algebraic_approximation(factor=2) for v in v1]
+			w2 = [v.algebraic_approximation(factor=2) for v in v2]
+			return all(w1[i] * w2[0] == w2[i] * w1[0] for i in range(1, len(w1)))
 		
 		def hash_lamination(x):
 			s = x.weight().algebraic_approximation(factor=2)
@@ -426,6 +428,7 @@ class Lamination:
 		
 		w = initial_lamination.weight()
 		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
+		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
 		
 		flipped = []
 		seen = {hash_lamination(lamination):[(0, lamination)]}

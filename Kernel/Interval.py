@@ -136,28 +136,3 @@ def interval_from_string(string):
 
 def interval_epsilon(integer, precision):
 	return Interval(10**(precision - integer)-1, 10**(precision - integer)+1, precision)
-
-if __name__ == '__main__':
-	w = interval_from_string('1.14576001')
-	x = interval_from_string('1.14576')
-	y = interval_from_string('1.14571')
-	z = interval_from_string('1.00000')
-	a = interval_from_string('-1.200000')
-	
-	print(x)
-	print(x.change_denominator(3))
-	print(x.change_denominator(30))
-	print(w)
-	print(w.change_denominator(3))
-	print(w.change_denominator(30))
-	
-	print(x > y)
-	print(y > z)
-	print(x +y > y + z)
-	print(x * 3 > 3 * y)
-	print(max([x,y,z]) == x)
-	print(max([z,x,y]) == x)
-	print(sorted([x,y,z,a]))
-	a = interval_from_string('1.4142135623730951')
-	print(2 in (a * a))
-	print(w > y)

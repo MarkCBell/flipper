@@ -130,18 +130,3 @@ def algebraic_approximation_from_symbolic(number, accuracy, degree=None):
 		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, degree, log_height(number))
 	else:
 		raise TypeError
-
-if __name__ == '__main__':
-	x = algebraic_approximation_from_string('1.4142135623730951', 2, 2)
-	y = algebraic_approximation_from_string('1.41421356237', 2, 2)
-	z = algebraic_approximation_from_string('1.000', 2, 2)
-	
-	print(z != y)
-	print(x == y)
-	print(x + y == x + x)
-	print(x * x == 2)
-	print(y * y == 2)
-	print(y * y + x == 2 + x)
-	print(x * x == y * y)
-	print((x + x) > 0)
-	print(hash(x))

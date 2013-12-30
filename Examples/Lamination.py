@@ -7,11 +7,11 @@ from time import time
 
 from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.Error import ComputationError, AssumptionError
-from Flipper.Examples.Examples import build_example_mapping_class
+from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
 
-# from Flipper.Examples.Examples import Example_24 as Example
-# from Flipper.Examples.Examples import Example_S_1_1 as Example
-from Flipper.Examples.Examples import Example_S_1_2 as Example
+# from Flipper.Examples.AbstractTriangulation import Example_24 as Example
+# from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
+from Flipper.Examples.AbstractTriangulation import Example_S_1_2 as Example
 
 def determine_type(mapping_class, verbose=False):
 	start_time = time()

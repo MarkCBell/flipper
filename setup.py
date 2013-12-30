@@ -1,3 +1,4 @@
+
 import os
 from distutils.core import setup, Command
 from Kernel.Version import Flipper_version
@@ -14,11 +15,19 @@ class TestCommand(Command):
 	
 	def run(self):
 		''' Runs all of the test suite. '''
-		import Flipper.Test.Lamination
-		import Flipper.Test.LayeredTriangulation
-		import Flipper.Test.Matrix
+		import Flipper.Tests.AlgebraicApproximation
+		import Flipper.Tests.Interval
+		import Flipper.Tests.Lamination
+		import Flipper.Tests.Matrix
 		
-		print('Passed matrix test: %s' % Flipper.Test.Matrix.main())
+		print('Running AlgebraicApproximation test...')
+		print('\tPassed' if Flipper.Test.AlgebraicApproximation.main() else '\tFailed')
+		print('Running Interval test...')
+		print('\tPassed' if Flipper.Test.Interval.main() else '\tFailed')
+		print('Running Lamination test...')
+		print('\tPassed' if Flipper.Test.Lamination.main() else '\tFailed')
+		print('Running Matrix test...')
+		print('\tPassed' if Flipper.Test.Matrix.main() else '\tFailed')
 
 setup(
 	name='Flipper',

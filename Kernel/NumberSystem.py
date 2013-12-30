@@ -16,13 +16,14 @@ class Number_System:
 		self.log_degree = log(self.degree)
 		self.current_accuracy = initial_accuracy
 		self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
+		self.verbose = False
 	def __len__(self):
 		return len(self.generators)
 	def increase_accuracy(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
-			print('Recomputing number system to %d places.' % self.current_accuracy)
+			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
 			self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 
 # This class represents an element of a Number_System. At any point we can convert it to an Algebraic_Approximation. In fact we have

@@ -12,9 +12,10 @@ class Number_System:
 	def __init__(self, generators, degree, initial_accuracy=100):
 		self.generators = generators + [1]
 		self.sum_log_height_generators = sum(log_height(generator) for generator in self.generators)
-		self.log_degree = log(degree)  # We assume that this is log(degree(\lambda))
+		self.degree = degree  # We assume that this is degree(\lambda)).
+		self.log_degree = log(self.degree)
 		self.current_accuracy = initial_accuracy
-		self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy) for generator in self.generators]
+		self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 	def __len__(self):
 		return len(self.generators)
 	def increase_accuracy(self, accuracy):
@@ -22,7 +23,7 @@ class Number_System:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			print('Recomputing number system to %d places.' % self.current_accuracy)
-			self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy) for generator in self.generators]
+			self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 
 # This class represents an element of a Number_System.
 class Number_System_Element:

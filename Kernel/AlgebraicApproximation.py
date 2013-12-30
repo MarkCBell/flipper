@@ -30,7 +30,9 @@ from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_de
 def log_height(number):
 	return log(symbolic_height(number))
 
-# This class uses a sufficiently small interval to represent an algebraic number exactly.
+# This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
+# by an interval, the degree of the field extension in which this number lives and the log of the height
+# of this algebraic number.
 class Algebraic_Approximation:
 	def __init__(self, interval, degree, log_height):
 		self.interval = interval
@@ -121,13 +123,15 @@ class Algebraic_Approximation:
 def algebraic_approximation_from_string(string, degree, log_height):
 	return Algebraic_Approximation(interval_from_string(string), degree, log_height)
 
-def algebraic_approximation_from_symbolic(number, accuracy):
+def algebraic_approximation_from_symbolic(number, accuracy, degree=None):
 	if isinstance(number, algebraic_type):
-		A = algebraic_approximation_from_string(symbolic_approximate(number, accuracy), symbolic_degree(number), log(symbolic_height(number)))
+		if degree is None: degree = symbolic_degree(number)
+		A = algebraic_approximation_from_string(symbolic_approximate(number, accuracy), degree, log(symbolic_height(number)))
 		assert(A.interval.accuracy >= accuracy)
 		return A
 	elif isinstance(number, int):
-		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, 1, log_height(number))
+		if degree is None: degree = 1
+		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, degree, log_height(number))
 	else:
 		raise TypeError
 

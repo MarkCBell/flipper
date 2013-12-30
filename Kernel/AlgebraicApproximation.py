@@ -46,8 +46,6 @@ class Algebraic_Approximation:
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.interval.accuracy < self.accuracy_needed:
 			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.log_height))
-	def change_denominator(self, new_q):
-		return Algebraic_Approximation(self.interval.change_denominator(new_q), self.degree, self.log_height)
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.log_height))
 	def __neg__(self):
@@ -115,8 +113,6 @@ class Algebraic_Approximation:
 			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
 		else:
 			return NotImplemented
-	def __hash__(self):
-		return hash((self.interval, self.degree, self.log_height))
 
 #### Some special Algebraic approximations we know how to build.
 

@@ -411,14 +411,12 @@ class Lamination:
 		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
 		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
-		def projectively_equal(v1, v2):
-			w1 = [v.algebraic_approximation(factor=2) for v in v1]
-			w2 = [v.algebraic_approximation(factor=2) for v in v2]
-			return all(w1[i] * w2[0] == w2[i] * w1[0] for i in range(1, len(w1)))
+		def projectively_equal(lamination1, lamination2):
+			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
 		
-		def hash_lamination(x):
-			s = x.weight().algebraic_approximation(factor=2)
-			return tuple(sorted([(v.algebraic_approximation(factor=2) / s).interval.change_denominator(HASH_DENOMINATOR).tuple() for v in x]))
+		def projectively_hash_lamination(lamination1):
+			s = lamination1.weight()
+			return tuple(sorted([(v / s).interval.change_denominator(HASH_DENOMINATOR).tuple() for v in lamination1]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
@@ -426,12 +424,12 @@ class Lamination:
 		
 		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
 		
-		# w = initial_lamination.weight()
-		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
-		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
+		w = initial_lamination.weight()
+		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
+		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
 		
 		flipped = []
-		seen = {hash_lamination(lamination):[(0, lamination)]}
+		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
 		while True:
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
 			lamination = lamination.flip_edge(edge_index)
@@ -446,10 +444,10 @@ class Lamination:
 			flipped.append(edge_index)
 			
 			# Check if it (projectively) matches a lamination we've already seen.
-			target = hash_lamination(lamination)
+			target = projectively_hash_lamination(lamination)
 			if target in seen:
 				for index, old_lamination in seen[target]:
-					isometries = [isometry for isometry in all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal((isometry * lamination).vector, old_lamination.vector)]
+					isometries = [isometry for isometry in all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal(isometry * lamination, old_lamination)]
 					if len(isometries) > 0:
 						return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]].algebraic_approximation(factor=2) / lamination[0].algebraic_approximation(factor=2), old_lamination, isometries
 				seen[target].append((len(flipped), lamination))

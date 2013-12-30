@@ -10,15 +10,15 @@
 #	2) algebraic_string(x):
 #		Given an algebraic_type this must return that number as a nice string, otherwise return str(x).
 #	3) algebraic_simplify(x):
-#		Given an algebraic_type this must return that number in a standard form, otherwise return int(x).
+#		Given an algebraic_type this must return that number in a standard form, otherwise return x.
 #	4) Perron_Frobenius_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue.
 #		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
 #		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types.
 #	5) minimal_polynomial_coefficients(number):
 #		Returns the coefficients of the minimal polynomial of an algebraic_type as a tuple of integers.
-#	6) symbolic_approximate(number, precision):
-#		Returns a string containing number to precision digits of accuracy.
+#	6) symbolic_approximate(number, accuracy):
+#		Returns a string containing number to accuracy digits of accuracy.
 #	7) symbolic_degree(number):
 #		Returns the degree of an algebraic number.
 #	8) symbolic_height(number):
@@ -33,7 +33,21 @@
 #	3) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.
 
 # We select a library interface here. We first try sage, then sympy and finally just load the dummy library which can't do anything.
-# To use your own library add its script to this folder and duplicate one of the blocks below.
+# To use your own library add its script to this folder and duplicate one of the blocks below. If must provide the following:
+#	1) algebraic_type:
+#		Same as 1) above.
+#	2) simplify_algebraic_type
+#		Given an algebraic_type this must return that number in a standard form.
+#	3) string_algebraic_type
+#		Given an algebraic_type this must return that number as a nice string.
+#	4) Perron_Frobenius_eigen
+#		Same as 4) above.
+#	5) minimal_polynomial_coefficients  
+#		Same as 5) above.
+#	6) symbolic_approximate
+#		Same as 6) above.
+#	7) _name:
+#		A string containing the name of the library being used. Useful for debugging.
 
 _name = None
 if _name is None:

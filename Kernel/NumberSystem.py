@@ -2,7 +2,7 @@
 from math import log10 as log
 
 from Flipper.Kernel.SymbolicComputation import symbolic_degree, symbolic_height
-from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_symbolic, log_height
+from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_symbolic, log_height
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators. We always include the generator 1 as the last generator. We store
@@ -25,7 +25,8 @@ class Number_System:
 			print('Recomputing number system to %d places.' % self.current_accuracy)
 			self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 
-# This class represents an element of a Number_System.
+# This class represents an element of a Number_System. At any point we can convert it to an Algebraic_Approximation. In fact we have
+# to do this if you want to do multiply or divide two of these.
 class Number_System_Element:
 	def __init__(self, number_system, linear_combination):
 		self.number_system = number_system
@@ -34,6 +35,7 @@ class Number_System_Element:
 		self.current_accuracy = -1
 	def __repr__(self):
 		return str(self.algebraic_approximation())
+		# return str(self.linear_combination)
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __neg__(self):
@@ -43,6 +45,8 @@ class Number_System_Element:
 			if self.number_system != other.number_system:
 				raise TypeError('Cannot add elements of different number systems.')
 			return Number_System_Element(self.number_system, [a+b for a, b in zip(self, other)])
+		elif isinstance(other, Algebraic_Approximation):
+			return self.algebraic_approximation() + other
 		elif isinstance(other, int):
 			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] + other])
 		else:
@@ -54,12 +58,38 @@ class Number_System_Element:
 			if self.number_system != other.number_system:
 				raise TypeError('Cannot subtract elements of different number systems.')
 			return Number_System_Element(self.number_system, [a-b for a, b in zip(self, other)])
+		elif isinstance(other, Algebraic_Approximation):
+			return self.algebraic_approximation() - other
 		elif isinstance(other, int):
 			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] - other])
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
+	def __mul__(self, other):
+		if isinstance(other, Number_System_Element):
+			return self.algebraic_approximation(factor=2) * other.algebraic_approximation(factor=2)
+		elif isinstance(other, Algebraic_Approximation):
+			return self.algebraic_approximation(factor=2) * other
+		elif isinstance(other, int):
+			return Number_System_Element(self.number_system, [a * other for a in self])
+		else:
+			return NotImplemented
+	def __rmul__(self, other):
+		return self * other
+	def __div__(self, other):
+		if isinstance(other, Number_System_Element):
+			return self.algebraic_approximation(factor=2) / other.algebraic_approximation(factor=2)
+		elif isinstance(other, Algebraic_Approximation):
+			return self.algebraic_approximation(factor=2) / other
+		elif isinstance(other, int):
+			return self.algebraic_approximation(factor=2) / other
+		else:
+			return NotImplemented
+	def __truediv__(self, other):
+		return self.__div__(other)
+	def __rdiv__(self, other):
+		return NotImplemented  # !?!
 	def algebraic_approximation(self, accuracy=None, factor=None):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the Algebraic_Approximation produced is well defined.

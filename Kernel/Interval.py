@@ -32,14 +32,14 @@ class Interval:
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
 		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
-	def change_denominator(self, new_q):
-		d = new_q - self.precision
+	def change_denominator(self, new_denominator):
+		d = new_denominator - self.precision
 		if d > 0:
-			return Interval(self.lower * 10**d, self.upper * 10**d, new_q)
+			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
 		elif d == 0:
 			return self
 		elif d < 0:
-			return Interval(self.lower // 10**(-d), 1 + self.upper // 10**(-d), new_q)
+			return Interval(self.lower // 10**(-d), 1 + self.upper // 10**(-d), new_denominator)
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
@@ -126,14 +126,13 @@ class Interval:
 		return (self-other).sign() > 0
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
-	def __hash__(self):
-		return hash(self.tuple())
 
 #### Some special Intervals we know how to build.
 
 def interval_from_string(string):
 	i, r = string.split('.') if '.' in string else (string, '')
-	return Interval(int(i + r)-1, int(i + r)+1, len(r))
+	x = int(i + r)
+	return Interval(x-1, x+1, len(r))
 
 def interval_epsilon(integer, precision):
 	return Interval(10**(precision - integer)-1, 10**(precision - integer)+1, precision)

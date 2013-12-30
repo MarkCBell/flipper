@@ -2,15 +2,13 @@
 from math import log10 as log
 
 import sympy
-from sympy.core.add import Add
-from sympy.core.mul import Mul
-from sympy.core.power import Pow
+from sympy.core.expr import Expr
 
 from Flipper.Kernel.Error import AssumptionError
 
 _name = 'sympy'
 
-algebraic_type = (Add, Mul, Pow)
+algebraic_type = Expr
 
 def simplify_algebraic_type(x):
 	return sympy.simplify(x)

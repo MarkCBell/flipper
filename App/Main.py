@@ -33,7 +33,6 @@ from Flipper.Kernel.Encoding import Id_Encoding_Sequence, encode_twist, encode_h
 from Flipper.Kernel.Isometry import extend_isometry
 from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
-from Flipper.Kernel.SymbolicComputation import algebraic_type
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
 
 # Modes.
@@ -763,7 +762,7 @@ class Flipper_App:
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
-				if self.options.compress_curve and not isinstance(dual_weights[i], algebraic_type):
+				if self.options.compress_curve:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale

@@ -4,9 +4,23 @@ from math import log10 as log
 from Flipper.Kernel.Error import ApproximationError
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
+
+# For an interval I let acc(I) denote the accuracy of I, this is
+#	acc(I) := self.precision - int(log(self.upper - self.lower)).
+# For an integer x let log+(x) := log(max(abs(x), 1)) and for an interval I
+# let log+(I) := max(log+(I.lower), log+(I.upper)).
+
+# Suppose that x is an integer and that I and J are intervals with accuracy m and n 
+# respectively. Then we obtain the following bounds:
+#	acc(I + J) >= min(acc(I), acc(J)) - 1,
+#	acc(I * J) >= min(acc(I), acc(J)) - log(I.lower + J.lower + 1)
+#	acc(x * I) >= acc(I) - log+(x)
+
 class Interval:
 	def __init__(self, lower, upper, precision):
+		if lower == upper: lower, upper = lower-1, upper+1
 		assert(lower < upper)
+		
 		self.lower = lower
 		self.upper = upper
 		self.precision = precision

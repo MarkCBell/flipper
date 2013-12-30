@@ -1,4 +1,6 @@
 
+from math import log10 as log
+
 from sage.all import Matrix, lcm
 from sage.rings.qqbar import AlgebraicNumber
 
@@ -33,5 +35,8 @@ def minimal_polynomial_coefficients(number):
 	scale = lcm([x.denominator() for x in X])
 	return tuple(int(scale * x) for x in X)
 
-def symbolic_approximate(number, precision):
+def symbolic_approximate(number, accuracy):
+	# First we need to correct for the fact that we may lose some digits of accuracy
+	# if the integer part of the number is big.
+	precision = accuracy + max(int(log(number.n(digits=1))), 1)
 	return str(number.n(digits=precision))

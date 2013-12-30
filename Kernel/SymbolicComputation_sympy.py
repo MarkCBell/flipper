@@ -1,4 +1,6 @@
 
+from math import log10 as log
+
 import sympy
 from sympy.core.add import Add
 from sympy.core.mul import Mul
@@ -11,7 +13,7 @@ _name = 'sympy'
 algebraic_type = (Add, Mul, Pow)
 
 def simplify_algebraic_type(x):
-	return x.simplify()
+	return sympy.simplify(x)
 
 def string_algebraic_type(x):
 	return '%0.4f' % float(x)
@@ -30,7 +32,10 @@ def Perron_Frobenius_eigen(matrix):
 	return [simplify_algebraic_type(x) for x in eigenvector], eigenvalue
 
 def minimal_polynomial_coefficients(number):
-	return tuple(sympy.Poly(sympy.minpoly(number)).all_coeffs()[::-1])
+	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(number)).all_coeffs()[::-1])
 
-def symbolic_approximate(number, precision):
-	return str(number.evalf(n=precision))
+def symbolic_approximate(number, accuracy):
+	# First we need to correct for the fact that we may lose some digits of accuracy
+	# if the integer part of the number is big.
+	precision = accuracy + max(int(log(sympy.N(number, n=1))), 1)
+	return str(sympy.N(number, n=precision))

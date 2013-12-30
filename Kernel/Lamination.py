@@ -426,9 +426,9 @@ class Lamination:
 		
 		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
 		
-		w = initial_lamination.weight()
-		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
-		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
+		# w = initial_lamination.weight()
+		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
+		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
 		
 		flipped = []
 		seen = {hash_lamination(lamination):[(0, lamination)]}

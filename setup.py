@@ -21,13 +21,13 @@ class TestCommand(Command):
 		import Flipper.Tests.Matrix
 		
 		print('Running AlgebraicApproximation test...')
-		print('\tPassed' if Flipper.Test.AlgebraicApproximation.main() else '\tFailed')
+		print('\tPassed' if Flipper.Tests.AlgebraicApproximation.main() else '\tFailed')
 		print('Running Interval test...')
-		print('\tPassed' if Flipper.Test.Interval.main() else '\tFailed')
+		print('\tPassed' if Flipper.Tests.Interval.main() else '\tFailed')
 		print('Running Lamination test...')
-		print('\tPassed' if Flipper.Test.Lamination.main() else '\tFailed')
+		print('\tPassed' if Flipper.Tests.Lamination.main() else '\tFailed')
 		print('Running Matrix test...')
-		print('\tPassed' if Flipper.Test.Matrix.main() else '\tFailed')
+		print('\tPassed' if Flipper.Tests.Matrix.main() else '\tFailed')
 
 setup(
 	name='Flipper',
@@ -38,6 +38,7 @@ setup(
 	url='https://bitbucket.org/Mark_Bell/Flipper',
 	packages=['Flipper'],
 	package_dir={'Flipper':''},
-	package_data={'Flipper': ['Examples/*.py', 'Kernel/*.py', 'App/*.py', 'App/Icon/*', 'Test/*.py']},
+	# Remember to update these if the directory structure changes.
+	package_data={'Flipper': ['Examples/*.py', 'Kernel/*.py', 'App/*.py', 'App/Icon/*', 'Tests/*.py']},
 	cmdclass = {'test': TestCommand}
 	)

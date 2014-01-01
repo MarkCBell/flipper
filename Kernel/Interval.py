@@ -17,6 +17,8 @@ from Flipper.Kernel.Error import ApproximationError
 #	acc(x * I) >= acc(I) - log+(x)
 
 class Interval:
+	__slots__ = ['lower', 'upper', 'precision', 'accuracy']  # Force minimal RAM usage.
+	
 	def __init__(self, lower, upper, precision):
 		if lower == upper: lower, upper = lower-1, upper+1
 		assert(lower < upper)

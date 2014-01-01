@@ -34,6 +34,8 @@ def log_height(number):
 # by an interval, the degree of the field extension in which this number lives and the log of the height
 # of this algebraic number.
 class Algebraic_Approximation:
+	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
+	
 	def __init__(self, interval, degree, log_height):
 		self.interval = interval
 		self.degree = degree

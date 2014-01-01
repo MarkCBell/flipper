@@ -23,12 +23,6 @@ from itertools import product, combinations
 
 from Flipper.Kernel.Matrix import Matrix, tweak_vector
 
-def get_other(L, item):
-	if item not in L:
-		return None
-	else:
-		return L[0] if L[1] == item else L[1]
-
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	

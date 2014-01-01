@@ -26,6 +26,7 @@ import Flipper.Examples.LayeredTriangulation as Example_LayeredTriangulation
 
 import Flipper.Tests.AlgebraicApproximation as Test_AlgebraicApproximation
 import Flipper.Tests.Lamination as Test_Lamination
+import Flipper.Tests.LayeredTriangulation as Test_LayeredTriangulation
 import Flipper.Tests.Interval as Test_Interval
 import Flipper.Tests.Matrix as Test_Matrix
 

@@ -2,21 +2,54 @@
 # Just to keep an eye out for circular imports, here is a hierarchy:
 	# AbstractTriangulation imports:
 		# Matrix
+	# AlgebraicApproximation imports:
+		# Interval
+		# Error
+		# SymbolicComputation
 	# Encoding imports:
 		# Lamination
 		# Matrix
+		# Isometry
+		# Error
+	# Error imports:
+		# None
 	# Lamination imports:
 		# AbstractTriangulation
 		# Matrix
 		# Isometry
+		# Error
 		# SymbolicComputation
+		# NumberSystem
 	# LayeredTriangulation imports:
 		# AbstractTriangulation
 		# Isometry
 		# Permutation
-		# Lamination
+		# Error
+	# Interval imports:
+		# None
 	# Isometry imports:
 		# Permutation
+		# Error
+	# Matrix imports:
+		# None
+	# NumberSystem imports:
+		# AlgebraicApproximation
+		# SymbolicComputation
+	# Permutation imports:
+		# None
+	# SymbolicComputation imports
+		# SymbolicComputation_dummy
+		# SymbolicComputation_sage
+		# SymbolicComputation_sympy
+	# Version imports
+		# None
+
+	Encoding.py
+	Error.py
+	Interval.py
+	Isometry.py
+	Lamination.py
+	LayeredTriangulation.py
 
 from __future__ import print_function
 from itertools import product, combinations

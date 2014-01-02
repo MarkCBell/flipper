@@ -15,7 +15,7 @@ def determine_type(mapping_class):
 	else:
 		try:
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
-			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence4()
+			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 			return PSEUDO_ANOSOV
 		except ComputationError:
 			return UNKNOWN

@@ -1,8 +1,8 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.SymbolicComputation import symbolic_degree, symbolic_height
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_symbolic, log_height
+from Flipper.Kernel.SymbolicComputation import symbolic_degree, symbolic_height
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators. We always include the generator 1 as the last generator. We store

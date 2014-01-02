@@ -18,7 +18,7 @@ class TestCommand(Command):
 		import Flipper.Tests.AlgebraicApproximation
 		import Flipper.Tests.Interval
 		import Flipper.Tests.Lamination
-		# import Flipper.Tests.LayeredTriangulation  # Requires snappy.
+		import Flipper.Tests.LayeredTriangulation
 		import Flipper.Tests.Matrix
 		
 		print('Running AlgebraicApproximation test...')
@@ -27,8 +27,8 @@ class TestCommand(Command):
 		print('\tPassed' if Flipper.Tests.Interval.main() else '\tFailed')
 		print('Running Lamination test...')
 		print('\tPassed' if Flipper.Tests.Lamination.main() else '\tFailed')
-		# print('Running LayeredTriangulation test...')
-		# print('\tPassed' if Flipper.Tests.LayeredTriangulation.main() else '\tFailed')
+		print('Running LayeredTriangulation test...')
+		print('\tPassed' if Flipper.Tests.LayeredTriangulation.main() else '\tFailed')
 		print('Running Matrix test...')
 		print('\tPassed' if Flipper.Tests.Matrix.main() else '\tFailed')
 

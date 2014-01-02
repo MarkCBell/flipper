@@ -123,7 +123,7 @@ def algebraic_approximation_from_string(string, degree, log_height):
 
 def algebraic_approximation_from_symbolic(number, accuracy, degree=None):
 	if isinstance(number, algebraic_type):
-		if degree is None: degree = symbolic_degree(number)
+		if degree is None: degree = symbolic_degree(number)  # Assume that the degree of the number field is the degree of this number.
 		A = algebraic_approximation_from_string(symbolic_approximate(number, accuracy), degree, log(symbolic_height(number)))
 		assert(A.interval.accuracy >= accuracy)
 		return A

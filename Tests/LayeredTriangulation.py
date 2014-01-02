@@ -1,6 +1,4 @@
 
-import snappy
-
 from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
 from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
@@ -20,16 +18,24 @@ def build_bundle(word, isometry_number):
 	except IndexError:
 		return None
 	
-	return snappy.Manifold(M.SnapPy_string())
+	return M.SnapPy_string()
 
 def main():
+	
+	try:
+		S = __import__('snappy')
+	except ImportError:
+		print('SnapPy unavailable tests skipped')
+		return True
+	
 	tests = [
-		('aB', 0, 'm003')
+		('aB', 0, 'm003'),
+		('aB', 1, 'm004')
 		]
 	
 	for word, isometry_number, target_manifold in tests:
 		M = build_bundle(word, isometry_number)
-		if M is None or not M.is_isometric_to(snappy.Manifold(target_manifold)):
+		if M is None or not S.Manifold(M).is_isometric_to(S.Manifold(target_manifold)):
 			print(word, isometry_number, target_manifold)
 			return False
 	

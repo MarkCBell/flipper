@@ -158,7 +158,7 @@ class Lamination:
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == b or c == d:
-			# This means that self[a] (respectively self[c] == 0).
+			# This means that self[a] (respectively self[c]) == 0.
 			raise AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
@@ -224,10 +224,9 @@ class Lamination:
 	
 	# @profile
 	def splitting_sequence_exact(self):
-		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an 
-		# AssumptionError
-		# We assume that self is given as a list of algebraic numbers. 
 		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
+		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
+		# We assume that self is given as a list of algebraic numbers. 
 		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
 		def projective_weights(x):

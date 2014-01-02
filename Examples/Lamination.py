@@ -1,8 +1,4 @@
 
-###########################################################################
-# Some Tests #
-###########################################################################
-
 from time import time
 
 from Flipper.Kernel.Lamination import invariant_lamination

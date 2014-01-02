@@ -1,8 +1,4 @@
 
-###########################################################################
-# Some Tests #
-###########################################################################
-
 from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.Error import ComputationError, AssumptionError
 from Flipper.Examples.AbstractTriangulation import build_example_mapping_class

@@ -25,7 +25,7 @@ def main():
 	try:
 		S = __import__('snappy')
 	except ImportError:
-		print('SnapPy unavailable tests skipped')
+		print('SnapPy unavailable, tests skipped.')
 		return True
 	
 	tests = [

@@ -24,15 +24,15 @@
 from math import log10 as log
 
 from Flipper.Kernel.Interval import Interval, interval_from_string, interval_epsilon
-from Flipper.Kernel.Error import AssumptionError, ApproximationError
+from Flipper.Kernel.Error import ApproximationError
 from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_degree, symbolic_height, algebraic_type
 
 def log_height(number):
 	return log(symbolic_height(number))
 
 # This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-# by an interval, the degree of the field extension in which this number lives and the log of the height
-# of this algebraic number.
+# by an interval, the degree of the field extension in which this number lives and an upper bounds on the
+# log of the height of this number.
 class Algebraic_Approximation:
 	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
 	

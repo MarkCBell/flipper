@@ -5,12 +5,14 @@
 # Then run with:
 # sage -python App.py
 
+
+import re
+import os
+import sys
+import pickle
 from math import sin, cos, pi
 from itertools import combinations
 from time import time
-import pickle
-import re
-import sys
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -1229,13 +1231,15 @@ class Flipper_App:
 				self.show_apply(self.list_mapping_classes.get(index).swapcase())
 
 def main(load_path=None):
-	import os
 	root = TK.Tk()
 	root.title('Flipper')
 	flipper = Flipper_App(root)
 	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
-	icon_path = os.path.join(os.path.dirname(__file__), 'Icon', 'Icon.gif')
+	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
+	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files
+	datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
+	icon_path = os.path.join(datadir, 'Icon', 'Icon.gif')
 	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()

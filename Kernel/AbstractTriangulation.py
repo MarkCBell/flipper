@@ -44,13 +44,6 @@
 	# Version imports
 		# None
 
-	Encoding.py
-	Error.py
-	Interval.py
-	Isometry.py
-	Lamination.py
-	LayeredTriangulation.py
-
 from __future__ import print_function
 from itertools import product, combinations
 

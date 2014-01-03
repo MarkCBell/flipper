@@ -1,15 +1,14 @@
 
 # A library for manipulating real algebraic numbers via interval approximations.
 
-# Let K := QQ(\lambda) be a number field.
-# Suppose that x, y \in K.
+# Let K := QQ(\lambda) be a number field and x \in K.
 # If x has minimal polynomial a_n x^n + ... + a_0 then 
 # let deg(x) := n be the degree of x and height(x) := max(|a_n|).
 
 # We use the following facts:
-#	1a) height(x +/- y) <= 2 * height(x) * height(y)
+#	1a) For x, y \in K, height(x +/- y) <= 2 * height(x) * height(y) and
 #	 b) height(x *// y) <= height(x) * height(y) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
-#	2) If x != 0 then |x| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
+#	2) If 0 != x \in K then |x| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
 
 # From 1) we can obtain an upper bound on the height of an equation of algebraic numbers. See:
 #	http://mathoverflow.net/questions/64643/height-of-algebraic-numbers

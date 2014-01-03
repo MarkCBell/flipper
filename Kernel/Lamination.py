@@ -281,7 +281,7 @@ class Lamination:
 	# @profile
 	def splitting_sequence_approximation(self):
 		# Computes the splitting sequence of this lamination by using a sufficiently good approximation of the algebraic numbers 
-		# involved. If at any point the precision would drop below what is required to maintain the exactness the approximations
+		# involved. If at any point the precision would drop below what is required to maintain exactness then the approximations
 		# are recomputed more accurately. This is much faster than even sage.
 		#
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
@@ -301,6 +301,8 @@ class Lamination:
 		
 		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
 		
+		# We normalise so that lamination has weight one. We don't need to do this, however it makes debugging easier
+		# as different symbolic libraries may have selected different eigenvectors.
 		w = initial_lamination.weight()
 		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
 		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))

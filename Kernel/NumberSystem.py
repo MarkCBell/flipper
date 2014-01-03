@@ -7,7 +7,7 @@ from Flipper.Kernel.SymbolicComputation import symbolic_degree, symbolic_height
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators. We always include the generator 1 as the last generator. We store
 # an algebraic approximation of each generator, correct to the current accuracy. We can increase the 
-# accuracy at any point.  
+# accuracy at any point.
 class Number_System:
 	def __init__(self, generators, degree, initial_accuracy=100):
 		self.generators = generators + [1]

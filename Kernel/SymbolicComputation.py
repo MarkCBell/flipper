@@ -4,25 +4,24 @@
 #	compute splitting sequences.
 #	Construct Algebric_Approximations.
 
-# This module provides 8 things to do with algebraic numbers.
+# This module provides seven things to do with algebraic numbers.
 #	1) algebraic_type:
 #		The type used to represent algebraic numbers.
-#	2) algebraic_string(x):
-#		Given an algebraic_type this must return that number as a nice string, otherwise return str(x).
-#	3) algebraic_simplify(x):
-#		Given an algebraic_type this must return that number in a standard form, otherwise return x.
-#	4) Perron_Frobenius_eigen(matrix):
-#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue.
+#	2) algebraic_string(number):
+#		Given an algebraic_type this returns that number as a nice string, otherwise return str(number).
+#	3) algebraic_simplify(number):
+#		Given an algebraic_type this returns that number in a standard form, otherwise return number.
+#	4) algebraic_degree(number):
+#		Returns the degree of number.
+#	5) algebraic_height(number):
+#		Returns the height of number.
+#	6) algebraic_approximate(number, accuracy, degree=None):
+#		Returns an AlgebraicApproximation of the number correct to the required accuracy.
+#	7) Perron_Frobenius_eigen(matrix):
+#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue
+#		and eigenvector whose sum of entries is one.
 #		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
 #		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types.
-#	5) minimal_polynomial_coefficients(number):
-#		Returns the coefficients of the minimal polynomial of an algebraic_type as a tuple of integers.
-#	6) symbolic_approximate(number, accuracy):
-#		Returns a string containing number to accuracy digits of accuracy.
-#	7) symbolic_degree(number):
-#		Returns the degree of an algebraic number.
-#	8) symbolic_height(number):
-#		Returns the height of an algebraic number.
 
 # Notes: 
 #	1) We do not actually care what algebraic_type is but it must implement;
@@ -40,64 +39,85 @@
 #		Given an algebraic_type this must return that number in a standard form.
 #	3) string_algebraic_type
 #		Given an algebraic_type this must return that number as a nice string.
-#	4) Perron_Frobenius_eigen
-#		Same as 4) above.
-#	5) minimal_polynomial_coefficients  
-#		Same as 5) above.
-#	6) symbolic_approximate
-#		Same as 6) above.
-#	7) _name:
-#		A string containing the name of the library being used. Useful for debugging.
+#	4) hash_algebraic_type
+#		Returns a hashable object from an algebraic_type.
+#	5) degree_algebraic_type
+#		Same as 4) above but is only required to work for numbers of algebraic_type.
+#	6) height_algebraic_type
+#		Same as 5) above but is only required to work for numbers of algebraic_type.
+#	7) approximate_algebraic_type
+#		Same as 6) above but is only required to work for numbers of algebraic_type.
+#	8) Perron_Frobenius_eigen
+#		Same as 7) above.
+#	9) _name:
+#		A string containing the name of the library being used. Very useful for debugging.
+
+from math import log10 as log
+
+from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_string, log_height_int
 
 _name = None
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sage import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+		from Flipper.Kernel.SymbolicComputation_sage import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sympy import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+		from Flipper.Kernel.SymbolicComputation_sympy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_dummy import algebraic_type, simplify_algebraic_type, string_algebraic_type, Perron_Frobenius_eigen, minimal_polynomial_coefficients, symbolic_approximate, _name
+		from Flipper.Kernel.SymbolicComputation_dummy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 #############################################################################
 # We also build some helper functions using these.
 
-def algebraic_simplify(x):
-	if isinstance(x, algebraic_type):
-		return simplify_algebraic_type(x)
-	else:
-		return x
-
-def algebraic_string(x):
-	if isinstance(x, algebraic_type):
-		return string_algebraic_type(x)
-	else:
-		return str(x)
-
-def symbolic_degree(number):
+def algebraic_simplify(number):
 	if isinstance(number, algebraic_type):
-		return len(minimal_polynomial_coefficients(number)) - 1
+		return simplify_algebraic_type(number)
+	else:
+		return number
+
+def algebraic_string(number):
+	if isinstance(number, algebraic_type):
+		return string_algebraic_type(number)
+	else:
+		return str(number)
+
+def algebraic_degree(number):
+	if isinstance(number, algebraic_type):
+		return degree_algebraic_type(number)
 	elif isinstance(number, int):
 		return 1
 	else:
 		return NotImplemented
 
-def symbolic_height(number):
+def algebraic_height(number):
 	if isinstance(number, algebraic_type):
-		return max(abs(x) for x in minimal_polynomial_coefficients(number))
+		return height_algebraic_type(number)
 	elif isinstance(number, int):
 		return max(abs(number), 1)
 	else:
 		return NotImplemented
+
+def algebraic_approximate(number, accuracy, degree=None):
+	if isinstance(number, algebraic_type):
+		return approximate_algebraic_type(number, accuracy, degree)
+	elif isinstance(number, int):
+		if degree is None: degree = 1
+		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, degree, log_height_int(number))
+	else:
+		return NotImplemented
+
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

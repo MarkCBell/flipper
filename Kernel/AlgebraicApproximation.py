@@ -24,14 +24,13 @@ from math import log10 as log
 
 from Flipper.Kernel.Interval import Interval, interval_from_string, interval_epsilon
 from Flipper.Kernel.Error import ApproximationError
-from Flipper.Kernel.SymbolicComputation import symbolic_approximate, symbolic_degree, symbolic_height, algebraic_type
 
-def log_height(number):
-	return log(symbolic_height(number))
+def log_height_int(number):
+	return log(max(abs(number), 1))
 
 # This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-# by an interval, the degree of the field extension in which this number lives and an upper bounds on the
-# log of the height of this number.
+# by an interval, an upper bound on the degree of the field extension in which this number lives and an
+# upper bounds on the log of the height of this number.
 class Algebraic_Approximation:
 	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
 	
@@ -56,7 +55,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 2)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height(other) + 2)
+			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -65,7 +64,7 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 2)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height(other) + 2)
+			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
@@ -76,7 +75,7 @@ class Algebraic_Approximation:
 		elif isinstance(other, int):
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
-			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height(other))
+			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __rmult__(self, other):
@@ -85,13 +84,16 @@ class Algebraic_Approximation:
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height(other))
+			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		return NotImplemented  # !?!
+		if isinstance(other, int):
+			return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
+		else:
+			return NotImplemented  # !?!
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
@@ -119,15 +121,3 @@ class Algebraic_Approximation:
 
 def algebraic_approximation_from_string(string, degree, log_height):
 	return Algebraic_Approximation(interval_from_string(string), degree, log_height)
-
-def algebraic_approximation_from_symbolic(number, accuracy, degree=None):
-	if isinstance(number, algebraic_type):
-		if degree is None: degree = symbolic_degree(number)  # Assume that the degree of the number field is the degree of this number.
-		A = algebraic_approximation_from_string(symbolic_approximate(number, accuracy), degree, log(symbolic_height(number)))
-		assert(A.interval.accuracy >= accuracy)
-		return A
-	elif isinstance(number, int):
-		if degree is None: degree = 1
-		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, degree, log_height(number))
-	else:
-		raise TypeError

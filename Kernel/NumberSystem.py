@@ -1,13 +1,16 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_symbolic, log_height
-from Flipper.Kernel.SymbolicComputation import symbolic_degree, symbolic_height
+from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation
+from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_height
+
+def log_height(number):
+	return log(algebraic_height(number))
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
-# and are given as the list of generators. We always include the generator 1 as the last generator. We store
-# an algebraic approximation of each generator, correct to the current accuracy. We can increase the 
-# accuracy at any point.
+# and are given as the list of generators and an upper bound on the degree of K. We always include the 
+# generator 1 as the last generator. We store an algebraic approximation of each generator, correct to 
+# the current accuracy. We can increase the accuracy at any point.
 class Number_System:
 	def __init__(self, generators, degree, initial_accuracy=100):
 		self.generators = generators + [1]
@@ -15,7 +18,7 @@ class Number_System:
 		self.degree = degree  # We assume that this is degree(\lambda)).
 		self.log_degree = log(self.degree)
 		self.current_accuracy = initial_accuracy
-		self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
+		self.algebraic_approximations = [algebraic_approximate(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 		self.verbose = False
 	def __len__(self):
 		return len(self.generators)
@@ -24,7 +27,7 @@ class Number_System:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
-			self.algebraic_approximations = [algebraic_approximation_from_symbolic(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
+			self.algebraic_approximations = [algebraic_approximate(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
 
 # This class represents an element of a Number_System. At any point we can convert it to an Algebraic_Approximation. In fact we have
 # to do this if you want to do multiply or divide two of these.
@@ -135,8 +138,7 @@ class Number_System_Element:
 
 #### Some special Number systems we know how to build.
 
-def number_system_basis(generators):
-	degree = max(symbolic_degree(generator) for generator in generators)
+def number_system_basis(generators, degree):
 	N = Number_System(generators, degree)
 	# Remember that the number system has one extra generator (1) that we didn't install at the end of its list of generators.
 	return [Number_System_Element(N, [0] * i + [1] + [0] * (len(generators) - i)) for i in range(len(generators))]

@@ -14,7 +14,7 @@ class TestCommand(Command):
 		pass
 	
 	def run(self):
-		''' Runs all of the test suite. '''
+		''' Runs all of the tests in the Tests directory. '''
 		import Flipper.Tests.AlgebraicApproximation
 		import Flipper.Tests.Interval
 		import Flipper.Tests.Lamination

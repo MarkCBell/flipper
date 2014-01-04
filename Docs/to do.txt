@@ -11,6 +11,7 @@ show algebraic laminations
 Create / use InputBox
 more documentation
 
+Remove all dependence on sage / smypy
 Add unit tests
 
 

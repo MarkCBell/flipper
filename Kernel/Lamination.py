@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, minimal_polynomial_coefficients, algebraic_simplify, algebraic_string
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, hash_algebraic_type, algebraic_simplify, algebraic_string
 from Flipper.Kernel.NumberSystem import number_system_basis
 
 # The common denominator to switch Algebraic_Approximations to before hashing.
@@ -216,7 +216,7 @@ class Lamination:
 		
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, exact=False):
+	def splitting_sequence(self, exact=True):
 		if exact:
 			return self.splitting_sequence_exact()
 		else:
@@ -237,7 +237,7 @@ class Lamination:
 		# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
 		# uniform bound on the number of collisions.
 		def hash_lamination(x):
-			return tuple(sorted(([minimal_polynomial_coefficients(v) for v in projective_weights(x)])))
+			return tuple(sorted([hash_algebraic_type(v) for v in projective_weights(x)]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
@@ -301,11 +301,8 @@ class Lamination:
 		
 		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
 		
-		# We normalise so that lamination has weight one. We don't need to do this, however it makes debugging easier
-		# as different symbolic libraries may have selected different eigenvectors.
-		w = initial_lamination.weight()
-		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis([algebraic_simplify(v / w) for v in initial_lamination]))
-		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector))
+		# Now build a lamination whose weights come from a number system basis.
+		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector, len(initial_lamination.vector)))
 		
 		flipped = []
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}

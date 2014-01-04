@@ -34,6 +34,9 @@ class Interval:
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
 		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
+	def approximate_string(self, accuracy):
+		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
+		return '%s.%s' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
 	def change_denominator(self, new_denominator):
 		d = new_denominator - self.precision
 		if d > 0:
@@ -97,9 +100,9 @@ class Interval:
 		if isinstance(other, Interval):
 			if 0 in other:
 				raise ApproximationError('Denominator contains 0.')
+			# !?! RECHECK THIS!
 			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
-			# !?! RECHECK THESE!
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
 		elif isinstance(other, int):
@@ -110,7 +113,11 @@ class Interval:
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		return NotImplemented  # !?!
+		if isinstance(other, int):
+			# !?! RECHECK THIS!
+			return interval_from_int(other, self.precision) / self
+		else:
+			return NotImplemented
 	def __abs__(self):
 		new_lower = 0
 		new_upper = max(abs(self.lower), abs(self.upper))
@@ -135,6 +142,10 @@ def interval_from_string(string):
 	i, r = string.split('.') if '.' in string else (string, '')
 	x = int(i + r)
 	return Interval(x-1, x+1, len(r))
+
+def interval_from_int(integer, accuracy):
+	x = integer * 10**accuray
+	return Integer(x-1, x+1, accuracy)
 
 def interval_epsilon(integer, precision):
 	return Interval(10**(precision - integer)-1, 10**(precision - integer)+1, precision)

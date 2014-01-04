@@ -34,7 +34,6 @@
 		# None
 	# NumberSystem imports:
 		# AlgebraicApproximation
-		# SymbolicComputation
 	# Permutation imports:
 		# None
 	# SymbolicComputation imports

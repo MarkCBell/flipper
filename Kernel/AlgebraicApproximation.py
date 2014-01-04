@@ -46,10 +46,13 @@ class Algebraic_Approximation:
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.interval.accuracy < self.accuracy_needed:
 			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.log_height))
+	
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.log_height))
+	
 	def __neg__(self):
 		return Algebraic_Approximation(-self.interval, self.degree, self.log_height)
+	
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, Algebraic_Approximation):
@@ -96,6 +99,7 @@ class Algebraic_Approximation:
 			return NotImplemented  # !?!
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
+	
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):

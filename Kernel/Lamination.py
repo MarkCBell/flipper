@@ -395,7 +395,7 @@ def invariant_lamination(encoding, exact=False):
 					elif exact:
 						action_matrix, condition_matrix = encoding.applied_matrix(curve)
 						try:
-							eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector)
+							eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
 						except AssumptionError:  # action_matrix was not Perron-Frobenius.
 							raise ComputationError('Could not estimate invariant lamination.')
 						if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 

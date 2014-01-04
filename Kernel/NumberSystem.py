@@ -9,14 +9,15 @@ from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_
 # generator 1 as the last generator. We store an algebraic approximation of each generator, correct to 
 # the current accuracy. We can increase the accuracy at any point.
 class Number_System:
-	def __init__(self, generators, degree, initial_accuracy=100):
+	def __init__(self, generators, degree):
 		self.generators = generators + [1]
 		self.sum_log_height_generators = sum(algebraic_log_height(generator) for generator in generators)
 		self.degree = degree  # We assume that this is degree(\lambda)).
 		self.log_degree = log(self.degree)
-		self.current_accuracy = initial_accuracy
-		self.algebraic_approximations = [algebraic_approximate(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
+		
 		self.verbose = False
+		self.current_accuracy = -1
+		self.increase_accuracy(100)
 	def __len__(self):
 		return len(self.generators)
 	def increase_accuracy(self, accuracy):

@@ -4,7 +4,8 @@ from math import log10 as log
 from sage.all import Matrix, lcm
 from sage.rings.qqbar import AlgebraicNumber
 
-from Flipper.Kernel.Error import AssumptionError
+from Flipper.Kernel.Error import AssumptionError, ComputationError
+from Flipper.Kernel.Matrix import nonnegative_image
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_string
 
 _name = 'sage'
@@ -42,7 +43,7 @@ def approximate_algebraic_type(number, accuracy, degree=None):
 	return A
 
 
-def Perron_Frobenius_eigen(matrix, vector=None):
+def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	M = Matrix(matrix.rows)
@@ -57,4 +58,10 @@ def Perron_Frobenius_eigen(matrix, vector=None):
 	if s == 0:
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	return [simplify_algebraic_type(x / s) for x in eigenvector], eigenvalue
+	eigenvector = [simplify_algebraic_type(x / s) for x in eigenvector]
+	
+	if condition_matrix is not None:
+		if not nonnegative_image(condition_matrix, eigenvector):
+			raise ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
+	
+	return eigenvector, eigenvalue

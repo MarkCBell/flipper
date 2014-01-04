@@ -118,6 +118,8 @@ class Interval:
 			return interval_from_int(other, self.precision) / self
 		else:
 			return NotImplemented
+	def __rtruediv__(self, other):
+		return self.__rdiv__(other)
 	def __abs__(self):
 		new_lower = 0
 		new_upper = max(abs(self.lower), abs(self.upper))
@@ -144,8 +146,12 @@ def interval_from_string(string):
 	return Interval(x-1, x+1, len(r))
 
 def interval_from_int(integer, accuracy):
-	x = integer * 10**accuray
-	return Integer(x-1, x+1, accuracy)
+	x = integer * 10**accuracy
+	return Interval(x-1, x+1, accuracy)
+
+def interval_from_fraction(numerator, denominator, accuracy):
+	x = numerator * 10**accuracy // denominator
+	return Interval(x-1, x+1, accuracy)
 
 def interval_epsilon(integer, precision):
 	return Interval(10**(precision - integer)-1, 10**(precision - integer)+1, precision)

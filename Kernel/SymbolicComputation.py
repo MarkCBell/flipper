@@ -54,27 +54,34 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_string, log_height_int
+from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
 
 _name = None
+# if _name is None:
+	# try:
+		# from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			# hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+	# except ImportError:
+		# pass
+
 if _name is None:
 	try:
 		from Flipper.Kernel.SymbolicComputation_sage import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
 		from Flipper.Kernel.SymbolicComputation_sympy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
 		from Flipper.Kernel.SymbolicComputation_dummy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
@@ -96,16 +103,20 @@ def algebraic_string(number):
 def algebraic_degree(number):
 	if isinstance(number, algebraic_type):
 		return degree_algebraic_type(number)
+	elif isinstance(number, Algebraic_Approximation):
+		return number.degree
 	elif isinstance(number, int):
 		return 1
 	else:
 		return NotImplemented
 
-def algebraic_height(number):
+def algebraic_log_height(number):
 	if isinstance(number, algebraic_type):
-		return height_algebraic_type(number)
+		return log_height_algebraic_type(number)
+	elif isinstance(number, Algebraic_Approximation):
+		return number.log_height
 	elif isinstance(number, int):
-		return max(abs(number), 1)
+		return log(max(abs(number), 1))
 	else:
 		return NotImplemented
 
@@ -114,7 +125,7 @@ def algebraic_approximate(number, accuracy, degree=None):
 		return approximate_algebraic_type(number, accuracy, degree)
 	elif isinstance(number, int):
 		if degree is None: degree = 1
-		return algebraic_approximation_from_string(str(number) + '.' + '0' * accuracy, degree, log_height_int(number))
+		return algebraic_approximation_from_int(number, accuracy, degree, log_height_int(number))
 	else:
 		return NotImplemented
 

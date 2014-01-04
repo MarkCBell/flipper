@@ -1,11 +1,8 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation
-from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_height
-
-def log_height(number):
-	return log(algebraic_height(number))
+from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
+from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_log_height
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators and an upper bound on the degree of K. We always include the 
@@ -14,7 +11,7 @@ def log_height(number):
 class Number_System:
 	def __init__(self, generators, degree, initial_accuracy=100):
 		self.generators = generators + [1]
-		self.sum_log_height_generators = sum(log_height(generator) for generator in self.generators)
+		self.sum_log_height_generators = sum(algebraic_log_height(generator) for generator in generators)
 		self.degree = degree  # We assume that this is degree(\lambda)).
 		self.log_degree = log(self.degree)
 		self.current_accuracy = initial_accuracy
@@ -38,8 +35,8 @@ class Number_System_Element:
 		self._algebraic_approximation = None
 		self.current_accuracy = -1
 	def __repr__(self):
-		return str(self.algebraic_approximation())
-		# return str(self.linear_combination)
+		# return str(self.algebraic_approximation())
+		return str(self.linear_combination)
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __neg__(self):
@@ -117,14 +114,20 @@ class Number_System_Element:
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + 2*n).
 		
-		if accuracy is None: accuracy = int(sum(log_height(a) for a in self) + N.sum_log_height_generators + 2*len(N) + N.log_degree)
+		if accuracy is None: accuracy = int(sum(log_height_int(a) for a in self) + N.sum_log_height_generators + 2*len(N) + N.log_degree)
 		if factor is None: factor = 1
 		accuracy = accuracy * factor
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
 			self.number_system.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
 			# Actually this will probably be too precise.
-			self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.number_system.algebraic_approximations))
+			
+			# !?! Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
+			if all(a == 0 for a in self):
+				self._algebraic_approximation = algebraic_approximation_from_int(0, 2*accuracy, self.number_system.degree, 1)
+			else:
+				self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.number_system.algebraic_approximations))
+			
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
 			assert(self.current_accuracy > accuracy)
 		

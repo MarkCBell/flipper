@@ -29,20 +29,20 @@ def hash_algebraic_type(number):
 def degree_algebraic_type(number):
 	return len(minimal_polynomial_coefficients(number)) - 1
 
-def height_algebraic_type(number):
-	return max(abs(x) for x in minimal_polynomial_coefficients(number))
+def log_height_algebraic_type(number):
+	return log(max(abs(x) for x in minimal_polynomial_coefficients(number)))
 
 def approximate_algebraic_type(number, accuracy, degree=None):
 	# First we need to correct for the fact that we may lose some digits of accuracy
 	# if the integer part of the number is big.
 	precision = accuracy + max(int(log(number.n(digits=1))), 1)
 	if degree is None: degree = algebraic_degree(number)  # If not given, assume that the degree of the number field is the degree of this number.
-	A = algebraic_approximation_from_string(str(number.n(digits=precision)), degree, log(height_algebraic_type(number)))
+	A = algebraic_approximation_from_string(str(number.n(digits=precision)), degree, log_height_algebraic_type(number))
 	assert(A.interval.accuracy >= accuracy)
 	return A
 
 
-def Perron_Frobenius_eigen(matrix):
+def Perron_Frobenius_eigen(matrix, vector=None):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	M = Matrix(matrix.rows)

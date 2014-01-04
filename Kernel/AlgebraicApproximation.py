@@ -22,7 +22,7 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.Interval import Interval, interval_from_string, interval_epsilon
+from Flipper.Kernel.Interval import Interval, interval_from_string, interval_from_int, interval_from_fraction, interval_epsilon
 from Flipper.Kernel.Error import ApproximationError
 
 def log_height_int(number):
@@ -94,6 +94,8 @@ class Algebraic_Approximation:
 			return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented  # !?!
+	def __rtruediv__(self, other):
+		return self.__rdiv__(other)
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
@@ -116,8 +118,18 @@ class Algebraic_Approximation:
 			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
 		else:
 			return NotImplemented
+	def __le__(self, other):
+		return self < other or self == other
+	def __ge__(self, other):
+		return self > other or self == other
 
 #### Some special Algebraic approximations we know how to build.
 
 def algebraic_approximation_from_string(string, degree, log_height):
 	return Algebraic_Approximation(interval_from_string(string), degree, log_height)
+
+def algebraic_approximation_from_int(integer, accuracy, degree, log_height):
+	return Algebraic_Approximation(interval_from_int(integer, accuracy), degree, log_height)
+
+def algebraic_approximation_from_fraction(numerator, denominator, accuracy, degree, log_height):
+	return Algebraic_Approximation(interval_from_fraction(numerator, denominator, accuracy), degree, log_height)

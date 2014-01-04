@@ -124,7 +124,8 @@ class Lamination:
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
 		new_labels = []
 		new_corner_labels = []
-		new_vector = list(self.vector)
+		# new_vector = list(self.vector)
+		new_vector = [2*x for x in self.vector]
 		zeta = self.zeta
 		for triangle in self.abstract_triangulation:
 			a, b, c = triangle.edge_indices
@@ -136,9 +137,13 @@ class Lamination:
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
-				new_vector.append((new_vector[b] + new_vector[c] - new_vector[a]) / 2)
-				new_vector.append((new_vector[c] + new_vector[a] - new_vector[b]) / 2)
-				new_vector.append((new_vector[a] + new_vector[b] - new_vector[c]) / 2)
+				# new_vector.append((new_vector[b] + new_vector[c] - new_vector[a]) / 2)
+				# new_vector.append((new_vector[c] + new_vector[a] - new_vector[b]) / 2)
+				# new_vector.append((new_vector[a] + new_vector[b] - new_vector[c]) / 2)
+				
+				new_vector.append(self[b] + self[c] - self[a])
+				new_vector.append(self[c] + self[a] - self[b])
+				new_vector.append(self[a] + self[b] - self[c])
 				zeta = zeta + 3
 			else:
 				new_labels.append([a,b,c])
@@ -216,7 +221,7 @@ class Lamination:
 		
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, exact=True):
+	def splitting_sequence(self, exact=False):
 		if exact:
 			return self.splitting_sequence_exact()
 		else:
@@ -299,10 +304,12 @@ class Lamination:
 		if any(v == 0 for v in self.vector):
 			raise AssumptionError('Lamination is not filling.')
 		
-		initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
+		initial_lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta))
+		lamination = initial_lamination.puncture_trigons()  # Puncture out all trigon regions.
 		
 		# Now build a lamination whose weights come from a number system basis.
-		lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector, len(initial_lamination.vector)))
+		# initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
+		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector, len(initial_lamination.vector)))
 		
 		flipped = []
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
@@ -388,7 +395,7 @@ def invariant_lamination(encoding, exact=False):
 					elif exact:
 						action_matrix, condition_matrix = encoding.applied_matrix(curve)
 						try:
-							eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix)
+							eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector)
 						except AssumptionError:  # action_matrix was not Perron-Frobenius.
 							raise ComputationError('Could not estimate invariant lamination.')
 						if nonnegative_image(condition_matrix, eigenvector):  # Check that the projective fixed point is actually in this cell. 

@@ -13,11 +13,11 @@
 #		Given an algebraic_type this returns that number in a standard form, otherwise return number.
 #	4) algebraic_degree(number):
 #		Returns the degree of number.
-#	5) algebraic_height(number):
-#		Returns the height of number.
+#	5) algebraic_log_height(number):
+#		Returns the log of the height of number.
 #	6) algebraic_approximate(number, accuracy, degree=None):
 #		Returns an AlgebraicApproximation of the number correct to the required accuracy.
-#	7) Perron_Frobenius_eigen(matrix):
+#	7) Perron_Frobenius_eigen(matrix, vector=None):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue
 #		and eigenvector whose sum of entries is one.
 #		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.

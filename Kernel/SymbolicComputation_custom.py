@@ -1,7 +1,7 @@
 
-# WARNING: This library is designed ONLY to work with Lamination.splitting_sequence_approximation()
+# WARNING: This library is designed ONLY to work with Lamination.splitting_sequence(exact=False)
 # It does NOT meet the requirement of implementing addition, subtraction, division, comparison and 
-# equality with integers and other algebraic_types required by Lamination.splitting_sequence_exact()
+# equality with integers and other algebraic_types required by Lamination.splitting_sequence(exact=True)
 
 from math import log10 as log
 
@@ -10,8 +10,6 @@ from Flipper.Kernel.Matrix import nonnegative_image
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_fraction, log_height_int
 
 _name = 'custom'
-
-HASH_DENOMINATOR = 5
 
 def projective_difference(A, B, error_reciprocal):
 	# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
@@ -54,8 +52,9 @@ class Eigenvector_Entry:
 		self.eigenvector = eigenvector
 		self.entry = entry
 	
-	def increase_accuracy(self, accuracy=None):
+	def algebraic_approximation(self, accuracy=None):
 		self.eigenvector.increase_accuracy(accuracy)
+		return self.eigenvector.algebraic_approximations[self.entry]
 
 algebraic_type = Eigenvector_Entry
 
@@ -66,7 +65,7 @@ def string_algebraic_type(number):
 	return number.eigenvector.algebraic_approximations[number.entry].interval.approximate_string(accuracy=4)
 
 def hash_algebraic_type(number):
-	return number.eigenvector.algebraic_approximations[number.entry].interval.change_denominator(HASH_DENOMINATOR).tuple()
+	return number.eigenvector.algebraic_approximations[number.entry].hashable()
 
 def degree_algebraic_type(number):
 	return number.eigenvector.degree
@@ -75,8 +74,7 @@ def log_height_algebraic_type(number):
 	return number.eigenvector.log_height
 
 def approximate_algebraic_type(number, accuracy, degree=None):
-	number.increase_accuracy(accuracy)
-	return number.eigenvector.algebraic_approximations[number.entry]
+	return number.algebraic_approximation(accuracy)
 
 
 def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):

@@ -24,6 +24,8 @@ def minimal_polynomial_coefficients(number):
 	scale = lcm([x.denominator() for x in X])
 	return tuple(int(scale * x) for x in X)
 
+# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
+# uniform bound on the number of collisions.
 def hash_algebraic_type(number):
 	return minimal_polynomial_coefficients(number)
 

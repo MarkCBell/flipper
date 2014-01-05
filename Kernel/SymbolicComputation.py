@@ -14,17 +14,18 @@
 #		Returns the degree of number.
 #	5) algebraic_log_height(number):
 #		Returns the log of the height of number.
-#	6) algebraic_approximate(number, accuracy, degree=None):
+#	6) algebraic_hash(number):
+#		Returns a sortable, hashable invariant of the number.
+#	7) algebraic_approximate(number, accuracy, degree=None):
 #		Returns an AlgebraicApproximation of the number correct to the required accuracy.
-#	7) Perron_Frobenius_eigen(matrix, vector=None):
+#	8) Perron_Frobenius_eigen(matrix, vector=None):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) 
-#		with largest eigenvalue and eigenvector whose sum of entries is one. If the matrix is not Perron-Frobenius 
-#		an AsumptionError should be thrown. The eigenvalue must be an algebraic_type and the eigenvector must be a 
-#		list of algebraic_types. This is, in fact, the only way that we will produce algebraic numbers and so the 
-#		library used should feel free to take advantage of this fact.
+#		with largest eigenvalue and eigenvector whose sum of entries is one. The eigenvalue must be an algebraic_type 
+#		and the eigenvector must be a list of algebraic_types. This is, in fact, the only way that we will produce algebraic 
+#		numbers and so the library used should feel free to take advantage of this fact.
 
 # Notes: 
-#	1) We do not actually care what algebraic_type is. However Lamination.splitting_sequence_exact() requires that it implements:
+#	1) We do not actually care what algebraic_type is. However Lamination.splitting_sequence(exact=True) requires that it implements:
 #		addition, subtraction, division, comparison and equality (+, -, /, <, ==) both with integers and other algebraic_types.
 #	2) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
 #		requirement by multiplication.
@@ -44,11 +45,13 @@
 #		Same as 4) above but is only required to work for numbers of algebraic_type.
 #	6) height_algebraic_type
 #		Same as 5) above but is only required to work for numbers of algebraic_type.
-#	7) approximate_algebraic_type
+#	7) hash_algebraic_type
 #		Same as 6) above but is only required to work for numbers of algebraic_type.
-#	8) Perron_Frobenius_eigen
-#		Same as 7) above.
-#	9) _name:
+#	8) approximate_algebraic_type
+#		Same as 7) above but is only required to work for numbers of algebraic_type.
+#	9) Perron_Frobenius_eigen
+#		Same as 8) above.
+#	10) _name:
 #		A string containing the name of the library being used. Very useful for debugging.
 
 from math import log10 as log
@@ -56,12 +59,12 @@ from math import log10 as log
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
 
 _name = None
-if _name is None:
-	try:
-		from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
-	except ImportError:
-		pass
+# if _name is None:
+	# try:
+		# from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			# hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+	# except ImportError:
+		# pass
 
 if _name is None:
 	try:
@@ -116,6 +119,16 @@ def algebraic_log_height(number):
 		return number.log_height
 	elif isinstance(number, int):
 		return log(max(abs(number), 1))
+	else:
+		return NotImplemented
+
+def algebraic_hash(number):
+	if isinstance(number, algebraic_type):
+		return hash_algebraic_type(number)
+	elif isinstance(number, Algebraic_Approximation):
+		return number.hashable()
+	elif isinstance(number, int):
+		return number
 	else:
 		return NotImplemented
 

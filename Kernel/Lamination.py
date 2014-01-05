@@ -11,11 +11,8 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, hash_algebraic_type, algebraic_simplify, algebraic_string
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, algebraic_simplify, algebraic_string, algebraic_hash
 from Flipper.Kernel.NumberSystem import number_system_basis
-
-# The common denominator to switch Algebraic_Approximations to before hashing.
-HASH_DENOMINATOR = 5
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
@@ -222,33 +219,41 @@ class Lamination:
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, exact=False):
-		if exact:
-			return self.splitting_sequence_exact()
-		else:
-			return self.splitting_sequence_approximation()
-	
-	def splitting_sequence_exact(self):
+		# Computes the splitting sequence of this lamination.
+		
 		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
-		# We assume that self is given as a list of algebraic numbers. 
+		# We assume that self is given as a list of algebraic numbers.
 		
-		def projective_weights(x):
-			s = algebraic_simplify(1 / sum(x))
-			return tuple([algebraic_simplify(v * s) for v in x])
+		# If exact is set to False then an Number_System is created to how sufficiently good Algebraic_Approximations of the
+		# algebraic numbers involved. If at any point the precision would drop below what is required to maintain exactness 
+		# then the Number_System automatically requests a more accurate approximation from the symbolic library. This is much 
+		# faster than even sage.
+		#
+		# Note that when exact is False we require far less from the symbolic library. For example, we do not need:
+		#	addition, subtraction, division, comparison and equality (+, -, /, <, ==) with integers or other algebraic_types.
 		
-		# We use this function to hash the number down. It MUST be (projectively) invariant under isometries of the triangulation.
-		# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
-		# uniform bound on the number of collisions.
-		def hash_lamination(x):
-			return tuple(sorted([hash_algebraic_type(v) for v in projective_weights(x)]))
+		def projectively_equal(lamination1, lamination2):
+			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
+		
+		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
+		# so we achieve this by sorting the hash values.
+		def projectively_hash_lamination(lamination1):
+			s = algebraic_simplify(lamination1.weight())
+			return tuple(sorted([algebraic_hash(algebraic_simplify(v / s)) for v in lamination1]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
 			raise AssumptionError('Lamination is not filling.')
 		
-		lamination = self.puncture_trigons()  # Puncture out all trigon regions.
+		# Puncture out all trigon regions.
+		if exact:
+			lamination = self.puncture_trigons()
+		else:  # If we are using approximations create them now.
+			lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta)).puncture_trigons()
+		
 		flipped = []
-		seen = {hash_lamination(lamination):[[0, lamination, projective_weights(lamination)]]}
+		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
 		while True:
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
 			lamination = lamination.flip_edge(edge_index)
@@ -263,75 +268,12 @@ class Lamination:
 			flipped.append(edge_index)
 			
 			# Check if it (projectively) matches a lamination we've already seen.
-			target = hash_lamination(lamination)
-			current_triangulation = lamination.abstract_triangulation
-			current_projective_weights = projective_weights(lamination)
-			if target in seen:
-				for index, old_lamination, old_projective_weights in seen[target]:
-					old_triangulation = old_lamination.abstract_triangulation
-					isometries = []
-					for isometry in all_isometries(current_triangulation, old_triangulation):
-						permuted_old_projective_weights = tuple([old_projective_weights[isometry.edge_map[i]] for i in range(lamination.zeta)])
-						if current_projective_weights == permuted_old_projective_weights:
-							# Return: the pre-periodic part, the periodic part, the dilatation.
-							isometries.append(isometry)
-					if len(isometries) > 0:
-						return flipped[:index], flipped[index:], algebraic_simplify(old_lamination[isometry.edge_map[0]] / lamination[0]), old_lamination, isometries
-				seen[target].append([len(flipped), lamination, current_projective_weights])
-			else:
-				seen[target] = [[len(flipped), lamination, current_projective_weights]]
-	
-	def splitting_sequence_approximation(self):
-		# Computes the splitting sequence of this lamination by using a sufficiently good approximation of the algebraic numbers 
-		# involved. If at any point the precision would drop below what is required to maintain exactness then the approximations
-		# are recomputed more accurately. This is much faster than even sage.
-		#
-		# Note that this version has much less requirements on the symbolic library than Lamination.splitting_sequence_exact().
-		# For example, we do not need 
-		#
-		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
-		# We assume that self is given as a list of algebraic numbers.
-		
-		def projectively_equal(lamination1, lamination2):
-			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
-		
-		def projectively_hash_lamination(lamination1):
-			s = lamination1.weight()
-			return tuple(sorted([(v / s).interval.change_denominator(HASH_DENOMINATOR).tuple() for v in lamination1]))
-		
-		# Check if vector is obviously reducible.
-		if any(v == 0 for v in self.vector):
-			raise AssumptionError('Lamination is not filling.')
-		
-		initial_lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta))
-		lamination = initial_lamination.puncture_trigons()  # Puncture out all trigon regions.
-		
-		# Now build a lamination whose weights come from a number system basis.
-		# initial_lamination = self.puncture_trigons()  # Puncture out all trigon regions.
-		# lamination = Lamination(initial_lamination.abstract_triangulation, number_system_basis(initial_lamination.vector, len(initial_lamination.vector)))
-		
-		flipped = []
-		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
-		while True:
-			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
-			lamination = lamination.flip_edge(edge_index)
-			
-			if lamination[edge_index].algebraic_approximation() == 0:
-				try:
-					# If this fails it's because the lamination isn't filling.
-					lamination = lamination.collapse_trivial_weight(edge_index)
-				except AssumptionError:
-					raise AssumptionError('Lamination is not filling.')
-			
-			flipped.append(edge_index)
-			
-			# Check if it (projectively) matches a lamination we've already seen.
 			target = projectively_hash_lamination(lamination)
 			if target in seen:
 				for index, old_lamination in seen[target]:
 					isometries = [isometry for isometry in all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal(isometry * lamination, old_lamination)]
 					if len(isometries) > 0:
-						return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]].algebraic_approximation(factor=2) / lamination[0].algebraic_approximation(factor=2), old_lamination, isometries
+						return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]] / lamination[0], old_lamination, isometries
 				seen[target].append((len(flipped), lamination))
 			else:
 				seen[target] = [(len(flipped), lamination)]

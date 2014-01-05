@@ -30,13 +30,16 @@ class Interval:
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = self.precision - int(log(self.upper - self.lower))
 	def __repr__(self):
+		return self.approximate_string(6)
+	def approximate_string(self, accuracy=None):
+		if accuracy is None: accuracy = self.accuracy-1
+		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
+		return '%s.%s...' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
+	def interval_string(self):
 		# Remember to take into account that the '-' sign uses a character.
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
 		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
-	def approximate_string(self, accuracy):
-		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
-		return '%s.%s' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
 	def change_denominator(self, new_denominator):
 		d = new_denominator - self.precision
 		if d > 0:

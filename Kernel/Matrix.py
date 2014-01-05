@@ -37,7 +37,7 @@ def nonnegative(v):
 	return all(x >= 0 for x in v)
 
 def nonnegative_image(M, v):
-	return all(dot(row, v) >= 0 for row in M.rows)
+	return all(dot(row, v) >= 0 for row in M)
 
 def nontrivial(v):
 	return any(v)
@@ -55,21 +55,23 @@ class Matrix:
 			self.rows = list(list(data[i:i+width]) for i in range(0,len(data),width))
 		self.width = width
 		self.height = len(self.rows)
-		assert(all(len(row) == self.width for row in self.rows))
+		assert(all(len(row) == self.width for row in self))
 	def copy(self):
-		return Matrix([list(row) for row in self.rows], self.width)
+		return Matrix([list(row) for row in self], self.width)
+	def __iter__(self):
+		return iter(self.rows)
 	def __getitem__(self, index):
 		return self.rows[index]
 	def __str__(self):
-		return '[\n' + ',\n'.join(str(row) for row in self.rows) + '\n]'
+		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == len(other))
 			otherT = other.transpose()
-			return Matrix([[dot(a, b) for b in otherT.rows] for a in self.rows], other.width)
+			return Matrix([[dot(a, b) for b in otherT] for a in self], other.width)
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == len(other))
-			return [dot(row, other) for row in self.rows]
+			return [dot(row, other) for row in self]
 		elif isinstance(other, int):
 			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
@@ -119,7 +121,7 @@ class Matrix:
 	def substitute_row(self, index, new_row):
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)], self.width)
 	def discard_column(self, column):
-		self.rows = [[row[i] for i in range(self.width) if i != column] for row in self.rows]
+		self.rows = [[row[i] for i in range(self.width) if i != column] for row in self]
 		self.width -= 1
 	def join(self, other):
 		assert(self.width == other.width)
@@ -128,9 +130,9 @@ class Matrix:
 		if self.height == 0: return 0
 		return max(abs(self[i][j]) for i in range(self.height) for j in range(self.width))
 	def basic_simplify(self):
-		return Matrix(list(set(tuple(rescale(row)) for row in self.rows if nontrivial(row))), self.width)
+		return Matrix(list(set(tuple(rescale(row)) for row in self if nontrivial(row))), self.width)
 	def simplify(self):
-		R = set(tuple(rescale(row)) for row in self.rows if nontrivial(row))
+		R = set(tuple(rescale(row)) for row in self if nontrivial(row))
 		R_width = self.width
 		A = Id_Matrix(self.width)
 		while R_width > 1:
@@ -165,7 +167,7 @@ class Matrix:
 		# Uses Bareiss' algorithm to compute the determinant in ~O(n^3).
 		assert(self.width == self.height)
 		scale = 1
-		A = [list(row) for row in self.rows]
+		A = [list(row) for row in self]
 		for i in range(self.width-1):
 			if A[i][i] == 0:
 				for j in range(i+1, self.height):
@@ -243,7 +245,7 @@ class Matrix:
 	def find_edge_vector_old(self):
 		R, B = self.simplify()  # Reduce to a simpler problem.
 		
-		if any(all(x < 0 for x in row) for row in R.rows): return
+		if any(all(x < 0 for x in row) for row in R): return
 		if R.width == 1: 
 			if nonnegative_image(R, [1]):
 				return B * [1]
@@ -272,7 +274,7 @@ class Matrix:
 		A = Id_matrix(self.width)
 		for i in range(self.width):
 			A = A * self
-			if all(x > 0 for row in A.rows for x in row):
+			if all(x > 0 for row in A for x in row):
 				return True
 		return False
 	def contracting(self, action):

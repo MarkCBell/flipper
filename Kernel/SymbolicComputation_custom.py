@@ -1,4 +1,8 @@
 
+# WARNING: This library is designed ONLY to work with Lamination.splitting_sequence_approximation()
+# It does NOT meet the requirement of implementing addition, subtraction, division, comparison and 
+# equality with integers and other algebraic_types required by Lamination.splitting_sequence_exact()
+
 from math import log10 as log
 
 from Flipper.Kernel.Error import AssumptionError, ComputationError
@@ -17,12 +21,12 @@ def projective_difference(A, B, error_reciprocal):
 # This class represents the leading eigenvector of a matrix.
 class Eigenvector:
 	def __init__(self, matrix, vector=None):
-		self.matrix = matrix  # 
-		self.power_matrix = self.matrix
+		self.matrix = matrix  # This is the matrix we were given
+		self.power_matrix = self.matrix  # and this is some power of that matrix.
 		self.current_accuracy = -1
 		
 		self.degree = self.matrix.width
-		self.log_height = 100  # !?! Deal with this!
+		self.log_height = 10  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
 		if vector is None: vector = [1] * self.matrix.width
@@ -33,7 +37,6 @@ class Eigenvector:
 		self.eigenvalue = None
 		self.increase_accuracy()
 	
-	# @profile
 	def increase_accuracy(self, accuracy=None):
 		if accuracy is None: accuracy = self.accuracy_needed
 		
@@ -46,57 +49,15 @@ class Eigenvector:
 			self.algebraic_approximations = [algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
 			self.eigenvalue = algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height)
 
-class EigenvectorEntry:
+class Eigenvector_Entry:
 	def __init__(self, eigenvector, entry, vector=None):
 		self.eigenvector = eigenvector
 		self.entry = entry
 	
-	# @profile
 	def increase_accuracy(self, accuracy=None):
 		self.eigenvector.increase_accuracy(accuracy)
-	
-	def __add__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] + other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] + other
-	def __radd__(self, other):
-		return self + other
-	
-	def __sub__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] - other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] - other
-	
-	def __rsub__(self, other):
-		return -(self - other)
-	
-	def __mul__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] * other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] * other
-	def __rmul__(self, other):
-		return self * other
-	
-	def __lt__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] < other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] < other
-	def __eq__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] == other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] == other
-	def __gt__(self, other):
-		if isinstance(other, EigenvectorEntry):
-			return self.eigenvector.algebraic_approximations[self.entry] > other.eigenvector.algebraic_approximations[other.entry]
-		else:
-			return self.eigenvector.algebraic_approximations[self.entry] > other
 
-algebraic_type = EigenvectorEntry
+algebraic_type = Eigenvector_Entry
 
 def simplify_algebraic_type(number):
 	return number
@@ -124,7 +85,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	EV = Eigenvector(matrix, vector=vector)
 	
-	eigenvector, eigenvalue = [EigenvectorEntry(EV, i) for i in range(matrix.width)], EV.eigenvalue
+	eigenvector, eigenvalue = [Eigenvector_Entry(EV, i) for i in range(matrix.width)], EV.eigenvalue
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...

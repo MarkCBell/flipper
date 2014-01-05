@@ -14,6 +14,8 @@ more documentation
 Remove all dependence on sage / smypy
 Add unit tests
 
+Add set accuracy to Algebraic_Approximation
+
 
 
 is_curve (and encode twist) fails if a component of S - curve has no punctures!

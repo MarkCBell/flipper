@@ -3,15 +3,17 @@
 
 # Let K := QQ(\lambda) be a number field and x \in K.
 # If x has minimal polynomial a_n x^n + ... + a_0 then 
-# let deg(x) := n be the degree of x and height(x) := max(|a_n|).
+# let deg(x) := n be the degree of x and height(x) := max(|a_n|) be the height of x.
+# Be careful to note that if x \in ZZ then height(x) = max(abs(x), 1).
 
 # We use the following facts:
 #	1a) For x, y \in K, height(x +/- y) <= 2 * height(x) * height(y) and
 #	 b) height(x *// y) <= height(x) * height(y) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
 #	2) If 0 != x \in K then |x| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
 
-# From 1) we can obtain an upper bound on the height of an equation of algebraic numbers. See:
-#	http://mathoverflow.net/questions/64643/height-of-algebraic-numbers
+# From 1) we can obtain an upper bound on the height of an equation of algebraic numbers. In fact the more general formula is that:
+#	height(sum(x_i)) <= n prod(height(x_i))
+# See: http://mathoverflow.net/questions/64643/height-of-algebraic-numbers
 
 # From 2) it follows that so long as the accuracy of the interval of an Algebraic_Approximation is at least
 #	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x) * height(x)) = log(deg(x)) + log(height(x))

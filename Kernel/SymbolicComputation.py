@@ -2,11 +2,10 @@
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
 #	compute the stable lamination exactly.
 #	compute splitting sequences.
-#	Construct Algebric_Approximations.
 
 # This module provides seven things to do with algebraic numbers.
 #	1) algebraic_type:
-#		The type used to represent algebraic numbers.
+#		The type used to represent algebraic numbers. Modules probably shouldn't be importing this.
 #	2) algebraic_string(number):
 #		Given an algebraic_type this returns that number as a nice string, otherwise return str(number).
 #	3) algebraic_simplify(number):
@@ -18,15 +17,15 @@
 #	6) algebraic_approximate(number, accuracy, degree=None):
 #		Returns an AlgebraicApproximation of the number correct to the required accuracy.
 #	7) Perron_Frobenius_eigen(matrix, vector=None):
-#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) with largest eigenvalue
-#		and eigenvector whose sum of entries is one.
-#		If the matrix is not Perron-Frobenius an AsumptionError should be thrown.
-#		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types.
+#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) 
+#		with largest eigenvalue and eigenvector whose sum of entries is one. If the matrix is not Perron-Frobenius 
+#		an AsumptionError should be thrown. The eigenvalue must be an algebraic_type and the eigenvector must be a 
+#		list of algebraic_types. This is, in fact, the only way that we will produce algebraic numbers and so the 
+#		library used should feel free to take advantage of this fact.
 
 # Notes: 
-#	1) We do not actually care what algebraic_type is but it must implement;
-#		addition, subtraction, division, comparison, equality (+, -, /, <, ==).
-#		both with integers and other algebraic_types.
+#	1) We do not actually care what algebraic_type is. However Lamination.splitting_sequence_exact() requires that it implements:
+#		addition, subtraction, division, comparison and equality (+, -, /, <, ==) both with integers and other algebraic_types.
 #	2) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
 #		requirement by multiplication.
 #	3) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.

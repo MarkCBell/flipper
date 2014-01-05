@@ -227,12 +227,10 @@ class Lamination:
 		else:
 			return self.splitting_sequence_approximation()
 	
-	# @profile
 	def splitting_sequence_exact(self):
 		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
 		# We assume that self is given as a list of algebraic numbers. 
-		# This assumes that the edges are labelled 0, ..., abstract_triangulation.zeta-1, this is a very sane labelling system.
 		
 		def projective_weights(x):
 			s = algebraic_simplify(1 / sum(x))
@@ -288,9 +286,11 @@ class Lamination:
 		# involved. If at any point the precision would drop below what is required to maintain exactness then the approximations
 		# are recomputed more accurately. This is much faster than even sage.
 		#
+		# Note that this version has much less requirements on the symbolic library than Lamination.splitting_sequence_exact().
+		# For example, we do not need 
+		#
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
-		# We assume that self is given as a list of algebraic numbers and that the edges are labelled 0, ..., abstract_triangulation.zeta-1,
-		# this is a very sane labelling system.
+		# We assume that self is given as a list of algebraic numbers.
 		
 		def projectively_equal(lamination1, lamination2):
 			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))

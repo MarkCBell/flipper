@@ -21,7 +21,7 @@ class EigenvectorEntry:
 		self.current_accuracy = -1
 		
 		self.degree = self.matrix.width
-		self.log_height = 10  # !?! Deal with this!
+		self.log_height = 20  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
 		# Let M' := M - \lambda I. Then there is an invertible matrix P such that T := P^{-1} M' P is upper triangular

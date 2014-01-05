@@ -123,14 +123,14 @@ class Number_System_Element:
 			self.number_system.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
 			# Actually this will probably be too precise.
 			
-			# !?! Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
+			# Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
 			if all(a == 0 for a in self):
 				self._algebraic_approximation = algebraic_approximation_from_int(0, 2*accuracy, self.number_system.degree, 1)
 			else:
 				self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.number_system.algebraic_approximations))
 			
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
-			assert(self.current_accuracy > accuracy)
+			assert(self.current_accuracy >= accuracy)
 		
 		return self._algebraic_approximation
 	def __lt__(self, other):

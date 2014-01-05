@@ -14,6 +14,37 @@ def projective_difference(A, B, error_reciprocal):
 	A_sum, B_sum = sum(A), sum(B)
 	return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 
+# class Eigenvector:
+	# def __init__(self, matrix, entry, vector=None):
+		# self.matrix = matrix
+		# self.entry = entry
+		# self.current_accuracy = -1
+		
+		# self.degree = self.matrix.width
+		# self.log_height = 100  # !?! Deal with this!
+		# self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
+		
+		# if vector is None: vector = [1] * self.matrix.width
+		# self.old_vector = vector
+		# self.vector = self.matrix * self.old_vector
+		
+		# self.algebraic_approximation = [None] * self.matrix.width
+		# self.increase_accuracy()
+	
+	# @profile
+	# def increase_accuracy(self, accuracy=None):
+		# if accuracy is None: accuracy = self.accuracy_needed
+		# if self.current_accuracy < accuracy:
+			# c = 0
+			# while not projective_difference(self.old_vector, self.vector, 10**accuracy):
+				# c += 1
+				# self.old_vector, self.vector = self.vector, self.matrix * self.vector
+			
+			# print(c)
+			
+			# self.current_accuracy = accuracy
+			# self.algebraic_approximations = [algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
+
 class EigenvectorEntry:
 	def __init__(self, matrix, entry, vector=None):
 		self.matrix = matrix
@@ -21,7 +52,7 @@ class EigenvectorEntry:
 		self.current_accuracy = -1
 		
 		self.degree = self.matrix.width
-		self.log_height = 20  # !?! Deal with this!
+		self.log_height = 100  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
 		# Let M' := M - \lambda I. Then there is an invertible matrix P such that T := P^{-1} M' P is upper triangular
@@ -37,11 +68,16 @@ class EigenvectorEntry:
 		self.algebraic_approximation = None
 		self.increase_accuracy()
 	
+	# @profile
 	def increase_accuracy(self, accuracy=None):
 		if accuracy is None: accuracy = self.accuracy_needed
 		if self.current_accuracy < accuracy:
+			c = 0
 			while not projective_difference(self.old_vector, self.vector, 10**accuracy):
+				c += 1
 				self.old_vector, self.vector = self.vector, self.matrix * self.vector
+			
+			print(c)
 			
 			self.current_accuracy = accuracy
 			self.algebraic_approximation = algebraic_approximation_from_fraction(self.vector[self.entry], sum(self.vector), self.current_accuracy, self.degree, self.log_height)

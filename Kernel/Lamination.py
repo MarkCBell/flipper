@@ -283,7 +283,6 @@ class Lamination:
 			else:
 				seen[target] = [[len(flipped), lamination, current_projective_weights]]
 	
-	# @profile
 	def splitting_sequence_approximation(self):
 		# Computes the splitting sequence of this lamination by using a sufficiently good approximation of the algebraic numbers 
 		# involved. If at any point the precision would drop below what is required to maintain exactness then the approximations

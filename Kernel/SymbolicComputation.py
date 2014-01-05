@@ -57,12 +57,12 @@ from math import log10 as log
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
 
 _name = None
-# if _name is None:
-	# try:
-		# from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			# hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
-	# except ImportError:
-		# pass
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+	except ImportError:
+		pass
 
 if _name is None:
 	try:

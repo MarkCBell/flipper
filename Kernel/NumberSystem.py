@@ -17,9 +17,12 @@ class Number_System:
 		
 		self.verbose = False
 		self.current_accuracy = -1
+		self.algebraic_approximations = [None] * len(self.generators)
 		self.increase_accuracy(100)
+	
 	def __len__(self):
 		return len(self.generators)
+	
 	def increase_accuracy(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
@@ -91,7 +94,9 @@ class Number_System_Element:
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		return NotImplemented  # !?!
+		return other / self.algebraic_approximation(factor=2)
+	def __rtruediv__(self, other):
+		return self.__rdiv__(other)
 	def algebraic_approximation(self, accuracy=None, factor=None):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the Algebraic_Approximation produced is well defined.
@@ -104,13 +109,13 @@ class Number_System_Element:
 		
 		# Now if acc(I_i) == k then acc(I) >= k - (n-1) [Interval.py L:13].
 		# Additionally, 
-		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + (n-1) * log(2) <= sum(log(a_i)) + sum(log(\alpha_i)) + (n-1) * log(2) [AlgebraicApproximation.py L:9].
+		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + log(n) <= sum(log(a_i)) + sum(log(\alpha_i)) + log(n) [AlgebraicApproximation.py L:9].
 		# Hence for \alpha to determine a unique algebraic number we need that:
 		#	acc(I) >= log(deg(\alpha)) + log(height(\alpha)).
 		# That is:
-		#	k - (n-1) >= log(deg(\alpha)) + sum(log(a_i)) + sum(log(\alpha_i)) + (n-1) * log(2).
+		#	k - (n-1) >= log(deg(\alpha)) + sum(log(a_i)) + sum(log(\alpha_i)) + log(n).
 		# Hence:
-		#	k >= sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + (n-1) * (1 + log(2)).
+		#	k >= sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + (n-1) + log(n).
 		
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + 2*n).

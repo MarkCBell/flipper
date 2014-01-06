@@ -66,4 +66,9 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 		if not nonnegative_image(condition_matrix, eigenvector):
 			raise ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
 	
+	for entry in eigenvector:
+		n = matrix.width
+		m = matrix.bound()
+		print((n+1) * n * n * (log(n) + log(m) + log_height_algebraic_type(eigenvalue)))
+	
 	return eigenvector, eigenvalue

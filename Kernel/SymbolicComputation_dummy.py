@@ -18,13 +18,8 @@ def degree_algebraic_type(number):
 def height_algebraic_type(number):
 	return None
 
+def approximate_algebraic_type(number):
+	return None
+
 def Perron_Frobenius_eigen(matrix):
-	return None
-
-
-
-def minimal_polynomial_coefficients(number):
-	return None
-
-def symbolic_approximate(number, precision):
 	return None

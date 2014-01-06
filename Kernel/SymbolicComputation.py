@@ -39,19 +39,17 @@
 #		Given an algebraic_type this must return that number in a standard form.
 #	3) string_algebraic_type
 #		Given an algebraic_type this must return that number as a nice string.
-#	4) hash_algebraic_type
-#		Returns a hashable object from an algebraic_type.
-#	5) degree_algebraic_type
+#	4) degree_algebraic_type
 #		Same as 4) above but is only required to work for numbers of algebraic_type.
-#	6) height_algebraic_type
+#	5) height_algebraic_type
 #		Same as 5) above but is only required to work for numbers of algebraic_type.
-#	7) hash_algebraic_type
+#	6) hash_algebraic_type
 #		Same as 6) above but is only required to work for numbers of algebraic_type.
-#	8) approximate_algebraic_type
+#	7) approximate_algebraic_type
 #		Same as 7) above but is only required to work for numbers of algebraic_type.
-#	9) Perron_Frobenius_eigen
+#	8) Perron_Frobenius_eigen
 #		Same as 8) above.
-#	10) _name:
+#	9) _name:
 #		A string containing the name of the library being used. Very useful for debugging.
 
 from math import log10 as log
@@ -59,12 +57,12 @@ from math import log10 as log
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
 
 _name = None
-# if _name is None:
-	# try:
-		# from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			# hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
-	# except ImportError:
-		# pass
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+	except ImportError:
+		pass
 
 if _name is None:
 	try:
@@ -129,6 +127,18 @@ def algebraic_hash(number):
 		return number.hashable()
 	elif isinstance(number, int):
 		return number
+	else:
+		return NotImplemented
+
+def algebraic_hash_ratio(numerator, denominator):
+	print(type(numerator))
+	if isinstance(numerator, algebraic_type):
+		print('X')
+		return hash_ratio_algebraic_type(numerator, denominator)
+	elif isinstance(numerator, Algebraic_Approximation):
+		return numerator.hashable()
+	elif isinstance(numerator, int):
+		return numerator
 	else:
 		return NotImplemented
 

@@ -239,8 +239,8 @@ class Lamination:
 		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
 		# so we achieve this by sorting the hash values.
 		def projectively_hash_lamination(lamination1):
-			s = algebraic_simplify(lamination1.weight())
-			return tuple(sorted([algebraic_hash(algebraic_simplify(v / s)) for v in lamination1]))
+			s = algebraic_simplify(1 / lamination1.weight())
+			return tuple(sorted([algebraic_hash(algebraic_simplify(v * s)) for v in lamination1]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):

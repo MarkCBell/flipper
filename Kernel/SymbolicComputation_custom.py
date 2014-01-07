@@ -90,7 +90,7 @@ class Eigenvector:
 		self.degree = self.matrix.width
 		self.height_matrix = self.matrix.bound()
 		self.log_height_eigenvalue = self.degree * (log(self.height_matrix) + log(self.degree + 1) + log(2))
-		self.log_height = 1000  # !?! Deal with this!
+		self.log_height = 50  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
 		if vector is None: vector = [1] * self.matrix.width

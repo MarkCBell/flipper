@@ -3,6 +3,7 @@ from math import log10 as log
 
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
 from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_log_height
+from Flipper.Kernel.Types import IntegerType
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators and an upper bound on the degree of K. We always include the 
@@ -52,8 +53,10 @@ class Number_System_Element:
 			return Number_System_Element(self.number_system, [a+b for a, b in zip(self, other)])
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() + other
-		else:
+		elif isinstance(other, IntegerType):
 			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] + other])
+		else:
+			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
@@ -63,8 +66,10 @@ class Number_System_Element:
 			return Number_System_Element(self.number_system, [a-b for a, b in zip(self, other)])
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() - other
-		else:
+		elif isinstance(other, IntegerType):
 			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] - other])
+		else:
+			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
@@ -72,8 +77,10 @@ class Number_System_Element:
 			return self.algebraic_approximation(factor=2) * other.algebraic_approximation(factor=2)
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation(factor=2) * other
-		else:
+		elif isinstance(other, IntegerType):
 			return Number_System_Element(self.number_system, [a * other for a in self])
+		else:
+			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
@@ -81,8 +88,10 @@ class Number_System_Element:
 			return self.algebraic_approximation(factor=2) / other.algebraic_approximation(factor=2)
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation(factor=2) / other
-		else:
+		elif isinstance(other, IntegerType):
 			return self.algebraic_approximation(factor=2) / other
+		else:
+			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):

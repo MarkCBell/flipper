@@ -57,14 +57,15 @@
 from math import log10 as log
 
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
+from Flipper.Kernel.Types import IntegerType
 
 _name = None
-# if _name is None:
-	# try:
-		# from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			# hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
-	# except ImportError:
-		# pass
+if _name is None:
+	try:
+		from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
+			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+	except ImportError:
+		pass
 
 if _name is None:
 	try:
@@ -107,31 +108,51 @@ def algebraic_degree(number):
 		return degree_algebraic_type(number)
 	elif isinstance(number, Algebraic_Approximation):
 		return number.degree
-	else:
+	elif isinstance(number, IntegerType):
 		return 1
+	else:
+		return NotImplemented
 
 def algebraic_log_height(number):
 	if isinstance(number, algebraic_type):
 		return log_height_algebraic_type(number)
 	elif isinstance(number, Algebraic_Approximation):
 		return number.log_height
-	else:
+	elif isinstance(number, IntegerType):
 		return log(max(abs(number), 1))
+	else:
+		return NotImplemented
 
 def algebraic_hash(number):
 	if isinstance(number, algebraic_type):
 		return hash_algebraic_type(number)
 	elif isinstance(number, Algebraic_Approximation):
 		return number.hashable()
-	else:
+	elif isinstance(number, IntegerType):
 		return number
+	else:
+		return NotImplemented
+
+def algebraic_hash_ratio(numerator, denominator):
+	print(type(numerator))
+	if isinstance(numerator, algebraic_type):
+		print('X')
+		return hash_ratio_algebraic_type(numerator, denominator)
+	elif isinstance(numerator, Algebraic_Approximation):
+		return numerator.hashable()
+	elif isinstance(numerator, IntegerType):
+		return numerator
+	else:
+		return NotImplemented
 
 def algebraic_approximate(number, accuracy, degree=None):
 	if isinstance(number, algebraic_type):
 		return approximate_algebraic_type(number, accuracy, degree)
-	else:
+	elif isinstance(number, IntegerType):
 		if degree is None: degree = 1
 		return algebraic_approximation_from_int(number, accuracy, degree, log_height_int(number))
+	else:
+		return NotImplemented
 
 
 def compute_powers(a, b):

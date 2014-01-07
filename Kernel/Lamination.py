@@ -234,7 +234,7 @@ class Lamination:
 		#	addition, subtraction, division, comparison and equality (+, -, /, <, ==) with integers or other algebraic_types.
 		
 		def projectively_equal(lamination1, lamination2):
-			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
+			return all(algebraic_simplify(lamination1[i] * lamination2[0]) == algebraic_simplify(lamination2[i] * lamination1[0]) for i in range(1, lamination1.zeta))
 		
 		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
 		# so we achieve this by sorting the hash values.

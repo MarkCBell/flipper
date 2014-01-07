@@ -2,6 +2,7 @@
 from math import log10 as log
 
 from Flipper.Kernel.Error import ApproximationError
+from Flipper.Kernel.Types import IntegerType
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
@@ -51,8 +52,10 @@ class Interval:
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
-		else:
+		elif isinstance(other, IntegerType):
 			return self.lower < other * 10**self.precision < self.upper
+		else:
+			return NotImplemented
 	def __neg__(self):
 		return Interval(-self.upper, -self.lower, self.precision)
 	def __add__(self, other):
@@ -62,8 +65,10 @@ class Interval:
 			new_lower = P.lower + Q.lower
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
-		else:
+		elif isinstance(other, IntegerType):
 			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
+		else:
+			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
@@ -73,8 +78,10 @@ class Interval:
 			new_lower = P.lower - Q.upper
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
-		else:
+		elif isinstance(other, IntegerType):
 			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
+		else:
+			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
@@ -83,12 +90,14 @@ class Interval:
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
-		else:
+		elif isinstance(other, IntegerType):
 			# Multiplication by 0 could cause problems here as these represent open intervals.
 			if other == 0: return 0
 			
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
+		else:
+			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
@@ -100,14 +109,19 @@ class Interval:
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
-		else:
+		elif isinstance(other, IntegerType):
 			values = [self.lower // other, self.upper // other]
 			return Interval(min(values), max(values), self.precision)
+		else:
+			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		# !?! RECHECK THIS!
-		return interval_from_int(other, self.precision) / self
+		if isinstance(other, IntegerType):
+			# !?! RECHECK THIS!
+			return interval_from_int(other, self.precision) / self
+		else:
+			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	def __abs__(self):

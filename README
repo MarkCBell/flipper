@@ -12,3 +12,13 @@ You can download the latest version directly from:
 For more information about installing and using Flipper see "A users guide to 
 Flipper" located at:
 	/Docs/Flipper.pdf
+
+Quick install, test and start as a Python module:
+> python setup.py install --user
+> python setup.py test
+> python -m Flipper.app
+
+Quick install, test and start as a Sage module:
+> sage -python setup.py install --user
+> sage -python setup.py test
+> sage -python -m Flipper.app

@@ -23,24 +23,24 @@ class Eigenvector:
 		self.power_matrix = self.matrix  # and this is some power of that matrix.
 		self.current_accuracy = -1
 		
-		self.degree = self.matrix.width
-		self.log_height = 1000  # !?! Deal with this!
-		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
-		
-		# Suppose that M = (a_ij) is a matrix of algebraic numbers. We define height(M) := max(height(a_ij)).
+		# We will use notions and notation from AlgebraicApproximation.py, you should probably read that first.
+		# If M = (a_ij) is a matrix of algebraic numbers we define height(M) := max(height(a_ij)).
 		#
-		# Now suppose that M is an n x n non-zero integer matrix with eigenvalue eigenvector pair \lambda, v = (v_i).
-		# Suppose additionally that \lambda has multiplicity one and that sum(v_i) == 1. 
+		# Now suppose that M is an n x n non-zero integer matrix with eigenvalue, eigenvector pair \lambda, v = (v_i).
+		# Suppose additionally that \lambda has multiplicity one and that sum(v_i) == 1. We would
+		# like to obtain good bounds on height(\lambda) and height(v_i).
 		#
-		# We first deal with height(\lambda). We first note that d := degree(\lambda) <= n.
-		# Let f(x) be the characteristic polynomial of M, we note that f is monic. Let 
+		# Let f(x) be the minimal polynomial of \lambda, we note that as the characteristic polynomial of M is monic 
+		# f is too by Gauss's lemma. Let d := deg(\lambda) = deg(f) <= n and let
 		#	M(f) := \prod_{x a root of f} max(1, |x|} 
 		# be the Mahler measure of f. Note that this is equivalent to the standard definition 
-		# which involves some complicated looing integral [Borwein and Erdelyi 1995, p. 271].
+		# of the Mahler measure of a polynomial which involves some complicated looking
+		# integral [Borwein and Erdelyi 1995, p. 271].
 		#
-		# Now by Gershgorin circle theorem as M has integer entries:
-		#	If x is an eigenvalue of M (equivalently is a root of f) then |x| <= (n+1) height(M).
-		# Hence as (n+1) height(M) > 1:
+		# Now if x is an a root of f then it is also eigenvalue of M and so by the Gershgorin circle 
+		# theorem as M has integer entries:
+		#	 |x| <= (n+1) height(M).
+		# Hence, as (n+1) height(M) > 1:
 		#	M(f) <= ((n+1) height(M))^n.
 		# Finally we note that:
 		#	height(f) <= (n choose n/2) M(f) [http://en.wikipedia.org/wiki/Height_of_a_polynomial].
@@ -48,13 +48,13 @@ class Eigenvector:
 		# Thus we are able to determine that:
 		#	height(f) <= (n choose n/2) ((n+1) height(M))^n <= (2 (n+1) height(M))^n.
 		# and so that:
-		#	log(height(\lambda)) <= n log(2n+2) + n log(height(M)).
+		#	log(height(\lambda)) <= n (log(height(M)) + log(n+1) + log(2)).
 		#
-		# Now to deal with height(v_i). Let K := QQ(\lambda) == {sum(a_i \lambda^i) : a_i \in QQ}.
-		# We identify K with QQ^d and think of M as acting on QQ^{nd}.
+		# Now to deal with height(v_i). Let K := QQ(\lambda). We identify K == {sum(a_i \lambda^i) : a_i \in QQ} 
+		# with QQ^d and think of M as acting on QQ^{nd}.
 		#
 		# Let M' be the rational matrix corresponding to the action of M - \lambda I on QQ^{nd}. Then 
-		#	height(M') <= height(M) * height(\lambda) and
+		#	height(M') <= height(M) + height(\lambda) and
 		#	rank(M') == d(n-1).
 		#
 		# As v is an eigenvector of M, we may write v_i = sum(b_ij \lambda^i) with b_ij rational. Then,
@@ -73,15 +73,11 @@ class Eigenvector:
 		# Finally, by Hadamard's inequality, |det(M_ij)|, |det(M'')| <= (sqrt(nd) height(M'))^{nd} <= (n height(M')^{nd}. Hence:
 		#	height(b_ij) <= (sqrt(nd) height(M'))^{nd} <= (n height(M')^{nd}
 		# and so:
-		#	height(v_i) = height(sum(b_ij \lambda^j)) <= d * \prod_j height(b_ij) height(\lambda)^j <= d * (sqrt(nd) height(M'))^{nd^2} height(\lambda)^{d^2}
+		#	height(v_i) = height(sum(b_ij \lambda^j)) <= d * \prod_j height(b_ij) height(\lambda)^j <= d * (n height(M'))^{nd^2} height(\lambda)^{d^2}
 		#
 		# Therefore:
-		#	log(height(v_i)) <= log(d) + n d^2 [log(sqrt(nd)) + log(height(M'))] + d^2 log(height(\lambda))
-		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M')) + n^2 log(height(\lambda))
-		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^3 + n^2) log(height(\lambda)).
-		#
-		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^3 + n^2) [n log(2) + log(log(n+1) + log(height(M)))]
-		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^4 + n^3) log(2) + (n^3 + n^2) log(log(n+1) + log(height(M))).
+		#	log(height(v_i)) <= log(d) + n d^2 [log(n) + log(height(M'))] + d^2 log(height(\lambda))
+		#	                 <= log(n) + n^3 [log(n) + log(height(M) + height(\lambda)))] + n^2 log(height(\lambda))
 		
 		
 		# Something like this:
@@ -91,6 +87,11 @@ class Eigenvector:
 		# (  M' )       (0)
 		# (     )       (0)
 		
+		self.degree = self.matrix.width
+		self.height_matrix = self.matrix.bound()
+		self.log_height_eigenvalue = self.degree * (log(self.height_matrix) + log(self.degree + 1) + log(2))
+		self.log_height = 1000  # !?! Deal with this!
+		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
 		if vector is None: vector = [1] * self.matrix.width
 		self.old_vector = vector
@@ -110,7 +111,7 @@ class Eigenvector:
 			
 			self.current_accuracy = accuracy
 			self.algebraic_approximations = [algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
-			self.eigenvalue = algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height)
+			self.eigenvalue = algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height_eigenvalue)
 
 class Eigenvector_Entry:
 	def __init__(self, eigenvector, entry, vector=None):

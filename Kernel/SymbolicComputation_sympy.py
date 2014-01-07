@@ -63,8 +63,10 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	n = matrix.width  # n = 6, log(n) ~ 0.75.
 	m = matrix.bound()  # log(m) ~ 4.
-	k = n * (log(2) + log(n+1) + log(m))
-	H = log(n) + n**3 * (log(n) + log(m)) + n**2 * k
+	k = n * (log(m) + log(n+1) + log(2))
+	# H = log(n) + n**3 * (log(n) + log(m)) + n**2 * k
+	H = log(n) + n**3 * (log(n) + log(m) + k) + n**2 * k
+	# H = (n**3 + 1) * log(n) + n**3 *m + (n**3 + n**2) * k
 	
 	print(m, n)
 	print('eigenvalue bound prediction: %s' % k)

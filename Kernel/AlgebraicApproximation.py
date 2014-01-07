@@ -1,26 +1,29 @@
 
 # A library for manipulating real algebraic numbers via interval approximations.
 
-# Let K := QQ(\lambda) be a number field and x \in K.
-# If x has minimal polynomial a_n x^n + ... + a_0 then 
-# let deg(x) := n be the degree of x and height(x) := max(|a_n|) be the height of x.
-# Be careful to note that if x \in ZZ then height(x) = max(abs(x), 1).
+# Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
+# height(f) := max(|a_n|) to be its height and deg(f) := n to be its degree.
+#
+# Let K := QQ(\lambda) be a number field and x_0 \in K be an algebraic number. We define
+# height(x_0) := height(minpoly(x_0)) to be its the height and deg(x_0) := deg(minpoly(x_0)) to be its degree.
+# Be careful to note that if x_0 \in ZZ then height(x_0) = max(abs(x_0), 1).
 
 # We use the following facts:
-#	1a) For x, y \in K, height(x +/- y) <= 2 * height(x) * height(y) and
-#	 b) height(x *// y) <= height(x) * height(y) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
-#	2) If 0 != x \in K then |x| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
+#	1a) For x_0, x_1 \in K, height(x_0 +/- x_1) <= 2 * height(x_0) * height(x_1) and
+#	 b) height(x_0 *// x_1) <= height(x_0) * height(x_1) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
+#	2) If 0 != x_0 \in K is a root of f(x) = a_n x^n + ... + a_0 then |x_0| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
 
-# From 1) we can obtain an upper bound on the height of an equation of algebraic numbers. In fact the more general formula is that:
+# An immediate consequence of 1) is that if x_0 \in K is a root of f \in ZZ[x] then height(x_0) <= height(f).
+# Additionally we can obtain an upper bound on the height of an equation of algebraic numbers. In fact the more general formula is that:
 #	height(sum(x_i)) <= n prod(height(x_i))
 # See: http://mathoverflow.net/questions/64643/height-of-algebraic-numbers
 
 # From 2) it follows that so long as the accuracy of the interval of an Algebraic_Approximation is at least
-#	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x) * height(x)) = log(deg(x)) + log(height(x))
+#	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x_0) * height(f)) <= log(deg(x_0)) + log(height(x_0))
 # it uniquely determines an algebraic number.
 
-# Thus by knowing a sufficiently accurate approximation of x we can determine if x > 0. Combining this with 1) we can 
-# therefore determine if x > y by determining if (x - y) > 0.
+# Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can 
+# therefore determine if x_0 > x_1 by determining if (x_0 - x_1) > 0.
 
 from math import log10 as log
 

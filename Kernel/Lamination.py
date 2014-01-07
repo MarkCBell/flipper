@@ -255,7 +255,7 @@ class Lamination:
 		flipped = []
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
 		while True:
-			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry
+			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry.
 			lamination = lamination.flip_edge(edge_index)
 			
 			if lamination[edge_index] == 0:

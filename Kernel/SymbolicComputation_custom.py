@@ -29,17 +29,32 @@ class Eigenvector:
 		
 		# Suppose that M = (a_ij) is a matrix of algebraic numbers. We define height(M) := max(height(a_ij)).
 		#
-		# Now suppose that M is an n x n integer matrix with eigenvalue eigenvector pair \lambda, v = (v_i).
+		# Now suppose that M is an n x n non-zero integer matrix with eigenvalue eigenvector pair \lambda, v = (v_i).
 		# Suppose additionally that \lambda has multiplicity one and that sum(v_i) == 1. 
 		#
 		# We first deal with height(\lambda). We first note that d := degree(\lambda) <= n.
-		# Let f(x) = sum(c_i x^i) be the characteristic polynomial of M. ...
+		# Let f(x) be the characteristic polynomial of M, we note that f is monic. Let 
+		#	M(f) := \prod_{x a root of f} max(1, |x|} 
+		# be the Mahler measure of f. Note that this is equivalent to the standard definition 
+		# which involves some complicated looing integral [Borwein and Erdelyi 1995, p. 271].
+		#
+		# Now by Gershgorin circle theorem as M has integer entries:
+		#	If x is an eigenvalue of M (equivalently is a root of f) then |x| <= (n+1) height(M).
+		# Hence as (n+1) height(M) > 1:
+		#	M(f) <= ((n+1) height(M))^n.
+		# Finally we note that:
+		#	height(f) <= (n choose n/2) M(f) [http://en.wikipedia.org/wiki/Height_of_a_polynomial].
+		#
+		# Thus we are able to determine that:
+		#	height(f) <= (n choose n/2) ((n+1) height(M))^n <= (2 (n+1) height(M))^n.
+		# and so that:
+		#	log(height(\lambda)) <= n log(2n+2) + n log(height(M)).
 		#
 		# Now to deal with height(v_i). Let K := QQ(\lambda) == {sum(a_i \lambda^i) : a_i \in QQ}.
 		# We identify K with QQ^d and think of M as acting on QQ^{nd}.
 		#
 		# Let M' be the rational matrix corresponding to the action of M - \lambda I on QQ^{nd}. Then 
-		#	height(M') <= height(M) + height(\lambda) and
+		#	height(M') <= height(M) * height(\lambda) and
 		#	rank(M') == d(n-1).
 		#
 		# As v is an eigenvector of M, we may write v_i = sum(b_ij \lambda^i) with b_ij rational. Then,
@@ -48,7 +63,7 @@ class Eigenvector:
 		#	sum_j(b_ij) == { 1 if i == 1
 		#	               { 0 otherwise.
 		#
-		# Taken together with d(n-1) of the equations of M' these form a set of nd linearly independent equations
+		# Taken together with (n-1)d of the equations of M' these form a set of nd linearly independent equations
 		# which the entries of b must satisfy. We can then solve these equations for b_ij by using Kramer's method
 		# to find that:
 		#	b_ij == det(M_ij) / det(M'')
@@ -62,9 +77,11 @@ class Eigenvector:
 		#
 		# Therefore:
 		#	log(height(v_i)) <= log(d) + n d^2 [log(sqrt(nd)) + log(height(M'))] + d^2 log(height(\lambda))
-		#	                 <= log(d) + n/2 d^2 [log(n) + log(d)] + n d^2 log(height(M) + height(\lambda)) + d^2 log(height(\lambda))
-		#	                 <= log(n) + n d^2 log(n) + n d^2 log(height(M)) + (n+1) d^2 log(height(\lambda))
-		#	                 <= (n+1) d^2 [log(n) + log(height(M)) + log(height(\lambda))].
+		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M')) + n^2 log(height(\lambda))
+		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^3 + n^2) log(height(\lambda)).
+		#
+		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^3 + n^2) [n log(2) + log(log(n+1) + log(height(M)))]
+		#	                 <= (n^3 + 1) log(n) + n^3 log(height(M)) + (n^4 + n^3) log(2) + (n^3 + n^2) log(log(n+1) + log(height(M))).
 		
 		
 		# Something like this:

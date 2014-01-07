@@ -62,46 +62,35 @@ class Algebraic_Approximation:
 	def __add__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 2)
-		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
-			return NotImplemented
+			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + 2)
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 2)
-		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
-			return NotImplemented
+			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + 2)
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, int):
+		else:
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
 			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
-		else:
-			return NotImplemented
 	def __rmult__(self, other):
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, int):
-			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 		else:
-			return NotImplemented
+			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, int):
-			return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
-		else:
-			return NotImplemented  # !?!
+		return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	
@@ -115,24 +104,18 @@ class Algebraic_Approximation:
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, int):
-			return self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 		else:
-			return NotImplemented
+			return self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 	def __eq__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, int):
-			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 		else:
-			return NotImplemented
+			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 	def __gt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval
-		elif isinstance(other, int):
-			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
 		else:
-			return NotImplemented
+			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
 	def __le__(self, other):
 		return self < other or self == other
 	def __ge__(self, other):

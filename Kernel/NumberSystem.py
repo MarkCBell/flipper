@@ -2,7 +2,6 @@
 from math import log10 as log
 
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
-from Flipper.Kernel.SymbolicComputation import algebraic_approximate, algebraic_log_height
 from Flipper.Kernel.Types import IntegerType
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
@@ -11,8 +10,8 @@ from Flipper.Kernel.Types import IntegerType
 # the current accuracy. We can increase the accuracy at any point.
 class Number_System:
 	def __init__(self, generators, degree):
-		self.generators = generators + [1]
-		self.sum_log_height_generators = sum(algebraic_log_height(generator) for generator in generators)
+		self.generators = generators
+		self.sum_log_height_generators = sum(generator.algebraic_log_height() for generator in generators)
 		self.degree = degree  # We assume that this is degree(\lambda)).
 		self.log_degree = log(self.degree)
 		
@@ -29,7 +28,7 @@ class Number_System:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
-			self.algebraic_approximations = [algebraic_approximate(generator, self.current_accuracy, degree=self.degree) for generator in self.generators]
+			self.algebraic_approximations = [generator.algebraic_approximate(self.current_accuracy, degree=self.degree) for generator in self.generators]
 
 # This class represents an element of a Number_System. At any point we can convert it to an Algebraic_Approximation. In fact we have
 # to do this if you want to do multiply or divide two of these.
@@ -54,7 +53,8 @@ class Number_System_Element:
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() + other
 		elif isinstance(other, IntegerType):
-			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] + other])
+			if other == 0: return self
+			return self.algebraic_approximation() + other
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -67,7 +67,8 @@ class Number_System_Element:
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() - other
 		elif isinstance(other, IntegerType):
-			return Number_System_Element(self.number_system, self.linear_combination[:-1] + [self.linear_combination[-1] - other])
+			if other == 0: return self
+			return self.algebraic_approximation() - other
 		else:
 			return NotImplemented
 	def __rsub__(self, other):

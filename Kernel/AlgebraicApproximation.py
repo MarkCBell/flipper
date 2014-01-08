@@ -106,12 +106,6 @@ class Algebraic_Approximation:
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	
-	def hashable(self):
-		# The common denominator to switch Algebraic_Approximations to before hashing.
-		HASH_DENOMINATOR = 5
-		
-		return self.interval.change_denominator(HASH_DENOMINATOR).tuple()
-	
 	# These may raise ApproximationError if not enough accuracy is present.
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
@@ -138,6 +132,22 @@ class Algebraic_Approximation:
 		return self < other or self == other
 	def __ge__(self, other):
 		return self > other or self == other
+	
+	def algebraic_simplify(self):
+		return self
+	def algebraic_hash(self):
+		# The common denominator to switch Algebraic_Approximations to before hashing.
+		HASH_DENOMINATOR = 5
+		
+		return self.interval.change_denominator(HASH_DENOMINATOR).tuple()
+	
+	# Perhaps we don't need these.
+	def algebraic_degree(self):
+		return self.degree
+	def algebraic_log_height(self):
+		return self.log_height
+	def algebraic_approximate(self, accuracy, degree=None):
+		pass
 
 #### Some special Algebraic approximations we know how to build.
 

@@ -11,15 +11,15 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, algebraic_simplify, algebraic_string, algebraic_hash, algebraic_approximate
+from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen
 from Flipper.Kernel.NumberSystem import number_system_basis
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
 		self.zeta = self.abstract_triangulation.zeta
-		self.vector = [algebraic_simplify(v) for v in vector]
-		self.labels = [algebraic_string(v) for v in self.vector]
+		self.vector = list(vector)
+		self.labels = [str(v) for v in self.vector]
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -43,7 +43,7 @@ class Lamination:
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	
 	def weight(self):
-		return algebraic_simplify(sum(self.vector))
+		return sum(self.vector)
 	
 	def is_multicurve(self):
 		if not all(v == int(v) for v in self.vector): return False  # Redundant?
@@ -215,9 +215,8 @@ class Lamination:
 		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, exact=False):
-		# Computes the splitting sequence of this lamination.
+		# Computes the splitting sequence of this lamination where each of the entries an Algebraic_Type.
 		
-		# We continually use SymbolicComputation.algebraic_simplify() just to be safe.
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
 		# We assume that self is given as a list of algebraic numbers.
 		
@@ -230,25 +229,27 @@ class Lamination:
 		#	addition, subtraction, division, comparison and equality (+, -, /, <, ==) with integers or other algebraic_types.
 		
 		def projectively_equal(lamination1, lamination2):
-			return all(algebraic_simplify(lamination1[i] * lamination2[0]) == algebraic_simplify(lamination2[i] * lamination1[0]) for i in range(1, lamination1.zeta))
+			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
 		
 		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
 		# so we achieve this by sorting the hash values.
 		def projectively_hash_lamination(lamination1):
-			s = algebraic_simplify(1 / lamination1.weight())
-			return tuple(sorted([algebraic_hash(algebraic_simplify(v * s)) for v in lamination1]))
+			s = 1 / lamination1.weight()
+			return tuple(sorted([(v * s).algebraic_hash() for v in lamination1]))
 			# s = lamination1.weight().algebraic_approximation(10).interval.change_denominator(50)
 			# return tuple(sorted([(v.algebraic_approximation(10).interval.change_denominator(50) / s).change_denominator(5).tuple() for v in lamination1]))
 		
+		if exact:
+			initial_lamination = self
+		else:
+			initial_lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta))
+		
 		# Check if vector is obviously reducible.
-		if any(v == 0 for v in self.vector):
+		if any(v == 0 for v in initial_lamination.vector):
 			raise AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
-		if exact:
-			lamination = self.puncture_trigons()
-		else:  # If we are using approximations create them now.
-			lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta)).puncture_trigons()
+		lamination = initial_lamination.puncture_trigons()
 		
 		flipped = []
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}

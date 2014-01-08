@@ -1,13 +1,14 @@
 
 # WARNING: This library is designed ONLY to work with Lamination.splitting_sequence(exact=False)
 # It does NOT meet the requirement of implementing addition, subtraction, division, comparison and 
-# equality with integers and other algebraic_types required by Lamination.splitting_sequence(exact=True)
+# equality with integers and other algebraic_types required by Lamination.splitting_sequence(exact=True).
 
 from math import log10 as log
 
 from Flipper.Kernel.Error import AssumptionError, ComputationError
 from Flipper.Kernel.Matrix import nonnegative_image
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_fraction, log_height_int
+from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type
 
 _name = 'custom'
 
@@ -113,34 +114,47 @@ class Eigenvector:
 			self.algebraic_approximations = [algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
 			self.eigenvalue = algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height_eigenvalue)
 
-class Eigenvector_Entry:
-	def __init__(self, eigenvector, entry, vector=None):
-		self.eigenvector = eigenvector
-		self.entry = entry
-	
-	def algebraic_approximation(self, accuracy=None):
-		self.eigenvector.increase_accuracy(accuracy)
-		return self.eigenvector.algebraic_approximations[self.entry]
 
-algebraic_type = Eigenvector_Entry
+def algebraic_simplify(self, value=None):
+	if value is not None:
+		return value
+	else:
+		return self
 
-def simplify_algebraic_type(number):
-	return number
+def algebraic_hash(self):
+	return None
 
-def string_algebraic_type(number):
-	return number.eigenvector.algebraic_approximations[number.entry].interval.approximate_string(accuracy=4)
+def algebraic_degree(self):
+	return self.value[0].degree
 
-def hash_algebraic_type(number):
-	return number.eigenvector.algebraic_approximations[number.entry].hashable()
+def algebraic_log_height(self):
+	return self.value[0].log_height
 
-def degree_algebraic_type(number):
-	return number.eigenvector.degree
+def algebraic_approximate(self, accuracy, degree=None):
+	self.value[0].increase_accuracy(accuracy)
+	return self.value[0].algebraic_approximations[self.value[1]]
 
-def log_height_algebraic_type(number):
-	return number.eigenvector.log_height
+Algebraic_Type.algebraic_simplify = algebraic_simplify
+Algebraic_Type.algebraic_hash = algebraic_hash
+Algebraic_Type.algebraic_degree = algebraic_degree
+Algebraic_Type.algebraic_log_height = algebraic_log_height
+Algebraic_Type.algebraic_approximate = algebraic_approximate
 
-def approximate_algebraic_type(number, accuracy, degree=None):
-	return number.algebraic_approximation(accuracy)
+# Eventually we could implement these so Lamination.splitting_sequence(exact=True) would work.
+Algebraic_Type.__neg__ = NotImplemented
+Algebraic_Type.__add__ = NotImplemented
+Algebraic_Type.__radd__ = NotImplemented
+Algebraic_Type.__sub__ = NotImplemented
+Algebraic_Type.__rsub__ = NotImplemented
+Algebraic_Type.__mul__ = NotImplemented
+Algebraic_Type.__rmul__ = NotImplemented
+Algebraic_Type.__div__ = NotImplemented
+Algebraic_Type.__truediv__ = NotImplemented
+Algebraic_Type.__rdiv__ = NotImplemented
+Algebraic_Type.__rtruediv__ = NotImplemented
+Algebraic_Type.__lt__ = NotImplemented
+Algebraic_Type.__eq__ = NotImplemented
+Algebraic_Type.__gt__ = NotImplemented
 
 
 def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
@@ -149,7 +163,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	EV = Eigenvector(matrix, vector=vector)
 	
-	eigenvector, eigenvalue = [Eigenvector_Entry(EV, i) for i in range(matrix.width)], EV.eigenvalue
+	eigenvector, eigenvalue = [Algebraic_Type((EV, i)) for i in range(matrix.width)], EV.eigenvalue
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...

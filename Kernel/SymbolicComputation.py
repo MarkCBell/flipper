@@ -3,157 +3,74 @@
 #	compute the stable lamination exactly.
 #	compute splitting sequences.
 
-# This module provides seven things to do with algebraic numbers. Each function that requires a number 
-# can take an algebraic_type, Algebraic_Approximation or integer (note in Python 2.x this can be either 
-# an int or a long).
-#	1) algebraic_type:
-#		The type used to represent algebraic numbers. Modules probably shouldn't be importing this.
-#	2) algebraic_string(number):
-#		Given an algebraic_type this returns that number as a nice string, otherwise return str(number).
-#	3) algebraic_simplify(number):
-#		Given an algebraic_type this returns that number in a standard form, otherwise return number.
-#	4) algebraic_degree(number):
-#		Returns the degree of number.
-#	5) algebraic_log_height(number):
-#		Returns the log of the height of number.
-#	6) algebraic_hash(number):
-#		Returns a sortable, hashable invariant of the number.
-#	7) algebraic_approximate(number, accuracy, degree=None):
-#		Returns an AlgebraicApproximation of the number correct to the required accuracy.
-#	8) Perron_Frobenius_eigen(matrix, vector=None):
-#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair (eigenvector, eigenvalue) 
-#		with largest eigenvalue and eigenvector whose sum of entries is one. The eigenvalue must be an algebraic_type 
-#		and the eigenvector must be a list of algebraic_types. This is, in fact, the only way that we will produce algebraic 
-#		numbers and so the library used should feel free to take advantage of this fact.
+# This module selects and imports the appropriate library for manipulating algebraic numbers.
+# Currently there are three to choose from based on: sage, sympy and None, the last of which is
+# a dummy library which can't do anything but makes sure that the imports never fail.
+# Currently Sage is the best by a _large_ margin and so this is our first choice.
+#
+# Each library provides a class called Algebraic_Type. The main methods of which are:
+#	algebraic_simplify(self, value=None)
+#		Puts self into a standard form or, if given a value, returns that in standard form.
+#	algebraic_hash(self)
+#		Returns a sortable, hasahble value representing this algebraic number.
+#	algebraic_degree(self)
+#		Returns the degree of this algebraic number.
+#	algebraic_log_height(self):
+#		Returns the log_10 of the height of this algebraic number.
+#	algebraic_approximate(self, accuracy, degree=None)
+#		Returns an algebraic approximation of this algebraic number, correct to the requested accuracy.
+#
+# Typically each library sets these methods to work with its underlying type. Additonally, 
+# Lamination.splitting_sequence(exact=True) requires that Algebraic_Type implements:
+#		addition, subtraction, division, comparison and equality (+, -, /, <, ==) 
+# both with integers and other Algebraic_Types.
+#
+# Each library also provides a function for creating Algebraic_Types from eigenvalues and eigenvectors 
+# of integer matrices.
+#	Perron_Frobenius_eigen(matrix, vector=None):
+#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair 
+#		(eigenvector, eigenvalue) with largest eigenvalue and eigenvector whose sum of entries is one. 
+#		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types. 
+#		This is, in fact, the only way that we will produce algebraic numbers and so the library used 
+#		should feel free to take advantage of this fact.
+# and a _name variable containing a string identifying the module. This is very useful for debugging.
+
+# You can provide your own algebraic number library so long as it provides these methods and can be cast to a string via str().
 
 # Notes: 
-#	1) We do not actually care what algebraic_type is. However Lamination.splitting_sequence(exact=True) requires that it implements:
-#		addition, subtraction, division, comparison and equality (+, -, /, <, ==) both with integers and other algebraic_types.
-#	2) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
+#	1) If we were sensible / careful / willing to take a constant multiplicative slowdown we could probably replace the division 
 #		requirement by multiplication.
-#	3) We actually provide interfaces to several different libraries such as sympy and sage. Currently Sage is the best by a _large_ margin.
-
-# We select a library interface here. We first try sage, then sympy and finally just load the dummy library which can't do anything.
-# To use your own library add its script to this folder and duplicate one of the blocks below. If must provide the following:
-#	1) algebraic_type:
-#		Same as 1) above.
-#	2) simplify_algebraic_type
-#		Given an algebraic_type this must return that number in a standard form.
-#	3) string_algebraic_type
-#		Given an algebraic_type this must return that number as a nice string.
-#	4) degree_algebraic_type
-#		Same as 4) above but is only required to work for numbers of algebraic_type.
-#	5) height_algebraic_type
-#		Same as 5) above but is only required to work for numbers of algebraic_type.
-#	6) hash_algebraic_type
-#		Same as 6) above but is only required to work for numbers of algebraic_type.
-#	7) approximate_algebraic_type
-#		Same as 7) above but is only required to work for numbers of algebraic_type.
-#	8) Perron_Frobenius_eigen
-#		Same as 8) above.
-#	9) _name:
-#		A string containing the name of the library being used. Very useful for debugging.
+#	2) We actually provide interfaces to several different libraries such as sympy and sage. 
 
 from math import log10 as log
-
-from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
-from Flipper.Kernel.Types import IntegerType
 
 _name = None
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_custom import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_custom import Algebraic_Type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sage import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_sage import Algebraic_Type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sympy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_sympy import Algebraic_Type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_dummy import algebraic_type, simplify_algebraic_type, string_algebraic_type, \
-			hash_algebraic_type, degree_algebraic_type, log_height_algebraic_type, approximate_algebraic_type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type, Perron_Frobenius_eigen, _name
 	except ImportError:
 		pass
 
 #############################################################################
 # We also build some helper functions using these.
-
-def algebraic_simplify(number):
-	if isinstance(number, algebraic_type):
-		return simplify_algebraic_type(number)
-	else:
-		return number
-
-def algebraic_string(number):
-	if isinstance(number, algebraic_type):
-		return string_algebraic_type(number)
-	else:
-		return str(number)
-
-def algebraic_degree(number):
-	if isinstance(number, algebraic_type):
-		return degree_algebraic_type(number)
-	elif isinstance(number, Algebraic_Approximation):
-		return number.degree
-	elif isinstance(number, IntegerType):
-		return 1
-	else:
-		return NotImplemented
-
-def algebraic_log_height(number):
-	if isinstance(number, algebraic_type):
-		return log_height_algebraic_type(number)
-	elif isinstance(number, Algebraic_Approximation):
-		return number.log_height
-	elif isinstance(number, IntegerType):
-		return log(max(abs(number), 1))
-	else:
-		return NotImplemented
-
-def algebraic_hash(number):
-	if isinstance(number, algebraic_type):
-		return hash_algebraic_type(number)
-	elif isinstance(number, Algebraic_Approximation):
-		return number.hashable()
-	elif isinstance(number, IntegerType):
-		return number
-	else:
-		return NotImplemented
-
-def algebraic_hash_ratio(numerator, denominator):
-	print(type(numerator))
-	if isinstance(numerator, algebraic_type):
-		print('X')
-		return hash_ratio_algebraic_type(numerator, denominator)
-	elif isinstance(numerator, Algebraic_Approximation):
-		return numerator.hashable()
-	elif isinstance(numerator, IntegerType):
-		return numerator
-	else:
-		return NotImplemented
-
-def algebraic_approximate(number, accuracy, degree=None):
-	if isinstance(number, algebraic_type):
-		return approximate_algebraic_type(number, accuracy, degree)
-	elif isinstance(number, IntegerType):
-		if degree is None: degree = 1
-		return algebraic_approximation_from_int(number, accuracy, degree, log_height_int(number))
-	else:
-		return NotImplemented
-
 
 def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 

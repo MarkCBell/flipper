@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen
+from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int
 from Flipper.Kernel.NumberSystem import number_system_basis
 
 class Lamination:
@@ -234,10 +234,10 @@ class Lamination:
 		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
 		# so we achieve this by sorting the hash values.
 		def projectively_hash_lamination(lamination1):
-			s = 1 / lamination1.weight()
-			return tuple(sorted([(v * s).algebraic_hash() for v in lamination1]))
-			# s = lamination1.weight().algebraic_approximation(10).interval.change_denominator(50)
-			# return tuple(sorted([(v.algebraic_approximation(10).interval.change_denominator(50) / s).change_denominator(5).tuple() for v in lamination1]))
+			s = lamination1.weight()
+			return tuple(sorted([v.algebraic_hash_ratio(s) for v in lamination1]))
+			# s = 1 / lamination1.weight()
+			# return tuple(sorted([(v * s).algebraic_hash() for v in lamination1]))
 		
 		if exact:
 			initial_lamination = self
@@ -330,15 +330,16 @@ def invariant_lamination(encoding, exact=False):
 		if i > 3:  # Make sure to do at least n==4 iterations.
 			for new_curve, curve in zip(new_curves, curves):
 				if projective_difference(new_curve, curve, 1000000000):
-					if curve == new_curve:
-						return Lamination(encoding.source_triangulation, curve), 1
-					elif exact:
-						action_matrix, condition_matrix = encoding.applied_matrix(curve)
-						try:
-							eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector, None)
-							return Lamination(encoding.source_triangulation, eigenvector), eigenvalue
-						except AssumptionError:  # action_matrix was not Perron-Frobenius.
-							raise ComputationError('Could not estimate invariant lamination.')
+					if exact:
+						if curve == new_curve:
+							return Lamination(encoding.source_triangulation, [algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
+						else:
+							action_matrix, condition_matrix = encoding.applied_matrix(curve)
+							try:
+								eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector, None)
+								return Lamination(encoding.source_triangulation, eigenvector), eigenvalue
+							except AssumptionError:  # action_matrix was not Perron-Frobenius.
+								raise ComputationError('Could not estimate invariant lamination.')
 					else:
 						return Lamination(encoding.source_triangulation, curve), float((encoding * curve).weight()) / curve.weight()
 	else:

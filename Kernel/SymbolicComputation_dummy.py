@@ -95,6 +95,9 @@ class Algebraic_Type:
 	def algebraic_hash(self):
 		return None
 	
+	def algebraic_hash_ratio(self, other):
+		return (self / other).algebraic_hash()
+	
 	def algebraic_degree(self):
 		return -1
 	
@@ -105,4 +108,7 @@ class Algebraic_Type:
 		return None
 
 def Perron_Frobenius_eigen(matrix):
+	return None
+
+def algebraic_type_from_int(integer):
 	return None

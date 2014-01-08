@@ -6,7 +6,7 @@
 from math import log10 as log
 
 from Flipper.Kernel.Error import AssumptionError, ComputationError
-from Flipper.Kernel.Matrix import nonnegative_image
+from Flipper.Kernel.Matrix import Matrix, nonnegative_image
 from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_fraction, log_height_int
 from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type
 
@@ -33,23 +33,23 @@ class Eigenvector:
 		#
 		# Let f(x) be the minimal polynomial of \lambda, we note that as the characteristic polynomial of M is monic 
 		# f is too by Gauss's lemma. Let d := deg(\lambda) = deg(f) <= n and let
-		#	M(f) := \prod_{x a root of f} max(1, |x|} 
+		#	M(f) := \prod_{x a root of f} max(1, |x|)
 		# be the Mahler measure of f. Note that this is equivalent to the standard definition 
 		# of the Mahler measure of a polynomial which involves some complicated looking
 		# integral [Borwein and Erdelyi 1995, p. 271].
 		#
 		# Now if x is an a root of f then it is also eigenvalue of M and so by the Gershgorin circle 
 		# theorem as M has integer entries:
-		#	 |x| <= (n+1) height(M).
-		# Hence, as (n+1) height(M) > 1:
-		#	M(f) <= ((n+1) height(M))^n.
+		#	 |x| <= n height(M).
+		# Hence, as n height(M) > 1:
+		#	M(f) <= (n height(M))^n.
 		# Finally we note that:
 		#	height(f) <= (n choose n/2) M(f) [http://en.wikipedia.org/wiki/Height_of_a_polynomial].
 		#
 		# Thus we are able to determine that:
-		#	height(f) <= (n choose n/2) ((n+1) height(M))^n <= (2 (n+1) height(M))^n.
+		#	height(f) <= (n choose n/2) (n height(M))^n <= (2 (n+1) height(M))^n.
 		# and so that:
-		#	log(height(\lambda)) <= n (log(height(M)) + log(n+1) + log(2)).
+		#	log(height(\lambda)) <= n (log(height(M)) + log(n) + log(2)).
 		#
 		# Now to deal with height(v_i). Let K := QQ(\lambda). We identify K == {sum(a_i \lambda^i) : a_i \in QQ} 
 		# with QQ^d and think of M as acting on QQ^{nd}.
@@ -90,7 +90,9 @@ class Eigenvector:
 		
 		self.degree = self.matrix.width
 		self.height_matrix = self.matrix.bound()
-		self.log_height_eigenvalue = self.degree * (log(self.height_matrix) + log(self.degree + 1) + log(2))
+		self.log_height_eigenvalue = self.degree * (log(self.height_matrix) + log(self.degree) + log(2))
+		self.log_height = 2 * self.degree**3 * (log(self.degree) + log(self.matrix.bound()) + self.log_height_eigenvalue)
+		print(self.log_height)
 		self.log_height = 100  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		
@@ -101,6 +103,7 @@ class Eigenvector:
 		self.algebraic_approximation = [None] * self.matrix.width
 		self.eigenvalue = None
 		self.increase_accuracy()
+	
 	
 	def increase_accuracy(self, accuracy=None):
 		if accuracy is None: accuracy = self.accuracy_needed
@@ -124,6 +127,9 @@ def algebraic_simplify(self, value=None):
 def algebraic_hash(self):
 	return None
 
+def algebraic_hash_ratio(self, other):
+	return None
+
 def algebraic_degree(self):
 	return self.value[0].degree
 
@@ -136,6 +142,7 @@ def algebraic_approximate(self, accuracy, degree=None):
 
 Algebraic_Type.algebraic_simplify = algebraic_simplify
 Algebraic_Type.algebraic_hash = algebraic_hash
+Algebraic_Type.algebraic_hash_ratio = algebraic_hash_ratio
 Algebraic_Type.algebraic_degree = algebraic_degree
 Algebraic_Type.algebraic_log_height = algebraic_log_height
 Algebraic_Type.algebraic_approximate = algebraic_approximate
@@ -176,3 +183,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 			raise ComputationError('Could not estimate invariant lamination.')
 	
 	return eigenvector, eigenvalue
+
+
+def algebraic_type_from_int(integer):
+	return Algebraic_Type((Eigenvector(Matrix([[1]], 1), vector=[1]), 0))

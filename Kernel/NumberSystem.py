@@ -2,7 +2,7 @@
 from math import log10 as log
 
 from Flipper.Kernel.AlgebraicApproximation import Algebraic_Approximation, algebraic_approximation_from_int, log_height_int
-from Flipper.Kernel.Types import IntegerType
+from Flipper.Kernel.Types import Integer_Type
 
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators and an upper bound on the degree of K. We always include the 
@@ -39,8 +39,8 @@ class Number_System_Element:
 		self._algebraic_approximation = None
 		self.current_accuracy = -1
 	def __repr__(self):
-		# return str(self.algebraic_approximation())
-		return str(self.linear_combination)
+		return str(self.algebraic_approximation())
+		# return str(self.linear_combination)
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __neg__(self):
@@ -52,7 +52,7 @@ class Number_System_Element:
 			return Number_System_Element(self.number_system, [a+b for a, b in zip(self, other)])
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() + other
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			if other == 0: return self
 			return self.algebraic_approximation() + other
 		else:
@@ -66,7 +66,7 @@ class Number_System_Element:
 			return Number_System_Element(self.number_system, [a-b for a, b in zip(self, other)])
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation() - other
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			if other == 0: return self
 			return self.algebraic_approximation() - other
 		else:
@@ -78,7 +78,7 @@ class Number_System_Element:
 			return self.algebraic_approximation(factor=2) * other.algebraic_approximation(factor=2)
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation(factor=2) * other
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return Number_System_Element(self.number_system, [a * other for a in self])
 		else:
 			return NotImplemented
@@ -89,7 +89,7 @@ class Number_System_Element:
 			return self.algebraic_approximation(factor=2) / other.algebraic_approximation(factor=2)
 		elif isinstance(other, Algebraic_Approximation):
 			return self.algebraic_approximation(factor=2) / other
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return self.algebraic_approximation(factor=2) / other
 		else:
 			return NotImplemented
@@ -139,6 +139,13 @@ class Number_System_Element:
 			assert(self.current_accuracy >= accuracy)
 		
 		return self._algebraic_approximation
+	def algebraic_hash_ratio(self, other):
+		HASH_DENOMINATOR = 30
+		
+		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
+		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
+		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
+
 	def __lt__(self, other):
 		return (self - other).algebraic_approximation() < 0
 	def __eq__(self, other):

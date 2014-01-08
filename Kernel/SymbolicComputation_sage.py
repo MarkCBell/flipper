@@ -1,8 +1,7 @@
 
 from math import log10 as log
 
-from sage.all import Matrix, lcm
-from sage.rings.qqbar import AlgebraicNumber
+from sage.all import Matrix, lcm, simplify, AlgebraicNumber
 
 from Flipper.Kernel.Error import AssumptionError, ComputationError
 from Flipper.Kernel.Matrix import nonnegative_image
@@ -38,7 +37,7 @@ def algebraic_log_height(self):
 def algebraic_approximate(self, accuracy, degree=None):
 	# First we need to correct for the fact that we may lose some digits of accuracy
 	# if the integer part of the number is big.
-	precision = accuracy + max(int(log(self.value.n(digits=1))), 1)
+	precision = accuracy + int(log(max(self.value.n(digits=1), 1))) + 1
 	if degree is None: degree = self.algebraic_degree()  # If not given, assume that the degree of the number field is the degree of this number.
 	A = algebraic_approximation_from_string(str(self.value.n(digits=precision)), degree, self.algebraic_log_height())
 	assert(A.interval.accuracy >= accuracy)
@@ -85,3 +84,6 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	# print('entry bound: %s '% max(log_height_algebraic_type(entry) for entry in eigenvector))
 	
 	return eigenvector, eigenvalue
+
+def algebraic_type_from_int(integer):
+	return Algebraic_Type(AlgebraicNumber(integer))

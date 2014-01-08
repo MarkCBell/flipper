@@ -6,6 +6,6 @@ import sys
 # when required). In Python 3.x these were unified under one type named int. Hence why we need this.
 
 if sys.version_info >= (3, 0):
-	IntegerType = (int,)
+	Integer_Type = (int,)
 else:
-	IntegerType = (int, long)
+	Integer_Type = (int, long)

@@ -13,6 +13,8 @@
 #		Puts self into a standard form or, if given a value, returns that in standard form.
 #	algebraic_hash(self)
 #		Returns a sortable, hasahble value representing this algebraic number.
+#	algebraic_hash_ratio(self, other)
+#		Returns a sortable, hasahble value representing this algebraic number divided by other.
 #	algebraic_degree(self)
 #		Returns the degree of this algebraic number.
 #	algebraic_log_height(self):
@@ -25,14 +27,13 @@
 #		addition, subtraction, division, comparison and equality (+, -, /, <, ==) 
 # both with integers and other Algebraic_Types.
 #
-# Each library also provides a function for creating Algebraic_Types from eigenvalues and eigenvectors 
-# of integer matrices.
+# Each library also provides two functions for creating Algebraic_Types:
 #	Perron_Frobenius_eigen(matrix, vector=None):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair 
 #		(eigenvector, eigenvalue) with largest eigenvalue and eigenvector whose sum of entries is one. 
 #		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types. 
-#		This is, in fact, the only way that we will produce algebraic numbers and so the library used 
-#		should feel free to take advantage of this fact.
+#	algebraic_type_from_int(integer):
+#		Returns an Algebraic_Type representing the given integer.
 # and a _name variable containing a string identifying the module. This is very useful for debugging.
 
 # You can provide your own algebraic number library so long as it provides these methods and can be cast to a string via str().
@@ -45,27 +46,27 @@
 from math import log10 as log
 
 _name = None
+# if _name is None:
+	# try:
+		# from Flipper.Kernel.SymbolicComputation_custom import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+	# except ImportError:
+		# pass
+
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_custom import Algebraic_Type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_sage import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sage import Algebraic_Type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_sympy import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sympy import Algebraic_Type, Perron_Frobenius_eigen, _name
-	except ImportError:
-		pass
-
-if _name is None:
-	try:
-		from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type, Perron_Frobenius_eigen, _name
+		from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
 	except ImportError:
 		pass
 

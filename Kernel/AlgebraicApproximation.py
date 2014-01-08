@@ -29,7 +29,7 @@ from math import log10 as log
 
 from Flipper.Kernel.Interval import Interval, interval_from_string, interval_from_int, interval_from_fraction, interval_epsilon
 from Flipper.Kernel.Error import ApproximationError
-from Flipper.Kernel.Types import IntegerType
+from Flipper.Kernel.Types import Integer_Type
 
 def log_height_int(number):
 	return log(max(abs(number), 1))
@@ -63,7 +63,7 @@ class Algebraic_Approximation:
 	def __add__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 2)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
 			return NotImplemented
@@ -72,7 +72,7 @@ class Algebraic_Approximation:
 	def __sub__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 2)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + 2)
 		else:
 			return NotImplemented
@@ -81,7 +81,7 @@ class Algebraic_Approximation:
 	def __mul__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
 			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
@@ -92,14 +92,14 @@ class Algebraic_Approximation:
 	def __div__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, IntegerType):
+		if isinstance(other, Integer_Type):
 			return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented  # !?!
@@ -110,21 +110,21 @@ class Algebraic_Approximation:
 	def __lt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 		else:
 			return NotImplemented
 	def __eq__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
 		else:
 			return NotImplemented
 	def __gt__(self, other):
 		if isinstance(other, Algebraic_Approximation):
 			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval
-		elif isinstance(other, IntegerType):
+		elif isinstance(other, Integer_Type):
 			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
 		else:
 			return NotImplemented

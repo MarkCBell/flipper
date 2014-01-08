@@ -145,7 +145,6 @@ class Number_System_Element:
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
-
 	def __lt__(self, other):
 		return (self - other).algebraic_approximation() < 0
 	def __eq__(self, other):

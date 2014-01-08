@@ -48,7 +48,7 @@ from math import log10 as log
 _name = None
 # if _name is None:
 	# try:
-		# from Flipper.Kernel.SymbolicComputation_custom import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+		# from Flipper.Kernel.SymbolicComputation_prototype import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
 	# except ImportError:
 		# pass
 

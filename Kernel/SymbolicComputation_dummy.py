@@ -3,6 +3,12 @@ from math import log10 as log
 
 _name = 'dummy'
 
+# This symbolic calculation library provides a dummy Algebraic_Type class which
+# holds a single value and can add, subtract ...
+# Other librarys can modify this class to save them from implementing 
+# all of these features from scratch. Features which don't work should be removed
+# by setting the functions to NotImplemented.
+
 class Algebraic_Type:
 	def __init__(self, value):
 		# We make sure to always start by using Algebraic_Type.algebraic_simplify(), just to be safe.
@@ -95,7 +101,7 @@ class Algebraic_Type:
 	def algebraic_log_height(self):
 		return -1
 	
-	def algebraic_approximate(self, accuracy=None):
+	def algebraic_approximate(self, accuracy, degree=None):
 		return None
 
 def Perron_Frobenius_eigen(matrix):

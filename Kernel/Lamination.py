@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, algebraic_simplify, algebraic_string, algebraic_hash
+from Flipper.Kernel.SymbolicComputation import Perron_Frobenius_eigen, algebraic_simplify, algebraic_string, algebraic_hash, algebraic_approximate
 from Flipper.Kernel.NumberSystem import number_system_basis
 
 class Lamination:
@@ -134,10 +134,6 @@ class Lamination:
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
-				# new_vector.append((new_vector[b] + new_vector[c] - new_vector[a]) / 2)
-				# new_vector.append((new_vector[c] + new_vector[a] - new_vector[b]) / 2)
-				# new_vector.append((new_vector[a] + new_vector[b] - new_vector[c]) / 2)
-				
 				new_vector.append(self[b] + self[c] - self[a])
 				new_vector.append(self[c] + self[a] - self[b])
 				new_vector.append(self[a] + self[b] - self[c])
@@ -241,6 +237,8 @@ class Lamination:
 		def projectively_hash_lamination(lamination1):
 			s = algebraic_simplify(1 / lamination1.weight())
 			return tuple(sorted([algebraic_hash(algebraic_simplify(v * s)) for v in lamination1]))
+			# s = lamination1.weight().algebraic_approximation(10).interval.change_denominator(50)
+			# return tuple(sorted([(v.algebraic_approximation(10).interval.change_denominator(50) / s).change_denominator(5).tuple() for v in lamination1]))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):

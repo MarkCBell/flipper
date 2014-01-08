@@ -120,7 +120,6 @@ class Number_System_Element:
 		
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + 2*n).
-		
 		if accuracy is None: accuracy = int(sum(log_height_int(a) for a in self) + N.sum_log_height_generators + 2*len(N) + N.log_degree)
 		if factor is None: factor = 1
 		accuracy = accuracy * factor

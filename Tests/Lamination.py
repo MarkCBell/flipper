@@ -13,6 +13,8 @@ def determine_type(mapping_class):
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 			return PSEUDO_ANOSOV
+		except ImportError:
+			pass  # !?!
 		except ComputationError:
 			return UNKNOWN
 		except AssumptionError:

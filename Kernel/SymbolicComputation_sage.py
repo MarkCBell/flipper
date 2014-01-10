@@ -66,6 +66,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	if s == 0:
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
+	eigenvalue = Algebraic_Type(eigenvalue)
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:

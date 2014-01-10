@@ -55,6 +55,7 @@ Algebraic_Type.algebraic_approximate = algebraic_approximate
 def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
+	
 	M = sympy.Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvals())
 	N = M - eigenvalue * sympy.eye(matrix.width)
@@ -67,6 +68,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	if s == 0:
 		raise AssumptionError('Matrix is not Perron-Frobenius.')
 	
+	eigenvalue = Algebraic_Type(eigenvalue)
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:

@@ -170,7 +170,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	EV = Eigenvector(matrix, vector=vector)
 	
-	eigenvector, eigenvalue = [Algebraic_Type((EV, i)) for i in range(matrix.width)], EV.eigenvalue
+	eigenvector, eigenvalue = [Algebraic_Type((EV, i)) for i in range(matrix.width)], EV.eigenvalue  # This isn't of Algebraic_Type.
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...

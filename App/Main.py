@@ -1011,6 +1011,8 @@ class Flipper_App:
 					try:
 						start_time = time()
 						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+					except ImportError:
+						tkMessageBox.showwarning('Lamination', 'Cannot determine without a symbolic library.')
 					except AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:

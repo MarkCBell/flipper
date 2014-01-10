@@ -202,8 +202,13 @@ class Encoding_Sequence:
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
 		curves, max_order = key_curves(self.source_triangulation), self.source_triangulation.max_order
-		orders = [i for i in range(1,max_order+1) if all(self**i * v == v for v in curves)]
-		return orders[0] if len(orders) > 0 else 0
+		for i in range(1, max_order+1):
+			if all(self**i * v == v for v in curves):
+				return i
+		return 0
+	
+	def is_identity(self):
+		return self.order() == 1
 	
 	def is_periodic(self):
 		return self.order() > 0
@@ -326,6 +331,15 @@ def encode_flip(triangulation, edge_index):
 	C2 = Matrix(tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
 	
 	return Encoding([A1, A2], [C1, C2], triangulation, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, triangulation)
+
+def encode_flips(triangulation, edge_indices):
+	forwards_sequence, backwards_sequence = Id_Encoding_Sequence(triangulation), Id_Encoding_Sequence(triangulation)
+	for edge_index in edge_indices:
+		forwards, backwards = encode_flip(forwards_sequence.target_triangulation, edge_index)
+		forwards_sequence = forwards * forwards_sequence
+		backwards_sequence = backwards_sequence * backwards
+	
+	return forwards_sequence, backwards_sequence
 
 def encode_twist(lamination, k=1):
 	''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.

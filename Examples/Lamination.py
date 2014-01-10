@@ -21,10 +21,12 @@ def determine_type(mapping_class, verbose=False):
 			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
 			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence(exact=False)
+			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence(exact=True)
 			if verbose: print('Perperiodic, periodic length: %d, %d' %(len(preperiodic), len(periodic)))
 			if verbose: print('Dilatation: %s, %s' % (dilatation, new_dilatation))
 			print(' -- Pseudo-Anosov.')
+		except ImportError:
+			print(' Cannot determine without a symbolic library.')
 		except ComputationError:
 			print(' ~~ Probably reducible.')
 		except AssumptionError:

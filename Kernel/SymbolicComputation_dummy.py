@@ -108,7 +108,9 @@ class Algebraic_Type:
 		return None
 
 def Perron_Frobenius_eigen(matrix):
+	raise ImportError('Dummy symbolic computation library cannot do this calculation.')
 	return None
 
 def algebraic_type_from_int(integer):
+	raise ImportError('Dummy symbolic computation library cannot do this calculation.')
 	return None

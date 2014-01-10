@@ -11,7 +11,7 @@ from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
 from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
 from Flipper.Kernel.Isometry import Isometry, all_isometries
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int
+from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
 from Flipper.Kernel.NumberSystem import number_system_basis
 
 class Lamination:
@@ -331,6 +331,7 @@ def invariant_lamination(encoding, exact=False):
 			for new_curve, curve in zip(new_curves, curves):
 				if projective_difference(new_curve, curve, 1000000000):
 					if exact:
+						if _name == 'dummy': raise ImportError('Dummy symbolic library used.')
 						if curve == new_curve:
 							return Lamination(encoding.source_triangulation, [algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
 						else:

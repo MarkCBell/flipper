@@ -77,11 +77,13 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	# m = matrix.bound()  # log(m) ~ 4.
 	# k = n * (log(m) + log(n+1) + log(2))
 	# H = log(n) + n**3 * (log(n) + log(m) + k) + n**2 * k
+	# H2 = n * (n + m)
 	
 	# print(m, n)
 	# print('eigenvalue bound prediction: %s' % k)
 	# print('eigenvalue bound: %s' % log_height_algebraic_type(eigenvalue))
 	# print('entry bound prediction: %s' % H)
+	# print('entry bound prediction: %s' % H2)
 	# print('entry bound: %s '% max(log_height_algebraic_type(entry) for entry in eigenvector))
 	
 	return eigenvector, eigenvalue

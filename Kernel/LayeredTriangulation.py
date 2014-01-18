@@ -514,7 +514,7 @@ class Layered_Triangulation:
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
-			triangle, side = min((triangle, side) for triangle, side in product(self.upper_triangulation, range(3)) if fibre_immersion[triangle][0].cusp_indices[fibre_immersion[triangle][1][side]] == index)
+			triangle, side = [(triangle, side) for triangle, side in product(self.upper_triangulation, range(3)) if fibre_immersion[triangle][0].cusp_indices[fibre_immersion[triangle][1][side]] == index][0]
 			fibre_path = [(fibre_immersion[T][0], fibre_immersion[T][1][s], fibre_immersion[T][1][3]) for T, s in self.upper_triangulation.find_corner_class(triangle, side)]
 			fibre_slopes[index] = closed_triangulation.slope(fibre_path)
 		

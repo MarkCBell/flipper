@@ -51,7 +51,7 @@ class Tetrahedron:
 		return str(self.label)
 	
 	def __str__(self):
-		return 'Label: %s, Gluings: %s, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
+		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to) #, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
 	
 	def glue(self, side, target, permutation):
 		if self.glued_to[side] is None:
@@ -268,14 +268,26 @@ class Triangulation:
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
 			
-			# Install the longitude and meridian.
+			# Install the longitude and meridian.  # !?! Double check and optimise this.
 			for peripheral_type in [LONGITUDES, MERIDIANS]:
-				for arrive, leave in zip(homology_basis_paths[peripheral_type], homology_basis_paths[peripheral_type][1:] + homology_basis_paths[peripheral_type][:1]):
-					for tetrahedron, side in cusp:
-						for a, b in permutations(vertices_meeting[side], 2):
-							if edge_label_map[(tetrahedron, side, a)] == arrive and edge_label_map[(tetrahedron, side, b)] == leave:
-								tetrahedron.peripheral_curves[peripheral_type][side][a] += 1
-								tetrahedron.peripheral_curves[peripheral_type][side][b] -= 1
+				first, last = homology_basis_paths[peripheral_type][0], homology_basis_paths[peripheral_type][-1]
+				# Find a starting point.
+				for tetrahedron, side in cusp:
+					for a, b in permutations(vertices_meeting[side], 2):
+						if edge_label_map[(tetrahedron, side, a)] == first and edge_label_map[(tetrahedron, side, b)] == last:
+							current_tetrahedron, current_side, arrive = tetrahedron, side, b
+				
+				
+				
+				for other in homology_basis_paths[peripheral_type]:
+					for a in vertices_meeting[current_side]:
+						if edge_label_map[(current_tetrahedron, current_side, a)] == other:
+							leave = a
+							current_tetrahedron.peripheral_curves[peripheral_type][current_side][arrive] += 1
+							current_tetrahedron.peripheral_curves[peripheral_type][current_side][leave] -= 1
+							next_tetrahedron, perm = current_tetrahedron.glued_to[leave]
+							current_tetrahedron, current_side, arrive = next_tetrahedron, perm[current_side], perm[leave]
+							break
 			
 			# Compute the algebraic intersection number between the longitude and meridian we just installed.
 			# If the it is -1 then we need to reverse the direction of the meridian.
@@ -381,15 +393,15 @@ class Layered_Triangulation:
 		object_A, perm_A = self.upper_map[A]
 		object_B, perm_B = self.upper_map[B]
 		
-		below_A, down_perm_A = object_A.glued_to[3]
-		below_B, down_perm_B = object_B.glued_to[3]
+		below_A, down_perm_A = object_A.glued_to[perm_A[3]]
+		below_B, down_perm_B = object_B.glued_to[perm_A[3]]
 		
 		object_A.unglue(3)
 		object_B.unglue(3)
 		
 		# Do some gluings.
-		new_glue_perm_A = permutation_from_mapping(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[3], even=False)
-		new_glue_perm_B = permutation_from_mapping(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[3], even=False)
+		new_glue_perm_A = permutation_from_mapping(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[perm_A[3]], even=False)
+		new_glue_perm_B = permutation_from_mapping(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[perm_A[3]], even=False)
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		

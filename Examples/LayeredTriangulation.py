@@ -3,7 +3,7 @@ from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
 from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
 
-from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
+from Flipper.Examples.AbstractTriangulation import Example_S_1_1m as Example
 # from Flipper.Examples.AbstractTriangulation import Example_12 as Example
 
 def main(word):
@@ -33,5 +33,6 @@ def main(word):
 
 if __name__ == '__main__':
 	main('aB')
+	# main('Ba')  # BAD!
 	# import cProfile
 	# cProfile.run("main('aBBBBaBB')", sort='time')

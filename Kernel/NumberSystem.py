@@ -75,9 +75,9 @@ class Number_System_Element:
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Number_System_Element):
-			return self.algebraic_approximation(factor=2) * other.algebraic_approximation(factor=2)
+			return self.algebraic_approximation(multiplicative_error=2, additive_error=3) * other.algebraic_approximation(multiplicative_error=2, additive_error=3)
 		elif isinstance(other, Algebraic_Approximation):
-			return self.algebraic_approximation(factor=2) * other
+			return self.algebraic_approximation(multiplicative_error=2, additive_error=3) * other
 		elif isinstance(other, Integer_Type):
 			return Number_System_Element(self.number_system, [a * other for a in self])
 		else:
@@ -86,20 +86,20 @@ class Number_System_Element:
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, Number_System_Element):
-			return self.algebraic_approximation(factor=2) / other.algebraic_approximation(factor=2)
+			return self.algebraic_approximation(multiplicative_error=2, additive_error=3) / other.algebraic_approximation(multiplicative_error=2, additive_error=3)
 		elif isinstance(other, Algebraic_Approximation):
-			return self.algebraic_approximation(factor=2) / other
+			return self.algebraic_approximation(multiplicative_error=2, additive_error=3) / other
 		elif isinstance(other, Integer_Type):
-			return self.algebraic_approximation(factor=2) / other
+			return self.algebraic_approximation(multiplicative_error=2, additive_error=3) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		return other / self.algebraic_approximation(factor=2)
+		return other / self.algebraic_approximation(multiplicative_error=2, additive_error=3)
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
-	def algebraic_approximation(self, accuracy=None, factor=None):
+	def algebraic_approximation(self, accuracy=None, multiplicative_error=1, additive_error=0):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the Algebraic_Approximation produced is well defined.
 		N = self.number_system
@@ -111,19 +111,18 @@ class Number_System_Element:
 		
 		# Now if acc(I_i) == k then acc(I) >= k - (n-1) [Interval.py L:13].
 		# Additionally, 
-		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + log(n) <= sum(log(a_i)) + sum(log(\alpha_i)) + log(n) [AlgebraicApproximation.py L:9].
+		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + log(n) <= sum(log(a_i)) + sum(log(\alpha_i)) + n log(2) [AlgebraicApproximation.py L:9].
 		# Hence for \alpha to determine a unique algebraic number we need that:
 		#	acc(I) >= log(deg(\alpha)) + log(height(\alpha)).
 		# That is:
-		#	k - (n-1) >= log(deg(\alpha)) + sum(log(a_i)) + sum(log(\alpha_i)) + log(n).
+		#	k - (n-1) >= log(deg(\alpha)) + sum(log(a_i)) + sum(log(\alpha_i)) + n log(2).
 		# Hence:
-		#	k >= sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + (n-1) + log(n).
+		#	k >= sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + (n-1) + n log(2).
 		
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_generators + N.log_degree + 2*n).
 		if accuracy is None: accuracy = int(sum(log_height_int(a) for a in self) + N.sum_log_height_generators + 2*len(N) + N.log_degree)
-		if factor is None: factor = 1
-		accuracy = accuracy * factor
+		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
 			self.number_system.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
@@ -136,7 +135,7 @@ class Number_System_Element:
 				self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.number_system.algebraic_approximations))
 			
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
-			assert(self.current_accuracy >= accuracy)
+			# Now if accuracy was not None then self.current_accuracy >= accuracy.
 		
 		return self._algebraic_approximation
 	def algebraic_hash_ratio(self, other):

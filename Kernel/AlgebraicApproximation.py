@@ -51,7 +51,7 @@ class Algebraic_Approximation:
 		# An algebraic approximation is good if it is known to more interval places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.interval.accuracy < self.accuracy_needed:
-			raise ApproximationError('%s may not define a unique algebraic number with degree at most %d and height at most %d.' % (self.interval, self.degree, self.log_height))
+			raise ApproximationError('An algebraic number with degree at most %d and height at most %d requires an interval with accuracy at least %d not %d.' % (self.degree, self.log_height, self.accuracy_needed, self.interval.accuracy))
 	
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.log_height))
@@ -62,18 +62,18 @@ class Algebraic_Approximation:
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + 2)
+			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + log(2))
 		elif isinstance(other, Integer_Type):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + 2)
+			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + 2)
+			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + log(2))
 		elif isinstance(other, Integer_Type):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + 2)
+			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
 	def __rsub__(self, other):

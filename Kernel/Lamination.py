@@ -237,7 +237,6 @@ class Lamination:
 			# s = lamination1.weight()
 			# return tuple(sorted([v.algebraic_hash_ratio(s) for v in lamination1]))
 			s = 1 / lamination1.weight()
-			# s = lamination1.weight()
 			return tuple(sorted([(v * s).algebraic_hash() for v in lamination1]))
 		
 		if exact:

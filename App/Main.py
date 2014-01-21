@@ -59,8 +59,6 @@ def valid_name(name):
 class Flipper_App:
 	def __init__(self, parent):
 		self.parent = parent
-		self.mode_variable = TK.IntVar()
-		self.mode_variable.set(TRIANGULATION_MODE)
 		
 		self.options = Options()
 		self.options_app = Options_App(self)
@@ -100,7 +98,7 @@ class Flipper_App:
 		self.canvas = TK.Canvas(self.frame_draw, width=500, height=500, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
-		self.canvas.bind('<Double-Button-1>', self.canvas_double_click)
+		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
 		self.list_curves.bind('<Button-1>', self.list_curves_left_click)
@@ -124,10 +122,6 @@ class Flipper_App:
 		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
 		
 		editmenu = TK.Menu(menubar, tearoff=0)
-		editmenu.add_radiobutton(label='Triangulation', variable=self.mode_variable, value=TRIANGULATION_MODE, command=lambda : self.set_mode(TRIANGULATION_MODE), accelerator='F2')
-		editmenu.add_radiobutton(label='Gluing', variable=self.mode_variable, value=GLUING_MODE, command=lambda : self.set_mode(GLUING_MODE), accelerator='F3')
-		editmenu.add_radiobutton(label='Curve', variable=self.mode_variable, value=CURVE_MODE, command=lambda : self.set_mode(CURVE_MODE), accelerator='F4')
-		editmenu.add_separator()
 		editmenu.add_command(label='Erase Curve', command=self.destroy_curve, accelerator='F5')
 		
 		viewmenu = TK.Menu(menubar, tearoff=0)
@@ -181,7 +175,6 @@ class Flipper_App:
 		self.build_complete_structure()
 		
 		self.colour_picker = Colour_Palette()
-		self.set_mode(TRIANGULATION_MODE)
 		
 		self.canvas.delete('all')
 		self.entry_command.delete(0, TK.END)
@@ -236,7 +229,6 @@ class Flipper_App:
 				
 				if self.is_complete():
 					self.lamination_to_canvas(self.curves['_'])
-					self.set_mode(CURVE_MODE)
 			except IOError:
 				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
@@ -374,22 +366,6 @@ class Flipper_App:
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
 	
-	def set_mode(self, mode):
-		self.select_object(None)
-		if mode == TRIANGULATION_MODE:
-			self.destroy_curve()
-			self.mode_variable.set(mode)
-		elif mode == GLUING_MODE:
-			self.destroy_curve()
-			self.mode_variable.set(mode)
-		elif mode == CURVE_MODE:
-			if not self.is_complete():
-				self.set_mode(GLUING_MODE)
-			else:
-				self.mode_variable.set(mode)
-		else:
-			raise ValueError()
-	
 	def command_return(self, event):
 		command = self.entry_command.get()
 		if command != '':
@@ -406,9 +382,6 @@ class Flipper_App:
 				elif task == 'open': self.load(combined)
 				elif task == 'export_image': self.export_image(combined)
 				elif task == 'export_script': self.export_script(combined)
-				elif task == 'triangulation_mode': self.set_mode(TRIANGULATION_MODE)
-				elif task == 'gluing_mode': self.set_mode(GLUING_MODE)
-				elif task == 'curve_mode': self.set_mode(CURVE_MODE)
 				elif task == 'erase': self.destroy_curve()
 				elif task == 'options': self.show_options()
 				elif task == 'help': self.show_help()
@@ -549,6 +522,7 @@ class Flipper_App:
 		for edge in self.edges:
 			if triangle in edge.in_triangles:
 				edge.in_triangles.remove(triangle)
+				self.destroy_edge_identification(edge)
 		self.triangles.remove(triangle)
 		self.redraw()
 		self.build_complete_structure()
@@ -588,13 +562,13 @@ class Flipper_App:
 		self.curve_components.remove(curve_component)
 	
 	def destroy_curve(self):
+		while self.curve_components != []:
+			self.destroy_curve_component(self.curve_components[-1])
+		
 		if self.is_complete():
-			while self.curve_components != []:
-				self.destroy_curve_component(self.curve_components[-1])
-			
 			self.set_current_curve()
 			self.select_object(None)
-			self.redraw()
+		self.redraw()
 	
 	
 	######################################################################
@@ -624,9 +598,6 @@ class Flipper_App:
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
 			# self.store_isometry('p %d.%d.%d %d.%d.%d' % (0,n+1,n,1,n+2,n+1))  # !?! Add in a 1/n rotation by default.
-			self.set_mode(CURVE_MODE)
-		else:
-			self.set_mode(GLUING_MODE)
 	
 	def initialise_circular_n_gon(self, specification):
 		self.initialise()
@@ -654,7 +625,6 @@ class Flipper_App:
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
-			self.set_mode(CURVE_MODE)
 	
 	def show_surface_information(self):
 		if self.is_complete():
@@ -716,9 +686,11 @@ class Flipper_App:
 	def destroy_abstract_triangulation(self):
 		self.clear_edge_indices()
 		self.destroy_edge_labels()
+		self.destroy_curve()
 		self.abstract_triangulation = None
 		self.curves = {}
 		self.mapping_classes = {}
+		self.list_curves.delete(0, TK.END)
 		self.list_mapping_classes.delete(0, TK.END)
 	
 	def build_complete_structure(self):
@@ -1067,19 +1039,18 @@ class Flipper_App:
 	######################################################################
 	
 	
-	def triangulation_click(self, x, y):
+	def canvas_left_click(self, event):
+		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		possible_object = self.object_here((x,y))
 		if self.selected_object is None:
 			if possible_object is None:
 				self.select_object(self.create_vertex((x,y)))
-			else:
-				if isinstance(possible_object, Edge):
-					self.destroy_edge_identification(possible_object)
-				if isinstance(possible_object, Edge):
-					if possible_object.free_sides() > 0:
-						self.select_object(possible_object)
-				if isinstance(possible_object, Vertex):
+			elif isinstance(possible_object, Edge):
+				self.destroy_edge_identification(possible_object)
+				if possible_object.free_sides() > 0:
 					self.select_object(possible_object)
+			elif isinstance(possible_object, Vertex):
+				self.select_object(possible_object)
 		elif isinstance(self.selected_object, Vertex):
 			if possible_object is None:
 				new_vertex = self.create_vertex((x,y))
@@ -1106,86 +1077,59 @@ class Flipper_App:
 				else:
 					self.select_object(possible_object)
 			elif isinstance(possible_object, Edge):
-				if possible_object.free_sides() > 0:
+				if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
+					if possible_object != self.selected_object:
+						self.destroy_edge_identification(self.selected_object)
+						self.destroy_edge_identification(possible_object)
+						self.create_edge_identification(self.selected_object, possible_object)
+						self.select_object(None)
+				else:
 					self.select_object(possible_object)
-	
-	def gluing_click(self, x, y):
-		possible_object = self.object_here((x,y))
-		if isinstance(possible_object, Edge):
-			if possible_object.equivalent_edge is None:
-				if possible_object.free_sides() == 1:
-					if isinstance(self.selected_object, Edge):
-						if possible_object != self.selected_object:
-							self.create_edge_identification(self.selected_object, possible_object)
-							self.select_object(None)
-					elif self.selected_object is None:
-						self.select_object(possible_object)
-			else:
-				self.destroy_edge_identification(possible_object)
-				self.select_object(possible_object)
-	
-	def curve_click(self, x, y):
-		if self.selected_object is None:
-			self.select_object(self.create_curve_component((x,y)))
-			self.selected_object.append_point((x,y))
-		else:
+		elif isinstance(self.selected_object, Curve_Component):
 			self.selected_object.append_point((x,y))
 			self.set_current_curve()
 	
-	
-	######################################################################
-	
-	
-	def canvas_left_click(self, event):
+	def canvas_right_click(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if self.mode_variable.get() == TRIANGULATION_MODE:
-			self.triangulation_click(x, y)
-		if self.mode_variable.get() == GLUING_MODE:
-			self.gluing_click(x, y)
-		if self.mode_variable.get() == CURVE_MODE:
-			self.curve_click(x, y)
+		if self.selected_object is not None:
+			if isinstance(self.selected_object, Curve_Component):
+				self.selected_object.pop_point()
+			self.select_object(None)
+		else:
+			if self.is_complete():
+				self.select_object(self.create_curve_component((x,y)))
+				self.selected_object.append_point((x,y))
+	
+	def canvas_double_left_click(self, event):
+		return self.canvas_right_click(event)
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if self.mode_variable.get() == CURVE_MODE:
-			if self.selected_object is not None:
-				self.selected_object.move_last_point((x,y))
-	
-	def canvas_right_click(self, event):
-		if self.selected_object is not None:
-			if self.mode_variable.get() == CURVE_MODE:
-				self.selected_object.pop_point()
-			self.select_object(None)
-	
-	def canvas_double_click(self, event):
-		self.canvas_right_click(event)
+		if isinstance(self.selected_object, Curve_Component):
+			self.selected_object.move_last_point((x,y))
 	
 	def parent_key_press(self, event):
 		key = event.keysym
-		if key in ('Delete','BackSpace'):
-			if self.mode_variable.get() == TRIANGULATION_MODE:
-				if isinstance(self.selected_object, Vertex):
-					self.destroy_vertex(self.selected_object)
+		if key in ('Delete', 'BackSpace'):
+			if isinstance(self.selected_object, Vertex):
+				self.destroy_vertex(self.selected_object)
+				self.select_object(None)
+			elif isinstance(self.selected_object, Edge):
+				self.destroy_edge(self.selected_object)
+				self.select_object(None)
+			elif isinstance(self.selected_object, Curve_Component):
+				if len(self.selected_object.vertices) > 2:
+					(x,y) = self.selected_object.vertices[-1]
+					self.selected_object.pop_point()
+					self.selected_object.pop_point()
+					self.selected_object.append_point((x,y))
+					self.set_current_curve()
+				else:
+					self.destroy_curve_component(self.selected_object)
 					self.select_object(None)
-				elif isinstance(self.selected_object, Edge):
-					self.destroy_edge(self.selected_object)
-					self.select_object(None)
-			if self.mode_variable.get() == GLUING_MODE:
-				pass
-			if self.mode_variable.get() == CURVE_MODE:
-				if self.selected_object is not None:
-					if len(self.selected_object.vertices) > 2:
-						(x,y) = self.selected_object.vertices[-1]
-						self.selected_object.pop_point()
-						self.selected_object.pop_point()
-						self.selected_object.append_point((x,y))
-						self.set_current_curve()
-					else:
-						self.destroy_curve_component(self.selected_object)
-						self.select_object(None)
-						self.set_current_curve()
+					self.set_current_curve()
 		elif key == 'Escape':
-			self.canvas_right_click(None)
+			self.canvas_right_click(event)
 		elif key == 'Up':
 			if self.history_position > 0:
 				self.history_position -= 1
@@ -1198,12 +1142,6 @@ class Flipper_App:
 				self.entry_command.insert(0, self.command_history[self.history_position])
 		elif key == 'F1':
 			self.show_help()
-		elif key == 'F2':
-			self.set_mode(TRIANGULATION_MODE)
-		elif key == 'F3':
-			self.set_mode(GLUING_MODE)
-		elif key == 'F4':
-			self.set_mode(CURVE_MODE)
 		elif key == 'F5':
 			self.destroy_curve()
 		elif key == 'Prior':

@@ -26,10 +26,10 @@ def main(word):
 	print('Cusp types: %s' % cusp_types)
 	print('Fibre slopes: %s' % fibre_slopes)
 	print('Degeneracy slopes: %s' % degeneracy_slopes)
-	print('To build this bundle I had to create some artificial punctures,')
-	print('these are the ones with puncture type 1.')
+	print('To build this bundle I may have had to create some artificial cusps,')
+	print('these are the ones of type 1.')
 	print('You should fill them with their fibre slope to get')
-	print('the manifold you were expecting')
+	print('the manifold you were expecting.')
 
 if __name__ == '__main__':
 	main('aB')

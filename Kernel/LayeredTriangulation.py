@@ -33,7 +33,6 @@ SOURCE = -1
 PERIPHERAL_TYPES = list(range(3))
 LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
-
 vertices_meeting = {0:(1,2,3), 1:(0,3,2), 2:(0,1,3), 3:(0,2,1)}  # This order was chosen so they appear ordered anti-clockwise from the cusp.
 exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
 exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
@@ -276,8 +275,6 @@ class Triangulation:
 					for a, b in permutations(vertices_meeting[side], 2):
 						if edge_label_map[(tetrahedron, side, a)] == first and edge_label_map[(tetrahedron, side, b)] == last:
 							current_tetrahedron, current_side, arrive = tetrahedron, side, b
-				
-				
 				
 				for other in homology_basis_paths[peripheral_type]:
 					for a in vertices_meeting[current_side]:

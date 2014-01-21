@@ -1,8 +1,0 @@
-
-Pure Python:					0.8 59.7
-Pure sympy:						4.6 25.0
-Pure SAGE: 						1.3 4.3
-Python with a hint of SAGE:		1.3 1.7
-Python with a hint of sympy:	1.3 1.7
-
-Pure Python w/ height cheat:	0.8 1.4

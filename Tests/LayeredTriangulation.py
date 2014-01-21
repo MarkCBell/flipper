@@ -1,6 +1,7 @@
 
 from Flipper.Kernel.Lamination import invariant_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
+from Flipper.Kernel.Error import AssumptionError, ComputationError
 from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
 
 from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
@@ -21,7 +22,6 @@ def build_bundle(word, isometry_number):
 	return M.SnapPy_string()
 
 def main():
-	
 	try:
 		S = __import__('snappy')
 	except ImportError:
@@ -30,7 +30,13 @@ def main():
 	
 	tests = [
 		('aB', 0, 'm003'),
-		('aB', 1, 'm004')
+		('aB', 1, 'm004'),
+		('Ba', 0, 'm003'),
+		('Ba', 1, 'm004'),
+		('Ab', 0, 'm003'),
+		('Ab', 1, 'm004'),
+		('bA', 0, 'm003'),
+		('bA', 1, 'm004')
 		]
 	
 	for word, isometry_number, target_manifold in tests:
@@ -39,7 +45,28 @@ def main():
 			print(word, isometry_number, target_manifold)
 			return False
 	
+	# try:
+		# T = __import__('twister')
+	# except ImportError:
+		# print('Twister unavailable, tests skipped.')
+		# return True
+	
+	# for _ in range(50):
+		# word, mapping_class = build_example_mapping_class(Example, random_length=10)
+		
+		# print(word)
+		# try:
+			# M = T.Surface('S_1_1').bundle(word)
+			# N0 = S.Manifold(build_bundle(word, 0))
+			# N1 = S.Manifold(build_bundle(word, 1))
+			# if not M.is_isometric_to(N0) and not M.is_isometric_to(N1):
+				# print(M.volume())
+				# print(word)
+				# return False
+		# except (AssumptionError, ComputationError):
+			# print('Not pA.')
+	
 	return True
 
 if __name__ == '__main__':
-	main()
+	print(main())

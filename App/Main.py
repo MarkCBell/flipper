@@ -299,7 +299,7 @@ class Flipper_App:
 	
 	def show_help(self):
 		# !?! TO DO
-		tkMessageBox.showwarning('Help', 'Not yet implemented. See "A users guide to Flipper" for more information.')
+		tkMessageBox.showwarning('Help', 'For more information see "A users guide to Flipper" located in the Docs folder.')
 	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
@@ -1044,7 +1044,11 @@ class Flipper_App:
 		possible_object = self.object_here((x,y))
 		if self.selected_object is None:
 			if possible_object is None:
-				self.select_object(self.create_vertex((x,y)))
+				if self.is_complete():
+					self.select_object(self.create_curve_component((x,y)))
+					self.selected_object.append_point((x,y))
+				else:
+					self.select_object(self.create_vertex((x,y)))
 			elif isinstance(possible_object, Edge):
 				self.destroy_edge_identification(possible_object)
 				if possible_object.free_sides() > 0:
@@ -1090,15 +1094,10 @@ class Flipper_App:
 			self.set_current_curve()
 	
 	def canvas_right_click(self, event):
-		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		if self.selected_object is not None:
 			if isinstance(self.selected_object, Curve_Component):
 				self.selected_object.pop_point()
 			self.select_object(None)
-		else:
-			if self.is_complete():
-				self.select_object(self.create_curve_component((x,y)))
-				self.selected_object.append_point((x,y))
 	
 	def canvas_double_left_click(self, event):
 		return self.canvas_right_click(event)

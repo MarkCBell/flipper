@@ -3,12 +3,15 @@ handle commands better
 translate, zoom, autoscale
 fatten train tracks
 
+Bug in save / open. Should save and load curves, including repopulating the Mulitcurves list
+
 algebraic intersection number
 floating point approximations
 fast algebra
 show algebraic laminations
 
 Create / use InputBox
+Update all documentation
 more documentation
 
 Remove all dependence on sage / smypy

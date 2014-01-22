@@ -227,7 +227,7 @@ class Encoding_Sequence:
 		
 		sizes = [encoding.size for encoding in self]
 		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(sizes))]
-		total = sizes[0] * sizes_mul[0]
+		total = 2 * sizes[0] * sizes_mul[0]  # !?! BUG FIX?
 		
 		def jump(indices):
 			indices = list(indices)
@@ -245,7 +245,7 @@ class Encoding_Sequence:
 			else:
 				raise IndexError
 		
-		def progress(indices):
+		def progress(indices):  # !?! BUG HERE.
 			return sum(index * scale for index, scale in zip(indices, sizes_mul)) / total
 		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()

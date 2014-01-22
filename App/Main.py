@@ -99,6 +99,7 @@ class Flipper_App:
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
+		# self.canvas.bind('<Shift-Button-1>', self.canvas_shift_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
 		self.list_curves.bind('<Button-1>', self.list_curves_left_click)
@@ -191,9 +192,10 @@ class Flipper_App:
 				abstract_triangulation = self.abstract_triangulation
 				curves = self.curves
 				mapping_classes = self.mapping_classes
-				list_names = self.list_mapping_classes.get(0, TK.END)
+				list_curves = self.list_curves.get(0, TK.END)
+				list_mapping_classes = self.list_mapping_classes.get(0, TK.END)
 				
-				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names], open(path, 'wb'))
+				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes], open(path, 'wb'))
 			except IOError:
 				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
@@ -201,7 +203,7 @@ class Flipper_App:
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
 		if path != '':
 			try:
-				spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_names = pickle.load(open(path, 'rb'))
+				spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes = pickle.load(open(path, 'rb'))
 				# Might throw value error.
 				# !?! Add more error checking.
 				assert(spec == 'A Flipper file.')
@@ -224,7 +226,10 @@ class Flipper_App:
 				self.curves = curves
 				self.mapping_classes = mapping_classes
 				
-				for name in list_names:
+				for name in list_curves:
+					self.list_curves.insert(TK.END, name)
+				
+				for name in list_mapping_classes:
 					self.list_mapping_classes.insert(TK.END, name)
 				
 				if self.is_complete():
@@ -623,7 +628,7 @@ class Flipper_App:
 		
 		if gluing != '':
 			for i, j in combinations(range(n), r=2):
-				if gluing[i] == gluing[j].swapcase():
+				if gluing[i] == gluing[j].swapcase():  # !?! Get rid of the swapcase()?
 					self.create_edge_identification(self.edges[i], self.edges[j])
 	
 	def show_surface_information(self):
@@ -1056,19 +1061,22 @@ class Flipper_App:
 			elif isinstance(possible_object, Vertex):
 				self.select_object(possible_object)
 		elif isinstance(self.selected_object, Vertex):
-			if possible_object is None:
+			if possible_object == self.selected_object:
+				self.select_object(None)
+			elif possible_object is None:
 				new_vertex = self.create_vertex((x,y))
 				self.create_edge(self.selected_object, new_vertex)
 				self.select_object(new_vertex)
 			elif isinstance(possible_object, Vertex):
-				if possible_object != self.selected_object:
-					self.create_edge(self.selected_object, possible_object)
-					self.select_object(possible_object)
+				self.create_edge(self.selected_object, possible_object)
+				self.select_object(possible_object)
 			elif isinstance(possible_object, Edge):
 				if possible_object.free_sides() > 0:
 					self.select_object(possible_object)
 		elif isinstance(self.selected_object, Edge):
-			if possible_object is None:
+			if possible_object == self.selected_object:
+				self.select_object(None)
+			elif possible_object is None:
 				new_vertex = self.create_vertex((x,y))
 				self.create_edge(self.selected_object.source_vertex, new_vertex)
 				self.create_edge(self.selected_object.target_vertex, new_vertex)
@@ -1082,11 +1090,10 @@ class Flipper_App:
 					self.select_object(possible_object)
 			elif isinstance(possible_object, Edge):
 				if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
-					if possible_object != self.selected_object:
-						self.destroy_edge_identification(self.selected_object)
-						self.destroy_edge_identification(possible_object)
-						self.create_edge_identification(self.selected_object, possible_object)
-						self.select_object(None)
+					self.destroy_edge_identification(self.selected_object)
+					self.destroy_edge_identification(possible_object)
+					self.create_edge_identification(self.selected_object, possible_object)
+					self.select_object(None)
 				else:
 					self.select_object(possible_object)
 		elif isinstance(self.selected_object, Curve_Component):
@@ -1101,6 +1108,9 @@ class Flipper_App:
 	
 	def canvas_double_left_click(self, event):
 		return self.canvas_right_click(event)
+	
+	# def canvas_shift_left_click(self, event):
+		# print('x')
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))

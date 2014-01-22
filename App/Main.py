@@ -1045,11 +1045,16 @@ class Flipper_App:
 	
 	
 	def canvas_left_click(self, event):
+		# Modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
+		BIT_SHIFT = 0x001; BIT_CAPSLOCK = 0x002; BIT_CONTROL = 0x004; BIT_LEFT_ALT = 0x008;
+		BIT_NUMLOCK = 0x010; BIT_RIGHT_ALT = 0x080; BIT_MB_1 = 0x100; BIT_MB_2 = 0x200; BIT_MB_3 = 0x400;
+		shift_pressed = (event.state & BIT_SHIFT) == BIT_SHIFT
+		
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		possible_object = self.object_here((x,y))
 		if self.selected_object is None:
 			if possible_object is None:
-				if self.is_complete():
+				if self.is_complete() and not shift_pressed:
 					self.select_object(self.create_curve_component((x,y)))
 					self.selected_object.append_point((x,y))
 				else:

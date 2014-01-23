@@ -19,7 +19,7 @@ from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 class Encoding:
-	def __init__(self, actions, conditions, source_triangulation, target_triangulation):
+	def __init__(self, actions, conditions, source_triangulation, target_triangulation, as_latex=None):
 		assert(source_triangulation.zeta == target_triangulation.zeta)
 		assert(len(actions) > 0)
 		zeta = source_triangulation.zeta
@@ -35,8 +35,17 @@ class Encoding:
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = zeta
+		self.as_latex = as_latex
+	
 	def __str__(self):
 		return '\n'.join(str(self.action_matrices[i]) + '\n' + str(self.condition_matrices[i]) for i in range(self.size))
+	def latex_string(self):
+		if len(self) == 1: return '%s(\\underline{x}) &= (' + ','.join(self.action_matrices[0].latex_string()) + ')'
+		if self.as_latex is not None: return self.as_latex
+		
+		actions = ['(' + ','.join(action_matrix.latex_string()) + ')' for action_matrix in self.action_matrices]
+		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in self.condition_matrices]
+		return '%s(\\underline{x}) &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
 	def __len__(self):
 		return self.size
 	def __eq__(self, other):
@@ -135,6 +144,18 @@ class Encoding_Sequence:
 		return self.size
 	def __str__(self):
 		return '\n###\n'.join(str(A) for A in self.sequence)
+	def latex_string(self):
+		s = ''
+		if len(self) == 1:
+			s += '\\[ f_1 \\]\n'
+		elif len(self) == 2:
+			s += '\\[ f_2 \\circ f_1 \\]\n'
+		elif len(self) > 2:
+			s += '\\[ f_{%d} \\circ \\cdots \\circ f_{1} \\]\n' % len(self)
+		s += 'where if $\\underline{x} = (x_1, \\ldots, x_{%d})$ and $\\underline{x}[i] = x_i$ then:\n' % self.zeta  # This is always >= 3.
+		s += '\\begin{align*} \n' + ' \\\\ \n'.join(encoding.latex_string() % ('f_{%d}' % (index+1)) for index, encoding in enumerate(self.sequence)) + '\n\\end{align*}\n'
+		s += 'and $f_i[j](\\underline{x}) = \\underline{x}[j]$ otherwise. \n'
+		return s
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):
@@ -296,7 +317,6 @@ class Encoding_Sequence:
 		assert(self.source_triangulation == self.target_triangulation)
 		
 		K = (self.zeta ** self.zeta) * (3 ** (self.zeta * self.size))
-		print(K)
 		for vector in product(range(K), repeat=self.zeta):
 			if is_multicurve(vector) and self * vector == vector:
 				return (True, vector) if certify else True
@@ -326,11 +346,16 @@ def encode_flip(triangulation, edge_index):
 	A1 = Id_Matrix(triangulation.zeta)
 	tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
 	C1 = Matrix(tweak_vector([0] * triangulation.zeta, [a, c], [b, d]), triangulation.zeta)
+	
 	A2 = Id_Matrix(triangulation.zeta)
 	tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
 	C2 = Matrix(tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
 	
-	return Encoding([A1, A2], [C1, C2], triangulation, new_triangulation), Encoding([A1, A2], [C1, C2], new_triangulation, triangulation)
+	actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
+	conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
+	as_latex = '%s(\\underline{x})' + ('[%d]' % edge_index) + ' &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
+	
+	return Encoding([A1, A2], [C1, C2], triangulation, new_triangulation, as_latex), Encoding([A1, A2], [C1, C2], new_triangulation, triangulation, as_latex)
 
 def encode_flips(triangulation, edge_indices):
 	forwards_sequence, backwards_sequence = Id_Encoding_Sequence(triangulation), Id_Encoding_Sequence(triangulation)

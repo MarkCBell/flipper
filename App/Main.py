@@ -1056,7 +1056,9 @@ class Flipper_App:
 					s += '\\usepackage{amsmath}\n'
 					s += '\\allowdisplaybreaks\n'
 					s += '\\begin{document}\n'
-					s += 'The mapping class \\texttt{%s} induces the PL--function\n' % composition
+					s += 'The mapping class \\texttt{%s} on the triangulation\n' % composition
+					s += '\\[ %s \\]\n' % ','.join(str(triangle.edge_indices) for triangle in self.abstract_triangulation)
+					s += 'induces the PL--function\n'
 					s += mapping_class.latex_string()
 					s += '\\end{document}\n'
 					

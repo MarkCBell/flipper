@@ -139,6 +139,7 @@ class Number_System_Element:
 		
 		return self._algebraic_approximation
 	def algebraic_hash_ratio(self, other):
+		# !?! RECHEK THIS AGAINST Interval.py.
 		HASH_DENOMINATOR = 30
 		
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)

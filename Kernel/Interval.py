@@ -6,22 +6,26 @@ from Flipper.Kernel.Types import Integer_Type
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
-# For an interval I let acc(I) denote the accuracy of I, this is
+# For an interval I let acc(I) denote the accuracy of I, that is
 #	acc(I) := self.precision - int(log(self.upper - self.lower)).
 # For an integer x let log+(x) := log(max(abs(x), 1)) and for an interval I
-# let log+(I) := max(log+(I.lower), log+(I.upper)).
+# let log+(I) := max(log+(I.lower), log+(I.upper), I.precision) - I.precision.
 
-# Suppose that x is an integer and that I and J are intervals with accuracy m and n 
-# respectively. Then we obtain the following bounds:
-#	acc(I + J) >= min(acc(I), acc(J)) - 1,
-#	acc(I * J) >= min(acc(I), acc(J)) - log(I.lower + J.lower + 1)
+# Suppose that x is an integer and that I and J are intervals and that 
+# m := min(acc(I), acc(J)).
+# Then we obtain the following bounds:
+#	acc(I + J) >= m - 1,
+#	acc(I * J) >= m - log(I.lower + J.lower + 1)
+#	acc(I / J) >= m - log+(J)
 #	acc(x * I) >= acc(I) - log+(x)
 
 class Interval:
-	__slots__ = ['lower', 'upper', 'precision', 'accuracy']  # Force minimal RAM usage.
+	__slots__ = ['lower', 'upper', 'precision', 'accuracy', 'log_plus']  # Force minimal RAM usage.
 	
 	def __init__(self, lower, upper, precision):
-		if lower == upper: lower, upper = lower-1, upper+1
+		if lower == upper: 
+			lower, upper = lower-1, upper+1
+			raise ApproximationError
 		assert(lower < upper)
 		
 		self.lower = lower
@@ -30,17 +34,21 @@ class Interval:
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = self.precision - int(log(self.upper - self.lower))
+		self.log_plus = int(max(log(max(abs(self.lower), 1)) - self.precision, log(max(abs(self.upper), 1)) - self.precision, 1)) + 1 
+	
 	def __repr__(self):
 		return self.approximate_string(6)
 	def approximate_string(self, accuracy=None):
-		if accuracy is None: accuracy = self.accuracy-1
+		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
-		return '%s.%s...' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
+		return '%s.%s?' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
 	def interval_string(self):
 		# Remember to take into account that the '-' sign uses a character.
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
 		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
 		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
+	def tuple(self):
+		return (self.lower, self.upper, self.precision)
 	def change_denominator(self, new_denominator):
 		d = new_denominator - self.precision
 		if d > 0:
@@ -105,7 +113,7 @@ class Interval:
 			if 0 in other:
 				raise ApproximationError('Denominator contains 0.')
 			# !?! RECHECK THIS!
-			common_precision = max(self.precision, other.precision)
+			common_precision = max(self.precision, other.precision) + other.log_plus
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
@@ -124,23 +132,6 @@ class Interval:
 			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
-	def __abs__(self):
-		new_lower = 0
-		new_upper = max(abs(self.lower), abs(self.upper))
-		return Interval(new_lower, new_upper, self.precision)
-	def sign(self):
-		if self.upper < 0:
-			return -1
-		elif self.lower > 0:
-			return +1
-		else:
-			raise ApproximationError('Not enough precision available to determine sign.')
-	def __lt__(self, other):
-		return (self-other).sign() < 0
-	def __gt__(self, other):
-		return (self-other).sign() > 0
-	def tuple(self):
-		return (self.lower, self.upper, self.precision)
 
 #### Some special Intervals we know how to build.
 
@@ -156,6 +147,3 @@ def interval_from_int(integer, accuracy):
 def interval_from_fraction(numerator, denominator, accuracy):
 	x = numerator * 10**accuracy // denominator
 	return Interval(x-1, x+1, accuracy)
-
-def interval_epsilon(integer, precision):
-	return Interval(10**(precision - integer)-1, 10**(precision - integer)+1, precision)

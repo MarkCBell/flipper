@@ -58,9 +58,9 @@ def main():
 	# random_test(['aBC'])
 	# random_test(['aBBap' * 3])
 	# random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
-	# random_test(['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
-	k = 2
-	random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)
+	random_test(['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
+	# k = 2
+	# random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)
 	# import cProfile
 	# cProfile.run('random_test(["aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa"])', sort='time')
 	# random_test()

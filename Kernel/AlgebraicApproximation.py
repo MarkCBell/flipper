@@ -2,24 +2,23 @@
 # A library for manipulating real algebraic numbers via interval approximations.
 
 # Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
-# height(f) := max(|a_n|) to be its height and deg(f) := n to be its degree.
+# H(f) := max(|a_n|) to be its height and deg(f) := n to be its degree. For convenience we also define h(f) := log(H(f))
+# to be its log height.
 #
 # Let K := QQ(\lambda) be a number field and x_0 \in K be an algebraic number. We define
-# height(x_0) := height(minpoly(x_0)) to be its the height and deg(x_0) := deg(minpoly(x_0)) to be its degree.
-# Be careful to note that if x_0 \in ZZ then height(x_0) = max(abs(x_0), 1).
+# H(x_0) := H(minpoly(x_0)) to be its the height and deg(x_0) := deg(minpoly(x_0)) to be its degree.
+# Be careful to note that if x_0 \in ZZ then H(x_0) = max(abs(x_0), 1). Again we define h(x_0) := log(H(x_0)).
 
 # We use the following facts:
-#	1a) For x_0, x_1 \in K, height(x_0 +/- x_1) <= 2 * height(x_0) * height(x_1) and
-#	 b) height(x_0 *// x_1) <= height(x_0) * height(x_1) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
+#	1a) For x_0, x_1 \in K, H(x_0 +/- x_1) <= 2 * H(x_0) * H(x_1),
+#	 b) H(x_0 * x_1) <= H(x_0) * H(x_1) and
+#	 c) H(1 / x_0) == H(x_0) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
 #	2) If 0 != x_0 \in K is a root of f(x) = a_n x^n + ... + a_0 then |x_0| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3]. 
 
-# An immediate consequence of 1) is that if x_0 \in K is a root of f \in ZZ[x] then height(x_0) <= height(f).
-# Additionally we can obtain an upper bound on the height of an equation of algebraic numbers. In fact the more general formula is that:
-#	height(sum(x_i)) <= n prod(height(x_i))
-# See: http://mathoverflow.net/questions/64643/height-of-algebraic-numbers
+# An immediate consequence of 1) is that if x_0 \in K is a root of f \in ZZ[x] then H(x_0) <= H(f).
 
 # From 2) it follows that so long as the accuracy of the interval of an Algebraic_Approximation is at least
-#	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x_0) * height(f)) <= log(deg(x_0)) + log(height(x_0))
+#	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x_0) * H(f)) <= log(deg(x_0)) + h(x_0)
 # it uniquely determines an algebraic number.
 
 # Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can 
@@ -35,8 +34,8 @@ def log_height_int(number):
 	return log(max(abs(number), 1))
 
 # This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-# by an interval, an upper bound on the degree of the field extension in which this number lives and an
-# upper bounds on the log of the height of this number.
+# by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
+# upper bound on the log height of this number.
 class Algebraic_Approximation:
 	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
 	
@@ -106,28 +105,20 @@ class Algebraic_Approximation:
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	
-	# These may raise ApproximationError if not enough accuracy is present.
+	def is_positive(self):
+		return self.interval.lower > 0
+	def is_negative(self):
+		return self.interval.upper < 0
+	def is_zero(self):
+		return not self.is_positive() and not self.is_negative()
+	
 	def __lt__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, Integer_Type):
-			return self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		else:
-			return NotImplemented
+		return (self - other).is_negative()
 	def __eq__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		elif isinstance(other, Integer_Type):
-			return -interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other < interval_epsilon(self.accuracy_needed, self.interval.accuracy)
-		else:
-			return NotImplemented
+		return (self - other).is_zero()
 	def __gt__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other.interval
-		elif isinstance(other, Integer_Type):
-			return interval_epsilon(self.accuracy_needed, self.interval.accuracy) < self.interval - other
-		else:
-			return NotImplemented
+		return (self - other).is_positive()
+	
 	def __le__(self, other):
 		return self < other or self == other
 	def __ge__(self, other):

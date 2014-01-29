@@ -1,32 +1,37 @@
 
+from math import log10 as log
+
 from Flipper.Kernel.Interval import interval_from_string
 
 def main():
-	w = interval_from_string('1.14576001')
-	x = interval_from_string('1.14576')
+	w = interval_from_string('0.1')
+	x = interval_from_string('10000.0')
 	y = interval_from_string('1.14571')
 	z = interval_from_string('1.00000')
 	a = interval_from_string('-1.200000')
-	b = interval_from_string('1.4142135623730951')
+	b = interval_from_string('1.4142135623')
 	
-	if not (x > y):
-		return False
-	if not (y > z):
-		return False
-	if not (x +y > y + z):
-		return False
-	if not (x * 3 > 3 * y):
-		return False
-	if not (max([x,y,z]) == x):
-		return False
-	if not (max([z,x,y]) == x):
-		return False
-	if not (sorted([x,y,z,a]) == [a, z, y, x]):
-		return False
-	if not (w > y):
-		return False
 	if not (2 in (b * b)):
 		return False
+	
+	# Check:
+	#	acc(I + J) >= min(acc(I), acc(J)) - 1,
+	#	acc(I * J) >= min(acc(I), acc(J)) - log(I.lower + J.lower + 1)
+	#	acc(I / J) >= min(acc(I), acc(J)) - log+(J)
+	#	acc(x * I) >= acc(I) - log+(x)
+	
+	pairs = [(w, x), (b, y)]
+	
+	for I, J in pairs:
+		m = min(I.accuracy, J.accuracy)
+		if not ((I + J).accuracy >= m - 1):
+			return False
+		if not ((I * J).accuracy >= m - log(I.lower + J.lower + 1)):
+			return False
+		if not ((I / J).accuracy >= m - J.log_plus):
+			return False
+	
+	
 	
 	return True
 

@@ -145,8 +145,8 @@ class Abstract_Triangulation:
 		return vector
 	
 	def find_edge(self, edge_index):
+		# Return the list of (triangle, side) which have label edge_index.
 		return self.edge_contained_in[edge_index]
-		# return [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]
 	
 	def find_neighbour(self, triangle, side):
 		# Returns the (triangle, side) opposite to this one.

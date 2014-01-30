@@ -26,7 +26,7 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.Interval import Interval, interval_from_string, interval_from_int, interval_from_fraction, interval_epsilon
+from Flipper.Kernel.Interval import Interval, interval_from_string, interval_from_int, interval_from_fraction
 from Flipper.Kernel.Error import ApproximationError
 from Flipper.Kernel.Types import Integer_Type
 

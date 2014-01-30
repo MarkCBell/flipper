@@ -33,12 +33,16 @@ def main():
 	
 	for word, mapping_class_type in tests:
 		word, mapping_class = build_example_mapping_class(Example, word)
-		determined_type = determine_type(mapping_class)
-		if determined_type != mapping_class_type:
-			print(word)
-			print(mapping_class_type)
-			print(determined_type)
-			return False
+		try:
+			determined_type = determine_type(mapping_class)
+			if determined_type != mapping_class_type:
+				print(word)
+				print(mapping_class_type)
+				print(determined_type)
+				return False
+		except ImportError:
+			print('SymbolicComputation library unavailable, tests skipped.')
+			return True
 	
 	return True
 

@@ -188,7 +188,7 @@ class Triangle:
 		self.canvas.coords(self.drawn_self, *[self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y])
 
 class Curve_Component:
-	def __init__(self, canvas, source_point, options, multiplicity=None):
+	def __init__(self, canvas, source_point, options, multiplicity=1):
 		self.options = options
 		self.default_colour = self.options.default_curve_colour
 		self.colour = self.default_colour
@@ -196,13 +196,10 @@ class Curve_Component:
 		self.drawn_segments = []
 		self.canvas = canvas
 		self.multiplicity = multiplicity
-		self.drawn_labels = []
 	
 	def append_point(self, point):
 		self.vertices.append(point)
 		self.drawn_segments.append(self.canvas.create_line(self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1], width=self.options.line_size, fill=self.colour, tag='curve'))
-		if self.multiplicity is not None:
-			self.drawn_labels.append(self.canvas.create_text((self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2, text=str(self.multiplicity), tag='label', font=self.options.custom_font, fill=self.options.default_curve_label_colour))
 		return self
 	
 	def pop_point(self):
@@ -210,9 +207,6 @@ class Curve_Component:
 			self.vertices.pop()
 			self.canvas.delete(self.drawn_segments[-1])
 			self.drawn_segments.pop()
-			if self.multiplicity is not None:
-				self.canvas.delete(self.drawn_labels[-1])
-				self.drawn_labels.pop()
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
@@ -228,8 +222,6 @@ class Curve_Component:
 		if len(self.vertices) > 1:
 			self.vertices[-1] = new_point
 			self.canvas.coords(self.drawn_segments[-1], self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1])
-			if self.multiplicity is not None:
-				self.canvas.coords(self.drawn_labels[-1], (self.vertices[-2][0] + self.vertices[-1][0]) / 2, (self.vertices[-2][1] + self.vertices[-1][1]) / 2)
 	
 	def update(self):
 		for i in range(len(self.drawn_segments)):

@@ -27,7 +27,6 @@ except ImportError: # Python 3
 	import tkinter.simpledialog as tkSimpleDialog
 
 from Flipper.App.Pieces import Colour_Palette, Vertex, Edge, Triangle, Curve_Component, lines_intersect
-from Flipper.App.Options import Options, Options_App
 from Flipper.App.Progress import Progress_App
 
 from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
@@ -36,6 +35,7 @@ from Flipper.Kernel.Isometry import extend_isometry
 from Flipper.Kernel.Lamination import Lamination, invariant_lamination, empty_lamination
 from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
 from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
+from Flipper.Kernel.Version import Flipper_version
 
 # Modes.
 TRIANGULATION_MODE = 0
@@ -56,13 +56,83 @@ def valid_name(name):
 		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
 		return False
 
+
+render_lamination_FULL = 'Full'
+render_lamination_W_TRAIN_TRACK = 'Weighted train track'
+render_lamination_C_TRAIN_TRACK = 'Compressed train track'
+label_edges_NONE = 'None'
+label_edges_INDEX = 'Index'
+label_edges_GEOMETRIC = 'Geometric'
+size_SMALL = 2
+size_MEDIUM = 4
+size_LARGE = 6
+size_XLARGE = 8
+#label_edges_ALGEBRAIC = 'Algebraic'
+
+class Options:
+	def __init__(self, redraw):
+		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
+		
+		self.render_lamination_var = TK.StringVar(value=render_lamination_FULL)
+		self.show_internals_var = TK.BooleanVar(value=False)
+		self.label_edges_var = TK.StringVar(value=label_edges_NONE)
+		self.size_var = TK.IntVar(value=size_SMALL)
+		
+		self.render_lamination = render_lamination_FULL
+		self.show_internals = False
+		self.label_edges = label_edges_NONE
+		self.line_size = 2
+		self.dot_size = 3
+		
+		self.render_lamination_var.trace('w', self.update)
+		self.show_internals_var.trace('w', self.update)
+		self.label_edges_var.trace('w', self.update)
+		self.size_var.trace('w', self.update)
+		
+		self.redraw = redraw
+		
+		self.debugging = False
+		self.profiling = False
+		self.statistics = False
+		
+		# Drawing parameters.
+		self.epsilon = 10
+		self.float_error = 0.001
+		self.dilatation_error = 0.001
+		self.spacing = 10
+		
+		self.vertex_buffer = 0.2  # Must be in (0,0.5)
+		self.zoom_fraction = 0.9 # Must be in (0,1)
+		
+		#self.dot_size = 3
+		#self.line_size = 2
+		
+		self.default_vertex_colour = 'black'
+		self.default_edge_colour = 'black'
+		self.default_triangle_colour = 'gray80'
+		self.default_curve_colour = 'grey40'
+		self.default_selected_colour = 'red'
+		self.default_edge_label_colour = 'red'
+		self.default_curve_label_colour = 'black'
+		
+		self.version = Flipper_version
+	
+	def update(self, *args):
+		self.render_lamination = str(self.render_lamination_var.get())
+		self.show_internals = bool(self.show_internals_var.get())
+		self.label_edges = str(self.label_edges_var.get())
+		self.line_size = int(self.size_var.get())
+		self.dot_size = int(self.size_var.get()) + 1
+		self.custom_font.configure(size=int(self.size_var.get()) + 8)
+		
+		self.redraw()
+
+
 class Flipper_App:
 	def __init__(self, parent):
 		self.parent = parent
 		
-		self.options = Options()
-		self.options_app = Options_App(self)
-		self.options_app.parent.state('withdrawn')
+		self.options = Options(self.redraw)
 		
 		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
 		self.frame_interface.grid(column=1, sticky='nse')
@@ -122,19 +192,29 @@ class Flipper_App:
 		filemenu.add_separator()
 		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
 		
-		editmenu = TK.Menu(menubar, tearoff=0)
-		editmenu.add_command(label='Erase Curve', command=self.destroy_curve, accelerator='F5')
-		
-		viewmenu = TK.Menu(menubar, tearoff=0)
-		zoommenu = TK.Menu(menubar, tearoff=0)
-		zoommenu.add_command(label='Zoom in', command=lambda : self.zoom_centre(1.05), accelerator='Pg Up')
-		zoommenu.add_command(label='Zoom out', command=lambda : self.zoom_centre(0.95), accelerator='Pg Down')
-		zoommenu.add_command(label='Auto zoom', command=lambda : self.auto_zoom())
-		viewmenu.add_cascade(label='Zoom', menu=zoommenu)
-		# viewmenu.add_command(label='Translate', command=self.show_options)
-		
 		settingsmenu = TK.Menu(menubar, tearoff=0)
-		settingsmenu.add_command(label='Options', command=self.show_options)
+
+		sizemenu = TK.Menu(menubar, tearoff=0)
+		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=size_SMALL)
+		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=size_MEDIUM)
+		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=size_LARGE)
+		sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=size_XLARGE)
+
+		edgelabelmenu = TK.Menu(menubar, tearoff=0)
+		edgelabelmenu.add_radiobutton(label=label_edges_NONE, var=self.options.label_edges_var)
+		edgelabelmenu.add_radiobutton(label=label_edges_INDEX, var=self.options.label_edges_var)
+		edgelabelmenu.add_radiobutton(label=label_edges_GEOMETRIC, var=self.options.label_edges_var)
+		# edgelabelmenu.add_radiobutton(label=label_edges_ALGEBRAIC, var=self.options.edge_labels_var)
+		
+		laminationdrawmenu = TK.Menu(menubar, tearoff=0)
+		laminationdrawmenu.add_radiobutton(label=render_lamination_FULL, var=self.options.render_lamination_var)
+		laminationdrawmenu.add_radiobutton(label=render_lamination_C_TRAIN_TRACK, var=self.options.render_lamination_var)
+		# laminationdrawmenu.add_radiobutton(label=render_lamination_W_TRAIN_TRACK, var=self.options.render_lamination_var)
+
+		settingsmenu.add_cascade(label='Sizes', menu=sizemenu)
+		settingsmenu.add_cascade(label='Edge label', menu=edgelabelmenu)
+		settingsmenu.add_cascade(label='Draw lamination', menu=laminationdrawmenu)
+		settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var)
 		
 		helpmenu = TK.Menu(menubar, tearoff=0)
 		helpmenu.add_command(label='Help', command=self.show_help, accelerator='F1')
@@ -142,8 +222,8 @@ class Flipper_App:
 		helpmenu.add_command(label='About', command=self.show_about)
 		
 		menubar.add_cascade(label='File', menu=filemenu)
-		menubar.add_cascade(label='Edit', menu=editmenu)
-		menubar.add_cascade(label='View', menu=viewmenu)
+		#menubar.add_cascade(label='Edit', menu=editmenu)
+		#menubar.add_cascade(label='View', menu=viewmenu)
 		menubar.add_cascade(label='Settings', menu=settingsmenu)
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
@@ -298,10 +378,6 @@ class Flipper_App:
 	def quit(self):
 		self.parent.quit()
 	
-	def show_options(self):
-		self.options_app.parent.state('normal')
-		self.options_app.parent.lift()
-	
 	def show_help(self):
 		# !?! TO DO
 		tkMessageBox.showwarning('Help', 'For more information see "A users guide to Flipper" located in the Docs folder.')
@@ -437,6 +513,14 @@ class Flipper_App:
 		return None
 	
 	def redraw(self):
+		self.create_edge_labels()
+		if self.is_complete(): self.lamination_to_canvas(self.curves['_'])
+
+		for vertex in self.vertices:
+			self.canvas.coords(vertex.drawn_self, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
+		self.canvas.itemconfig('line', width=self.options.line_size)
+		self.canvas.itemconfig('curve', width=self.options.line_size)
+		
 		for edge in self.edges:
 			edge.hide(not self.options.show_internals and edge.is_internal())
 		self.canvas.tag_raise('polygon')
@@ -557,9 +641,8 @@ class Flipper_App:
 			edge.equivalent_edge = None
 		self.build_complete_structure()
 	
-	def create_curve_component(self, point, multiplicity=None):
+	def create_curve_component(self, point, multiplicity=1):
 		self.curve_components.append(Curve_Component(self.canvas, point, self.options, multiplicity))
-		self.redraw()
 		return self.curve_components[-1]
 	
 	def destroy_curve_component(self, curve_component):
@@ -574,7 +657,6 @@ class Flipper_App:
 		if self.is_complete():
 			self.set_current_curve()
 			self.select_object(None)
-		self.redraw()
 	
 	
 	######################################################################
@@ -671,16 +753,20 @@ class Flipper_App:
 			for edge in self.edges:
 				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(vector[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
 		elif self.options.label_edges == 'Algebraic':
-			vector = self.abstract_triangulation.geometric_to_algebraic(self.curves['_'])
-			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(vector[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
-			self.canvas.delete('edge_label')
+			pass  # This is correct.
 		else:
 			raise ValueError()
 	
 	def destroy_edge_labels(self):
 		self.canvas.delete('edge_label')
+
+	def build_edge_labels(self):
+		if self.is_complete():
+			self.create_edge_labels()
+		else:
+			self.destroy_edge_labels()
 	
 	def create_abstract_triangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
@@ -730,7 +816,7 @@ class Flipper_App:
 							meets.append((index, double))
 			
 			for index, double in meets:
-				vector[index] += (2 if double else 1) * (1 if curve.multiplicity is None else curve.multiplicity)
+				vector[index] += (2 if double else 1) * curve.multiplicity
 		
 		return Lamination(self.abstract_triangulation, [i / 2 for i in vector])
 	
@@ -742,19 +828,21 @@ class Flipper_App:
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
-				if self.options.compress_curve:
+				if self.options.render_lamination == render_lamination_C_TRAIN_TRACK:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
 						end_point = triangle.vertices[i][0] + b[0] * scale, triangle.vertices[i][1] + b[1] * scale
-						self.create_curve_component(start_point, int(dual_weights[i])).append_point(end_point)
-				else:  # This is the slowest bit when the weight of the image curve is 10000.
+						self.create_curve_component(start_point).append_point(end_point)
+				elif self.options.render_lamination == render_lamination_FULL:  # This is the slowest bit when the weight of the image curve is 10000.
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-1] - 1)
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						self.create_curve_component(start_point).append_point(end_point)
+				elif self.options.render_lamination == render_lamination_W_TRAIN_TRACK:  # !?! To Do.
+					pass
 		
 		self.set_current_curve(lamination)
 	

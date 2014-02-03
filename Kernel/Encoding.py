@@ -246,9 +246,9 @@ class Encoding_Sequence:
 		# we are interested in. The first jumps from our current location to the next subtree, the second
 		# advances to the next index according to the lex ordering.
 		
-		sizes = [encoding.size for encoding in self]
+		sizes = [encoding.size for encoding in self][::-1]
 		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(sizes))]
-		total = 2 * sizes[0] * sizes_mul[0]  # !?! BUG FIX?
+		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
 		
 		def jump(indices):
 			indices = list(indices)
@@ -266,7 +266,7 @@ class Encoding_Sequence:
 			else:
 				raise IndexError
 		
-		def progress(indices):  # !?! BUG HERE.
+		def progress(indices):
 			return float(sum(index * scale for index, scale in zip(indices, sizes_mul))) / total
 		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()

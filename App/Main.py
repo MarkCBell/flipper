@@ -419,7 +419,7 @@ class Flipper_App:
 			for i in range(len(curve_component.vertices)):
 				curve_component.vertices[i] = scale * curve_component.vertices[i][0], scale * curve_component.vertices[i][1]
 			curve_component.update()
-		self.create_edge_labels()
+		self.build_edge_labels()
 		self.redraw()
 	
 	def zoom_centre(self, scale):
@@ -513,7 +513,7 @@ class Flipper_App:
 		return None
 	
 	def redraw(self):
-		self.create_edge_labels()
+		self.build_edge_labels()
 		if self.is_complete(): self.lamination_to_canvas(self.curves['_'])
 
 		for vertex in self.vertices:
@@ -749,9 +749,9 @@ class Flipper_App:
 			for edge in self.edges:
 				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
 		elif self.options.label_edges == 'Geometric':
-			vector = self.curves['_']
+			lamination = self.curves['_']
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(vector[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(lamination[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -1229,9 +1229,6 @@ class Flipper_App:
 	
 	def canvas_double_left_click(self, event):
 		return self.canvas_right_click(event)
-	
-	# def canvas_shift_left_click(self, event):
-		# print('x')
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))

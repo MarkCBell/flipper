@@ -22,7 +22,7 @@
 #	algebraic_approximate(self, accuracy, degree=None)
 #		Returns an algebraic approximation of this algebraic number, correct to the requested accuracy.
 #
-# Typically each library sets these methods to work with its underlying type. Additonally, 
+# Typically each library sets these methods to work with its underlying type. Additionally, 
 # Lamination.splitting_sequence(exact=True) requires that Algebraic_Type implements:
 #		addition, subtraction, division, comparison and equality (+, -, /, <, ==) 
 # both with integers and other Algebraic_Types.

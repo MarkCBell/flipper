@@ -46,7 +46,6 @@ class Lamination:
 		return sum(self.vector)
 	
 	def is_multicurve(self):
-		if not all(v == int(v) for v in self.vector): return False  # Redundant?
 		if not nontrivial(self.vector): return False
 		if not nonnegative(self.vector): return False
 		if not nonnegative_image(self.abstract_triangulation.face_matrix(), self.vector): return False
@@ -76,10 +75,11 @@ class Lamination:
 		while lamination.weight() > 2:
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
 			lamination = lamination.flip_edge(edge_index)
+			new_weight = lamination.weight()
 			
-			if lamination.weight() < old_weight:
+			if new_weight < old_weight:
 				time_since_last_weight_loss = 0
-				old_weight = lamination.weight()
+				old_weight = new_weight
 			else:
 				time_since_last_weight_loss += 1
 			
@@ -121,7 +121,6 @@ class Lamination:
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
 		new_labels = []
 		new_corner_labels = []
-		# new_vector = list(self.vector)
 		new_vector = [2*x for x in self.vector]
 		zeta = self.zeta
 		for triangle in self.abstract_triangulation:

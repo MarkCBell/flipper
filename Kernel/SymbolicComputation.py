@@ -43,8 +43,6 @@
 #		requirement by multiplication.
 #	2) We actually provide interfaces to several different libraries such as sympy and sage. 
 
-from math import log10 as log
-
 _name = None
 # if _name is None:
 	# try:

@@ -274,18 +274,14 @@ class Encoding_Sequence:
 		M4 = face_matrix
 		M6 = Id_Matrix(self.zeta)
 		buckets = {}
-		# for i in range(len(marking_matrices)):
 		indices = [0]
-		# M5 = marking_matrices[i]
 		while indices != []:
 			if len(indices) not in buckets: buckets[len(indices)] = 0
 			buckets[len(indices)] += 1
 			As, Cs = self.expand_indices(indices)
 			if options is not None and options.debugging: print(indices)
-			# if show_progress is not None: show_progress.update_bar((i + progress(indices)) / len(marking_matrices))
 			if show_progress is not None: show_progress.update_bar(progress(indices))
 			if len(indices) < self.size:
-				# S, certificate = M4.join(M5).join(Cs).nontrivial_polytope()
 				S, certificate = Cs.nontrivial_polytope()
 				indices = next(indices) if S else jump(indices)
 			else:
@@ -296,7 +292,6 @@ class Encoding_Sequence:
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M5 = marking_matrices[i]
 					# M6 = Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()

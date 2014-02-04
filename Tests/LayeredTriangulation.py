@@ -8,7 +8,7 @@ from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
 
 def build_bundle(word, isometry_number):
 	word, mapping_class = build_example_mapping_class(Example, word)
-	lamination, dilatation = invariant_lamination(mapping_class, exact=True)  # !?! ImportError.
+	lamination, dilatation = invariant_lamination(mapping_class, exact=True)  # !?! Could throw an ImportError if no SymbolicComputation library is present.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
 	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)

@@ -17,17 +17,16 @@ Flipper" located at:
 	./Docs/Flipper.pdf
 
 If you find Flipper useful in your research, please consider citing it. A suggested reference is:
-	Mark Bell. Flipper: Software for surface laminations via ideal triangulation coordinates.
+	Mark Bell. Flipper (Computer Software).
 	https://bitbucket.org/Mark_Bell/flipper/, 2013–2014. Version 0.1.1.
 or the BibTeX entry:
 	@Misc{Flipper,
 		author = {Bell, Mark},
-		title = {Flipper: Software for surface laminations via ideal triangulation coordinates},
+		title = {Flipper (Computer Software)},
 		howpublished = {\url{https://bitbucket.org/Mark_Bell/flipper/}},
 		year = {2013--2014},
 		note = {Version 0.1.0}
 	}
-
 
 Quick install, test and start as a Python module:
 > python setup.py install --user

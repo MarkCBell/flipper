@@ -8,7 +8,7 @@ except ImportError:
 
 setup(
 	name = 'Flipper',
-	version = Flipper_version,  # Get the version from the Options class.
+	version = Flipper_version,  # Get the correct version.
 	author = 'Mark Bell',
 	description = 'For manipulating curves on surfaces and producing mapping tori.',
 	options = {'build_exe':{'icon':'./App/Icon/Icon.ico', 'include_files':[('./App/Icon/', './Icon')]}},

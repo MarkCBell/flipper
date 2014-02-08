@@ -14,12 +14,6 @@ import Flipper.Kernel.SymbolicComputation as SymbolicComputation
 # More.
 from Flipper.Kernel.Version import Flipper_version as __version__
 
-import Flipper.App.Main as Main
-import Flipper.App.Input as Input
-import Flipper.App.Options as Options
-import Flipper.App.Pieces as Pieces
-import Flipper.App.Progress as Progress
-
 import Flipper.Examples.AbstractTriangulation as Example_AbstractTriangulation
 import Flipper.Examples.Lamination as Example_Lamination
 import Flipper.Examples.LayeredTriangulation as Example_LayeredTriangulation

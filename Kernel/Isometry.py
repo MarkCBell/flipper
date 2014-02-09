@@ -1,13 +1,6 @@
 
-# We can also produce Isometries using:
-#	1) isometry_from_edge_map(source_triangulation, target_triangulation, edge_map),
-#	2) extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle),
+from itertools import combinations, product
 
-from itertools import combinations
-try:
-	from Queue import Queue
-except ImportError: # Python 3
-	from queue import Queue
 
 import Flipper
 
@@ -40,9 +33,9 @@ class Isometry:
 		new_triangle, perm = self[triangle]
 		return (new_triangle, perm * permutation)
 	def inverse(self):
-		target_triangle = self.source_triangulation[0]
-		source_triangle, cycle = self[target_triangle]
-		return extend_isometry(self.target_triangulation, self.source_triangulation, source_triangle, target_triangle, cycle.inverse()[0])
+		Id_Perm = Flipper.Kernel.Permutation.Permutation([0,1,2])
+		possible_inverses = self.target_triangulation.all_isometries(self.source_triangulation)
+		return [isom for isom in possible_inverses if all((isom*self)[triangle] == (triangle, Id_Perm) for triangle in self.source_triangulation)][0]
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
@@ -53,26 +46,5 @@ class Isometry:
 #### Some special Isometries we know how to build.
 
 def isometry_from_edge_map(source_triangulation, target_triangulation, edge_map):
-	source_triangle = source_triangulation.triangles[0]
-	target_triangle = target_triangulation.find_triangle([edge_map[x] for x in source_triangle])  # There is more than one solution iff S = S_1_1.
-	cycle = min(i for i in range(3) if all(edge_map[source_triangle[j]] == target_triangle[j + i] for j in range(3))) 
-	return extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle)
-
-def extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle):
-	triangle_map = {}
-	triangles_to_process = Queue()
-	# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
-	triangles_to_process.put((source_triangle, target_triangle, cycle))
-	seen_triangles = set([source_triangle])
-	triangle_map[source_triangle] = (target_triangle, cycle)
-	while not triangles_to_process.empty():
-		from_triangle, to_triangle, cycle = triangles_to_process.get()
-		triangle_map[from_triangle] = (to_triangle, Flipper.Kernel.Permutation.cyclic_permutation(cycle, 3))
-		for side in range(3):
-			from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
-			to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, (side+cycle)%3)
-			if from_triangle_neighbour not in seen_triangles:
-				triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
-				seen_triangles.add(from_triangle_neighbour)
-	
-	return Isometry(source_triangulation, target_triangulation, triangle_map)
+	# There is more than one solution iff S = S_1_1.
+	return [isom for isom in source_triangulation.all_isometries(target_triangulation) if isom.edge_map == edge_map][0]

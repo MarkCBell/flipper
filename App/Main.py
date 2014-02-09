@@ -332,6 +332,7 @@ class Flipper_App:
 					'\n' + \
 					'Lamination = Flipper.Kernel.Lamination.Lamination\n' + \
 					'Abstract_Triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation\n' + \
+					'isometry_from_edge_map = Flipper.Kernel.Isometry.isometry_from_edge_map\n' + \
 					'\n' + \
 					'def Example():\n' + \
 					'	T = Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \

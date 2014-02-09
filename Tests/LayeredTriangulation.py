@@ -1,17 +1,13 @@
 
-from Flipper.Kernel.Lamination import invariant_lamination
-from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
-from Flipper.Kernel.Error import AssumptionError, ComputationError
-from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
-
-from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
+import Flipper
 
 def build_bundle(word, isometry_number):
-	word, mapping_class = build_example_mapping_class(Example, word)
-	lamination, dilatation = invariant_lamination(mapping_class, exact=True)  # !?! Could throw an ImportError if no SymbolicComputation library is present.
+	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1
+	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
+	lamination, dilatation = mapping_class.invariant_lamination(exact=True)  # !?! Could throw an ImportError if no SymbolicComputation library is present.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
-	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
+	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	try:
@@ -63,7 +59,7 @@ def main():
 				# print(M.volume())
 				# print(word)
 				# return False
-		# except (AssumptionError, ComputationError):
+		# except (Flipper.Kernel.Error.AssumptionError, Flipper.Kernel.Error.ComputationError):
 			# print('Not pA.')
 	
 	return True

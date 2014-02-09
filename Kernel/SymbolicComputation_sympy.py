@@ -1,4 +1,18 @@
 
+
+# WARNING: Sympy really seems to struggle with PF calculations. For example, try:
+# [
+# [0, 0, -1, 0, 0, 0, 0, 1, 1],
+# [0, -1, -2, 1, 1, -1, 0, 2, 1],
+# [0, 0, -3, 0, 1, -1, 0, 3, 1],
+# [0, 0, -2, 0, 1, 0, 0, 2, 0],
+# [0, -1, -1, 1, 1, -1, 0, 1, 1],
+# [0, 0, -1, 0, 1, 0, 1, 0, 0],
+# [0, 0, -2, -1, 1, 0, 0, 3, 0],
+# [-1, 0, -3, -1, 1, 0, 0, 4, 1],
+# [0, 0, -1, 1, 0, -1, 0, 1, 1]
+# ]
+
 from math import log10 as log
 
 import sympy
@@ -69,19 +83,8 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
-		if not Flipper.Kernel.Matrix.nonnegative_image(condition_matrix, eigenvector):
+		if not condition_matrix.nonnegative_image(eigenvector):
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
-	
-	# n = matrix.width  # n = 6, log(n) ~ 0.75.
-	# m = matrix.bound()  # log(m) ~ 4.
-	# k = n * (log(m) + log(n+1) + log(2))
-	# H = log(n) + n**3 * (log(n) + log(m) + k) + n**2 * k
-	
-	# print(m, n)
-	# print('eigenvalue bound prediction: %s' % k)
-	# print('eigenvalue bound: %s' % log_height_algebraic_type(eigenvalue))
-	# print('entry bound prediction: %s' % H)
-	# print('entry bound: %s '% max(log_height_algebraic_type(entry) for entry in eigenvector))
 	
 	return eigenvector, eigenvalue
 

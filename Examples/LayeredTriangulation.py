@@ -6,7 +6,7 @@ def main(word):
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
 	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1m
 	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
-	lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact=True)  # Requires the SymbolicComputation library.
+	lamination, dilatation = mapping_class.invariant_lamination(exact=True)  # Requires the SymbolicComputation library.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
 	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, word)

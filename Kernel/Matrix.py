@@ -36,8 +36,8 @@ def rescale(v):
 def nonnegative(v):
 	return all(x >= 0 for x in v)
 
-def nonnegative_image(M, v):
-	return all(dot(row, v) >= 0 for row in M)
+# def nonnegative_image(M, v):
+	# return all(dot(row, v) >= 0 for row in M)
 
 def nontrivial(v):
 	return any(v)
@@ -122,6 +122,8 @@ class Matrix:
 		return Matrix([[self[i][j] * other[a][b] for j, b in product(range(self.width), range(other.width))] for i, a in product(range(self.height), range(other.height))], self.width * other.width)
 	def __xor__(self, other):
 		return self.tensor(other)
+	def nonnegative_image(self, v):
+		return all(dot(row, v) >= 0 for row in self)
 	def char_poly(self):
 		A = self.copy()
 		p = [1]
@@ -204,7 +206,7 @@ class Matrix:
 		# R, B = self.copy(), Id_Matrix(self.width)
 		
 		if R.width == 1:
-			if nonnegative_image(R, [1]):
+			if R.nonnegative_image([1]):
 				return B * [1]
 			else:
 				return None
@@ -259,7 +261,7 @@ class Matrix:
 		
 		if any(all(x < 0 for x in row) for row in R): return
 		if R.width == 1: 
-			if nonnegative_image(R, [1]):
+			if R.nonnegative_image([1]):
 				return B * [1]
 		
 		R = R.join(Id_Matrix(R.width))
@@ -269,7 +271,7 @@ class Matrix:
 			v = [(-1 if i % 2 else 1) * Matrix([A.rows[j] for j in range(A.height) if i != j], A.width).determinant() for i in range(A.height)]
 			if nontrivial(v):
 				if not nonnegative(v): v = [-x for x in v]  # Might need to flip v.
-				if nonnegative(v) and nonnegative_image(R, v):
+				if nonnegative(v) and R.nonnegative_image(v):
 					return B*v
 		return
 	
@@ -280,7 +282,7 @@ class Matrix:
 		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))
 		return (certificate is not None), certificate
 	def check_nontrivial_polytope(self, certificate):
-		return nonnegative(certificate) and nontrivial(certificate) and nonnegative_image(self, certificate)
+		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
 	def is_aperiodic(self):
 		assert(self.width == self.height)
 		A = Id_matrix(self.width)
@@ -291,7 +293,7 @@ class Matrix:
 		return False
 	def contracting(self, action):
 		M = self * action
-		return all(nonnegative_image(M, v) for v in self.edge_vectors())
+		return all(M.nonnegative_image(v) for v in self.edge_vectors())
 
 #### Some special Matrices we know how to build.
 

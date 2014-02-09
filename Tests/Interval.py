@@ -1,7 +1,8 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.Interval import interval_from_string
+import Flipper
+interval_from_string = Flipper.Kernel.Interval.interval_from_string
 
 def main():
 	w = interval_from_string('0.1')
@@ -30,8 +31,6 @@ def main():
 			return False
 		if not ((I / J).accuracy >= m - J.log_plus):
 			return False
-	
-	
 	
 	return True
 

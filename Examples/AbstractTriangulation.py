@@ -4,44 +4,40 @@
 
 import Flipper
 
-encode_twist = Flipper.Kernel.Encoding.encode_twist
-encode_isometry = Flipper.Kernel.Encoding.encode_isometry
-Id_Encoding_Sequence = Flipper.Kernel.Encoding.Id_Encoding_Sequence
 Lamination = Flipper.Kernel.Lamination.Lamination
 Abstract_Triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation
-all_isometries = Flipper.Kernel.Isometry.all_isometries
 
 
 def Example_S_1_1():
 	# S_1_1 and its standard (Twister) curves:
 	T = Abstract_Triangulation([[0,2,1], [0,2,1]])
 	
-	a = encode_twist(Lamination(T, [1,0,1]))
-	b = encode_twist(Lamination(T, [0,1,1]))
-	A = encode_twist(Lamination(T, [1,0,1]), k=-1)
-	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
+	a = Lamination(T, [1,0,1]).encode_twist()
+	b = Lamination(T, [0,1,1]).encode_twist()
+	A = Lamination(T, [1,0,1]).encode_twist(k=-1)
+	B = Lamination(T, [0,1,1]).encode_twist(k=-1)
 	return T, {'a':a, 'b':b, 'A':A, 'B':B}
 
 def Example_S_1_1m():
 	# S_1_1 and its standard (Twister) curves:
 	T = Abstract_Triangulation([[0,1,2], [0,1,2]])
 	
-	a = encode_twist(Lamination(T, [1,1,0]))
-	b = encode_twist(Lamination(T, [0,1,1]))
-	A = encode_twist(Lamination(T, [1,1,0]), k=-1)
-	B = encode_twist(Lamination(T, [0,1,1]), k=-1)
+	a = Lamination(T, [1,1,0]).encode_twist()
+	b = Lamination(T, [0,1,1]).encode_twist()
+	A = Lamination(T, [1,1,0]).encode_twist(k=-1)
+	B = Lamination(T, [0,1,1]).encode_twist(k=-1)
 	return T, {'a':a, 'b':b, 'A':A, 'B':B}
 
 def Example_S_1_2():
 	# S_1_2 and its standard (Twister) curves:
 	T = Abstract_Triangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
 	
-	a = encode_twist(Lamination(T, [0,0,1,1,1,0]))
-	b = encode_twist(Lamination(T, [1,0,0,0,1,1]))
-	c = encode_twist(Lamination(T, [0,1,0,1,0,1]))
-	A = encode_twist(Lamination(T, [0,0,1,1,1,0]), k=-1)
-	B = encode_twist(Lamination(T, [1,0,0,0,1,1]), k=-1)
-	C = encode_twist(Lamination(T, [0,1,0,1,0,1]), k=-1)
+	a = Lamination(T, [0,0,1,1,1,0]).encode_twist()
+	b = Lamination(T, [1,0,0,0,1,1]).encode_twist()
+	c = Lamination(T, [0,1,0,1,0,1]).encode_twist()
+	A = Lamination(T, [0,0,1,1,1,0]).encode_twist(k=-1)
+	B = Lamination(T, [1,0,0,0,1,1]).encode_twist(k=-1)
+	C = Lamination(T, [0,1,0,1,0,1]).encode_twist(k=-1)
 	return T, {'a':a, 'b':b, 'c':c, 'A':A, 'B':B, 'C':C}
 
 def Example_12():
@@ -49,11 +45,11 @@ def Example_12():
 	T = Abstract_Triangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], [12, 13, 0], [14, 1, 13], 
 		[14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])
 	
-	a = encode_twist(Lamination(T, [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]))
-	A = encode_twist(Lamination(T, [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]), k=-1)
-	b = encode_twist(Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]))
-	B = encode_twist(Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]), k =-1)
-	p = encode_isometry(all_isometries(T, T)[1])  # This is a 1/12 click.
+	a = Lamination(T, [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]).encode_twist()
+	b = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]).encode_twist()
+	A = Lamination(T, [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]).encode_twist(k=-1)
+	B = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]).encode_twist(k =-1)
+	p = T.all_isometries(T)[1].encode_isometry()  # This is a 1/12 click.
 	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def Example_24():
@@ -63,11 +59,11 @@ def Example_24():
 		[26, 27, 2], [28, 3, 27], [29, 4, 28], [29, 30, 5], [30, 31, 6], [32, 7, 31], [33, 8, 32], [33, 34, 9], 
 		[34, 35, 10], [12, 11, 35]])
 	
-	a = encode_twist(Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
-	A = encode_twist(Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]), k=-1)
-	b = encode_twist(Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]))
-	B = encode_twist(Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]), k=-1)
-	p = encode_isometry(all_isometries(T, T)[1])  # This is a 1/24 click.
+	a = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
+	A = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
+	b = Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
+	B = Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
+	p = T.all_isometries(T)[1].encode_isometry()  # This is a 1/24 click.
 	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def Example_36():
@@ -77,11 +73,11 @@ def Example_36():
 		[35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41],	[43, 6, 42], [43, 44, 7], [44, 45, 8], 
 		[46, 9, 45], [47, 10, 46], [47, 48, 11], [48, 49, 12], [50, 13, 49], [51, 14, 50], [51, 52, 15], [52, 53, 16], [18, 17,53]])
 	
-	a = encode_twist(Lamination(T, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
-	A = encode_twist(Lamination(T, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), k=-1)
-	b = encode_twist(Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]))
-	B = encode_twist(Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]), k=-1)
-	p = encode_isometry(all_isometries(T, T)[1])  # This is a 1/36 click.
+	a = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
+	A = Lamination(T, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
+	b = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist()
+	B = Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]).encode_twist(k=-1)
+	p = T.all_isometries(T)[1].encode_isometry()  # This is a 1/36 click.
 	return T, {'a':a, 'b':b, 'A':A, 'B':B, 'p':p}
 
 def build_example_mapping_class(example, word=None, random_length=50):
@@ -90,7 +86,7 @@ def build_example_mapping_class(example, word=None, random_length=50):
 	T, twists = example()
 	
 	if word is None: word = ''.join(choice(list(twists.keys())) for i in range(random_length))
-	h = Id_Encoding_Sequence(T)
+	h = T.Id_Encoding_Sequence()
 	for letter in word:
 		h = twists[letter] * h
 	return word, h

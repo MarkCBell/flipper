@@ -28,14 +28,6 @@ except ImportError: # Python 3
 
 import Flipper
 
-# from Flipper.Kernel.AbstractTriangulation import Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation
-# from v import Flipper.Kernel.Encoding.Id_Encoding_Sequence, Flipper.Kernel.Encoding.encode_twist, Flipper.Kernel.Encoding.encode_halftwist, Flipper.Kernel.Encoding.encode_isometry
-# from Flipper.Kernel.Isometry import Flipper.Kernel.Isometry.extend_isometry
-# from Flipper.Kernel.Flipper.Kernel.Lamination.Lamination import Flipper.Kernel.Lamination.Lamination, Flipper.Kernel.Lamination.invariant_lamination, Flipper.Kernel.Lamination.empty_lamination
-# from Flipper.Kernel.LayeredTriangulation import Flipper.Kernel.LayeredTriangulation.Layered_Triangulation
-# from Flipper.Kernel.Error import Flipper.Kernel.Error.AbortError, Flipper.Kernel.Error.ComputationError, Flipper.Kernel.Error.AssumptionError
-# from Flipper.Kernel.Version import Flipper.Kernel.Version.Flipper_version
-
 # Modes.
 TRIANGULATION_MODE = 0
 GLUING_MODE = 1
@@ -211,7 +203,7 @@ class Flipper_App:
 		# laminationdrawmenu.add_radiobutton(label=render_lamination_W_TRAIN_TRACK, var=self.options.render_lamination_var)
 
 		settingsmenu.add_cascade(label='Sizes', menu=sizemenu)
-		settingsmenu.add_cascade(label='Flipper.App.Pieces.Edge label', menu=edgelabelmenu)
+		settingsmenu.add_cascade(label='Edge label', menu=edgelabelmenu)
 		settingsmenu.add_cascade(label='Draw lamination', menu=laminationdrawmenu)
 		settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var)
 		
@@ -336,20 +328,20 @@ class Flipper_App:
 					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
 					
 					example = '\n' + \
-					'from Flipper.Kernel.AbstractTriangulation import Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation\n' + \
-					'from Flipper.Kernel.Isometry import all_isometries\n' + \
-					'from Flipper.Kernel.Encoding import Flipper.Kernel.Encoding.encode_twist, Flipper.Kernel.Encoding.encode_halftwist, Flipper.Kernel.Encoding.encode_isometry, Flipper.Kernel.Encoding.Id_Encoding_Sequence\n' + \
-					'from Flipper.Kernel.Flipper.Kernel.Lamination.Lamination import Flipper.Kernel.Lamination.Lamination\n' + \
+					'import Flipper\n' + \
+					'\n' + \
+					'Lamination = Flipper.Kernel.Lamination.Lamination\n' + \
+					'Abstract_Triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation\n' + \
 					'\n' + \
 					'def Example():\n' + \
-					'	T = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
+					'	T = Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
 					'	\n' + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_twist(Flipper.Kernel.Lamination.Lamination(T, %s))\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_twist(Flipper.Kernel.Lamination.Lamination(T, %s), k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_halftwist(Flipper.Kernel.Lamination.Lamination(T, %s))\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_halftwist(Flipper.Kernel.Lamination.Lamination(T, %s), k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in halfs) + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_isometry(isometry_from_edge_map(T, T, %s))\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
-					''.join('\t%s = Flipper.Kernel.Encoding.encode_isometry(isometry_from_edge_map(T, T, %s).inverse())\n' % (mapping_class.swapcase(), edge_map) for (mapping_class, edge_map) in isoms) + \
+					''.join('\t%s = Lamination(T, %s).encode_twist()\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = Lamination(T, %s).encode_twist(k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = Lamination(T, %s).encode_halftwist()\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = Lamination(T, %s).encode_halftwist(k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = isometry_from_edge_map(T, T, %s).encode_isometry()\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
+					''.join('\t%s = isometry_from_edge_map(T, T, %s).inverse().encode_isometry()\n' % (mapping_class.swapcase(), edge_map) for (mapping_class, edge_map) in isoms) + \
 					'	\n' + \
 					'	return T, {%s}\n' % ', '.join('\'%s\':%s' % (mapping_class, mapping_class) for mapping_class in self.mapping_classes) + \
 					'	\n' + \
@@ -359,7 +351,7 @@ class Flipper_App:
 					'	T, twists = example()\n' + \
 					'	\n' + \
 					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for i in range(random_length))\n' + \
-					'	h = Flipper.Kernel.Encoding.Id_Encoding_Sequence(T)\n' + \
+					'	h = T.Id_Encoding_Sequence()\n' + \
 					'	for letter in word:\n' + \
 					'		h = twists[letter] * h\n' + \
 					'	return word, h\n' + \
@@ -771,7 +763,7 @@ class Flipper_App:
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		self.abstract_triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
-		self.curves = {'_':Flipper.Kernel.Lamination.empty_lamination(self.abstract_triangulation)}
+		self.curves = {'_':self.abstract_triangulation.empty_lamination()}
 		self.create_edge_labels()
 	
 	def destroy_abstract_triangulation(self):
@@ -872,8 +864,8 @@ class Flipper_App:
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-					self.mapping_classes[name] = (Flipper.Kernel.Encoding.encode_twist(lamination), ('twist', lamination, +1))
-					self.mapping_classes[name.swapcase()] = (Flipper.Kernel.Encoding.encode_twist(lamination, k=-1), ('twist', lamination, -1))
+					self.mapping_classes[name] = (lamination.encode_twist(), ('twist', lamination, +1))
+					self.mapping_classes[name.swapcase()] = (lamination.encode_twist(k=-1), ('twist', lamination, -1))
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
@@ -886,8 +878,8 @@ class Flipper_App:
 					if name not in self.curves: self.list_curves.insert(TK.END, name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
-					self.mapping_classes[name] = (Flipper.Kernel.Encoding.encode_halftwist(lamination), ('half', lamination, +1))
-					self.mapping_classes[name.swapcase()] = (Flipper.Kernel.Encoding.encode_halftwist(lamination, k=-1), ('half', lamination, -1))
+					self.mapping_classes[name] = (lamination.encode_halftwist(), ('half', lamination, +1))
+					self.mapping_classes[name.swapcase()] = (lamination.encode_halftwist(k=-1), ('half', lamination, -1))
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
@@ -899,20 +891,12 @@ class Flipper_App:
 			from_edges = [int(x) for x in from_edges.split('.')]
 			to_edges = [int(x) for x in to_edges.split('.')]
 			
-			source_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(from_edges)]
-			target_triangles = [triangle for triangle in self.abstract_triangulation if set(triangle.edge_indices) == set(to_edges)]
-			if len(source_triangles) != 1 or len(source_triangles) != 1:
-				tkMessageBox.showwarning('Isometry', 'Information does not specify a triangle.')
-				return
-			
-			source_triangle, target_triangle = source_triangles[0], target_triangles[0]
-			
-			cycle = [i for i in range(3) for j in range(3) if source_triangle[j] == from_edges[0] and target_triangle[j+i] == to_edges[0]][0]
 			try:
-				isometry = Flipper.Kernel.Isometry.extend_isometry(self.abstract_triangulation, self.abstract_triangulation, source_triangle, target_triangle, cycle)
-				mapping_class = Flipper.Kernel.Encoding.encode_isometry(isometry)
-				mapping_class_inverse = Flipper.Kernel.Encoding.encode_isometry(isometry.inverse())
-			except Flipper.Kernel.Error.AssumptionError:
+				possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
+				isometry = possible_isometry[0]
+				mapping_class = isometry.encode_isometry()
+				mapping_class_inverse = isometry.inverse().encode_isometry()
+			except IndexError:
 				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			else:
 				if valid_name(name):
@@ -931,7 +915,7 @@ class Flipper_App:
 	
 	def create_composition(self, twists):
 		if self.is_complete():
-			mapping_class = Flipper.Kernel.Encoding.Id_Encoding_Sequence(self.abstract_triangulation)
+			mapping_class = self.abstract_triangulation.Id_Encoding_Sequence()
 			for twist in twists[::-1]:
 				if twist in self.mapping_classes:
 					mapping_class = self.mapping_classes[twist][0] * mapping_class
@@ -1051,13 +1035,13 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact)
+					lamination, dilatation = mapping_class.invariant_lamination(exact)
 				except Flipper.Kernel.Error.AssumptionError:
-					tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.Kernel.Error.ComputationError:
-					tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
-					tkMessageBox.showinfo('Flipper.Kernel.Lamination.Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
+					tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
 	def splitting_sequence(self, composition):
 		if self.is_complete():
@@ -1067,19 +1051,19 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact=True)
+					lamination, dilatation = mapping_class.invariant_lamination(exact=True)
 				except Flipper.Kernel.Error.AssumptionError:
-					tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.Kernel.Error.ComputationError:
-					tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
 					try:
 						start_time = time()
 						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 					except ImportError:
-						tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Cannot determine without a symbolic library.')
+						tkMessageBox.showwarning('Lamination', 'Cannot determine without a symbolic library.')
 					except Flipper.Kernel.Error.AssumptionError:
-						tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', '%s is reducible.' % composition)
+						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
 						if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
 						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
@@ -1096,7 +1080,7 @@ class Flipper_App:
 						pass
 					else:
 						try:
-							lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact=True)
+							lamination, dilatation = mapping_class.invariant_lamination(exact=True)
 						except Flipper.Kernel.Error.AssumptionError:
 							tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except Flipper.Kernel.Error.ComputationError:
@@ -1105,7 +1089,7 @@ class Flipper_App:
 							try:
 								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 							except Flipper.Kernel.Error.AssumptionError:
-								tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', '%s is reducible.' % composition)
+								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 							else:
 								L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
 								L.flips(periodic)

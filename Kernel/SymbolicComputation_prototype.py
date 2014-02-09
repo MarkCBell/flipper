@@ -177,7 +177,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 			entry.increase_accuracy(new_accuracy_needed)
 		
 		# ... so that this computation cannot fail.
-		if not Flipper.Kernel.Matrix.nonnegative_image(condition_matrix, eigenvector):
+		if not condition_matrix.nonnegative_image(eigenvector):
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 	
 	return eigenvector, eigenvalue

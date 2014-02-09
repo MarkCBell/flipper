@@ -1,7 +1,5 @@
 
-from Flipper.Kernel.Lamination import invariant_lamination
-from Flipper.Kernel.Error import ComputationError, AssumptionError
-from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
+import Flipper
 
 UNKNOWN, PERIODIC, REDUCIBLE, PSEUDO_ANOSOV = 0, 1, 2, 3
 
@@ -10,18 +8,18 @@ def determine_type(mapping_class):
 		return PERIODIC
 	else:
 		try:
-			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
+			lamination, dilatation = mapping_class.invariant_lamination(exact=True)
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 			return PSEUDO_ANOSOV
 		except ImportError:
 			pass  # !?!
-		except ComputationError:
+		except Flipper.Kernel.Error.ComputationError:
 			return UNKNOWN
-		except AssumptionError:
+		except Flipper.Kernel.Error.AssumptionError:
 			return REDUCIBLE
 
 def main():
-	from Flipper.Examples.AbstractTriangulation import Example_S_1_2 as Example
+	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_2
 	
 	# Add more tests here.
 	tests = [
@@ -32,7 +30,7 @@ def main():
 		]
 	
 	for word, mapping_class_type in tests:
-		word, mapping_class = build_example_mapping_class(Example, word)
+		word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
 		try:
 			determined_type = determine_type(mapping_class)
 			if determined_type != mapping_class_type:

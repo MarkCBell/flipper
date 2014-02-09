@@ -68,7 +68,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
-		if not Flipper.Kernel.Matrix.nonnegative_image(condition_matrix, eigenvector):
+		if not condition_matrix.nonnegative_image(eigenvector):
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
 	
 	# n = matrix.width  # n = 6, log(n) ~ 0.75.

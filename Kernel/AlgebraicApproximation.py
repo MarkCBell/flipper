@@ -48,7 +48,7 @@ class Algebraic_Approximation:
 		# An algebraic approximation is good if it is known to more interval places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.interval.accuracy < self.accuracy_needed:
-			raise Flipper.Kernel.Error.ApproximationError('An algebraic number with degree at most %d and height at most %d requires an interval with accuracy at least %d not %d.' % (self.degree, self.log_height, self.accuracy_needed, self.interval.accuracy))
+			raise Flipper.Kernel.Error.ApproximationError('An algebraic number with degree at most %d and height at most %f requires an interval with accuracy at least %d not %d.' % (self.degree, self.log_height, self.accuracy_needed, self.interval.accuracy))
 	
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.log_height))

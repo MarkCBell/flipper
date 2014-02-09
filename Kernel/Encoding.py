@@ -1,12 +1,4 @@
 
-# We can also produce Encodings using:
-#	1) Id_Encoding(triangulation)
-# and Encoding Sequences using:
-#	1) Id_Encoding_Sequence(triangulation)
-#	2) encode_flip(triangulation, edge_index)
-#	3) encode_twist(lamination, k=1)
-#	4) encode_isometry(isometry)
-
 from __future__ import print_function
 from functools import reduce
 from itertools import product
@@ -64,7 +56,7 @@ class Encoding:
 			return Flipper.Kernel.Lamination.Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
-				if Flipper.Kernel.Matrix.nonnegative_image(self.condition_matrices[i], other):
+				if self.condition_matrices[i].nonnegative_image(other):
 					return self.action_matrices[i] * other
 			raise IndexError
 		elif other is None:
@@ -79,16 +71,16 @@ class Encoding:
 	def __pow__(self, n):
 		assert(self.source_triangulation == self.target_triangulation)
 		if n == 0:
-			return Id_Encoding(self)
+			return self.source_triangulation.Id_Encoding()
 		if n == 1:
 			return self
 		if n > 1:
-			return reduce(lambda x, y: x * y, [self] * n, Id_Encoding(self))
+			return reduce(lambda x, y: x * y, [self] * n, self.source_triangulation.Id_Encoding())
 		if n == -1:
 			return self.inverse()
 		if n < -1:
 			inv = self.inverse()
-			return reduce(lambda x, y: x * y, [inv] * n, Id_Encoding(self))
+			return reduce(lambda x, y: x * y, [inv] * n, self.source_triangulation.Id_Encoding())
 	def copy(self):
 		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices], self.source_triangulation, self.target_triangulation)
 	def inverse(self):
@@ -132,7 +124,7 @@ class Encoding_Sequence:
 	def __pow__(self, k):
 		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
-			return Id_Encoding_Sequence(self.source_triangulation)
+			return self.source_triangulation.Id_Encoding_Sequence()
 		elif k > 0:
 			return Encoding_Sequence(self.sequence * k, self.source_triangulation, self.target_triangulation)
 		else:
@@ -185,7 +177,7 @@ class Encoding_Sequence:
 		indices = []
 		for A in reversed(self):
 			for i in range(A.size):
-				if Flipper.Kernel.Matrix.nonnegative_image(A.condition_matrices[i], vector2):
+				if A.condition_matrices[i].nonnegative_image(vector2):
 					indices.append(i)
 					vector2 = A.action_matrices[i] * vector2
 					break
@@ -219,7 +211,7 @@ class Encoding_Sequence:
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		curves, max_order = Flipper.Kernel.Lamination.key_curves(self.source_triangulation), self.source_triangulation.max_order
+		curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
 		for i in range(1, max_order+1):
 			if all(self**i * v == v for v in curves):
 				return i
@@ -317,159 +309,46 @@ class Encoding_Sequence:
 	def check_fixedpoint(self, certificate):
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
-
-#### Some special Encodings we know how to build.
-
-def Id_Encoding(triangulation):
-	return Encoding([Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)], [Flipper.Kernel.Matrix.Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
-
-#### Some special Encoding_Sequences we know how to build.
-
-def Id_Encoding_Sequence(triangulation):
-	return Encoding_Sequence([], triangulation, triangulation)
-
-def encode_flip(triangulation, edge_index):
-	# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
-	assert(triangulation.edge_is_flippable(edge_index))
 	
-	new_triangulation = triangulation.flip_edge(edge_index)
-	
-	a, b, c, d = triangulation.find_indicies_of_square_about_edge(edge_index)
-	A1 = Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)
-	Flipper.Kernel.Matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-	C1 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * triangulation.zeta, [a, c], [b, d]), triangulation.zeta)
-	
-	A2 = Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)
-	Flipper.Kernel.Matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-	C2 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
-	
-	actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
-	conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
-	as_latex = '%s(\\underline{x})' + ('[%d]' % edge_index) + ' &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
-	
-	return Encoding([A1, A2], [C1, C2], triangulation, new_triangulation, as_latex), Encoding([A1, A2], [C1, C2], new_triangulation, triangulation, as_latex)
-
-def encode_flips(triangulation, edge_indices):
-	forwards_sequence, backwards_sequence = Id_Encoding_Sequence(triangulation), Id_Encoding_Sequence(triangulation)
-	for edge_index in edge_indices:
-		forwards, backwards = encode_flip(forwards_sequence.target_triangulation, edge_index)
-		forwards_sequence = forwards * forwards_sequence
-		backwards_sequence = backwards_sequence * backwards
-	
-	return forwards_sequence, backwards_sequence
-
-def encode_twist(lamination, k=1):
-	''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-	If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
-	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-	if not lamination.is_good_curve():
-		raise Flipper.Kernel.Error.AssumptionError('Not a good curve.')
-	
-	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
-	
-	lamination_copy = lamination.copy()
-	
-	# We'll keep track of what we have conjugated by as well as it's inverse
-	# we could compute this at the end by doing:
-	#   conjugation_inverse = conjugation.inverse()
-	# but this is much faster as we don't need to invert a load of matrices.
-	conjugation = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
-	conjugation_inverse = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
-	
-	while lamination.weight() > 2:
-		# Find the edge which decreases our weight the most.
-		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+	def invariant_lamination(self, exact=False):
+		# Attempts to find an curve which is almost (projectively) invariant under given encoding and a
+		# (floating point) estimate of the dilatation. If one cannot be found this a ComputationError is thrown. 
+		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that the 
+		# mapping class is not periodic. If not an AssumptionError is thrown.
+		# If exact is set to True then this uses Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() to return the exact 
+		# projectively invariant lamination along with the exact dilatation (as an algebraic_type). Again, if a good
+		# enough approximation cannot be found to start the exact calculations with, this is detected and a
+		# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
+		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
 		
-		forwards, backwards = encode_flip(lamination.abstract_triangulation, edge_index)
-		conjugation = forwards * conjugation
-		conjugation_inverse = conjugation_inverse * backwards
-		lamination = forwards * lamination
-	
-	triangulation = lamination.abstract_triangulation
-	# Grab the indices of the two edges we meet.
-	e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
-	# We might need to swap these edge indices so we have a good frame of reference.
-	containing_triangles = triangulation.find_edge(e1)
-	if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
-	# But to do a right twist we'll need to switch framing again.
-	if k < 0: e1, e2 = e2, e1
-	
-	# Finally we can encode the twist.
-	forwards, backwards = encode_flip(lamination.abstract_triangulation, e1)
-	lamination = forwards * lamination
-	new_triangulation = lamination.abstract_triangulation
-	
-	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in Flipper.Kernel.Isometry.all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0])
-	T = map_back * forwards
-	
-	return conjugation_inverse * T**abs(k) * conjugation
-
-def encode_halftwist(lamination, k=1):
-	''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-	If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
-	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-	if not lamination.is_pants_boundary():
-		raise Flipper.Kernel.Error.AssumptionError('Not a boundary of a pair of pants.')
-	
-	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
-	
-	lamination_copy = lamination.copy()
-	
-	# We'll keep track of what we have conjugated by as well as it's inverse
-	# we could compute this at the end by doing:
-	#   conjugation_inverse = conjugation.inverse()
-	# but this is much faster as we don't need to invert a load of matrices.
-	conjugation = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
-	conjugation_inverse = Id_Encoding_Sequence(lamination_copy.abstract_triangulation)
-	
-	while lamination.weight() > 2:
-		# Find the edge which decreases our weight the most.
-		# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-		# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-		edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+		assert(self.source_triangulation == self.target_triangulation)
+		if self.is_periodic():
+			raise Flipper.Kernel.Error.AssumptionError('Mapping class is periodic.')
+		curves = self.source_triangulation.key_curves()
 		
-		forwards, backwards = encode_flip(lamination.abstract_triangulation, edge_index)
-		conjugation = forwards * conjugation
-		conjugation_inverse = conjugation_inverse * backwards
-		lamination = forwards * lamination
-	
-	triangulation = lamination.abstract_triangulation
-	# Grab the indices of the two edges we meet.
-	e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
-	# We might need to swap these edge indices so we have a good frame of reference.
-	containing_triangles = triangulation.find_edge(e1)
-	if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
-	# But to do a right twist we'll need to switch framing again.
-	if k < 0: e1, e2 = e2, e1
-	
-	x, y = [edge_indices for edge_indices in triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
-	for triangle in triangulation:
-		if (x in triangle or y in triangle) and len(set(triangle)) == 2:
-			bottom = x if x in triangle else y
-			other = triangle[0] if triangle[0] != bottom else triangle[1]
-	
-	# Finally we can encode the twist.
-	forwards, backwards = encode_flip(lamination.abstract_triangulation, bottom)
-	lamination = forwards * lamination
-	
-	forwards2, backwards2 = encode_flip(lamination.abstract_triangulation, e1)
-	lamination = forwards2 * lamination
-	
-	forwards3, backwards3 = encode_flip(lamination.abstract_triangulation, e2)
-	lamination = forwards3 * lamination
-	
-	new_triangulation = lamination.abstract_triangulation
-	
-	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in Flipper.Kernel.Isometry.all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0])
-	T = map_back * forwards3 * forwards2 * forwards
-	
-	return conjugation_inverse * T**abs(k) * conjugation
-
-def encode_isometry(isometry):
-	return Encoding([Flipper.Kernel.Matrix.Permutation_Matrix(isometry.edge_map)], [Flipper.Kernel.Matrix.Empty_Matrix(isometry.source_triangulation.zeta)], isometry.source_triangulation, isometry.target_triangulation)
+		def projective_difference(A, B, error_reciprocal):
+			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
+			A_sum, B_sum = sum(A), sum(B)
+			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
+		
+		new_curves = [self * curve for curve in curves]
+		for i in range(1000):
+			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
+			if i > 3:  # Make sure to do at least n==4 iterations.
+				for new_curve, curve in zip(new_curves, curves):
+					if projective_difference(new_curve, curve, 1000000000):
+						if exact:
+							if Flipper.Kernel.SymbolicComputation._name == 'dummy': raise Flipper.Kernel.Error.ImportError('Dummy symbolic library used.')
+							if curve == new_curve:
+								return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [Flipper.Kernel.SymbolicComputation.algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
+							else:
+								action_matrix, condition_matrix = self.applied_matrix(curve)
+								try:
+									eigenvector, eigenvalue = Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
+									return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, eigenvector), eigenvalue
+								except Flipper.Kernel.Error.AssumptionError:  # action_matrix was not Perron-Frobenius.
+									raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
+						else:
+							return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, curve), float((self * curve).weight()) / curve.weight()
+		else:
+			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')

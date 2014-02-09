@@ -86,6 +86,12 @@ class Algebraic_Type:
 		else:
 			return self.value > other
 	
+	def __ge__(self, other):
+		return self > other or self == other
+	
+	def __le__(self, other):
+		return self < other or self == other
+	
 	def algebraic_simplify(self, value=None):
 		if value is not None: 
 			return value

@@ -2,7 +2,6 @@
 # We can also produce Isometries using:
 #	1) isometry_from_edge_map(source_triangulation, target_triangulation, edge_map),
 #	2) extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle),
-#	3) all_isometries(source_triangulation, target_triangulation)
 
 from itertools import combinations
 try:
@@ -47,6 +46,9 @@ class Isometry:
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
+	def encode_isometry(self):
+		return Flipper.Kernel.Encoding.Encoding([Flipper.Kernel.Matrix.Permutation_Matrix(self.edge_map)], [Flipper.Kernel.Matrix.Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
+
 
 #### Some special Isometries we know how to build.
 
@@ -56,7 +58,6 @@ def isometry_from_edge_map(source_triangulation, target_triangulation, edge_map)
 	cycle = min(i for i in range(3) if all(edge_map[source_triangle[j]] == target_triangle[j + i] for j in range(3))) 
 	return extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle)
 
-# @profile
 def extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle):
 	triangle_map = {}
 	triangles_to_process = Queue()
@@ -75,22 +76,3 @@ def extend_isometry(source_triangulation, target_triangulation, source_triangle,
 				seen_triangles.add(from_triangle_neighbour)
 	
 	return Isometry(source_triangulation, target_triangulation, triangle_map)
-
-def all_isometries(source_triangulation, target_triangulation):
-	# Returns a list of all orientation preserving isometries from source_triangulation to target_triangulation.
-	if source_triangulation.zeta != target_triangulation.zeta: return []
-	
-	isometries = []
-	for triangle in target_triangulation:
-		for i in range(3):
-			try:
-				isometry = extend_isometry(source_triangulation, target_triangulation, source_triangulation.triangles[0], triangle, i)
-			except Flipper.Kernel.Error.AssumptionError:
-				pass
-			else:
-				isometries.append(isometry)
-	
-	return isometries
-
-def is_isometric_to(source_triangulation, target_triangulation):
-	return len(all_isometries(source_triangulation, target_triangulation)) > 0

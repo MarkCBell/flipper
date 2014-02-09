@@ -424,7 +424,7 @@ class Layered_Triangulation:
 	def upper_lower_isometries(self):
 		# Returns a list of all isometries that can currently be used to close the layered triangulation
 		# up into a bundle.
-		return Flipper.Kernel.Isometry.all_isometries(self.upper_triangulation, self.lower_triangulation)
+		return self.upper_triangulation.all_isometries(self.lower_triangulation)
 	
 	def close(self, isometry):
 		# Duplicate the bundle.

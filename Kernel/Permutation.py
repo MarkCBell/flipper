@@ -1,5 +1,5 @@
 
-from itertools import combinations
+from itertools import permutations, combinations
 
 # Represents a permutation on N elements.
 class Permutation:

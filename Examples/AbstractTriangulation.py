@@ -2,10 +2,15 @@
 # Some standard example surfaces with mapping classes defined on them.
 # Mainly used for running tests on.
 
-from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-from Flipper.Kernel.Isometry import all_isometries
-from Flipper.Kernel.Encoding import encode_twist, encode_halftwist, encode_isometry, Id_Encoding_Sequence
-from Flipper.Kernel.Lamination import Lamination
+import Flipper
+
+encode_twist = Flipper.Kernel.Encoding.encode_twist
+encode_isometry = Flipper.Kernel.Encoding.encode_isometry
+Id_Encoding_Sequence = Flipper.Kernel.Encoding.Id_Encoding_Sequence
+Lamination = Flipper.Kernel.Lamination.Lamination
+Abstract_Triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation
+all_isometries = Flipper.Kernel.Isometry.all_isometries
+
 
 def Example_S_1_1():
 	# S_1_1 and its standard (Twister) curves:

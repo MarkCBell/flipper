@@ -5,9 +5,7 @@
 
 from math import log10 as log
 
-from Flipper.Kernel.Error import AssumptionError, ComputationError
-from Flipper.Kernel.Matrix import Matrix, nonnegative_image
-from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_fraction, log_height_int
+import Flipper
 from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type
 
 _name = 'custom'
@@ -24,7 +22,7 @@ class Eigenvector:
 		self.power_matrix = self.matrix  # and this is some power of that matrix.
 		self.current_accuracy = -1
 		
-		# We will use notions and notation from AlgebraicApproximation.py, you should probably read that first.
+		# We will use notions and notation from Flipper.Kernel.AlgebraicApproximation.py, you should probably read that first.
 		# If M = (a_ij) is a matrix of algebraic numbers we define height(M) := max(height(a_ij)).
 		#
 		# Now suppose that M is an n x n non-zero integer matrix with eigenvalue, eigenvector pair \lambda, v = (v_i).
@@ -114,8 +112,8 @@ class Eigenvector:
 				self.power_matrix = self.power_matrix * self.power_matrix  # Now square the power matrix so we converge faster.
 			
 			self.current_accuracy = accuracy
-			self.algebraic_approximations = [algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
-			self.eigenvalue = algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height_eigenvalue)
+			self.algebraic_approximations = [Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
+			self.eigenvalue = Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height_eigenvalue)
 
 
 def algebraic_simplify(self, value=None):
@@ -174,16 +172,16 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...
-		new_accuracy_needed = sum(entry.accuracy_needed for entry in eigenvector) + matrix.width * (int(log_height_int(matrix.bound())) + 2)
+		new_accuracy_needed = sum(entry.accuracy_needed for entry in eigenvector) + matrix.width * (int(Flipper.Kernel.AlgebraicApproximation.log_height_int(matrix.bound())) + 2)
 		for entry in eigenvector:
 			entry.increase_accuracy(new_accuracy_needed)
 		
 		# ... so that this computation cannot fail.
-		if not nonnegative_image(condition_matrix, eigenvector):
-			raise ComputationError('Could not estimate invariant lamination.')
+		if not Flipper.Kernel.Matrix.nonnegative_image(condition_matrix, eigenvector):
+			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 	
 	return eigenvector, eigenvalue
 
 
 def algebraic_type_from_int(integer):
-	return Algebraic_Type((Eigenvector(Matrix([[1]], 1), vector=[1]), 0))
+	return Algebraic_Type((Eigenvector(Flipper.Kernel.Matrix.Matrix([[1]], 1), vector=[1]), 0))

@@ -40,3 +40,11 @@ def Id_Permutation(n):
 
 def cyclic_permutation(cycle, n):
 	return Permutation([(cycle + i) % n for i in range(n)])
+
+def permutation_from_mapping(n, mapping, even):
+	for perm in permutations(range(n), n):
+		P = Permutation(perm)
+		if P.is_even() == even and all(P[source] == target for (source, target) in mapping):
+			return P
+	
+	raise TypeError('Not a valid permutation.')  # !?! To Do.

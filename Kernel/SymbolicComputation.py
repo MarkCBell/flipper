@@ -46,25 +46,41 @@
 _name = None
 # if _name is None:
 	# try:
-		# from Flipper.Kernel.SymbolicComputation_prototype import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+		# import Flipper.Kernel.SymbolicComputation_prototype
+		# Algebraic_Type = Flipper.Kernel.SymbolicComputation_prototype.Algebraic_Type
+		# Perron_Frobenius_eigen = Flipper.Kernel.SymbolicComputation_prototype.Perron_Frobenius_eigen
+		# algebraic_type_from_int = Flipper.Kernel.SymbolicComputation_prototype.algebraic_type_from_int
+		# _name = Flipper.Kernel.SymbolicComputation_prototype._name
 	# except ImportError:
 		# pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sage import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+		import Flipper.Kernel.SymbolicComputation_sage
+		Algebraic_Type = Flipper.Kernel.SymbolicComputation_sage.Algebraic_Type
+		Perron_Frobenius_eigen = Flipper.Kernel.SymbolicComputation_sage.Perron_Frobenius_eigen
+		algebraic_type_from_int = Flipper.Kernel.SymbolicComputation_sage.algebraic_type_from_int
+		_name = Flipper.Kernel.SymbolicComputation_sage._name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_sympy import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+		import Flipper.Kernel.SymbolicComputation_sympy
+		Algebraic_Type = Flipper.Kernel.SymbolicComputation_sympy.Algebraic_Type
+		Perron_Frobenius_eigen = Flipper.Kernel.SymbolicComputation_sympy.Perron_Frobenius_eigen
+		algebraic_type_from_int = Flipper.Kernel.SymbolicComputation_sympy.algebraic_type_from_int
+		_name = Flipper.Kernel.SymbolicComputation_sympy._name
 	except ImportError:
 		pass
 
 if _name is None:
 	try:
-		from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
+		import Flipper.Kernel.SymbolicComputation_dummy
+		Algebraic_Type = Flipper.Kernel.SymbolicComputation_dummy.Algebraic_Type
+		Perron_Frobenius_eigen = Flipper.Kernel.SymbolicComputation_dummy.Perron_Frobenius_eigen
+		algebraic_type_from_int = Flipper.Kernel.SymbolicComputation_dummy.algebraic_type_from_int
+		_name = Flipper.Kernel.SymbolicComputation_dummy._name
 	except ImportError:
 		pass
 

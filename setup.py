@@ -15,11 +15,7 @@ class TestCommand(Command):
 	
 	def run(self):
 		''' Runs all of the tests in the Tests directory. '''
-		import Flipper.Tests.AlgebraicApproximation
-		import Flipper.Tests.Interval
-		import Flipper.Tests.Lamination
-		import Flipper.Tests.LayeredTriangulation
-		import Flipper.Tests.Matrix
+		import Flipper
 		
 		print('Running AlgebraicApproximation test...')
 		print('\tPassed' if Flipper.Tests.AlgebraicApproximation.main() else '\tFailed')

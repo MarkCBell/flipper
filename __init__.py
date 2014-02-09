@@ -1,33 +1,30 @@
 
-import Flipper.Kernel.AbstractTriangulation as AbstractTriangulation
-import Flipper.Kernel.AlgebraicApproximation as AlgebraicApproximation
-import Flipper.Kernel.Encoding as Encoding
-import Flipper.Kernel.Error as Error
-import Flipper.Kernel.Interval as Interval
-import Flipper.Kernel.Isometry as Isometry
-import Flipper.Kernel.Lamination as Lamination
-import Flipper.Kernel.LayeredTriangulation as LayeredTriangulation
-import Flipper.Kernel.Matrix as Matrix
-import Flipper.Kernel.NumberSystem as NumberSystem
-import Flipper.Kernel.Permutation as Permutation
-import Flipper.Kernel.SymbolicComputation as SymbolicComputation
-# More.
-from Flipper.Kernel.Version import Flipper_version as __version__
+import Flipper.Kernel.AbstractTriangulation
+import Flipper.Kernel.AlgebraicApproximation
+import Flipper.Kernel.Encoding
+import Flipper.Kernel.Error
+import Flipper.Kernel.Interval
+import Flipper.Kernel.Isometry
+import Flipper.Kernel.Lamination
+import Flipper.Kernel.LayeredTriangulation
+import Flipper.Kernel.Matrix
+import Flipper.Kernel.NumberSystem
+import Flipper.Kernel.Permutation
+import Flipper.Kernel.SymbolicComputation
+import Flipper.Kernel.Types
+import Flipper.Kernel.Version
 
-import Flipper.Examples.AbstractTriangulation as Example_AbstractTriangulation
-import Flipper.Examples.Lamination as Example_Lamination
-import Flipper.Examples.LayeredTriangulation as Example_LayeredTriangulation
+import Flipper.Examples.AbstractTriangulation
+import Flipper.Examples.Lamination
+import Flipper.Examples.LayeredTriangulation
 
-import Flipper.Tests.AlgebraicApproximation as Test_AlgebraicApproximation
-import Flipper.Tests.Lamination as Test_Lamination
-import Flipper.Tests.LayeredTriangulation as Test_LayeredTriangulation
-import Flipper.Tests.Interval as Test_Interval
-import Flipper.Tests.Matrix as Test_Matrix
+import Flipper.Tests.AlgebraicApproximation
+import Flipper.Tests.Interval
+import Flipper.Tests.Lamination
+import Flipper.Tests.LayeredTriangulation
+import Flipper.Tests.Matrix
 
-# all = [
-	# AbstractTriangulation, AlgebraicApproximation, Encoding, Error, Interval, 
-		# Isometry, Lamination, LayeredTriangulation, Matrix, NumberSystem, 
-		# Permutation, SymbolicComputation,
-	# Example_AbstractTriangulations, Example_Lamination, Example_LayeredTriangulation
-	# Test_AlgebraicApproximation, Test_Lamination, Test_Interval, Test_Matrix
-	# ]
+import Flipper.App.Input
+import Flipper.App.Main
+import Flipper.App.Pieces
+import Flipper.App.Progress

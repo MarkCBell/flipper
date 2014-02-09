@@ -12,17 +12,7 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 
-from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-from Flipper.Kernel.Isometry import all_isometries
-from Flipper.Kernel.Permutation import Permutation
-from Flipper.Kernel.Error import AssumptionError
-
-all_permutations = [Permutation(perm) for perm in permutations(range(4), 4)]
-even_permutations = [perm for perm in all_permutations if perm.is_even()]
-odd_permutations = [perm for perm in all_permutations if not perm.is_even()]
-
-def permutation_from_mapping(i, i_image, j, j_image, even):
-	return [perm for perm in (even_permutations if even else odd_permutations) if perm[i] == i_image and perm[j] == j_image][0]
+import Flipper
 
 # Edge veerings:
 VEERING_UNKNOWN = None
@@ -262,7 +252,7 @@ class Triangulation:
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Abstract_Triangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -328,7 +318,7 @@ class Triangulation:
 		return (meridian_copies, longitude_copies)
 	
 	def SnapPy_string(self):
-		if not self.is_closed(): raise AssumptionError('Layered triangulation is not closed.')
+		if not self.is_closed(): raise Flipper.Kernel.Error.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		s = ''
@@ -348,7 +338,7 @@ class Triangulation:
 		
 		return s
 
-# A class to represent a layered triangulation over a surface specified by an Abstract_Triangulation.
+# A class to represent a layered triangulation over a surface specified by an Flipper.Kernel.AbstractTriangulation.
 class Layered_Triangulation:
 	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
 		self.lower_triangulation = abstract_triangulation.copy()
@@ -358,12 +348,12 @@ class Layered_Triangulation:
 		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
 		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
-			lower.glue(3, upper, Permutation((0,2,1,3)))
+			lower.glue(3, upper, Flipper.Kernel.Permutation.Permutation((0,2,1,3)))
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each Abstract_Triangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		self.lower_map = dict((lower, (lower_tetra, Flipper.Kernel.Permutation.Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
+		self.upper_map = dict((upper, (upper_tetra, Flipper.Kernel.Permutation.Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -375,7 +365,7 @@ class Layered_Triangulation:
 		return s
 	
 	def flip(self, edge_index):
-		# MEGA WARNINNG: This is reliant on knowing how Abstract_Triangulation.flip() relabels things!
+		# MEGA WARNINNG: This is reliant on knowing how Flipper.Kernel.AbstractTriangulation.flip() relabels things!
 		assert(self.upper_triangulation.edge_is_flippable(edge_index))
 		
 		# Get a new tetrahedra.
@@ -397,13 +387,13 @@ class Layered_Triangulation:
 		object_B.unglue(3)
 		
 		# Do some gluings.
-		new_glue_perm_A = permutation_from_mapping(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[perm_A[3]], even=False)
-		new_glue_perm_B = permutation_from_mapping(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[perm_A[3]], even=False)
+		new_glue_perm_A = Flipper.Kernel.Permutation.permutation_from_mapping(4, [(0, down_perm_A[perm_A[side_A]]), (2, down_perm_A[perm_A[3]])], even=False)
+		new_glue_perm_B = Flipper.Kernel.Permutation.permutation_from_mapping(4, [(2, down_perm_B[perm_B[side_B]]), (0, down_perm_B[perm_A[3]])], even=False)
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		
-		new_tetrahedron.glue(1, object_A, Permutation((2,3,1,0)))
-		new_tetrahedron.glue(3, object_B, Permutation((1,0,2,3)))
+		new_tetrahedron.glue(1, object_A, Flipper.Kernel.Permutation.Permutation((2,3,1,0)))
+		new_tetrahedron.glue(3, object_B, Flipper.Kernel.Permutation.Permutation((1,0,2,3)))
 		
 		# Get the new upper triangulation
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
@@ -418,8 +408,8 @@ class Layered_Triangulation:
 			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		new_upper_map[new_A] = (object_A, Permutation((0,2,1,3)))
-		new_upper_map[new_B] = (object_B, Permutation((0,2,1,3)))
+		new_upper_map[new_A] = (object_A, Flipper.Kernel.Permutation.Permutation((0,2,1,3)))
+		new_upper_map[new_B] = (object_B, Flipper.Kernel.Permutation.Permutation((0,2,1,3)))
 		
 		# Finally, install the new objects.
 		self.upper_triangulation = new_upper_triangulation
@@ -434,7 +424,7 @@ class Layered_Triangulation:
 	def upper_lower_isometries(self):
 		# Returns a list of all isometries that can currently be used to close the layered triangulation
 		# up into a bundle.
-		return all_isometries(self.upper_triangulation, self.lower_triangulation)
+		return Flipper.Kernel.Isometry.all_isometries(self.upper_triangulation, self.lower_triangulation)
 	
 	def close(self, isometry):
 		# Duplicate the bundle.

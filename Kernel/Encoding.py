@@ -11,10 +11,7 @@ from __future__ import print_function
 from functools import reduce
 from itertools import product
 
-from Flipper.Kernel.Lamination import Lamination, key_curves
-from Flipper.Kernel.Matrix import Matrix, Id_Matrix, Empty_Matrix, Permutation_Matrix, nonnegative_image, tweak_vector
-from Flipper.Kernel.Isometry import all_isometries
-from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError
+import Flipper
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
@@ -63,11 +60,11 @@ class Encoding:
 			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			return Encoding_Sequence([self, other], other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, Lamination):
-			return Lamination(self.target_triangulation, self * other.vector)
+		elif isinstance(other, Flipper.Kernel.Lamination.Lamination):
+			return Flipper.Kernel.Lamination.Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
-				if nonnegative_image(self.condition_matrices[i], other):
+				if Flipper.Kernel.Matrix.nonnegative_image(self.condition_matrices[i], other):
 					return self.action_matrices[i] * other
 			raise IndexError
 		elif other is None:
@@ -188,7 +185,7 @@ class Encoding_Sequence:
 		indices = []
 		for A in reversed(self):
 			for i in range(A.size):
-				if nonnegative_image(A.condition_matrices[i], vector2):
+				if Flipper.Kernel.Matrix.nonnegative_image(A.condition_matrices[i], vector2):
 					indices.append(i)
 					vector2 = A.action_matrices[i] * vector2
 					break
@@ -202,8 +199,8 @@ class Encoding_Sequence:
 		''' Given indices = [a_0, ..., a_k] this returns the action and condition matrix of
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
-		As = Id_Matrix(self.zeta)
-		Cs = Empty_Matrix(self.zeta)
+		As = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
+		Cs = Flipper.Kernel.Matrix.Empty_Matrix(self.zeta)
 		for E, i in zip(reversed(self), indices):
 			Cs = Cs.join(E.condition_matrices[i] * As)
 			As = E.action_matrices[i] * As
@@ -222,7 +219,7 @@ class Encoding_Sequence:
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		curves, max_order = key_curves(self.source_triangulation), self.source_triangulation.max_order
+		curves, max_order = Flipper.Kernel.Lamination.key_curves(self.source_triangulation), self.source_triangulation.max_order
 		for i in range(1, max_order+1):
 			if all(self**i * v == v for v in curves):
 				return i
@@ -272,7 +269,7 @@ class Encoding_Sequence:
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
-		M6 = Id_Matrix(self.zeta)
+		M6 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
 		buckets = {}
 		indices = [0]
 		while indices != []:
@@ -287,16 +284,16 @@ class Encoding_Sequence:
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
-					M2 = As - M6  # As - Id_Matrix.
-					M3 = M6 - As  # Id_Matrix - As.
+					M2 = As - M6  # As - Flipper.Kernel.Matrix.Id_Flipper.Kernel.Matrix.
+					M3 = M6 - As  # Flipper.Kernel.Matrix.Id_Matrix - As.
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M6 = Id_Matrix(self.zeta)
+					# M6 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:
-						certificate = Lamination(self.source_triangulation, [2*i for i in certificate])
+						certificate = Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
 						if options is not None and options.statistics: print(buckets)
@@ -324,7 +321,7 @@ class Encoding_Sequence:
 #### Some special Encodings we know how to build.
 
 def Id_Encoding(triangulation):
-	return Encoding([Id_Matrix(triangulation.zeta)], [Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
+	return Encoding([Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)], [Flipper.Kernel.Matrix.Empty_Matrix(triangulation.zeta)], triangulation, triangulation)
 
 #### Some special Encoding_Sequences we know how to build.
 
@@ -338,13 +335,13 @@ def encode_flip(triangulation, edge_index):
 	new_triangulation = triangulation.flip_edge(edge_index)
 	
 	a, b, c, d = triangulation.find_indicies_of_square_about_edge(edge_index)
-	A1 = Id_Matrix(triangulation.zeta)
-	tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-	C1 = Matrix(tweak_vector([0] * triangulation.zeta, [a, c], [b, d]), triangulation.zeta)
+	A1 = Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)
+	Flipper.Kernel.Matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
+	C1 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * triangulation.zeta, [a, c], [b, d]), triangulation.zeta)
 	
-	A2 = Id_Matrix(triangulation.zeta)
-	tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-	C2 = Matrix(tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
+	A2 = Flipper.Kernel.Matrix.Id_Matrix(triangulation.zeta)
+	Flipper.Kernel.Matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
+	C2 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * triangulation.zeta, [b, d], [a, c]), triangulation.zeta)
 	
 	actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
 	conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
@@ -367,7 +364,7 @@ def encode_twist(lamination, k=1):
 	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
 	if not lamination.is_good_curve():
-		raise AssumptionError('Not a good curve.')
+		raise Flipper.Kernel.Error.AssumptionError('Not a good curve.')
 	
 	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
 	
@@ -406,7 +403,7 @@ def encode_twist(lamination, k=1):
 	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0])
+	map_back = encode_isometry([isom for isom in Flipper.Kernel.Isometry.all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0])
 	T = map_back * forwards
 	
 	return conjugation_inverse * T**abs(k) * conjugation
@@ -417,7 +414,7 @@ def encode_halftwist(lamination, k=1):
 	will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 	Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
 	if not lamination.is_pants_boundary():
-		raise AssumptionError('Not a boundary of a pair of pants.')
+		raise Flipper.Kernel.Error.AssumptionError('Not a boundary of a pair of pants.')
 	
 	if k == 0: return Id_Encoding_Sequence(lamination.abstract_triangulation)
 	
@@ -469,10 +466,10 @@ def encode_halftwist(lamination, k=1):
 	new_triangulation = lamination.abstract_triangulation
 	
 	# Find the correct isometry to take us back.
-	map_back = encode_isometry([isom for isom in all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0])
+	map_back = encode_isometry([isom for isom in Flipper.Kernel.Isometry.all_isometries(new_triangulation, triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0])
 	T = map_back * forwards3 * forwards2 * forwards
 	
 	return conjugation_inverse * T**abs(k) * conjugation
 
 def encode_isometry(isometry):
-	return Encoding([Permutation_Matrix(isometry.edge_map)], [Empty_Matrix(isometry.source_triangulation.zeta)], isometry.source_triangulation, isometry.target_triangulation)
+	return Encoding([Flipper.Kernel.Matrix.Permutation_Matrix(isometry.edge_map)], [Flipper.Kernel.Matrix.Empty_Matrix(isometry.source_triangulation.zeta)], isometry.source_triangulation, isometry.target_triangulation)

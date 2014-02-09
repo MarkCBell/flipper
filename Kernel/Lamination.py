@@ -6,13 +6,7 @@
 #	4) invariant_lamination(encoding)
 
 from itertools import product, combinations
-
-from Flipper.Kernel.AbstractTriangulation import Abstract_Triangulation
-from Flipper.Kernel.Matrix import nonnegative, nonnegative_image, nontrivial
-from Flipper.Kernel.Isometry import Isometry, all_isometries
-from Flipper.Kernel.Error import AbortError, ComputationError, AssumptionError, ApproximationError
-from Flipper.Kernel.SymbolicComputation import Algebraic_Type, Perron_Frobenius_eigen, algebraic_type_from_int, _name
-from Flipper.Kernel.NumberSystem import number_system_basis
+import Flipper
 
 class Lamination:
 	def __init__(self, abstract_triangulation, vector):
@@ -34,7 +28,7 @@ class Lamination:
 		return self.vector[index]
 	
 	def __rmul__(self, other):
-		if isinstance(other, Isometry) and other.source_triangulation == self.abstract_triangulation:
+		if isinstance(other, Flipper.Kernel.Isometry.Isometry) and other.source_triangulation == self.abstract_triangulation:
 			return Lamination(other.target_triangulation, [self[j] for i in range(self.zeta) for j in range(self.zeta) if i == other.edge_map[j]])
 		else:
 			return NotImplemented
@@ -46,9 +40,9 @@ class Lamination:
 		return sum(self.vector)
 	
 	def is_multicurve(self):
-		if not nontrivial(self.vector): return False
-		if not nonnegative(self.vector): return False
-		if not nonnegative_image(self.abstract_triangulation.face_matrix(), self.vector): return False
+		if not Flipper.Kernel.Matrix.nontrivial(self.vector): return False
+		if not Flipper.Kernel.Matrix.nonnegative(self.vector): return False
+		if not Flipper.Kernel.Matrix.nonnegative_image(self.abstract_triangulation.face_matrix(), self.vector): return False
 		
 		for vertex in self.abstract_triangulation.corner_classes:
 			for triangle, side in vertex:
@@ -141,7 +135,7 @@ class Lamination:
 				new_labels.append([a,b,c])
 				new_corner_labels.append([0,0,0])
 		
-		return Lamination(Abstract_Triangulation(new_labels, new_corner_labels), new_vector)
+		return Lamination(Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation(new_labels, new_corner_labels), new_vector)
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that abstract_triangulation is not S_{0,3}. Assumes that the given 
@@ -156,23 +150,23 @@ class Lamination:
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == b or c == d:
 			# This means that self[a] (respectively self[c]) == 0.
-			raise AssumptionError('Additional weightless edge.')
+			raise Flipper.Kernel.Error.AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
 		if a == d and b == c:
 			# We're on S_{0,3}.
-			raise AssumptionError('Underlying surface is S_{0,3}.')
+			raise Flipper.Kernel.Error.AssumptionError('Underlying surface is S_{0,3}.')
 		
 		if a == c and a == d:
 			# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
-			raise AssumptionError('Edge connects between two vertices labelled 0.')
+			raise Flipper.Kernel.Error.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
 		base_triangle, base_side = self.abstract_triangulation.find_edge(edge_index)[0]
 		corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 		corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
 		if corner_A_label == 0 and corner_B_label == 0:
-			raise AssumptionError('Edge connects between two vertices labelled 0.')
+			raise Flipper.Kernel.Error.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll replace the labels on the corner class with higher labels with the label from the lower
 		good_corner_label = min(corner_A_label, corner_B_label)
@@ -211,12 +205,12 @@ class Lamination:
 		new_vector = [[self[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
 		new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in self.abstract_triangulation if edge_index not in triangle]
 		
-		return Lamination(Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
+		return Lamination(Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation(new_edge_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, exact=False):
 		# Computes the splitting sequence of this lamination where each of the entries an Algebraic_Type.
 		
-		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionError.
+		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.Kernel.Error.
 		# We assume that self is given as a list of algebraic numbers.
 		
 		# If exact is set to False then an Number_System is created to how sufficiently good Algebraic_Approximations of the
@@ -239,11 +233,11 @@ class Lamination:
 		if exact:
 			initial_lamination = self
 		else:
-			initial_lamination = Lamination(self.abstract_triangulation, number_system_basis(self.vector, self.zeta))
+			initial_lamination = Lamination(self.abstract_triangulation, Flipper.Kernel.NumberSystem.number_system_basis(self.vector, self.zeta))
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in initial_lamination.vector):
-			raise AssumptionError('Lamination is not filling.')
+			raise Flipper.Kernel.Error.AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
 		lamination = initial_lamination.puncture_trigons()
@@ -258,8 +252,8 @@ class Lamination:
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
-				except AssumptionError:
-					raise AssumptionError('Lamination is not filling.')
+				except Flipper.Kernel.Error.AssumptionError:
+					raise Flipper.Kernel.Error.AssumptionError('Lamination is not filling.')
 			
 			flipped.append(edge_index)
 			
@@ -267,7 +261,7 @@ class Lamination:
 			target = projectively_hash_lamination(lamination)
 			if target in seen:
 				for index, old_lamination in seen[target]:
-					isometries = [isometry for isometry in all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal(isometry * lamination, old_lamination)]
+					isometries = [isometry for isometry in Flipper.Kernel.Isometry.all_isometries(lamination.abstract_triangulation, old_lamination.abstract_triangulation) if projectively_equal(isometry * lamination, old_lamination)]
 					if len(isometries) > 0:
 						return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]] / lamination[0], old_lamination, isometries
 				seen[target].append((len(flipped), lamination))
@@ -277,7 +271,7 @@ class Lamination:
 	def is_filling(self):
 		try:
 			self.splitting_sequence()
-		except AssumptionError:
+		except Flipper.Kernel.Error.AssumptionError:
 			return False
 		else:
 			return True
@@ -305,7 +299,7 @@ def invariant_lamination(encoding, exact=False):
 	# (floating point) estimate of the dilatation. If one cannot be found this a ComputationError is thrown. 
 	# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that the 
 	# mapping class is not periodic. If not an AssumptionError is thrown.
-	# If exact is set to True then this uses SymbolicComputation.Perron_Frobenius_eigen() to return the exact 
+	# If exact is set to True then this uses Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() to return the exact 
 	# projectively invariant lamination along with the exact dilatation (as an algebraic_type). Again, if a good
 	# enough approximation cannot be found to start the exact calculations with, this is detected and a
 	# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
@@ -313,7 +307,7 @@ def invariant_lamination(encoding, exact=False):
 	
 	assert(encoding.source_triangulation == encoding.target_triangulation)
 	if encoding.is_periodic():
-		raise AssumptionError('Mapping class is periodic.')
+		raise Flipper.Kernel.Error.AssumptionError('Mapping class is periodic.')
 	curves = key_curves(encoding.source_triangulation)
 	
 	def projective_difference(A, B, error_reciprocal):
@@ -328,18 +322,18 @@ def invariant_lamination(encoding, exact=False):
 			for new_curve, curve in zip(new_curves, curves):
 				if projective_difference(new_curve, curve, 1000000000):
 					if exact:
-						if _name == 'dummy': raise ImportError('Dummy symbolic library used.')
+						if Flipper.Kernel.SymbolicComputation._name == 'dummy': raise Flipper.Kernel.Error.ImportError('Dummy symbolic library used.')
 						if curve == new_curve:
-							return Lamination(encoding.source_triangulation, [algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
+							return Lamination(encoding.source_triangulation, [Flipper.Kernel.SymbolicComputation.algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
 						else:
 							action_matrix, condition_matrix = encoding.applied_matrix(curve)
 							try:
-								eigenvector, eigenvalue = Perron_Frobenius_eigen(action_matrix, curve.vector, None)
+								eigenvector, eigenvalue = Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen(action_matrix, curve.vector, None)
 								return Lamination(encoding.source_triangulation, eigenvector), eigenvalue
-							except AssumptionError:  # action_matrix was not Perron-Frobenius.
-								raise ComputationError('Could not estimate invariant lamination.')
+							except Flipper.Kernel.Error.AssumptionError:  # action_matrix was not Perron-Frobenius.
+								raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 					else:
 						return Lamination(encoding.source_triangulation, curve), float((encoding * curve).weight()) / curve.weight()
 	else:
-		raise ComputationError('Could not estimate invariant lamination.')
+		raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 

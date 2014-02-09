@@ -26,7 +26,8 @@
 		# Permutation
 		# Error
 	# Interval imports:
-		# None
+		# Error
+		# Types
 	# Isometry imports:
 		# Permutation
 		# Error
@@ -36,17 +37,19 @@
 		# AlgebraicApproximation
 	# Permutation imports:
 		# None
-	# SymbolicComputation imports
+	# SymbolicComputation imports:
 		# SymbolicComputation_dummy
 		# SymbolicComputation_sage
 		# SymbolicComputation_sympy
-	# Version imports
+	# Types imports:
+		# None
+	# Version imports:
 		# None
 
 from __future__ import print_function
 from itertools import product, combinations
 
-from Flipper.Kernel.Matrix import Matrix, tweak_vector
+import Flipper
 
 class Abstract_Triangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
@@ -130,13 +133,13 @@ class Abstract_Triangulation:
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
-			self._face_matrix = Matrix([tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
+			self._face_matrix = Flipper.Kernel.Matrix.Matrix([Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
 		return self._face_matrix
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
-			self._marking_matrices = [Matrix([tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
+			self._marking_matrices = [Flipper.Kernel.Matrix.Matrix([Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
 		return self._marking_matrices
 	
 	def geometric_to_algebraic(self, vector):

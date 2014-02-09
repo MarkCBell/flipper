@@ -3,9 +3,7 @@ from math import log10 as log
 
 from sage.all import Matrix, lcm, simplify, AlgebraicNumber
 
-from Flipper.Kernel.Error import AssumptionError, ComputationError
-from Flipper.Kernel.Matrix import nonnegative_image
-from Flipper.Kernel.AlgebraicApproximation import algebraic_approximation_from_string
+import Flipper
 from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type
 
 _name = 'sage'
@@ -39,7 +37,7 @@ def algebraic_approximate(self, accuracy, degree=None):
 	# if the integer part of the number is big.
 	precision = accuracy + int(log(max(self.value.n(digits=1), 1))) + 1
 	if degree is None: degree = self.algebraic_degree()  # If not given, assume that the degree of the number field is the degree of this number.
-	A = algebraic_approximation_from_string(str(self.value.n(digits=precision)), degree, self.algebraic_log_height())
+	A = Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_string(str(self.value.n(digits=precision)), degree, self.algebraic_log_height())
 	assert(A.interval.accuracy >= accuracy)
 	return A
 
@@ -60,18 +58,18 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	try:
 		[eigenvector] = N.right_kernel().basis()
 	except ValueError:
-		raise AssumptionError('Matrix is not Perron-Frobenius.')
+		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	s = sum(eigenvector)
 	if s == 0:
-		raise AssumptionError('Matrix is not Perron-Frobenius.')
+		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	eigenvalue = Algebraic_Type(eigenvalue)
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
-		if not nonnegative_image(condition_matrix, eigenvector):
-			raise ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
+		if not Flipper.Kernel.Matrix.nonnegative_image(condition_matrix, eigenvector):
+			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
 	
 	# n = matrix.width  # n = 6, log(n) ~ 0.75.
 	# m = matrix.bound()  # log(m) ~ 4.

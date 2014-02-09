@@ -4,7 +4,7 @@ try:
 except ImportError: # Python 3
 	import tkinter as TK
 
-from Flipper.Kernel.Error import AbortError
+import Flipper
 
 ''' A simple progress bar widget for TK.
 
@@ -92,7 +92,7 @@ class Progress_App:
 		self.parent.destroy()
 	
 	def update_bar(self, value):
-		if not self.running: raise AbortError()
+		if not self.running: raise Flipper.Kernel.Error.AbortError()
 		
 		self.progress.set(value, '%0.1f %%' % (value * 100))
 		self.host_app.parent.update()

@@ -10,8 +10,7 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 
-from Flipper.Kernel.Permutation import cyclic_permutation
-from Flipper.Kernel.Error import AssumptionError
+import Flipper
 
 class Isometry:
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
@@ -24,7 +23,7 @@ class Isometry:
 		self.edge_map = dict((triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3))
 		# Check that the thing that we've built is actually well defined.
 		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
-			raise AssumptionError('Map does not induce a well defined map on edges.')
+			raise Flipper.Kernel.Error.AssumptionError('Map does not induce a well defined map on edges.')
 	def __repr__(self):
 		return str(self.triangle_map)
 	def __getitem__(self, index):
@@ -67,7 +66,7 @@ def extend_isometry(source_triangulation, target_triangulation, source_triangle,
 	triangle_map[source_triangle] = (target_triangle, cycle)
 	while not triangles_to_process.empty():
 		from_triangle, to_triangle, cycle = triangles_to_process.get()
-		triangle_map[from_triangle] = (to_triangle, cyclic_permutation(cycle, 3))
+		triangle_map[from_triangle] = (to_triangle, Flipper.Kernel.Permutation.cyclic_permutation(cycle, 3))
 		for side in range(3):
 			from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
 			to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, (side+cycle)%3)
@@ -86,7 +85,7 @@ def all_isometries(source_triangulation, target_triangulation):
 		for i in range(3):
 			try:
 				isometry = extend_isometry(source_triangulation, target_triangulation, source_triangulation.triangles[0], triangle, i)
-			except AssumptionError:
+			except Flipper.Kernel.Error.AssumptionError:
 				pass
 			else:
 				isometries.append(isometry)

@@ -1,19 +1,15 @@
 
-from Flipper.Kernel.Lamination import invariant_lamination
-from Flipper.Kernel.LayeredTriangulation import Layered_Triangulation
-from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
-
-from Flipper.Examples.AbstractTriangulation import Example_S_1_1m as Example
-# from Flipper.Examples.AbstractTriangulation import Example_12 as Example
+import Flipper
 
 def main(word):
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
-	word, mapping_class = build_example_mapping_class(Example, word)
-	lamination, dilatation = invariant_lamination(mapping_class, exact=True)  # Requires the SymbolicComputation library.
+	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1m
+	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
+	lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact=True)  # Requires the SymbolicComputation library.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
-	L = Layered_Triangulation(correct_lamination.abstract_triangulation, word)
+	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.

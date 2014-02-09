@@ -1,13 +1,7 @@
 
 from time import time
 
-from Flipper.Kernel.Lamination import invariant_lamination
-from Flipper.Kernel.Error import ComputationError, AssumptionError
-from Flipper.Examples.AbstractTriangulation import build_example_mapping_class
-
-# from Flipper.Examples.AbstractTriangulation import Example_24 as Example
-# from Flipper.Examples.AbstractTriangulation import Example_S_1_1 as Example
-from Flipper.Examples.AbstractTriangulation import Example_S_1_2 as Example
+import Flipper
 
 def determine_type(mapping_class, verbose=False):
 	start_time = time()
@@ -18,7 +12,7 @@ def determine_type(mapping_class, verbose=False):
 			# We know the map cannot be periodic.
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
 			# In theory it could also fail by throwing an AssumptionError but we have already checked that the map is not periodic.
-			lamination, dilatation = invariant_lamination(mapping_class, exact=True)
+			lamination, dilatation = Flipper.Kernel.Lamination.invariant_lamination(mapping_class, exact=True)
 			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
@@ -27,26 +21,26 @@ def determine_type(mapping_class, verbose=False):
 			print(' -- Pseudo-Anosov.')
 		except ImportError:
 			print(' Cannot determine without a symbolic library.')
-		except ComputationError:
+		except Flipper.Kernel.Error.ComputationError:
 			print(' ~~ Probably reducible.')
-		except AssumptionError:
+		except Flipper.Kernel.Error.AssumptionError:
 			print(' -- Reducible.')
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-def random_test(words=None, num_trials=None, verbose=False):
+def random_test(Example, words=None, num_trials=None, verbose=False):
 	print('Start')
 	
 	times = []
 	if num_trials is not None:
 		for k in range(num_trials):
-			word, mapping_class = build_example_mapping_class(Example)
+			word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
 	elif words is not None:
 		num_trials = len(words)
 		for word in words:
-			word, mapping_class = build_example_mapping_class(Example, word)
+			word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
 	else:
@@ -58,7 +52,9 @@ def main():
 	# random_test(['aBC'])
 	# random_test(['aBBap' * 3])
 	# random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
-	random_test(['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
+	
+	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_2
+	random_test(Example, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	# k = 2
 	# random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)
 	# import cProfile

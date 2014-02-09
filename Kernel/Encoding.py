@@ -310,7 +310,7 @@ class Encoding_Sequence:
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
 	
-	def invariant_lamination(self, exact=False):
+	def invariant_lamination(self, exact=True):
 		# Attempts to find an curve which is almost (projectively) invariant under given encoding and a
 		# (floating point) estimate of the dilatation. If one cannot be found this a ComputationError is thrown. 
 		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that the 

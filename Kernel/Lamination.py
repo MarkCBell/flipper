@@ -1,11 +1,4 @@
 
-# We can also produce Laminations using:
-#	1) empty_laminaiton(triangulation),
-#	2) regular_neighbourhood(triangulation, edge_index),
-#	3) key_curves(triangulation), and
-#	4) invariant_lamination(encoding)
-
-from itertools import product, combinations
 import Flipper
 
 class Lamination:
@@ -146,8 +139,6 @@ class Lamination:
 		assert(self[edge_index] == 0)
 		
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
-		# print(self.abstract_triangulation)
-		# print(edge_index)
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == b or c == d:
@@ -157,7 +148,6 @@ class Lamination:
 		# There is at most one duplicated pair.
 		if a == d and b == c:
 			# We're on S_{0,3}.
-			print('X')
 			raise Flipper.Kernel.Error.AssumptionError('Underlying surface is S_{0,3}.')
 		
 		if a == c and a == d:

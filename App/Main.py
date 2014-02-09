@@ -5,7 +5,6 @@
 # Then run with:
 # sage -python App.py
 
-
 import re
 import os
 import sys
@@ -487,7 +486,7 @@ class Flipper_App:
 				elif task == 'reducible': self.is_reducible(combined)
 				elif task == 'pA': self.is_pseudo_Anosov(combined)
 				elif task == 'lamination': self.invariant_lamination(combined)
-				elif task == 'lamination_exact': self.invariant_lamination(combined, exact=True)
+				elif task == 'lamination_estimate': self.invariant_lamination(combined, exact=False)
 				elif task == 'split': self.splitting_sequence(combined)
 				elif task == 'bundle': self.build_bundle(combined)
 				elif task == 'latex': self.latex(combined)
@@ -506,7 +505,7 @@ class Flipper_App:
 	
 	def redraw(self):
 		self.build_edge_labels()
-		if self.is_complete(): self.lamination_to_canvas(self.curves['_'])
+		# if self.is_complete(): self.lamination_to_canvas(self.curves['_'])
 
 		for vertex in self.vertices:
 			self.canvas.coords(vertex.drawn_self, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
@@ -1028,7 +1027,7 @@ class Flipper_App:
 	######################################################################
 	
 	
-	def invariant_lamination(self, composition, exact=False):
+	def invariant_lamination(self, composition, exact=True):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
@@ -1052,7 +1051,7 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = mapping_class.invariant_lamination(exact=True)
+					lamination, dilatation = mapping_class.invariant_lamination()
 				except Flipper.Kernel.Error.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.Kernel.Error.ComputationError:
@@ -1081,7 +1080,7 @@ class Flipper_App:
 						pass
 					else:
 						try:
-							lamination, dilatation = mapping_class.invariant_lamination(exact=True)
+							lamination, dilatation = mapping_class.invariant_lamination()
 						except Flipper.Kernel.Error.AssumptionError:
 							tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except Flipper.Kernel.Error.ComputationError:
@@ -1152,58 +1151,60 @@ class Flipper_App:
 		
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		possible_object = self.object_here((x,y))
-		if self.selected_object is None:
-			if possible_object is None:
-				if self.is_complete() and not shift_pressed:
-					self.select_object(self.create_curve_component((x,y)))
-					self.selected_object.append_point((x,y))
-				else:
+		
+		if self.is_complete() and not shift_pressed:
+			if self.selected_object is None:
+				self.select_object(self.create_curve_component((x,y)))
+				self.selected_object.append_point((x,y))
+			elif isinstance(self.selected_object, Flipper.App.Pieces.Curve_Component):
+				self.selected_object.append_point((x,y))
+				self.set_current_curve()
+		else:
+			if self.selected_object is None:
+				if possible_object is None:
 					self.select_object(self.create_vertex((x,y)))
-			elif isinstance(possible_object, Flipper.App.Pieces.Edge):
-				self.destroy_edge_identification(possible_object)
-				if possible_object.free_sides() > 0:
-					self.select_object(possible_object)
-			elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
-				self.select_object(possible_object)
-		elif isinstance(self.selected_object, Flipper.App.Pieces.Vertex):
-			if possible_object == self.selected_object:
-				self.select_object(None)
-			elif possible_object is None:
-				new_vertex = self.create_vertex((x,y))
-				self.create_edge(self.selected_object, new_vertex)
-				self.select_object(new_vertex)
-			elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
-				self.create_edge(self.selected_object, possible_object)
-				self.select_object(possible_object)
-			elif isinstance(possible_object, Flipper.App.Pieces.Edge):
-				if possible_object.free_sides() > 0:
-					self.select_object(possible_object)
-		elif isinstance(self.selected_object, Flipper.App.Pieces.Edge):
-			if possible_object == self.selected_object:
-				self.select_object(None)
-			elif possible_object is None:
-				new_vertex = self.create_vertex((x,y))
-				self.create_edge(self.selected_object.source_vertex, new_vertex)
-				self.create_edge(self.selected_object.target_vertex, new_vertex)
-				self.select_object(None)
-			elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
-				if possible_object != self.selected_object.source_vertex and possible_object != self.selected_object.target_vertex:
-					self.create_edge(self.selected_object.source_vertex, possible_object)
-					self.create_edge(self.selected_object.target_vertex, possible_object)
-					self.select_object(None)
-				else:
-					self.select_object(possible_object)
-			elif isinstance(possible_object, Flipper.App.Pieces.Edge):
-				if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
-					self.destroy_edge_identification(self.selected_object)
+				elif isinstance(possible_object, Flipper.App.Pieces.Edge):
 					self.destroy_edge_identification(possible_object)
-					self.create_edge_identification(self.selected_object, possible_object)
-					self.select_object(None)
-				else:
+					if possible_object.free_sides() > 0:
+						self.select_object(possible_object)
+				elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
 					self.select_object(possible_object)
-		elif isinstance(self.selected_object, Flipper.App.Pieces.Curve_Component):
-			self.selected_object.append_point((x,y))
-			self.set_current_curve()
+			elif isinstance(self.selected_object, Flipper.App.Pieces.Vertex):
+				if possible_object == self.selected_object:
+					self.select_object(None)
+				elif possible_object is None:
+					new_vertex = self.create_vertex((x,y))
+					self.create_edge(self.selected_object, new_vertex)
+					self.select_object(new_vertex)
+				elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
+					self.create_edge(self.selected_object, possible_object)
+					self.select_object(possible_object)
+				elif isinstance(possible_object, Flipper.App.Pieces.Edge):
+					if possible_object.free_sides() > 0:
+						self.select_object(possible_object)
+			elif isinstance(self.selected_object, Flipper.App.Pieces.Edge):
+				if possible_object == self.selected_object:
+					self.select_object(None)
+				elif possible_object is None:
+					new_vertex = self.create_vertex((x,y))
+					self.create_edge(self.selected_object.source_vertex, new_vertex)
+					self.create_edge(self.selected_object.target_vertex, new_vertex)
+					self.select_object(None)
+				elif isinstance(possible_object, Flipper.App.Pieces.Vertex):
+					if possible_object != self.selected_object.source_vertex and possible_object != self.selected_object.target_vertex:
+						self.create_edge(self.selected_object.source_vertex, possible_object)
+						self.create_edge(self.selected_object.target_vertex, possible_object)
+						self.select_object(None)
+					else:
+						self.select_object(possible_object)
+				elif isinstance(possible_object, Flipper.App.Pieces.Edge):
+					if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
+						self.destroy_edge_identification(self.selected_object)
+						self.destroy_edge_identification(possible_object)
+						self.create_edge_identification(self.selected_object, possible_object)
+						self.select_object(None)
+					else:
+						self.select_object(possible_object)
 	
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:

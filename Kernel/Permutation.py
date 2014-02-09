@@ -42,6 +42,24 @@ def cyclic_permutation(cycle, n):
 	return Permutation([(cycle + i) % n for i in range(n)])
 
 def permutation_from_mapping(n, mapping, even):
+	# v = [None] * (len(mapping) + 2)
+	# for (source, target) in mapping:
+		# v[source] = target
+	
+	# sources, targets = zip(*mapping)
+	# a, b = list(set(range(len(v))).difference(set(sources)))
+	# p, q = list(set(range(len(v))).difference(set(targets)))
+	# v1, v2 = list(v), list(v)
+	# v1[a] = p
+	# v1[b] = q
+	# P1 = Permutation(v1)
+	# if P1.is_even() == even: return P1
+	
+	# v2[a] = q
+	# v2[b] = p
+	# P2 = Permutation(v2)
+	# if P2.is_even() == even: return P2
+	
 	for perm in permutations(range(n), n):
 		P = Permutation(perm)
 		if P.is_even() == even and all(P[source] == target for (source, target) in mapping):

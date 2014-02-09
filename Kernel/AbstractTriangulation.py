@@ -21,8 +21,8 @@ class Abstract_Triangle:
 		return iter(self.edge_indices)
 	
 	def __repr__(self):
-		# return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
-		return '(%s, %s)' % (self.index, self.edge_indices)
+		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
+		# return '(%s, %s)' % (self.index, self.edge_indices)
 	
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]

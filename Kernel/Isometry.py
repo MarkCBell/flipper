@@ -1,6 +1,5 @@
 
-from itertools import combinations, product
-
+from itertools import combinations
 
 import Flipper
 

@@ -7,10 +7,9 @@ def main(word):
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
 	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1m
 	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
-	lamination = mapping_class.invariant_lamination()  # Requires the SymbolicComputation library.
-	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+	preperiodic, periodic, new_dilatation, lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()  # Requires the SymbolicComputation library.
 	
-	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, word)
+	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.

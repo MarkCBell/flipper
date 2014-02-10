@@ -307,14 +307,21 @@ class Encoding_Sequence:
 		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def invariant_lamination(self, exact=True):
-		# Attempts to find an curve which is almost (projectively) invariant under given encoding and a
-		# (floating point) estimate of the dilatation. If one cannot be found this a ComputationError is thrown. 
-		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that the 
-		# mapping class is not periodic. If not an AssumptionError is thrown.
-		# If exact is set to True then this uses Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() to return the exact 
-		# projectively invariant lamination along with the exact dilatation (as an algebraic_type). Again, if a good
-		# enough approximation cannot be found to start the exact calculations with, this is detected and a
-		# ComputationError thrown. Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
+		# This uses Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() to return a lamination
+		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
+		
+		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that 
+		# the mapping class is not periodic. If not an AssumptionError is thrown.
+		
+		# The process starts with several curves on the surface and repeatedly applies the map until 
+		# they appear to projectively converge. If exact is set to False then the process stops and 
+		# returns one of these curves as an approximation of the invariant lamination. Otherwise 
+		# Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() is used to find the nearby 
+		# projective fixed point.
+		
+		# If these curves do not appear to converge, this is detected and a ComputationError thrown. 
+		
+		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
 		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
@@ -336,15 +343,22 @@ class Encoding_Sequence:
 						if exact:
 							if Flipper.Kernel.SymbolicComputation._name == 'dummy': raise Flipper.Kernel.Error.ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
-								return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [Flipper.Kernel.SymbolicComputation.algebraic_type_from_int(v) for v in curve]), 1  # Convert to Algebraic_Type!
+								return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [Flipper.Kernel.SymbolicComputation.algebraic_type_from_int(v) for v in curve])  # Convert to Algebraic_Type!
 							else:
 								action_matrix, condition_matrix = self.applied_matrix(curve)
 								try:
-									eigenvector, eigenvalue = Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
-									return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, eigenvector), eigenvalue
+									eigenvector = Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
+									return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, eigenvector)
 								except Flipper.Kernel.Error.AssumptionError:  # action_matrix was not Perron-Frobenius.
 									raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 						else:
-							return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, curve), float((self * curve).weight()) / curve.weight()
+							return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, curve)
 		else:
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
+	
+	def dilatation(self, lamination):
+		# Returns the dilatation of this mapping class on the given lamination.
+		# This only makes sense if the lamination is projectively invariant.
+		
+		new_lamination = self * lamination
+		return new_lamination.weight() / lamination.weight()

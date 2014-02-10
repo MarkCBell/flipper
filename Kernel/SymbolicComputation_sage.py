@@ -64,7 +64,6 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	if s == 0:
 		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	eigenvalue = Algebraic_Type(eigenvalue)
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
@@ -84,7 +83,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	# print('entry bound prediction: %s' % H2)
 	# print('entry bound: %s '% max(log_height_algebraic_type(entry) for entry in eigenvector))
 	
-	return eigenvector, eigenvalue
+	return eigenvector
 
 def algebraic_type_from_int(integer):
 	return Algebraic_Type(AlgebraicNumber(integer))

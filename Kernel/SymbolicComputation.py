@@ -28,10 +28,11 @@
 # both with integers and other Algebraic_Types.
 #
 # Each library also provides two functions for creating Algebraic_Types:
-#	Perron_Frobenius_eigen(matrix, vector=None):
-#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns the unique pair 
-#		(eigenvector, eigenvalue) with largest eigenvalue and eigenvector whose sum of entries is one. 
-#		The eigenvalue must be an algebraic_type and the eigenvector must be a list of algebraic_types. 
+#	Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
+#		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns its Perron-Frobenius
+#		eigenvector, that is eigenvector with corresponding eigenvalue with largest absolute value and
+#		whose sum of entries is one. The eigenvector must be a list of algebraic_types. 
+#		If given, the library should check that condition_matrix * eigenvector >= 0.
 #	algebraic_type_from_int(integer):
 #		Returns an Algebraic_Type representing the given integer.
 # and a _name variable containing a string identifying the module. This is very useful for debugging.

@@ -13,7 +13,8 @@ def determine_type(mapping_class, verbose=False):
 			# We know the map cannot be periodic.
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
 			# In theory it could also fail by throwing an AssumptionError but we have already checked that the map is not periodic.
-			lamination, dilatation = mapping_class.invariant_lamination()
+			lamination = mapping_class.invariant_lamination()
+			dilatation = mapping_class.dilatation(lamination)
 			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()

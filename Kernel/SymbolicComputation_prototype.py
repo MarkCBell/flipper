@@ -98,7 +98,6 @@ class Eigenvector:
 		self.vector = self.matrix * self.old_vector
 		
 		self.algebraic_approximation = [None] * self.matrix.width
-		self.eigenvalue = None
 		self.increase_accuracy()
 	
 	
@@ -112,7 +111,6 @@ class Eigenvector:
 			
 			self.current_accuracy = accuracy
 			self.algebraic_approximations = [Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_fraction(entry, sum(self.vector), self.current_accuracy, self.degree, self.log_height) for entry in self.vector]
-			self.eigenvalue = Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_fraction(sum(self.matrix * self.vector), sum(self.vector), self.current_accuracy, self.degree, self.log_height_eigenvalue)
 
 
 def algebraic_simplify(self, value=None):
@@ -167,7 +165,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	EV = Eigenvector(matrix, vector=vector)
 	
-	eigenvector, eigenvalue = [Algebraic_Type((EV, i)) for i in range(matrix.width)], EV.eigenvalue  # This isn't of Algebraic_Type.
+	eigenvector = [Algebraic_Type((EV, i)) for i in range(matrix.width)]
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...
@@ -179,7 +177,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 		if not condition_matrix.nonnegative_image(eigenvector):
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
 	
-	return eigenvector, eigenvalue
+	return eigenvector
 
 
 def algebraic_type_from_int(integer):

@@ -79,14 +79,13 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	if s == 0:
 		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	eigenvalue = Algebraic_Type(eigenvalue)
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
 		if not condition_matrix.nonnegative_image(eigenvector):
 			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
 	
-	return eigenvector, eigenvalue
+	return eigenvector
 
 def algebraic_type_from_int(integer):
 	return Algebraic_Type(integer)

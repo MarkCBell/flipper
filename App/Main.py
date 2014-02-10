@@ -1013,7 +1013,8 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = mapping_class.invariant_lamination(exact)
+					lamination = mapping_class.invariant_lamination(exact)
+					dilatation = mapping_class.dilatation(lamination)
 				except Flipper.Kernel.Error.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.Kernel.Error.ComputationError:
@@ -1029,7 +1030,7 @@ class Flipper_App:
 				pass
 			else:
 				try:
-					lamination, dilatation = mapping_class.invariant_lamination()
+					lamination = mapping_class.invariant_lamination(exact)
 				except Flipper.Kernel.Error.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.Kernel.Error.ComputationError:
@@ -1057,7 +1058,7 @@ class Flipper_App:
 						pass
 					else:
 						try:
-							lamination, dilatation = mapping_class.invariant_lamination()
+							lamination = mapping_class.invariant_lamination()
 						except Flipper.Kernel.Error.AssumptionError:
 							tkMessageBox.showwarning('Flipper.Kernel.Lamination.Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except Flipper.Kernel.Error.ComputationError:

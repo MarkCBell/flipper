@@ -24,7 +24,6 @@ import Flipper.Tests.Lamination
 import Flipper.Tests.LayeredTriangulation
 import Flipper.Tests.Matrix
 
-import Flipper.App.Input
 import Flipper.App.Main
 import Flipper.App.Pieces
 import Flipper.App.Progress

@@ -1072,13 +1072,13 @@ class Flipper_App:
 								L.flips(periodic)
 								closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-								M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(closing_isometries[0])
+								M = L.close(closing_isometries[0])
 								file.write(M.SnapPy_string())
 								description = 'It was built using the first of %d isometries.\n' % len(closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
-								'Cusp types: %s\n' % cusp_types + \
-								'Fibre slopes: %s\n' % fibre_slopes + \
-								'Degeneracy slopes: %s\n' % degeneracy_slopes + \
+								'Cusp types: %s\n' % M.cusp_types + \
+								'Fibre slopes: %s\n' % M.fibre_slopes + \
+								'Degeneracy slopes: %s\n' % M.degeneracy_slopes + \
 								'To build this bundle I had to create some artificial punctures,\n' + \
 								'these are the ones with puncture type 1.\n' + \
 								'You should fill them with their fibre slope to get\n' + \

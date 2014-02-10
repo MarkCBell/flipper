@@ -96,6 +96,9 @@ class Triangulation:
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
 		self.num_cusps = 0
+		self.cusp_types = []
+		self.fibre_slopes = []
+		self.degeneracy_slopes = []
 		self.name = name
 	
 	def copy(self):
@@ -539,4 +542,8 @@ class Layered_Triangulation:
 			
 			degeneracy_slopes[index] = closed_triangulation.slope_TEMPS()
 		
-		return closed_triangulation, cusp_types, fibre_slopes, degeneracy_slopes
+		closed_triangulation.cusp_types = cusp_types
+		closed_triangulation.fibre_slopes = fibre_slopes
+		closed_triangulation.degeneracy_slopes = degeneracy_slopes
+		
+		return closed_triangulation

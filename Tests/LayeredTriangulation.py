@@ -6,14 +6,14 @@ import Flipper
 def build_bundle(word, isometry_number):
 	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1
 	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
-	lamination, dilatation = mapping_class.invariant_lamination(exact=True)  # !?! Could throw an ImportError if no SymbolicComputation library is present.
+	lamination, dilatation = mapping_class.invariant_lamination()  # !?! Could throw an ImportError if no SymbolicComputation library is present.
 	preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
 	
 	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	try:
-		M, cusp_types, fibre_slopes, degeneracy_slopes = L.close(closing_isometries[isometry_number])
+		M = L.close(closing_isometries[isometry_number])
 	except IndexError:
 		return None
 	

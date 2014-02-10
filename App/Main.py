@@ -81,10 +81,6 @@ class Options:
 		
 		self.redraw = redraw
 		
-		self.debugging = False
-		self.profiling = False
-		self.statistics = False
-		
 		# Drawing parameters.
 		self.epsilon = 10
 		self.float_error = 0.001
@@ -376,17 +372,6 @@ class Flipper_App:
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
 	
-	def debug(self):
-		self.options.debugging = not self.options.debugging
-		if self.options.debugging and self.is_complete():
-			print([triangle.edge_indices for triangle in self.abstract_triangulation])
-	
-	def profile(self):
-		self.options.profiling = not self.options.profiling
-	
-	def stats(self):
-		self.options.statistics = not self.options.statistics
-	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:
 			vertex.x += dx
@@ -455,14 +440,9 @@ class Flipper_App:
 				elif task == 'export_image': self.export_image(combined)
 				elif task == 'export_script': self.export_script(combined)
 				elif task == 'erase': self.destroy_curve()
-				elif task == 'options': self.show_options()
 				elif task == 'help': self.show_help()
 				elif task == 'about': self.show_about()
 				elif task == 'exit': self.quit()
-				
-				elif task == 'debug': self.debug()
-				elif task == 'profile': self.profile()
-				elif task == 'stats': self.stats()
 				
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
@@ -923,7 +903,6 @@ class Flipper_App:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 					raise Flipper.Kernel.Error.AbortError()
 		
-			if self.options.debugging: print('Mapping class size: %d' % mapping_class.size)
 			return mapping_class
 	
 	def show_composition(self, composition):
@@ -998,7 +977,6 @@ class Flipper_App:
 				try:
 					start_time = time()
 					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.App.Progress.Progress_App(self), options=self.options)
-					if self.options.profiling: print('Determined reducibility of %s in %0.1fs.' % (composition, time() - start_time))
 					if result[0]:
 						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
 					else:
@@ -1065,7 +1043,6 @@ class Flipper_App:
 					except Flipper.Kernel.Error.AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
-						if self.options.profiling: print('Computed splitting sequence of %s in %0.1fs.' % (composition, time() - start_time))
 						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
 	
 	def build_bundle(self, composition):

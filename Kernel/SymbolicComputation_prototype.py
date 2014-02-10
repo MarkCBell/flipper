@@ -90,7 +90,6 @@ class Eigenvector:
 		self.height_matrix = self.matrix.bound()
 		self.log_height_eigenvalue = self.degree * (log(self.height_matrix) + log(self.degree) + log(2))
 		self.log_height = 2 * self.degree**3 * (log(self.degree) + log(self.matrix.bound()) + self.log_height_eigenvalue)
-		print(self.log_height)
 		self.log_height = 100  # !?! Deal with this!
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		

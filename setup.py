@@ -1,6 +1,8 @@
 
+from __future__ import print_function
 import os
 from distutils.core import setup, Command
+
 from Kernel.Version import Flipper_version
 
 # So we can access all of the test suite just by doing "python setup.py test"

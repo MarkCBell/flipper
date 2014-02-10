@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 from math import log10 as log
 
 import Flipper

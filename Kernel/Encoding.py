@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 from functools import reduce
 from itertools import product
 
@@ -223,7 +222,7 @@ class Encoding_Sequence:
 	def is_periodic(self):
 		return self.order() > 0
 	
-	def is_reducible(self, certify=False, show_progress=None, options=None):
+	def is_reducible(self, certify=False, show_progress=None):
 		''' This determines if the induced action of self on V has a fixed point satisfying:
 		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices.
 		
@@ -268,7 +267,6 @@ class Encoding_Sequence:
 			if len(indices) not in buckets: buckets[len(indices)] = 0
 			buckets[len(indices)] += 1
 			As, Cs = self.expand_indices(indices)
-			if options is not None and options.debugging: print(indices)
 			if show_progress is not None: show_progress.update_bar(progress(indices))
 			if len(indices) < self.size:
 				S, certificate = Cs.nontrivial_polytope()
@@ -288,12 +286,10 @@ class Encoding_Sequence:
 						certificate = Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
-						if options is not None and options.statistics: print(buckets)
 						return (True, certificate) if certify else True
 				indices = jump(indices)
 		
 		if show_progress is not None: show_progress.cancel()
-		if options is not None and options.statistics: print(buckets)
 		return (False, None) if certify else False
 	
 	def is_reducible2(self, is_multicurve, certify=False):

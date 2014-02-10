@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import Flipper
 
 def build_bundle(word, isometry_number):

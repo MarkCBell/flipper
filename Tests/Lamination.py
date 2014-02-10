@@ -1,4 +1,6 @@
 
+from __future__ import print_function
+
 import Flipper
 
 UNKNOWN, PERIODIC, REDUCIBLE, PSEUDO_ANOSOV = 0, 1, 2, 3

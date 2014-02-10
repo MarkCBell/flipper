@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce

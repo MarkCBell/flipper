@@ -24,6 +24,7 @@ import Flipper.tests.lamination
 import Flipper.tests.layeredtriangulation
 import Flipper.tests.matrix
 
-import Flipper.app.main
-import Flipper.app.pieces
-import Flipper.app.progress
+import Flipper.application.main
+import Flipper.application.pieces
+import Flipper.application.progress
+

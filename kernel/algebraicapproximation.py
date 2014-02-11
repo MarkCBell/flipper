@@ -17,7 +17,7 @@
 
 # An immediate consequence of 1) is that if x_0 \in K is a root of f \in ZZ[x] then H(x_0) <= H(f).
 
-# From 2) it follows that so long as the accuracy of the interval of an Algebraic_Approximation is at least
+# From 2) it follows that so long as the accuracy of the interval of an AlgebraicApproximation is at least
 #	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x_0) * H(f)) <= log(deg(x_0)) + h(x_0)
 # it uniquely determines an algebraic number.
 
@@ -34,7 +34,7 @@ def log_height_int(number):
 # This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
 # by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
 # upper bound on the log height of this number.
-class Algebraic_Approximation:
+class AlgebraicApproximation:
 	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
 	
 	def __init__(self, interval, degree, log_height):
@@ -54,50 +54,50 @@ class Algebraic_Approximation:
 		return repr((self.interval, self.degree, self.log_height))
 	
 	def __neg__(self):
-		return Algebraic_Approximation(-self.interval, self.degree, self.log_height)
+		return AlgebraicApproximation(-self.interval, self.degree, self.log_height)
 	
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + log(2))
+		if isinstance(other, AlgebraicApproximation):
+			return AlgebraicApproximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + log(2))
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
-			return Algebraic_Approximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + log(2))
+			return AlgebraicApproximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + log(2))
+		if isinstance(other, AlgebraicApproximation):
+			return AlgebraicApproximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + log(2))
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
-			return Algebraic_Approximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + log(2))
+			return AlgebraicApproximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
+		if isinstance(other, AlgebraicApproximation):
+			return AlgebraicApproximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
-			return Algebraic_Approximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
+			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __rmult__(self, other):
 		return self * other
 	def __div__(self, other):
-		if isinstance(other, Algebraic_Approximation):
-			return Algebraic_Approximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
+		if isinstance(other, AlgebraicApproximation):
+			return AlgebraicApproximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
-			return Algebraic_Approximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
+			return AlgebraicApproximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
 		if isinstance(other, Flipper.kernel.types.Integer_Type):
-			return Algebraic_Approximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
+			return AlgebraicApproximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented  # !?!
 	def __rtruediv__(self, other):
@@ -125,7 +125,7 @@ class Algebraic_Approximation:
 	def algebraic_simplify(self):
 		return self
 	def algebraic_hash(self):
-		# The common denominator to switch Algebraic_Approximations to before hashing.
+		# The common denominator to switch AlgebraicApproximations to before hashing.
 		HASH_DENOMINATOR = 5
 		
 		return self.interval.change_denominator(HASH_DENOMINATOR).tuple()
@@ -141,10 +141,10 @@ class Algebraic_Approximation:
 #### Some special Algebraic approximations we know how to build.
 
 def algebraic_approximation_from_string(string, degree, log_height):
-	return Algebraic_Approximation(Flipper.kernel.interval.interval_from_string(string), degree, log_height)
+	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_string(string), degree, log_height)
 
 def algebraic_approximation_from_int(integer, accuracy, degree, log_height):
-	return Algebraic_Approximation(Flipper.kernel.interval.interval_from_int(integer, accuracy), degree, log_height)
+	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_int(integer, accuracy), degree, log_height)
 
 def algebraic_approximation_from_fraction(numerator, denominator, accuracy, degree, log_height):
-	return Algebraic_Approximation(Flipper.kernel.interval.interval_from_fraction(numerator, denominator, accuracy), degree, log_height)
+	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_fraction(numerator, denominator, accuracy), degree, log_height)

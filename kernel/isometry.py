@@ -5,9 +5,9 @@ import Flipper
 
 class Isometry:
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
-		# source_triangulation and target_triangulation are two Abstract_Triangulations
-		# triangle_map is a dictionary sending each Abstract_Triangle of source_triangulation to a pair
-		# (Abstract_Triangle, Permutation).
+		# source_triangulation and target_triangulation are two AbstractTriangulations
+		# triangle_map is a dictionary sending each AbstractTriangle of source_triangulation to a pair
+		# (AbstractTriangle, Permutation).
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.triangle_map = triangle_map

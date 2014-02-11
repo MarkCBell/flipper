@@ -47,10 +47,10 @@ class Encoding:
 		return self * other
 	def __mul__(self, other):
 		# Should have some more asserts here to check we're going between matching triangulations.
-		if isinstance(other, Encoding_Sequence):
-			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
+		if isinstance(other, EncodingSequence):
+			return EncodingSequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
-			return Encoding_Sequence([self, other], other.source_triangulation, self.target_triangulation)
+			return EncodingSequence([self, other], other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Flipper.kernel.lamination.Lamination):
 			return Flipper.kernel.lamination.Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
@@ -59,12 +59,12 @@ class Encoding:
 					return self.action_matrices[i] * other
 			raise IndexError
 		elif other is None:
-			return Encoding_Sequence([self], self.source_triangulation, self.target_triangulation)
+			return EncodingSequence([self], self.source_triangulation, self.target_triangulation)
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
 		if other is None:
-			return Encoding_Sequence([self], self.source_triangulation, self.target_triangulation)
+			return EncodingSequence([self], self.source_triangulation, self.target_triangulation)
 		else:
 			return NotImplemented
 	def __pow__(self, n):
@@ -87,7 +87,7 @@ class Encoding:
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
 
-class Encoding_Sequence:
+class EncodingSequence:
 	def __init__(self, L, source_triangulation, target_triangulation):
 		# Should make sure the triangulations of the encodings in L chain together.
 		assert(source_triangulation.zeta == target_triangulation.zeta)
@@ -102,12 +102,12 @@ class Encoding_Sequence:
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
-		if isinstance(other, Encoding_Sequence):
+		if isinstance(other, EncodingSequence):
 			assert(self.source_triangulation == other.target_triangulation)
-			return Encoding_Sequence(self.sequence + other.sequence, other.source_triangulation, self.target_triangulation)
+			return EncodingSequence(self.sequence + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			assert(self.source_triangulation == other.target_triangulation)
-			return Encoding_Sequence(self.sequence + [other], other.source_triangulation, self.target_triangulation)
+			return EncodingSequence(self.sequence + [other], other.source_triangulation, self.target_triangulation)
 		elif other is None:
 			return self
 		else:
@@ -123,11 +123,11 @@ class Encoding_Sequence:
 	def __pow__(self, k):
 		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
-			return self.source_triangulation.Id_Encoding_Sequence()
+			return self.source_triangulation.Id_EncodingSequence()
 		elif k > 0:
-			return Encoding_Sequence(self.sequence * k, self.source_triangulation, self.target_triangulation)
+			return EncodingSequence(self.sequence * k, self.source_triangulation, self.target_triangulation)
 		else:
-			return Encoding_Sequence([A.inverse() for A in reversed(self.sequence)] * abs(k), self.source_triangulation, self.target_triangulation)
+			return EncodingSequence([A.inverse() for A in reversed(self.sequence)] * abs(k), self.source_triangulation, self.target_triangulation)
 	def __len__(self):
 		return self.size
 	def __str__(self):
@@ -148,14 +148,14 @@ class Encoding_Sequence:
 		return iter(self.sequence)
 	def __getitem__(self, key):
 		if isinstance(key, slice):
-			return Encoding_Sequence(self.sequence[key], self.sequence[key.end].source_triangulation, self.sequence[key.start].target_triangulation)
+			return EncodingSequence(self.sequence[key], self.sequence[key.end].source_triangulation, self.sequence[key.start].target_triangulation)
 		elif isinstance(key, int):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')
 	
 	def compactify(self):
-		''' Returns an Encoding_Sequence which acts equivalently to this one but which has no Encoding of size 1. '''
+		''' Returns an EncodingSequence which acts equivalently to this one but which has no Encoding of size 1. '''
 		# !?! Broken!
 		X = []
 		for encoding in self:
@@ -168,7 +168,7 @@ class Encoding_Sequence:
 			X[1] = X[0] * X[1]
 			X = X[1:]
 		
-		return Encoding_Sequence(X, self.source_triangulation, self.target_triangulation)
+		return EncodingSequence(X, self.source_triangulation, self.target_triangulation)
 	
 	def applied_matrix(self, vector):
 		''' Returns the matrix that will be applied to the vector and the condition matrix the vector must satisfy. '''
@@ -184,7 +184,7 @@ class Encoding_Sequence:
 		return self.expand_indices(indices)
 	
 	def inverse(self):
-		return Encoding_Sequence([A.inverse() for A in reversed(self)], self.target_triangulation, self.source_triangulation)
+		return EncodingSequence([A.inverse() for A in reversed(self)], self.target_triangulation, self.source_triangulation)
 	
 	def expand_indices(self, indices):
 		''' Given indices = [a_0, ..., a_k] this returns the action and condition matrix of
@@ -343,7 +343,7 @@ class Encoding_Sequence:
 						if exact:
 							if Flipper.kernel.symboliccomputation._name == 'dummy': raise Flipper.kernel.error.ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
-								return Flipper.kernel.lamination.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to Algebraic_Type!
+								return Flipper.kernel.lamination.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
 							else:
 								action_matrix, condition_matrix = self.applied_matrix(curve)
 								try:

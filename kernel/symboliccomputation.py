@@ -8,7 +8,7 @@
 # a dummy library which can't do anything but makes sure that the imports never fail.
 # Currently Sage is the best by a _large_ margin and so this is our first choice.
 #
-# Each library provides a class called Algebraic_Type. The main methods of which are:
+# Each library provides a class called AlgebraicType. The main methods of which are:
 #	algebraic_simplify(self, value=None)
 #		Puts self into a standard form or, if given a value, returns that in standard form.
 #	algebraic_hash(self)
@@ -23,18 +23,18 @@
 #		Returns an algebraic approximation of this algebraic number, correct to the requested accuracy.
 #
 # Typically each library sets these methods to work with its underlying type. Additionally, 
-# Lamination.splitting_sequence(exact=True) requires that Algebraic_Type implements:
+# Lamination.splitting_sequence(exact=True) requires that AlgebraicType implements:
 #		addition, subtraction, division, comparison and equality (+, -, /, <, ==) 
-# both with integers and other Algebraic_Types.
+# both with integers and other AlgebraicTypes.
 #
-# Each library also provides two functions for creating Algebraic_Types:
+# Each library also provides two functions for creating AlgebraicTypes:
 #	Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 #		Given a Perron-Frobenius matrix (of type Matrix.Matrix) this must returns its Perron-Frobenius
 #		eigenvector, that is eigenvector with corresponding eigenvalue with largest absolute value and
 #		whose sum of entries is one. The eigenvector must be a list of algebraic_types. 
 #		If given, the library should check that condition_matrix * eigenvector >= 0.
 #	algebraic_type_from_int(integer):
-#		Returns an Algebraic_Type representing the given integer.
+#		Returns an AlgebraicType representing the given integer.
 # and a _name variable containing a string identifying the module. This is very useful for debugging.
 
 # You can provide your own algebraic number library so long as it provides these methods and can be cast to a string via str().
@@ -48,7 +48,7 @@ _name = None
 # if _name is None:
 	# try:
 		# import Flipper.kernel.symboliccomputation_prototype
-		# Algebraic_Type = Flipper.kernel.symboliccomputation_prototype.Algebraic_Type
+		# AlgebraicType = Flipper.kernel.symboliccomputation_prototype.AlgebraicType
 		# Perron_Frobenius_eigen = Flipper.kernel.symboliccomputation_prototype.Perron_Frobenius_eigen
 		# algebraic_type_from_int = Flipper.kernel.symboliccomputation_prototype.algebraic_type_from_int
 		# _name = Flipper.kernel.symboliccomputation_prototype._name
@@ -58,7 +58,7 @@ _name = None
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sage
-		Algebraic_Type = Flipper.kernel.symboliccomputation_sage.Algebraic_Type
+		AlgebraicType = Flipper.kernel.symboliccomputation_sage.AlgebraicType
 		Perron_Frobenius_eigen = Flipper.kernel.symboliccomputation_sage.Perron_Frobenius_eigen
 		algebraic_type_from_int = Flipper.kernel.symboliccomputation_sage.algebraic_type_from_int
 		_name = Flipper.kernel.symboliccomputation_sage._name
@@ -68,7 +68,7 @@ if _name is None:
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sympy
-		Algebraic_Type = Flipper.kernel.symboliccomputation_sympy.Algebraic_Type
+		AlgebraicType = Flipper.kernel.symboliccomputation_sympy.AlgebraicType
 		Perron_Frobenius_eigen = Flipper.kernel.symboliccomputation_sympy.Perron_Frobenius_eigen
 		algebraic_type_from_int = Flipper.kernel.symboliccomputation_sympy.algebraic_type_from_int
 		_name = Flipper.kernel.symboliccomputation_sympy._name
@@ -78,7 +78,7 @@ if _name is None:
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_dummy
-		Algebraic_Type = Flipper.kernel.symboliccomputation_dummy.Algebraic_Type
+		AlgebraicType = Flipper.kernel.symboliccomputation_dummy.AlgebraicType
 		Perron_Frobenius_eigen = Flipper.kernel.symboliccomputation_dummy.Perron_Frobenius_eigen
 		algebraic_type_from_int = Flipper.kernel.symboliccomputation_dummy.algebraic_type_from_int
 		_name = Flipper.kernel.symboliccomputation_dummy._name

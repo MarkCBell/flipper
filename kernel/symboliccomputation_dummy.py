@@ -3,15 +3,15 @@ from math import log10 as log
 
 _name = 'dummy'
 
-# This symbolic calculation library provides a dummy Algebraic_Type class which
+# This symbolic calculation library provides a dummy AlgebraicType class which
 # holds a single value and can add, subtract ...
 # Other librarys can modify this class to save them from implementing 
 # all of these features from scratch. Features which don't work should be removed
 # by setting the functions to NotImplemented.
 
-class Algebraic_Type:
+class AlgebraicType:
 	def __init__(self, value):
-		# We make sure to always start by using Algebraic_Type.algebraic_simplify(), just to be safe.
+		# We make sure to always start by using AlgebraicType.algebraic_simplify(), just to be safe.
 		self.value = self.algebraic_simplify(value)
 	
 	def __str__(self):
@@ -21,67 +21,67 @@ class Algebraic_Type:
 		return repr(self.value)
 	
 	def __neg__(self):
-		return Algebraic_Type(-self)
+		return AlgebraicType(-self)
 	
 	def __add__(self, other):
-		if isinstance(other, Algebraic_Type):
-			return Algebraic_Type(self.value + other.value)
+		if isinstance(other, AlgebraicType):
+			return AlgebraicType(self.value + other.value)
 		else:
-			return Algebraic_Type(self.value + other)
+			return AlgebraicType(self.value + other)
 	
 	def __radd__(self, other):
 		return self + other
 	
 	def __sub__(self, other):
-		if isinstance(other, Algebraic_Type):
-			return Algebraic_Type(self.value - other.value)
+		if isinstance(other, AlgebraicType):
+			return AlgebraicType(self.value - other.value)
 		else:
-			return Algebraic_Type(self.value - other)
+			return AlgebraicType(self.value - other)
 	
 	def __rsub__(self, other):
 		return -(self - other)
 	
 	def __mul__(self, other):
-		if isinstance(other, Algebraic_Type):
-			return Algebraic_Type(self.value * other.value)
+		if isinstance(other, AlgebraicType):
+			return AlgebraicType(self.value * other.value)
 		else:
-			return Algebraic_Type(self.value * other)
+			return AlgebraicType(self.value * other)
 	
 	def __rmul__(self, other):
 		return self * other
 	
 	def __div__(self, other):
-		if isinstance(other, Algebraic_Type):
-			return Algebraic_Type(self.value / other.value)
+		if isinstance(other, AlgebraicType):
+			return AlgebraicType(self.value / other.value)
 		else:
-			return Algebraic_Type(self.value / other)
+			return AlgebraicType(self.value / other)
 	
 	def __truediv__(self, other):
 		return self.__div__(other)
 	
 	def __rdiv__(self, other):
-		if isinstance(other, Algebraic_Type):
-			return Algebraic_Type(other.value / self.value)
+		if isinstance(other, AlgebraicType):
+			return AlgebraicType(other.value / self.value)
 		else:
-			return Algebraic_Type(other / self.value)
+			return AlgebraicType(other / self.value)
 	
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	
 	def __lt__(self, other):
-		if isinstance(other, Algebraic_Type):
+		if isinstance(other, AlgebraicType):
 			return self.value < other.value
 		else:
 			return self.value < other
 	
 	def __eq__(self, other):
-		if isinstance(other, Algebraic_Type):
+		if isinstance(other, AlgebraicType):
 			return self.value == other.value
 		else:
 			return self.value == other
 	
 	def __gt__(self, other):
-		if isinstance(other, Algebraic_Type):
+		if isinstance(other, AlgebraicType):
 			return self.value > other.value
 		else:
 			return self.value > other

@@ -66,7 +66,7 @@ class Meter(TK.Frame):
 			self._canv.itemconfigure(self._text, text=text)
 			self._canv.update_idletasks()
 
-class Progress_App:
+class ProgressApp:
 	def __init__(self, host_app):
 		self.host_app = host_app
 		self.parent = TK.Toplevel(self.host_app.parent)

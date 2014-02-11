@@ -24,7 +24,7 @@ def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	
 	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
-class Colour_Palette:
+class ColourPalette:
 	def __init__(self):
 		self.state = 0
 	
@@ -187,7 +187,7 @@ class Triangle:
 	def update(self):
 		self.canvas.coords(self.drawn_self, *[self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y])
 
-class Curve_Component:
+class CurveComponent:
 	def __init__(self, canvas, source_point, options, multiplicity=1):
 		self.options = options
 		self.default_colour = self.options.default_curve_colour

@@ -6,7 +6,7 @@
 from math import log10 as log
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import Algebraic_Type
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType
 
 _name = 'custom'
 
@@ -135,28 +135,28 @@ def algebraic_approximate(self, accuracy, degree=None):
 	self.value[0].increase_accuracy(accuracy)
 	return self.value[0].algebraic_approximations[self.value[1]]
 
-Algebraic_Type.algebraic_simplify = algebraic_simplify
-Algebraic_Type.algebraic_hash = algebraic_hash
-Algebraic_Type.algebraic_hash_ratio = algebraic_hash_ratio
-Algebraic_Type.algebraic_degree = algebraic_degree
-Algebraic_Type.algebraic_log_height = algebraic_log_height
-Algebraic_Type.algebraic_approximate = algebraic_approximate
+AlgebraicType.algebraic_simplify = algebraic_simplify
+AlgebraicType.algebraic_hash = algebraic_hash
+AlgebraicType.algebraic_hash_ratio = algebraic_hash_ratio
+AlgebraicType.algebraic_degree = algebraic_degree
+AlgebraicType.algebraic_log_height = algebraic_log_height
+AlgebraicType.algebraic_approximate = algebraic_approximate
 
 # Eventually we could implement these so Lamination.splitting_sequence(exact=True) would work.
-Algebraic_Type.__neg__ = NotImplemented
-Algebraic_Type.__add__ = NotImplemented
-Algebraic_Type.__radd__ = NotImplemented
-Algebraic_Type.__sub__ = NotImplemented
-Algebraic_Type.__rsub__ = NotImplemented
-Algebraic_Type.__mul__ = NotImplemented
-Algebraic_Type.__rmul__ = NotImplemented
-Algebraic_Type.__div__ = NotImplemented
-Algebraic_Type.__truediv__ = NotImplemented
-Algebraic_Type.__rdiv__ = NotImplemented
-Algebraic_Type.__rtruediv__ = NotImplemented
-Algebraic_Type.__lt__ = NotImplemented
-Algebraic_Type.__eq__ = NotImplemented
-Algebraic_Type.__gt__ = NotImplemented
+AlgebraicType.__neg__ = NotImplemented
+AlgebraicType.__add__ = NotImplemented
+AlgebraicType.__radd__ = NotImplemented
+AlgebraicType.__sub__ = NotImplemented
+AlgebraicType.__rsub__ = NotImplemented
+AlgebraicType.__mul__ = NotImplemented
+AlgebraicType.__rmul__ = NotImplemented
+AlgebraicType.__div__ = NotImplemented
+AlgebraicType.__truediv__ = NotImplemented
+AlgebraicType.__rdiv__ = NotImplemented
+AlgebraicType.__rtruediv__ = NotImplemented
+AlgebraicType.__lt__ = NotImplemented
+AlgebraicType.__eq__ = NotImplemented
+AlgebraicType.__gt__ = NotImplemented
 
 
 def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
@@ -165,7 +165,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	
 	EV = Eigenvector(matrix, vector=vector)
 	
-	eigenvector = [Algebraic_Type((EV, i)) for i in range(matrix.width)]
+	eigenvector = [AlgebraicType((EV, i)) for i in range(matrix.width)]
 	
 	if condition_matrix is not None:
 		# Make sure that we have enough accuracy ...
@@ -181,4 +181,4 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 
 
 def algebraic_type_from_int(integer):
-	return Algebraic_Type((Eigenvector(Flipper.kernel.matrix.Matrix([[1]], 1), vector=[1]), 0))
+	return AlgebraicType((Eigenvector(Flipper.kernel.matrix.Matrix([[1]], 1), vector=[1]), 0))

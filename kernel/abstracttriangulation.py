@@ -7,7 +7,7 @@ except ImportError: # Python 3
 
 import Flipper
 
-class Abstract_Triangle:
+class AbstractTriangle:
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	
 	def __init__(self, index=None, edge_indices=None, corner_labels=None):
@@ -26,7 +26,7 @@ class Abstract_Triangle:
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]
 
-class Abstract_Triangulation:
+class AbstractTriangulation:
 	def __init__(self, all_edge_indices, all_corner_labels=None):
 		self.num_triangles = len(all_edge_indices)
 		self.zeta = self.num_triangles * 3 // 2
@@ -36,7 +36,7 @@ class Abstract_Triangulation:
 		assert(sorted([x for edge_indices in all_edge_indices for x in edge_indices]) == sorted(list(range(self.zeta)) + list(range(self.zeta))))
 		
 		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
-		self.triangles = [Abstract_Triangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
+		self.triangles = [AbstractTriangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
 		self.edge_contained_in = dict((edge_index, [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]) for edge_index in range(self.zeta))
 		
 		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
@@ -64,7 +64,7 @@ class Abstract_Triangulation:
 			assert(len(self.find_edge(edge_index)) == 2)
 	
 	def copy(self):
-		return Abstract_Triangulation([list(triangle.edge_indices) for triangle in self.triangles], [list(triangle.corner_labels) for triangle in self.triangles])
+		return AbstractTriangulation([list(triangle.edge_indices) for triangle in self.triangles], [list(triangle.corner_labels) for triangle in self.triangles])
 	
 	def __repr__(self):
 		return '\n'.join(str(triangle) for triangle in self.triangles)
@@ -131,7 +131,7 @@ class Abstract_Triangulation:
 		
 		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
 		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r,s,v], [u,v,s]]
-		new_triangulation = Abstract_Triangulation(new_edge_indices, new_corner_labels)
+		new_triangulation = AbstractTriangulation(new_edge_indices, new_corner_labels)
 		
 		return new_triangulation
 	
@@ -285,8 +285,8 @@ class Abstract_Triangulation:
 	def Id_Encoding(self):
 		return Flipper.kernel.encoding.Encoding([Flipper.kernel.matrix.Id_Matrix(self.zeta)], [Flipper.kernel.matrix.Empty_Matrix(self.zeta)], self, self)
 	
-	def Id_Encoding_Sequence(self):
-		return Flipper.kernel.encoding.Encoding_Sequence([], self, self)
+	def Id_EncodingSequence(self):
+		return Flipper.kernel.encoding.EncodingSequence([], self, self)
 	
 	def encode_flip(self, edge_index):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.

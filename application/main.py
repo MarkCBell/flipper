@@ -114,7 +114,7 @@ class Options:
 		self.redraw()
 
 
-class Flipper_App:
+class FlipperApp:
 	def __init__(self, parent):
 		self.parent = parent
 		
@@ -231,7 +231,7 @@ class Flipper_App:
 		self.vertices = []
 		self.edges = []
 		self.triangles = []
-		self.abstract_triangulation = None
+		self.AbstractTriangulation = None
 		self.curve_components = []
 		self.curves = {}
 		self.mapping_classes = {}
@@ -241,7 +241,7 @@ class Flipper_App:
 		
 		self.build_complete_structure()
 		
-		self.colour_picker = Flipper.application.pieces.Colour_Palette()
+		self.colour_picker = Flipper.application.pieces.ColourPalette()
 		
 		self.canvas.delete('all')
 		self.entry_command.delete(0, TK.END)
@@ -255,13 +255,13 @@ class Flipper_App:
 				spec = 'A Flipper file.'
 				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
-				abstract_triangulation = self.abstract_triangulation
+				AbstractTriangulation = self.AbstractTriangulation
 				curves = self.curves
 				mapping_classes = self.mapping_classes
 				list_curves = self.list_curves.get(0, TK.END)
 				list_mapping_classes = self.list_mapping_classes.get(0, TK.END)
 				
-				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes], open(path, 'wb'))
+				pickle.dump([spec, vertices, edges, AbstractTriangulation, curves, mapping_classes, list_curves, list_mapping_classes], open(path, 'wb'))
 			except IOError:
 				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
@@ -269,7 +269,7 @@ class Flipper_App:
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
 		if path != '':
 			try:
-				spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes = pickle.load(open(path, 'rb'))
+				spec, vertices, edges, AbstractTriangulation, curves, mapping_classes, list_curves, list_mapping_classes = pickle.load(open(path, 'rb'))
 				# Might throw value error.
 				# !?! Add more error checking.
 				assert(spec == 'A Flipper file.')
@@ -287,7 +287,7 @@ class Flipper_App:
 					if glued_to_index > index:
 						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
 				
-				self.abstract_triangulation = abstract_triangulation
+				self.AbstractTriangulation = AbstractTriangulation
 				
 				self.curves = curves
 				self.mapping_classes = mapping_classes
@@ -326,11 +326,11 @@ class Flipper_App:
 					'import Flipper\n' + \
 					'\n' + \
 					'Lamination = Flipper.kernel.lamination.Lamination\n' + \
-					'Abstract_Triangulation = Flipper.kernel.abstracttriangulation.Abstract_Triangulation\n' + \
+					'AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation\n' + \
 					'isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map\n' + \
 					'\n' + \
 					'def Example():\n' + \
-					'	T = Abstract_Triangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
+					'	T = AbstractTriangulation(%s)\n' % [triangle.edge_indices for triangle in self.AbstractTriangulation] + \
 					'	\n' + \
 					''.join('\t%s = Lamination(T, %s).encode_twist()\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
 					''.join('\t%s = Lamination(T, %s).encode_twist(k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in twists) + \
@@ -347,7 +347,7 @@ class Flipper_App:
 					'	T, twists = example()\n' + \
 					'	\n' + \
 					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for i in range(random_length))\n' + \
-					'	h = T.Id_Encoding_Sequence()\n' + \
+					'	h = T.Id_EncodingSequence()\n' + \
 					'	for letter in word:\n' + \
 					'		h = twists[letter] * h\n' + \
 					'	return word, h\n' + \
@@ -613,7 +613,7 @@ class Flipper_App:
 		self.build_complete_structure()
 	
 	def create_curve_component(self, point, multiplicity=1):
-		self.curve_components.append(Flipper.application.pieces.Curve_Component(self.canvas, point, self.options, multiplicity))
+		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, point, self.options, multiplicity))
 		return self.curve_components[-1]
 	
 	def destroy_curve_component(self, curve_component):
@@ -687,8 +687,8 @@ class Flipper_App:
 	
 	def show_surface_information(self):
 		if self.is_complete():
-			num_marked_points = self.abstract_triangulation.num_vertices
-			Euler_characteristic = self.abstract_triangulation.Euler_characteristic
+			num_marked_points = self.AbstractTriangulation.num_vertices
+			Euler_characteristic = self.AbstractTriangulation.Euler_characteristic
 			genus = (2 - Euler_characteristic - num_marked_points) // 2
 			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus ,num_marked_points, Euler_characteristic))
 		else:
@@ -739,28 +739,28 @@ class Flipper_App:
 		else:
 			self.destroy_edge_labels()
 	
-	def create_abstract_triangulation(self):
+	def create_AbstractTriangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
-		self.abstract_triangulation = Flipper.kernel.abstracttriangulation.Abstract_Triangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
-		self.curves = {'_':self.abstract_triangulation.empty_lamination()}
+		self.AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
+		self.curves = {'_':self.AbstractTriangulation.empty_lamination()}
 		self.create_edge_labels()
 	
-	def destroy_abstract_triangulation(self):
+	def destroy_AbstractTriangulation(self):
 		self.clear_edge_indices()
 		self.destroy_edge_labels()
 		self.destroy_curve()
-		self.abstract_triangulation = None
+		self.AbstractTriangulation = None
 		self.curves = {}
 		self.mapping_classes = {}
 		self.list_curves.delete(0, TK.END)
 		self.list_mapping_classes.delete(0, TK.END)
 	
 	def build_complete_structure(self):
-		if self.is_complete() and self.abstract_triangulation is None:
-			self.create_abstract_triangulation()
-		elif not self.is_complete() and self.abstract_triangulation is not None:
-			self.destroy_abstract_triangulation()
+		if self.is_complete() and self.AbstractTriangulation is None:
+			self.create_AbstractTriangulation()
+		elif not self.is_complete() and self.AbstractTriangulation is not None:
+			self.destroy_AbstractTriangulation()
 	
 	
 	######################################################################
@@ -789,7 +789,7 @@ class Flipper_App:
 			for index, double in meets:
 				vector[index] += (2 if double else 1) * curve.multiplicity
 		
-		return Flipper.kernel.lamination.Lamination(self.abstract_triangulation, [i / 2 for i in vector])
+		return Flipper.kernel.lamination.Lamination(self.AbstractTriangulation, [i / 2 for i in vector])
 	
 	def lamination_to_canvas(self, lamination):
 		self.destroy_curve()
@@ -872,7 +872,7 @@ class Flipper_App:
 			to_edges = [int(x) for x in to_edges.split('.')]
 			
 			try:
-				possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
+				possible_isometry = [isom for isom in self.AbstractTriangulation.all_isometries(self.AbstractTriangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
 				isometry = possible_isometry[0]
 				mapping_class = isometry.encode_isometry()
 				mapping_class_inverse = isometry.inverse().encode_isometry()
@@ -895,7 +895,7 @@ class Flipper_App:
 	
 	def create_composition(self, twists):
 		if self.is_complete():
-			mapping_class = self.abstract_triangulation.Id_Encoding_Sequence()
+			mapping_class = self.AbstractTriangulation.Id_EncodingSequence()
 			for twist in twists[::-1]:
 				if twist in self.mapping_classes:
 					mapping_class = self.mapping_classes[twist][0] * mapping_class
@@ -927,7 +927,7 @@ class Flipper_App:
 	
 	def show_render(self, composition):
 		if self.is_complete():
-			self.set_current_curve(Flipper.kernel.lamination.Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
+			self.set_current_curve(Flipper.kernel.lamination.Lamination(self.AbstractTriangulation, [int(i) for i in composition.split('.')]))
 			self.lamination_to_canvas(self.curves['_'])
 	
 	def vectorise(self):
@@ -976,7 +976,7 @@ class Flipper_App:
 			else:
 				try:
 					start_time = time()
-					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.Progress_App(self), options=self.options)
+					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.ProgressApp(self), options=self.options)
 					if result[0]:
 						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
 					else:
@@ -994,7 +994,7 @@ class Flipper_App:
 				try:
 					if mapping_class.is_periodic():
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.Progress_App(self), options=self.options):
+					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.ProgressApp(self), options=self.options):
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 					else:
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
@@ -1069,7 +1069,7 @@ class Flipper_App:
 							except Flipper.kernel.error.AssumptionError:
 								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 							else:
-								L = Flipper.kernel.layeredtriangulation.Layered_Triangulation(correct_lamination.abstract_triangulation, composition)
+								L = Flipper.kernel.layeredtriangulation.LayeredTriangulation(correct_lamination.AbstractTriangulation, composition)
 								L.flips(periodic)
 								closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
@@ -1106,7 +1106,7 @@ class Flipper_App:
 					s += '\\allowdisplaybreaks\n'
 					s += '\\begin{document}\n'
 					s += 'The mapping class \\texttt{%s} on the triangulation\n' % composition
-					s += '\\[ %s \\]\n' % ','.join(str(triangle.edge_indices) for triangle in self.abstract_triangulation)
+					s += '\\[ %s \\]\n' % ','.join(str(triangle.edge_indices) for triangle in self.AbstractTriangulation)
 					s += 'induces the PL--function\n'
 					s += mapping_class.latex_string()
 					s += '\\end{document}\n'
@@ -1134,7 +1134,7 @@ class Flipper_App:
 			if self.selected_object is None:
 				self.select_object(self.create_curve_component((x,y)))
 				self.selected_object.append_point((x,y))
-			elif isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
+			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.append_point((x,y))
 				self.set_current_curve()
 		else:
@@ -1186,7 +1186,7 @@ class Flipper_App:
 	
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
+			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.pop_point()
 			self.select_object(None)
 	
@@ -1195,7 +1195,7 @@ class Flipper_App:
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
+		if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 			self.selected_object.move_last_point((x,y))
 	
 	def parent_key_press(self, event):
@@ -1207,7 +1207,7 @@ class Flipper_App:
 			elif isinstance(self.selected_object, Flipper.application.pieces.Edge):
 				self.destroy_edge(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
+			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				if len(self.selected_object.vertices) > 2:
 					(x,y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
@@ -1263,7 +1263,7 @@ class Flipper_App:
 def main(load_path=None):
 	root = TK.Tk()
 	root.title('Flipper')
-	flipper = Flipper_App(root)
+	flipper = FlipperApp(root)
 	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.

@@ -2,7 +2,7 @@
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 
-# Warning: Layered_Triangulation modifies itself in place!
+# Warning: LayeredTriangulation modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
 from itertools import permutations, combinations, product
@@ -255,7 +255,7 @@ class Triangulation:
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Flipper.kernel.abstracttriangulation.Abstract_Triangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.kernel.abstracttriangulation.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -342,19 +342,19 @@ class Triangulation:
 		return s
 
 # A class to represent a layered triangulation over a surface specified by an Flipper.kernel.abstracttriangulation.
-class Layered_Triangulation:
-	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
-		self.lower_triangulation = abstract_triangulation.copy()
-		self.upper_triangulation = abstract_triangulation.copy()
-		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles, name)
+class LayeredTriangulation:
+	def __init__(self, AbstractTriangulation, name='Flipper_triangulation'):
+		self.lower_triangulation = AbstractTriangulation.copy()
+		self.upper_triangulation = AbstractTriangulation.copy()
+		self.core_triangulation = Triangulation(2 * AbstractTriangulation.num_triangles, name)
 		
-		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
-		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
+		lower_tetrahedra = self.core_triangulation.tetrahedra[:AbstractTriangulation.num_triangles]
+		upper_tetrahedra = self.core_triangulation.tetrahedra[AbstractTriangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
 			lower.glue(3, upper, Flipper.kernel.permutation.Permutation((0,2,1,3)))
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
-		# Each is a dictionary sending each Abstract_Triangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
+		# Each is a dictionary sending each AbstractTriangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
 		self.lower_map = dict((lower, (lower_tetra, Flipper.kernel.permutation.Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
 		self.upper_map = dict((upper, (upper_tetra, Flipper.kernel.permutation.Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	

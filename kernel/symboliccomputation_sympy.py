@@ -18,7 +18,7 @@ from math import log10 as log
 import sympy
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import Algebraic_Type
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType
 
 _name = 'sympy'
 
@@ -26,7 +26,7 @@ def algebraic_simplify(self, value=None):
 	if value is not None:
 		return sympy.simplify(value)
 	else:
-		return Algebraic_Type(sympy.simplify(self.value))
+		return AlgebraicType(sympy.simplify(self.value))
 
 def _minimal_polynomial_coefficients(self):
 	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(self.value)).all_coeffs()[::-1])
@@ -55,12 +55,12 @@ def algebraic_approximate(self, accuracy, degree=None):
 		assert(A.interval.accuracy >= accuracy)
 		return A
 
-Algebraic_Type.algebraic_simplify = algebraic_simplify
-Algebraic_Type._minimal_polynomial_coefficients = _minimal_polynomial_coefficients
-Algebraic_Type.algebraic_hash = algebraic_hash
-Algebraic_Type.algebraic_degree = algebraic_degree
-Algebraic_Type.algebraic_log_height = algebraic_log_height
-Algebraic_Type.algebraic_approximate = algebraic_approximate
+AlgebraicType.algebraic_simplify = algebraic_simplify
+AlgebraicType._minimal_polynomial_coefficients = _minimal_polynomial_coefficients
+AlgebraicType.algebraic_hash = algebraic_hash
+AlgebraicType.algebraic_degree = algebraic_degree
+AlgebraicType.algebraic_log_height = algebraic_log_height
+AlgebraicType.algebraic_approximate = algebraic_approximate
 
 
 def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
@@ -79,7 +79,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	if s == 0:
 		raise Flipper.kernel.error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
+	eigenvector = [AlgebraicType(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
 		if not condition_matrix.nonnegative_image(eigenvector):
@@ -88,4 +88,4 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	return eigenvector
 
 def algebraic_type_from_int(integer):
-	return Algebraic_Type(integer)
+	return AlgebraicType(integer)

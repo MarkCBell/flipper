@@ -5,8 +5,8 @@ import Flipper
 def main(word):
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
-	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1m
-	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
+	Example = Flipper.examples.abstracttriangulation.Example_S_1_1m
+	word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
 	preperiodic, periodic, new_dilatation, lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()  # Requires the SymbolicComputation library.
 	
 	L = Flipper.kernel.layeredtriangulation.Layered_Triangulation(lamination.abstract_triangulation, word)

@@ -4,8 +4,8 @@ from __future__ import print_function
 import Flipper
 
 def build_bundle(word, isometry_number):
-	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_1
-	word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
+	Example = Flipper.examples.abstracttriangulation.Example_S_1_1
+	word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
 	# !?! Could throw an ImportError if no SymbolicComputation library is present.
 	preperiodic, periodic, new_dilatation, lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()
 	

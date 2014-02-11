@@ -36,13 +36,13 @@ def random_test(Example, words=None, num_trials=None, verbose=False):
 	times = []
 	if num_trials is not None:
 		for k in range(num_trials):
-			word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example)
+			word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
 	elif words is not None:
 		num_trials = len(words)
 		for word in words:
-			word, mapping_class = Flipper.Examples.AbstractTriangulation.build_example_mapping_class(Example, word)
+			word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
 			print(word)
 			times.append(determine_type(mapping_class, verbose))
 	else:
@@ -55,7 +55,7 @@ def main():
 	# random_test(['aBBap' * 3])
 	# random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	
-	Example = Flipper.Examples.AbstractTriangulation.Example_S_1_2
+	Example = Flipper.examples.abstracttriangulation.Example_S_1_2
 	random_test(Example, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	# k = 2
 	# random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)

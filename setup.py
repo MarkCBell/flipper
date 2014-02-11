@@ -20,15 +20,15 @@ class TestCommand(Command):
 		import Flipper
 		
 		print('Running AlgebraicApproximation test...')
-		print('\tPassed' if Flipper.Tests.AlgebraicApproximation.main() else '\tFailed')
+		print('\tPassed' if Flipper.tests.algebraicapproximation.main() else '\tFailed')
 		print('Running Interval test...')
-		print('\tPassed' if Flipper.Tests.Interval.main() else '\tFailed')
+		print('\tPassed' if Flipper.tests.interval.main() else '\tFailed')
 		print('Running Lamination test...')
-		print('\tPassed' if Flipper.Tests.Lamination.main() else '\tFailed')
+		print('\tPassed' if Flipper.tests.lamination.main() else '\tFailed')
 		print('Running LayeredTriangulation test...')
-		print('\tPassed' if Flipper.Tests.LayeredTriangulation.main() else '\tFailed')
+		print('\tPassed' if Flipper.tests.layeredtriangulation.main() else '\tFailed')
 		print('Running Matrix test...')
-		print('\tPassed' if Flipper.Tests.Matrix.main() else '\tFailed')
+		print('\tPassed' if Flipper.tests.matrix.main() else '\tFailed')
 
 setup(
 	name='Flipper',

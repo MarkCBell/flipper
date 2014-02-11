@@ -1,6 +1,10 @@
-import Tkinter as TK
 
-DOWN_ARROW = unichr(9660)
+try:
+	import Tkinter as TK
+	DOWN_ARROW = unichr(9660)
+except ImportError:
+	import tkinter as TK
+	DOWN_ARROW = chr(9660)
 
 class SplitButton(TK.Frame):
 	def __init__(self, parent, commands, **options):

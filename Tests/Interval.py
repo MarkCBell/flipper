@@ -3,7 +3,7 @@ from __future__ import print_function
 from math import log10 as log
 
 import Flipper
-interval_from_string = Flipper.Kernel.Interval.interval_from_string
+interval_from_string = Flipper.kernel.interval.interval_from_string
 
 def main():
 	w = interval_from_string('0.1')

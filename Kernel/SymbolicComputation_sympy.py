@@ -18,7 +18,7 @@ from math import log10 as log
 import sympy
 
 import Flipper
-from Flipper.Kernel.SymbolicComputation_dummy import Algebraic_Type
+from Flipper.kernel.symboliccomputation_dummy import Algebraic_Type
 
 _name = 'sympy'
 
@@ -46,12 +46,12 @@ def algebraic_approximate(self, accuracy, degree=None):
 	if degree is None: degree = self.algebraic_degree()  # If not given, assume that the degree of the number field is the degree of this number.
 	
 	if self.value.is_Integer:
-		return Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_int(self.value, accuracy, degree, self.algebraic_log_height())
+		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.value, accuracy, degree, self.algebraic_log_height())
 	else:
 		# First we need to correct for the fact that we may lose some digits of accuracy
 		# if the integer part of the number is big.
 		precision = accuracy + int(log(max(sympy.N(self.value, n=1), 1))) + 1
-		A = Flipper.Kernel.AlgebraicApproximation.algebraic_approximation_from_string(str(sympy.N(self.value, n=precision)), degree, self.algebraic_log_height())
+		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(str(sympy.N(self.value, n=precision)), degree, self.algebraic_log_height())
 		assert(A.interval.accuracy >= accuracy)
 		return A
 
@@ -73,17 +73,17 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 	try:
 		[eigenvector] = N.nullspace(simplify=True)
 	except ValueError:
-		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
+		raise Flipper.kernel.error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	s = sum(eigenvector)
 	if s == 0:
-		raise Flipper.Kernel.Error.AssumptionError('Matrix is not Perron-Frobenius.')
+		raise Flipper.kernel.error.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	eigenvector = [Algebraic_Type(x / s).algebraic_simplify() for x in eigenvector]
 	
 	if condition_matrix is not None:
 		if not condition_matrix.nonnegative_image(eigenvector):
-			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
+			raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
 	
 	return eigenvector
 

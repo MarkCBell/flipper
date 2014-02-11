@@ -4,8 +4,8 @@
 
 import Flipper
 
-Lamination = Flipper.Kernel.Lamination.Lamination
-Abstract_Triangulation = Flipper.Kernel.AbstractTriangulation.Abstract_Triangulation
+Lamination = Flipper.kernel.lamination.Lamination
+Abstract_Triangulation = Flipper.kernel.abstracttriangulation.Abstract_Triangulation
 
 
 def Example_S_1_1():

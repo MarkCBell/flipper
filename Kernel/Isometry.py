@@ -14,7 +14,7 @@ class Isometry:
 		self.edge_map = dict((triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3))
 		# Check that the thing that we've built is actually well defined.
 		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
-			raise Flipper.Kernel.Error.AssumptionError('Map does not induce a well defined map on edges.')
+			raise Flipper.kernel.error.AssumptionError('Map does not induce a well defined map on edges.')
 	def __repr__(self):
 		return str(self.triangle_map)
 	def __getitem__(self, index):
@@ -32,14 +32,14 @@ class Isometry:
 		new_triangle, perm = self[triangle]
 		return (new_triangle, perm * permutation)
 	def inverse(self):
-		Id_Perm = Flipper.Kernel.Permutation.Permutation([0,1,2])
+		Id_Perm = Flipper.kernel.permutation.Permutation([0,1,2])
 		possible_inverses = self.target_triangulation.all_isometries(self.source_triangulation)
 		return [isom for isom in possible_inverses if all((isom*self)[triangle] == (triangle, Id_Perm) for triangle in self.source_triangulation)][0]
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
 	def encode_isometry(self):
-		return Flipper.Kernel.Encoding.Encoding([Flipper.Kernel.Matrix.Permutation_Matrix(self.edge_map)], [Flipper.Kernel.Matrix.Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
+		return Flipper.kernel.encoding.Encoding([Flipper.kernel.matrix.Permutation_Matrix(self.edge_map)], [Flipper.kernel.matrix.Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
 
 
 #### Some special Isometries we know how to build.

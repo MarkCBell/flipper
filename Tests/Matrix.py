@@ -6,7 +6,7 @@ import Flipper
 
 def main(n=1000, k=100):
 	for i in range(n):
-		M = Flipper.Kernel.Matrix.Matrix([[randint(-k,k) for i in range(3)] for j in range(5)], 3)
+		M = Flipper.kernel.matrix.Matrix([[randint(-k,k) for i in range(3)] for j in range(5)], 3)
 		nontrivial, certificate = M.nontrivial_polytope()
 		if nontrivial and not M.nonnegative_image(certificate):
 			print(M)

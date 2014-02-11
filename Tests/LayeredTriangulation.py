@@ -9,7 +9,7 @@ def build_bundle(word, isometry_number):
 	# !?! Could throw an ImportError if no SymbolicComputation library is present.
 	preperiodic, periodic, new_dilatation, lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()
 	
-	L = Flipper.Kernel.LayeredTriangulation.Layered_Triangulation(lamination.abstract_triangulation, word)
+	L = Flipper.kernel.layeredtriangulation.Layered_Triangulation(lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	try:
@@ -61,7 +61,7 @@ def main():
 				# print(M.volume())
 				# print(word)
 				# return False
-		# except (Flipper.Kernel.Error.AssumptionError, Flipper.Kernel.Error.ComputationError):
+		# except (Flipper.kernel.error.AssumptionError, Flipper.kernel.error.ComputationError):
 			# print('Not pA.')
 	
 	return True

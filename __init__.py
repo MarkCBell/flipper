@@ -1,29 +1,29 @@
 
-import Flipper.Kernel.AbstractTriangulation
-import Flipper.Kernel.AlgebraicApproximation
-import Flipper.Kernel.Encoding
-import Flipper.Kernel.Error
-import Flipper.Kernel.Interval
-import Flipper.Kernel.Isometry
-import Flipper.Kernel.Lamination
-import Flipper.Kernel.LayeredTriangulation
-import Flipper.Kernel.Matrix
-import Flipper.Kernel.NumberSystem
-import Flipper.Kernel.Permutation
-import Flipper.Kernel.SymbolicComputation
-import Flipper.Kernel.Types
-import Flipper.Kernel.Version
+import Flipper.kernel.abstracttriangulation
+import Flipper.kernel.algebraicapproximation
+import Flipper.kernel.encoding
+import Flipper.kernel.error
+import Flipper.kernel.interval
+import Flipper.kernel.isometry
+import Flipper.kernel.lamination
+import Flipper.kernel.layeredtriangulation
+import Flipper.kernel.matrix
+import Flipper.kernel.numbersystem
+import Flipper.kernel.permutation
+import Flipper.kernel.symboliccomputation
+import Flipper.kernel.types
+import Flipper.kernel.version
 
-import Flipper.Examples.AbstractTriangulation
-import Flipper.Examples.Lamination
-import Flipper.Examples.LayeredTriangulation
+import Flipper.examples.abstracttriangulation
+import Flipper.examples.lamination
+import Flipper.examples.layeredtriangulation
 
-import Flipper.Tests.AlgebraicApproximation
-import Flipper.Tests.Interval
-import Flipper.Tests.Lamination
-import Flipper.Tests.LayeredTriangulation
-import Flipper.Tests.Matrix
+import Flipper.tests.algebraicapproximation
+import Flipper.tests.interval
+import Flipper.tests.lamination
+import Flipper.tests.layeredtriangulation
+import Flipper.tests.matrix
 
-import Flipper.App.Main
-import Flipper.App.Pieces
-import Flipper.App.Progress
+import Flipper.app.main
+import Flipper.app.pieces
+import Flipper.app.progress

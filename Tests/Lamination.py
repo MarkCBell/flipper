@@ -14,9 +14,9 @@ def determine_type(mapping_class):
 			return PSEUDO_ANOSOV
 		except ImportError:
 			pass  # !?!
-		except Flipper.Kernel.Error.ComputationError:
+		except Flipper.kernel.error.ComputationError:
 			return UNKNOWN
-		except Flipper.Kernel.Error.AssumptionError:
+		except Flipper.kernel.error.AssumptionError:
 			return REDUCIBLE
 
 def main():

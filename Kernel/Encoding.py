@@ -51,8 +51,8 @@ class Encoding:
 			return Encoding_Sequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			return Encoding_Sequence([self, other], other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, Flipper.Kernel.Lamination.Lamination):
-			return Flipper.Kernel.Lamination.Lamination(self.target_triangulation, self * other.vector)
+		elif isinstance(other, Flipper.kernel.lamination.Lamination):
+			return Flipper.kernel.lamination.Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
 				if self.condition_matrices[i].nonnegative_image(other):
@@ -190,8 +190,8 @@ class Encoding_Sequence:
 		''' Given indices = [a_0, ..., a_k] this returns the action and condition matrix of
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
-		As = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
-		Cs = Flipper.Kernel.Matrix.Empty_Matrix(self.zeta)
+		As = Flipper.kernel.matrix.Id_Matrix(self.zeta)
+		Cs = Flipper.kernel.matrix.Empty_Matrix(self.zeta)
 		for E, i in zip(reversed(self), indices):
 			Cs = Cs.join(E.condition_matrices[i] * As)
 			As = E.action_matrices[i] * As
@@ -260,7 +260,7 @@ class Encoding_Sequence:
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
-		M6 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
+		M6 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
 		buckets = {}
 		indices = [0]
 		while indices != []:
@@ -274,16 +274,16 @@ class Encoding_Sequence:
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
-					M2 = As - M6  # As - Flipper.Kernel.Matrix.Id_Flipper.Kernel.Matrix.
-					M3 = M6 - As  # Flipper.Kernel.Matrix.Id_Matrix - As.
+					M2 = As - M6  # As - Flipper.kernel.matrix.Id_Flipper.kernel.matrix.
+					M3 = M6 - As  # Flipper.kernel.matrix.Id_Matrix - As.
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M6 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
+					# M6 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:
-						certificate = Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [2*i for i in certificate])
+						certificate = Flipper.kernel.lamination.Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
 						return (True, certificate) if certify else True
@@ -307,7 +307,7 @@ class Encoding_Sequence:
 		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def invariant_lamination(self, exact=True):
-		# This uses Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() to return a lamination
+		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
 		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
 		
 		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that 
@@ -316,7 +316,7 @@ class Encoding_Sequence:
 		# The process starts with several curves on the surface and repeatedly applies the map until 
 		# they appear to projectively converge. If exact is set to False then the process stops and 
 		# returns one of these curves as an approximation of the invariant lamination. Otherwise 
-		# Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen() is used to find the nearby 
+		# Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() is used to find the nearby 
 		# projective fixed point.
 		
 		# If these curves do not appear to converge, this is detected and a ComputationError thrown. 
@@ -326,7 +326,7 @@ class Encoding_Sequence:
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
-			raise Flipper.Kernel.Error.AssumptionError('Mapping class is periodic.')
+			raise Flipper.kernel.error.AssumptionError('Mapping class is periodic.')
 		curves = self.source_triangulation.key_curves()
 		
 		def projective_difference(A, B, error_reciprocal):
@@ -341,20 +341,20 @@ class Encoding_Sequence:
 				for new_curve, curve in zip(new_curves, curves):
 					if projective_difference(new_curve, curve, 1000000000):
 						if exact:
-							if Flipper.Kernel.SymbolicComputation._name == 'dummy': raise Flipper.Kernel.Error.ImportError('Dummy symbolic library used.')
+							if Flipper.kernel.symboliccomputation._name == 'dummy': raise Flipper.kernel.error.ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
-								return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, [Flipper.Kernel.SymbolicComputation.algebraic_type_from_int(v) for v in curve])  # Convert to Algebraic_Type!
+								return Flipper.kernel.lamination.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to Algebraic_Type!
 							else:
 								action_matrix, condition_matrix = self.applied_matrix(curve)
 								try:
-									eigenvector = Flipper.Kernel.SymbolicComputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
-									return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, eigenvector)
-								except Flipper.Kernel.Error.AssumptionError:  # action_matrix was not Perron-Frobenius.
-									raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
+									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
+									return Flipper.kernel.lamination.Lamination(self.source_triangulation, eigenvector)
+								except Flipper.kernel.error.AssumptionError:  # action_matrix was not Perron-Frobenius.
+									raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
 						else:
-							return Flipper.Kernel.Lamination.Lamination(self.source_triangulation, curve)
+							return Flipper.kernel.lamination.Lamination(self.source_triangulation, curve)
 		else:
-			raise Flipper.Kernel.Error.ComputationError('Could not estimate invariant lamination.')
+			raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
 	
 	def dilatation(self, lamination):
 		# Returns the dilatation of this mapping class on the given lamination.

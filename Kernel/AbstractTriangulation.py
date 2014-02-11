@@ -89,13 +89,13 @@ class Abstract_Triangulation:
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
-			self._face_matrix = Flipper.Kernel.Matrix.Matrix([Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
+			self._face_matrix = Flipper.kernel.matrix.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
 		return self._face_matrix
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
-			self._marking_matrices = [Flipper.Kernel.Matrix.Matrix([Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
+			self._marking_matrices = [Flipper.kernel.matrix.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
 		return self._marking_matrices
 	
 	def geometric_to_algebraic(self, vector):
@@ -240,7 +240,7 @@ class Abstract_Triangulation:
 			triangle_map[source_triangle] = (target_triangle, cycle)
 			while not triangles_to_process.empty():
 				from_triangle, to_triangle, cycle = triangles_to_process.get()
-				triangle_map[from_triangle] = (to_triangle, Flipper.Kernel.Permutation.cyclic_permutation(cycle, 3))
+				triangle_map[from_triangle] = (to_triangle, Flipper.kernel.permutation.cyclic_permutation(cycle, 3))
 				for side in range(3):
 					from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
 					to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, (side+cycle)%3)
@@ -248,14 +248,14 @@ class Abstract_Triangulation:
 						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
 						seen_triangles.add(from_triangle_neighbour)
 			
-			return Flipper.Kernel.Isometry.Isometry(source_triangulation, target_triangulation, triangle_map)
+			return Flipper.kernel.isometry.Isometry(source_triangulation, target_triangulation, triangle_map)
 		
 		isometries = []
 		for triangle in triangulation:
 			for i in range(3):
 				try:
 					isometry = extend_isometry(self, triangulation, self.triangles[0], triangle, i)
-				except Flipper.Kernel.Error.AssumptionError:
+				except Flipper.kernel.error.AssumptionError:
 					pass
 				else:
 					isometries.append(isometry)
@@ -267,7 +267,7 @@ class Abstract_Triangulation:
 	
 	# Laminations we can build on the triangulation.
 	def empty_lamination(self):
-		return Flipper.Kernel.Lamination.Lamination(self, [0] * self.zeta)
+		return Flipper.kernel.lamination.Lamination(self, [0] * self.zeta)
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
@@ -277,16 +277,16 @@ class Abstract_Triangulation:
 			for triangle, side in corner_class:
 				if triangle[side+2] != edge_index:
 					vector[triangle[side+2]] += 1
-		return Flipper.Kernel.Lamination.Lamination(self, vector)
+		return Flipper.kernel.lamination.Lamination(self, vector)
 	
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def Id_Encoding(self):
-		return Flipper.Kernel.Encoding.Encoding([Flipper.Kernel.Matrix.Id_Matrix(self.zeta)], [Flipper.Kernel.Matrix.Empty_Matrix(self.zeta)], self, self)
+		return Flipper.kernel.encoding.Encoding([Flipper.kernel.matrix.Id_Matrix(self.zeta)], [Flipper.kernel.matrix.Empty_Matrix(self.zeta)], self, self)
 	
 	def Id_Encoding_Sequence(self):
-		return Flipper.Kernel.Encoding.Encoding_Sequence([], self, self)
+		return Flipper.kernel.encoding.Encoding_Sequence([], self, self)
 	
 	def encode_flip(self, edge_index):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
@@ -295,16 +295,16 @@ class Abstract_Triangulation:
 		new_triangulation = self.flip_edge(edge_index)
 		
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		A1 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
-		Flipper.Kernel.Matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-		C1 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
+		A1 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
+		Flipper.kernel.matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
+		C1 = Flipper.kernel.matrix.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
 		
-		A2 = Flipper.Kernel.Matrix.Id_Matrix(self.zeta)
-		Flipper.Kernel.Matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-		C2 = Flipper.Kernel.Matrix.Matrix(Flipper.Kernel.Matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
+		A2 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
+		Flipper.kernel.matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
+		C2 = Flipper.kernel.matrix.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
 		
 		actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
 		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
 		as_latex = '%s(\\underline{x})' + ('[%d]' % edge_index) + ' &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
 		
-		return Flipper.Kernel.Encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation, as_latex), Flipper.Kernel.Encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self, as_latex)
+		return Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation, as_latex), Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self, as_latex)

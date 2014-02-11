@@ -241,7 +241,7 @@ class Flipper_App:
 		
 		self.build_complete_structure()
 		
-		self.colour_picker = Flipper.app.pieces.Colour_Palette()
+		self.colour_picker = Flipper.application.pieces.Colour_Palette()
 		
 		self.canvas.delete('all')
 		self.entry_command.delete(0, TK.END)
@@ -513,7 +513,7 @@ class Flipper_App:
 	
 	
 	def create_vertex(self, point):
-		self.vertices.append(Flipper.app.pieces.Vertex(self.canvas, point, self.options))
+		self.vertices.append(Flipper.application.pieces.Vertex(self.canvas, point, self.options))
 		self.redraw()
 		self.build_complete_structure()
 		return self.vertices[-1]
@@ -537,10 +537,10 @@ class Flipper_App:
 			return None
 		
 		# Don't create a new edge if it would intersect one that already exists.
-		if any(Flipper.app.pieces.lines_intersect(edge.source_vertex, edge.target_vertex, v1, v2, self.options.float_error, True)[1] for edge in self.edges):
+		if any(Flipper.application.pieces.lines_intersect(edge.source_vertex, edge.target_vertex, v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = Flipper.app.pieces.Edge(v1, v2, self.options)
+		e0 = Flipper.application.pieces.Edge(v1, v2, self.options)
 		self.edges.append(e0)
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
@@ -566,7 +566,7 @@ class Flipper_App:
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.app.pieces.Triangle(e1,e2,e3, self.options)
+		new_triangle = Flipper.application.pieces.Triangle(e1,e2,e3, self.options)
 		self.triangles.append(new_triangle)
 		
 		corner_vertices = [e.source_vertex for e in [e1,e2,e3]] + [e.target_vertex for e in [e1,e2,e3]]
@@ -613,7 +613,7 @@ class Flipper_App:
 		self.build_complete_structure()
 	
 	def create_curve_component(self, point, multiplicity=1):
-		self.curve_components.append(Flipper.app.pieces.Curve_Component(self.canvas, point, self.options, multiplicity))
+		self.curve_components.append(Flipper.application.pieces.Curve_Component(self.canvas, point, self.options, multiplicity))
 		return self.curve_components[-1]
 	
 	def destroy_curve_component(self, curve_component):
@@ -778,7 +778,7 @@ class Flipper_App:
 		for curve in self.curve_components:
 			meets = []  # We store (index of edge intersection, should we double count).
 			for i in range(len(curve.vertices)-1):
-				this_segment_meets = [(Flipper.app.pieces.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge.source_vertex, edge.target_vertex, self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
+				this_segment_meets = [(Flipper.application.pieces.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge.source_vertex, edge.target_vertex, self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
 				for (d, double), index in sorted(this_segment_meets):
 					if d >= -self.options.float_error:
 						if len(meets) > 0 and meets[-1][0] == index:
@@ -976,7 +976,7 @@ class Flipper_App:
 			else:
 				try:
 					start_time = time()
-					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.app.progress.Progress_App(self), options=self.options)
+					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.Progress_App(self), options=self.options)
 					if result[0]:
 						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
 					else:
@@ -994,7 +994,7 @@ class Flipper_App:
 				try:
 					if mapping_class.is_periodic():
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.app.progress.Progress_App(self), options=self.options):
+					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.Progress_App(self), options=self.options):
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 					else:
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
@@ -1134,33 +1134,33 @@ class Flipper_App:
 			if self.selected_object is None:
 				self.select_object(self.create_curve_component((x,y)))
 				self.selected_object.append_point((x,y))
-			elif isinstance(self.selected_object, Flipper.app.pieces.Curve_Component):
+			elif isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
 				self.selected_object.append_point((x,y))
 				self.set_current_curve()
 		else:
 			if self.selected_object is None:
 				if possible_object is None:
 					self.select_object(self.create_vertex((x,y)))
-				elif isinstance(possible_object, Flipper.app.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.pieces.Edge):
 					self.destroy_edge_identification(possible_object)
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.app.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
 					self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.app.pieces.Vertex):
+			elif isinstance(self.selected_object, Flipper.application.pieces.Vertex):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
 					new_vertex = self.create_vertex((x,y))
 					self.create_edge(self.selected_object, new_vertex)
 					self.select_object(new_vertex)
-				elif isinstance(possible_object, Flipper.app.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
 					self.create_edge(self.selected_object, possible_object)
 					self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.app.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.pieces.Edge):
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.app.pieces.Edge):
+			elif isinstance(self.selected_object, Flipper.application.pieces.Edge):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
@@ -1168,14 +1168,14 @@ class Flipper_App:
 					self.create_edge(self.selected_object.source_vertex, new_vertex)
 					self.create_edge(self.selected_object.target_vertex, new_vertex)
 					self.select_object(None)
-				elif isinstance(possible_object, Flipper.app.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
 					if possible_object != self.selected_object.source_vertex and possible_object != self.selected_object.target_vertex:
 						self.create_edge(self.selected_object.source_vertex, possible_object)
 						self.create_edge(self.selected_object.target_vertex, possible_object)
 						self.select_object(None)
 					else:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.app.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.pieces.Edge):
 					if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
 						self.destroy_edge_identification(self.selected_object)
 						self.destroy_edge_identification(possible_object)
@@ -1186,7 +1186,7 @@ class Flipper_App:
 	
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.app.pieces.Curve_Component):
+			if isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
 				self.selected_object.pop_point()
 			self.select_object(None)
 	
@@ -1195,19 +1195,19 @@ class Flipper_App:
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if isinstance(self.selected_object, Flipper.app.pieces.Curve_Component):
+		if isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
 			self.selected_object.move_last_point((x,y))
 	
 	def parent_key_press(self, event):
 		key = event.keysym
 		if key in ('Delete', 'BackSpace'):
-			if isinstance(self.selected_object, Flipper.app.pieces.Vertex):
+			if isinstance(self.selected_object, Flipper.application.pieces.Vertex):
 				self.destroy_vertex(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.app.pieces.Edge):
+			elif isinstance(self.selected_object, Flipper.application.pieces.Edge):
 				self.destroy_edge(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.app.pieces.Curve_Component):
+			elif isinstance(self.selected_object, Flipper.application.pieces.Curve_Component):
 				if len(self.selected_object.vertices) > 2:
 					(x,y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
@@ -1269,7 +1269,7 @@ def main(load_path=None):
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
 	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files
 	datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
-	icon_path = os.path.join(datadir, 'Icon', 'Icon.gif')
+	icon_path = os.path.join(datadir, 'icon', 'icon.gif')
 	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()

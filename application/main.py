@@ -346,7 +346,7 @@ class FlipperApp:
 					'	\n' + \
 					'	T, twists = example()\n' + \
 					'	\n' + \
-					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for i in range(random_length))\n' + \
+					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for _ in range(random_length))\n' + \
 					'	h = T.Id_EncodingSequence()\n' + \
 					'	for letter in word:\n' + \
 					'		h = twists[letter] * h\n' + \
@@ -447,6 +447,7 @@ class FlipperApp:
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				elif task == 'information': self.show_surface_information()
+				elif task == 'mc': self.mapping_class_information(combined)
 				
 				elif task == 'zoom': self.auto_zoom()
 				
@@ -894,6 +895,8 @@ class FlipperApp:
 				tkMessageBox.showwarning('Curve', '%s is not a multicurve.' % name)
 	
 	def create_composition(self, twists):
+		# Assumes that each of the named mapping classes exist. If not an
+		# AssumptionError is thrown.
 		if self.is_complete():
 			mapping_class = self.AbstractTriangulation.Id_EncodingSequence()
 			for twist in twists[::-1]:
@@ -901,7 +904,7 @@ class FlipperApp:
 					mapping_class = self.mapping_classes[twist][0] * mapping_class
 				else:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
-					raise Flipper.kernel.error.AbortError()
+					raise Flipper.kernel.error.AssumptionError()
 		
 			return mapping_class
 	
@@ -919,7 +922,7 @@ class FlipperApp:
 			
 			try:
 				mapping_class = self.create_composition(twists)
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				self.set_current_curve(mapping_class * curve)
@@ -946,7 +949,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				order = mapping_class.order()
@@ -959,7 +962,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				if mapping_class.is_periodic():
@@ -971,7 +974,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				try:
@@ -988,7 +991,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				try:
@@ -1009,7 +1012,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				try:
@@ -1026,7 +1029,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AbortError:
+			except Flipper.kernel.error.AssumptionError:
 				pass
 			else:
 				try:
@@ -1054,7 +1057,7 @@ class FlipperApp:
 					file = open(path, 'w')
 					try:
 						mapping_class = self.create_composition(composition.split('.'))
-					except Flipper.kernel.error.AbortError:
+					except Flipper.kernel.error.AssumptionError:
 						pass
 					else:
 						try:
@@ -1097,7 +1100,7 @@ class FlipperApp:
 				file = open(path, 'w')
 				try:
 					mapping_class = self.create_composition(composition.split('.'))
-				except Flipper.kernel.error.AbortError:
+				except Flipper.kernel.error.AssumptionError:
 					pass
 				else:
 					s = '\\documentclass[a4paper]{article}\n'
@@ -1120,6 +1123,16 @@ class FlipperApp:
 	
 	######################################################################
 	
+	def mapping_class_information(self, composition):
+		if self.is_complete():
+			try:
+				mapping_class = self.create_composition(composition.split('.'))
+			except Flipper.kernel.error.AssumptionError:
+				pass
+			else:
+				Flipper.application.mappingclass.MappingClassApp(self, composition, mapping_class)
+	
+	######################################################################
 	
 	def canvas_left_click(self, event):
 		# Modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm

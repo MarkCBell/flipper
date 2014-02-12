@@ -85,7 +85,7 @@ def build_example_mapping_class(example, word=None, random_length=50):
 	
 	T, twists = example()
 	
-	if word is None: word = ''.join(choice(list(twists.keys())) for i in range(random_length))
+	if word is None: word = ''.join(choice(list(twists.keys())) for _ in range(random_length))
 	h = T.Id_EncodingSequence()
 	for letter in word:
 		h = twists[letter] * h

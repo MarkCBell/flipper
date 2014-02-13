@@ -51,8 +51,8 @@ class Encoding:
 			return EncodingSequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
 		elif isinstance(other, Encoding):
 			return EncodingSequence([self, other], other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, Flipper.kernel.lamination.Lamination):
-			return Flipper.kernel.lamination.Lamination(self.target_triangulation, self * other.vector)
+		elif isinstance(other, Flipper.Lamination):
+			return Flipper.Lamination(self.target_triangulation, self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
 				if self.condition_matrices[i].nonnegative_image(other):
@@ -283,7 +283,7 @@ class EncodingSequence:
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:
-						certificate = Flipper.kernel.lamination.Lamination(self.source_triangulation, [2*i for i in certificate])
+						certificate = Flipper.Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
 						if show_progress is not None: show_progress.cancel()
 						return (True, certificate) if certify else True
@@ -343,16 +343,16 @@ class EncodingSequence:
 						if exact:
 							if Flipper.kernel.symboliccomputation._name == 'dummy': raise Flipper.kernel.error.ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
-								return Flipper.kernel.lamination.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
+								return Flipper.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
 							else:
 								action_matrix, condition_matrix = self.applied_matrix(curve)
 								try:
 									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
-									return Flipper.kernel.lamination.Lamination(self.source_triangulation, eigenvector)
+									return Flipper.Lamination(self.source_triangulation, eigenvector)
 								except Flipper.kernel.error.AssumptionError:  # action_matrix was not Perron-Frobenius.
 									raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
 						else:
-							return Flipper.kernel.lamination.Lamination(self.source_triangulation, curve)
+							return Flipper.Lamination(self.source_triangulation, curve)
 		else:
 			raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
 	

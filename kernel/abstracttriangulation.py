@@ -89,13 +89,13 @@ class AbstractTriangulation:
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
-			self._face_matrix = Flipper.kernel.matrix.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
+			self._face_matrix = Flipper.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
 		return self._face_matrix
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
-			self._marking_matrices = [Flipper.kernel.matrix.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
+			self._marking_matrices = [Flipper.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
 		return self._marking_matrices
 	
 	def geometric_to_algebraic(self, vector):
@@ -267,7 +267,7 @@ class AbstractTriangulation:
 	
 	# Laminations we can build on the triangulation.
 	def empty_lamination(self):
-		return Flipper.kernel.lamination.Lamination(self, [0] * self.zeta)
+		return Flipper.Lamination(self, [0] * self.zeta)
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
@@ -277,7 +277,7 @@ class AbstractTriangulation:
 			for triangle, side in corner_class:
 				if triangle[side+2] != edge_index:
 					vector[triangle[side+2]] += 1
-		return Flipper.kernel.lamination.Lamination(self, vector)
+		return Flipper.Lamination(self, vector)
 	
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
@@ -297,11 +297,11 @@ class AbstractTriangulation:
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
 		A1 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
 		Flipper.kernel.matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-		C1 = Flipper.kernel.matrix.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
+		C1 = Flipper.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
 		
 		A2 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
 		Flipper.kernel.matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-		C2 = Flipper.kernel.matrix.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
+		C2 = Flipper.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
 		
 		actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
 		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]

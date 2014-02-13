@@ -29,3 +29,10 @@ import Flipper.application.mappingclass
 import Flipper.application.pieces
 import Flipper.application.progress
 import Flipper.application.splitbutton
+
+Lamination =  Flipper.kernel.lamination.Lamination
+AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
+LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
+Matrix = Flipper.kernel.matrix.Matrix
+
+isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map

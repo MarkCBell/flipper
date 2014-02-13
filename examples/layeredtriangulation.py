@@ -9,7 +9,7 @@ def main(word):
 	word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
 	preperiodic, periodic, new_dilatation, lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()  # Requires the SymbolicComputation library.
 	
-	L = Flipper.kernel.layeredtriangulation.LayeredTriangulation(lamination.AbstractTriangulation, word)
+	L = Flipper.LayeredTriangulation(lamination.abstract_triangulation, word)
 	L.flips(periodic)
 	closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.

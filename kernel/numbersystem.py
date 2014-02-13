@@ -32,8 +32,8 @@ class NumberSystem:
 # This class represents an element of a NumberSystem. At any point we can convert it to an Flipper.kernel.algebraicapproximation. In fact we have
 # to do this if you want to do multiply or divide two of these.
 class NumberSystemElement:
-	def __init__(self, NumberSystem, linear_combination):
-		self.NumberSystem = NumberSystem
+	def __init__(self, number_system, linear_combination):
+		self.number_system = number_system
 		self.linear_combination = linear_combination
 		self._algebraic_approximation = None
 		self.current_accuracy = -1
@@ -43,12 +43,12 @@ class NumberSystemElement:
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __neg__(self):
-		return NumberSystemElement(self.NumberSystem, [-a for a in self])
+		return NumberSystemElement(self.number_system, [-a for a in self])
 	def __add__(self, other):
 		if isinstance(other, NumberSystemElement):
-			if self.NumberSystem != other.NumberSystem:
+			if self.number_system != other.number_system:
 				raise TypeError('Cannot add elements of different number systems.')
-			return NumberSystemElement(self.NumberSystem, [a+b for a, b in zip(self, other)])
+			return NumberSystemElement(self.number_system, [a+b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation() + other
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
@@ -60,9 +60,9 @@ class NumberSystemElement:
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, NumberSystemElement):
-			if self.NumberSystem != other.NumberSystem:
+			if self.number_system != other.number_system:
 				raise TypeError('Cannot subtract elements of different number systems.')
-			return NumberSystemElement(self.NumberSystem, [a-b for a, b in zip(self, other)])
+			return NumberSystemElement(self.number_system, [a-b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation() - other
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
@@ -78,7 +78,7 @@ class NumberSystemElement:
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) * other
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
-			return NumberSystemElement(self.NumberSystem, [a * other for a in self])
+			return NumberSystemElement(self.number_system, [a * other for a in self])
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
@@ -101,7 +101,7 @@ class NumberSystemElement:
 	def algebraic_approximation(self, accuracy=None, multiplicative_error=1, additive_error=0):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the AlgebraicApproximation produced is well defined.
-		N = self.NumberSystem
+		N = self.number_system
 		
 		# Let n := len(N).
 		# Let [a_i] := self.linear_combination, [\alpha_i] := N.algebraic_approximations and [I_i] := [\alpha_i.interval].
@@ -124,14 +124,14 @@ class NumberSystemElement:
 		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
-			self.NumberSystem.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
+			self.number_system.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
 			# Actually this will probably be too precise.
 			
 			# Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
 			if all(a == 0 for a in self):
-				self._algebraic_approximation = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(0, 2*accuracy, self.NumberSystem.degree, 1)
+				self._algebraic_approximation = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(0, 2*accuracy, self.number_system.degree, 1)
 			else:
-				self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.NumberSystem.algebraic_approximations))
+				self._algebraic_approximation = sum(generator_approximation * a for a, generator_approximation in zip(self, self.number_system.algebraic_approximations))
 			
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
 			# Now if accuracy was not None then self.current_accuracy >= accuracy.
@@ -153,6 +153,6 @@ class NumberSystemElement:
 
 #### Some special Number systems we know how to build.
 
-def NumberSystem_basis(generators, degree):
+def number_system_basis(generators, degree):
 	N = NumberSystem(generators, degree)
 	return [NumberSystemElement(N, [0] * i + [1] + [0] * (len(generators) - i)) for i in range(len(generators))]

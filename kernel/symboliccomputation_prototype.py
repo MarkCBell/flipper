@@ -181,4 +181,4 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 
 
 def algebraic_type_from_int(integer):
-	return AlgebraicType((Eigenvector(Flipper.kernel.matrix.Matrix([[1]], 1), vector=[1]), 0))
+	return AlgebraicType((Eigenvector(Flipper.Matrix([[1]], 1), vector=[1]), 0))

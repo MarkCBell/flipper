@@ -255,7 +255,7 @@ class Triangulation:
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Flipper.kernel.abstracttriangulation.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -343,13 +343,13 @@ class Triangulation:
 
 # A class to represent a layered triangulation over a surface specified by an Flipper.kernel.abstracttriangulation.
 class LayeredTriangulation:
-	def __init__(self, AbstractTriangulation, name='Flipper_triangulation'):
-		self.lower_triangulation = AbstractTriangulation.copy()
-		self.upper_triangulation = AbstractTriangulation.copy()
-		self.core_triangulation = Triangulation(2 * AbstractTriangulation.num_triangles, name)
+	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
+		self.lower_triangulation = abstract_triangulation.copy()
+		self.upper_triangulation = abstract_triangulation.copy()
+		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles, name)
 		
-		lower_tetrahedra = self.core_triangulation.tetrahedra[:AbstractTriangulation.num_triangles]
-		upper_tetrahedra = self.core_triangulation.tetrahedra[AbstractTriangulation.num_triangles:]
+		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
+		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
 			lower.glue(3, upper, Flipper.kernel.permutation.Permutation((0,2,1,3)))
 		

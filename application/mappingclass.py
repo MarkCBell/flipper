@@ -1,11 +1,10 @@
 
-from splitbutton import SplitButton
 try:
 	import Tkinter as TK
 except ImportError: # Python 3
 	import tkinter as TK
 
-# import Flipper
+import Flipper
 
 class MappingClassApp:
 	def __init__(self, host_app, name, mapping_class):

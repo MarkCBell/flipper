@@ -975,7 +975,7 @@ class FlipperApp:
 			else:
 				try:
 					start_time = time()
-					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.ProgressApp(self), options=self.options)
+					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.ProgressApp(self))
 					if result[0]:
 						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
 					else:

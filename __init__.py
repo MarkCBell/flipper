@@ -28,7 +28,7 @@ import Flipper.application.main
 import Flipper.application.mappingclass
 import Flipper.application.pieces
 import Flipper.application.progress
-import Flipper.application.splitbutton
+import Flipper.application.widgets
 
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation

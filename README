@@ -14,7 +14,7 @@ Alternatively, you can clone the mercurial repository directly:
 
 For more information about installing and using Flipper see "A users guide to 
 Flipper" located at:
-	./Docs/Flipper.pdf
+	./application/docs/Flipper.pdf
 
 If you find Flipper useful in your research, please consider citing it. A suggested reference is:
 	Mark Bell. Flipper (Computer Software).
@@ -25,7 +25,7 @@ or the BibTeX entry:
 		title = {Flipper (Computer Software)},
 		howpublished = {\url{https://bitbucket.org/Mark_Bell/flipper/}},
 		year = {2013--2014},
-		note = {Version 0.1.0}
+		note = {Version 0.1.1}
 	}
 
 Quick install, test and start as a Python module:

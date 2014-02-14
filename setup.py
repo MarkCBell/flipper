@@ -40,6 +40,6 @@ setup(
 	packages=['Flipper'],
 	package_dir={'Flipper':''},
 	# Remember to update these if the directory structure changes.
-	package_data={'Flipper': ['application/*.py', 'application/icon/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py']},
+	package_data={'Flipper': ['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'docs/*']},
 	cmdclass = {'test': TestCommand}
 	)

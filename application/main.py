@@ -363,7 +363,15 @@ class FlipperApp:
 	
 	def show_help(self):
 		# !?! TO DO
-		tkMessageBox.showwarning('Help', 'For more information see "A users guide to Flipper" located in the Docs folder.')
+		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
+		file = os.path.join(datadir, 'docs', 'Flipper.pdf')
+		if sys.platform.startswith('darwin'):
+			command = 'open'
+		elif sys.platform.startswith('win'):
+			command = 'start'
+		else:
+			command = 'xdg-open'
+		os.system(command + ' ' + file)
 	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)

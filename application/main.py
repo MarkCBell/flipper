@@ -362,7 +362,6 @@ class FlipperApp:
 		self.parent.quit()
 	
 	def show_help(self):
-		# !?! TO DO
 		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
 		file = os.path.join(datadir, 'docs', 'Flipper.pdf')
 		if sys.platform.startswith('darwin'):
@@ -1026,6 +1025,8 @@ class FlipperApp:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.kernel.error.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+				except ImportError:
+					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
 				else:
 					tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
@@ -1037,17 +1038,17 @@ class FlipperApp:
 				pass
 			else:
 				try:
-					lamination = mapping_class.invariant_lamination(exact)
+					lamination = mapping_class.invariant_lamination()
 				except Flipper.kernel.error.AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showinfo('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.kernel.error.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+				except ImportError:
+					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
 				else:
 					try:
 						start_time = time()
 						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
-					except ImportError:
-						tkMessageBox.showwarning('Lamination', 'Cannot determine without a symbolic library.')
 					except Flipper.kernel.error.AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
@@ -1070,6 +1071,8 @@ class FlipperApp:
 							tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except Flipper.kernel.error.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+						except ImportError:
+							tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
 						else:
 							try:
 								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()

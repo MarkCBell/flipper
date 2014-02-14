@@ -11,6 +11,6 @@ setup(
 	version = Flipper_version,  # Get the correct version.
 	author = 'Mark Bell',
 	description = 'For manipulating curves on surfaces and producing mapping tori.',
-	options = {'build_exe':{'icon':'./App/Icon/Icon.ico', 'include_files':[('./App/Icon/', './Icon')]}},
+	options = {'build_exe':{'icon':'./application/icon/icon.ico', 'include_files':[('./application/icon/', './icon'), ('./application/docs/', './docs')]}},
 	executables = [Executable('app.py', base=('Win32GUI' if sys.platform == 'win32' else None))]
 	)

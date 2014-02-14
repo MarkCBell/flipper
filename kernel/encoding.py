@@ -341,7 +341,7 @@ class EncodingSequence:
 				for new_curve, curve in zip(new_curves, curves):
 					if projective_difference(new_curve, curve, 1000000000):
 						if exact:
-							if Flipper.kernel.symboliccomputation._name == 'dummy': raise Flipper.kernel.error.ImportError('Dummy symbolic library used.')
+							if Flipper.kernel.symboliccomputation._name == 'dummy': raise ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
 								return Flipper.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
 							else:

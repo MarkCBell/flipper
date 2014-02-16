@@ -104,15 +104,18 @@ class Lamination:
 		new_vector[edge_index] = max(self[a] + self[c], self[b] + self[d]) - self[edge_index]
 		return Lamination(self.abstract_triangulation.flip_edge(edge_index), new_vector)
 	
-	def puncture_trigons(self):
+	def encode_puncture_trigons(self):
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
+		
+		zeta1 = self.abstract_triangulation.zeta
+		M = Flipper.kernel.matrix.Id_Matrix(zeta1) * 2
+		
 		new_labels = []
 		new_corner_labels = []
-		new_vector = [2*x for x in self.vector]
 		zeta = self.zeta
 		for triangle in self.abstract_triangulation:
 			a, b, c = triangle.edge_indices
-			if new_vector[a] + new_vector[b] > new_vector[c] and new_vector[b] + new_vector[c] > new_vector[a] and new_vector[c] + new_vector[a] > new_vector[b]:
+			if self[a] + self[b] > self[c] and self[b] + self[c] > self[a] and self[c] + self[a] > self[b]:
 				x, y, z = zeta, zeta+1, zeta+2
 				new_labels.append([a,z,y])
 				new_labels.append([b,x,z])
@@ -120,15 +123,16 @@ class Lamination:
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
 				new_corner_labels.append([1,0,0])
-				new_vector.append(self[b] + self[c] - self[a])
-				new_vector.append(self[c] + self[a] - self[b])
-				new_vector.append(self[a] + self[b] - self[c])
+				
+				M = M.join(Flipper.kernel.matrix.tweak_matrix(Flipper.kernel.matrix.Zero_Matrix(zeta1, 3), [(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)]))
+				
 				zeta = zeta + 3
 			else:
 				new_labels.append([a,b,c])
 				new_corner_labels.append([0,0,0])
 		
-		return Lamination(Flipper.AbstractTriangulation(new_labels, new_corner_labels), new_vector)
+		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
+		return Flipper.kernel.encoding.Encoding([M], [Flipper.kernel.matrix.Empty_Matrix(zeta1)], self.abstract_triangulation, T)
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -233,7 +237,7 @@ class Lamination:
 			raise Flipper.kernel.error.AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
-		lamination = initial_lamination.puncture_trigons()
+		lamination = initial_lamination.encode_puncture_trigons() * initial_lamination
 		
 		flipped = []
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}

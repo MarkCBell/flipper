@@ -8,14 +8,14 @@ import Flipper
 
 class Encoding:
 	def __init__(self, actions, conditions, source_triangulation, target_triangulation, as_latex=None):
-		assert(source_triangulation.zeta == target_triangulation.zeta)
 		assert(len(actions) > 0)
 		zeta = source_triangulation.zeta
+		zeta2 = target_triangulation.zeta
 		assert(len(actions) == len(conditions))
-		assert(all(len(M) == zeta for M in actions))
+		assert(all(len(M) == zeta2 for M in actions))
 		assert(all(len(row) == zeta for M in actions for row in M))
 		assert(all(len(row) == zeta for M in conditions for row in M))
-		assert(all(abs(M.determinant()) == 1 for M in actions))
+		# assert(all(abs(M.determinant()) == 1 for M in actions))
 		
 		self.size = len(actions)
 		self.action_matrices = actions
@@ -83,6 +83,8 @@ class Encoding:
 	def copy(self):
 		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices], self.source_triangulation, self.target_triangulation)
 	def inverse(self):
+		# Assumes that the matrices are invertible square.
+		assert(source_triangulation.zeta == target_triangulation.zeta)
 		X = [self.action_matrices[i].inverse() for i in range(self.size)]  # This is the very slow bit.
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
@@ -149,7 +151,7 @@ class EncodingSequence:
 	def __getitem__(self, key):
 		if isinstance(key, slice):
 			return EncodingSequence(self.sequence[key], self.sequence[key.end].source_triangulation, self.sequence[key.start].target_triangulation)
-		elif isinstance(key, int):
+		elif isinstance(key, Flipper.kernel.types.Integer_Type):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')

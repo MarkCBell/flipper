@@ -3,10 +3,16 @@ from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce
 
+import Flipper
+
+# !?! This is not pure.
 def tweak_vector(v, add, subtract):
 	for i in add: v[i] += 1
 	for i in subtract: v[i] -= 1
 	return v
+
+def tweak_matrix(M, one, minus_one):
+	return Matrix([[1 if (i, j) in one else -1 if (i, j) in minus_one else M[i][j] for j in range(M.width)] for i in range(M.height)], M.width)
 
 def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.
@@ -83,7 +89,7 @@ class Matrix:
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == len(other))
 			return [dot(row, other) for row in self]
-		elif isinstance(other, int):
+		elif isinstance(other, Flipper.kernel.types.Integer_Type):
 			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
 			return NotImplemented
@@ -298,6 +304,9 @@ class Matrix:
 
 def Id_Matrix(dim):
 	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)], dim)
+
+def Zero_Matrix(width, height):
+	return Matrix([[0] * width for _ in range(height)], width)
 
 def Empty_Matrix(dim):
 	return Matrix([], dim)

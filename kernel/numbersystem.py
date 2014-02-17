@@ -150,6 +150,10 @@ class NumberSystemElement:
 		return (self - other).algebraic_approximation() == 0
 	def __gt__(self, other):
 		return (self - other).algebraic_approximation() > 0
+	def __le__(self, other):
+		return self < other or self == other
+	def __ge__(self, other):
+		return self > other or self == other
 
 #### Some special Number systems we know how to build.
 

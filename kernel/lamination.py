@@ -61,7 +61,7 @@ class Lamination:
 		old_weight = lamination.weight()
 		while lamination.weight() > 2:
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
-			lamination = lamination.flip_edge(edge_index)
+			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
 			new_weight = lamination.weight()
 			
 			if new_weight < old_weight:
@@ -84,7 +84,7 @@ class Lamination:
 		
 		while lamination.weight() > 2:
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
-			lamination = lamination.flip_edge(edge_index)
+			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
 		
 		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
 		x, y = [edge_indices for edge_indices in lamination.abstract_triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
@@ -97,12 +97,6 @@ class Lamination:
 	def weight_difference_flip_edge(self, edge_index):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
-	
-	def flip_edge(self, edge_index):
-		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
-		new_vector = list(self.vector)
-		new_vector[edge_index] = max(self[a] + self[c], self[b] + self[d]) - self[edge_index]
-		return Lamination(self.abstract_triangulation.flip_edge(edge_index), new_vector)
 	
 	def encode_puncture_trigons(self):
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
@@ -243,7 +237,7 @@ class Lamination:
 		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
 		while True:
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry.
-			lamination = lamination.flip_edge(edge_index)
+			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
 			
 			if lamination[edge_index] == 0:
 				try:
@@ -298,7 +292,7 @@ class Lamination:
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
 			
-			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index)
+			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
 			conjugation = forwards * conjugation
 			conjugation_inverse = conjugation_inverse * backwards
 			lamination = forwards * lamination
@@ -313,7 +307,7 @@ class Lamination:
 		if k < 0: e1, e2 = e2, e1
 		
 		# Finally we can encode the twist.
-		forwards, backwards = lamination.abstract_triangulation.encode_flip(e1)
+		forwards, backwards = lamination.abstract_triangulation.encode_flip(e1, both=True)
 		lamination = forwards * lamination
 		new_triangulation = lamination.abstract_triangulation
 		
@@ -348,7 +342,7 @@ class Lamination:
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
 			
-			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index)
+			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
 			conjugation = forwards * conjugation
 			conjugation_inverse = conjugation_inverse * backwards
 			lamination = forwards * lamination
@@ -369,13 +363,13 @@ class Lamination:
 				other = triangle[0] if triangle[0] != bottom else triangle[1]
 		
 		# Finally we can encode the twist.
-		forwards, backwards = lamination.abstract_triangulation.encode_flip(bottom)
+		forwards, backwards = lamination.abstract_triangulation.encode_flip(bottom, both=True)
 		lamination = forwards * lamination
 		
-		forwards2, backwards2 = lamination.abstract_triangulation.encode_flip(e1)
+		forwards2, backwards2 = lamination.abstract_triangulation.encode_flip(e1, both=True)
 		lamination = forwards2 * lamination
 		
-		forwards3, backwards3 = lamination.abstract_triangulation.encode_flip(e2)
+		forwards3, backwards3 = lamination.abstract_triangulation.encode_flip(e2, both=True)
 		lamination = forwards3 * lamination
 		
 		new_triangulation = lamination.abstract_triangulation

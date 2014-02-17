@@ -288,7 +288,7 @@ class AbstractTriangulation:
 	def Id_EncodingSequence(self):
 		return Flipper.kernel.encoding.EncodingSequence([], self, self)
 	
-	def encode_flip(self, edge_index):
+	def encode_flip(self, edge_index, both=False):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
 		assert(self.edge_is_flippable(edge_index))
 		
@@ -307,4 +307,7 @@ class AbstractTriangulation:
 		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
 		as_latex = '%s(\\underline{x})' + ('[%d]' % edge_index) + ' &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
 		
-		return Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation, as_latex), Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self, as_latex)
+		forwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation, as_latex)
+		backwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self, as_latex)
+		
+		return (forwards, backwards) if both else forwards

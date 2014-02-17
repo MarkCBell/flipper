@@ -907,7 +907,7 @@ class FlipperApp:
 					mapping_class = self.mapping_classes[twist][0] * mapping_class
 				else:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
-					raise Flipper.kernel.error.AssumptionError()
+					raise Flipper.AssumptionError()
 		
 			return mapping_class
 	
@@ -925,7 +925,7 @@ class FlipperApp:
 			
 			try:
 				mapping_class = self.create_composition(twists)
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				self.set_current_curve(mapping_class * curve)
@@ -952,7 +952,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				order = mapping_class.order()
@@ -965,7 +965,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				if mapping_class.is_periodic():
@@ -977,7 +977,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				try:
@@ -994,7 +994,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				try:
@@ -1015,15 +1015,15 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				try:
 					lamination = mapping_class.invariant_lamination(exact)
 					dilatation = mapping_class.dilatation(lamination)
-				except Flipper.kernel.error.AssumptionError:
+				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
-				except Flipper.kernel.error.ComputationError:
+				except Flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				except ImportError:
 					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
@@ -1034,14 +1034,14 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				try:
 					lamination = mapping_class.invariant_lamination()
-				except Flipper.kernel.error.AssumptionError:
+				except Flipper.AssumptionError:
 					tkMessageBox.showinfo('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
-				except Flipper.kernel.error.ComputationError:
+				except Flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				except ImportError:
 					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
@@ -1049,7 +1049,7 @@ class FlipperApp:
 					try:
 						start_time = time()
 						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
-					except Flipper.kernel.error.AssumptionError:
+					except Flipper.AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
 						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
@@ -1062,21 +1062,21 @@ class FlipperApp:
 					file = open(path, 'w')
 					try:
 						mapping_class = self.create_composition(composition.split('.'))
-					except Flipper.kernel.error.AssumptionError:
+					except Flipper.AssumptionError:
 						pass
 					else:
 						try:
 							lamination = mapping_class.invariant_lamination()
-						except Flipper.kernel.error.AssumptionError:
+						except Flipper.AssumptionError:
 							tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
-						except Flipper.kernel.error.ComputationError:
+						except Flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						except ImportError:
 							tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
 						else:
 							try:
 								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
-							except Flipper.kernel.error.AssumptionError:
+							except Flipper.AssumptionError:
 								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 							else:
 								L = Flipper.LayeredTriangulation(correct_lamination.abstract_triangulation, composition)
@@ -1107,7 +1107,7 @@ class FlipperApp:
 				file = open(path, 'w')
 				try:
 					mapping_class = self.create_composition(composition.split('.'))
-				except Flipper.kernel.error.AssumptionError:
+				except Flipper.AssumptionError:
 					pass
 				else:
 					s = '\\documentclass[a4paper]{article}\n'
@@ -1134,7 +1134,7 @@ class FlipperApp:
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.kernel.error.AssumptionError:
+			except Flipper.AssumptionError:
 				pass
 			else:
 				Flipper.application.mappingclass.MappingClassApp(self, composition, mapping_class)

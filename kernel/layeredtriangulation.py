@@ -321,7 +321,7 @@ class Triangulation:
 		return (meridian_copies, longitude_copies)
 	
 	def SnapPy_string(self):
-		if not self.is_closed(): raise Flipper.kernel.error.AssumptionError('Layered triangulation is not closed.')
+		if not self.is_closed(): raise Flipper.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		s = ''

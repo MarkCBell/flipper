@@ -328,7 +328,7 @@ class EncodingSequence:
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
-			raise Flipper.kernel.error.AssumptionError('Mapping class is periodic.')
+			raise Flipper.AssumptionError('Mapping class is periodic.')
 		curves = self.source_triangulation.key_curves()
 		
 		def projective_difference(A, B, error_reciprocal):
@@ -351,12 +351,12 @@ class EncodingSequence:
 								try:
 									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
 									return Flipper.Lamination(self.source_triangulation, eigenvector)
-								except Flipper.kernel.error.AssumptionError:  # action_matrix was not Perron-Frobenius.
-									raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
+								except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
+									raise Flipper.ComputationError('Could not estimate invariant lamination.')
 						else:
 							return Flipper.Lamination(self.source_triangulation, curve)
 		else:
-			raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
+			raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	def dilatation(self, lamination):
 		# Returns the dilatation of this mapping class on the given lamination.

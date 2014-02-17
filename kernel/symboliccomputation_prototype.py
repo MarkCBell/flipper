@@ -175,7 +175,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 		
 		# ... so that this computation cannot fail.
 		if not condition_matrix.nonnegative_image(eigenvector):
-			raise Flipper.kernel.error.ComputationError('Could not estimate invariant lamination.')
+			raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	return eigenvector
 

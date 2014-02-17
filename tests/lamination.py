@@ -12,9 +12,11 @@ def determine_type(mapping_class):
 		try:
 			preperiodic, periodic, new_dilatation, correct_lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()
 			return PSEUDO_ANOSOV
-		except Flipper.kernel.error.ComputationError:
+		except ImportError:
+			pass  # !?!
+		except Flipper.ComputationError:
 			return UNKNOWN
-		except Flipper.kernel.error.AssumptionError:
+		except Flipper.AssumptionError:
 			return REDUCIBLE
 
 def main():

@@ -151,23 +151,23 @@ class Lamination:
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == b or c == d:
 			# This means that self[a] (respectively self[c]) == 0.
-			raise Flipper.kernel.error.AssumptionError('Additional weightless edge.')
+			raise Flipper.AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
 		if a == d and b == c:
 			# We're on S_{0,3}.
-			raise Flipper.kernel.error.AssumptionError('Underlying surface is S_{0,3}.')
+			raise Flipper.AssumptionError('Underlying surface is S_{0,3}.')
 		
 		if a == c and a == d:
 			# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
-			raise Flipper.kernel.error.AssumptionError('Edge connects between two vertices labelled 0.')
+			raise Flipper.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
 		base_triangle, base_side = self.abstract_triangulation.find_edge(edge_index)[0]
 		corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 		corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
 		if corner_A_label == 0 and corner_B_label == 0:
-			raise Flipper.kernel.error.AssumptionError('Edge connects between two vertices labelled 0.')
+			raise Flipper.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll replace the labels on the corner class with higher labels with the label from the lower
 		good_corner_label = min(corner_A_label, corner_B_label)
@@ -229,7 +229,7 @@ class Lamination:
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in initial_lamination.vector):
-			raise Flipper.kernel.error.AssumptionError('Lamination is not filling.')
+			raise Flipper.AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
 		lamination = initial_lamination.encode_puncture_trigons() * initial_lamination
@@ -244,8 +244,8 @@ class Lamination:
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
-				except Flipper.kernel.error.AssumptionError:
-					raise Flipper.kernel.error.AssumptionError('Lamination is not filling.')
+				except Flipper.AssumptionError:
+					raise Flipper.AssumptionError('Lamination is not filling.')
 			
 			flipped.append(edge_index)
 			
@@ -263,7 +263,7 @@ class Lamination:
 	def is_filling(self):
 		try:
 			self.splitting_sequence()
-		except Flipper.kernel.error.AssumptionError:
+		except Flipper.AssumptionError:
 			return False
 		else:
 			return True
@@ -274,7 +274,7 @@ class Lamination:
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
 		if not self.is_good_curve():
-			raise Flipper.kernel.error.AssumptionError('Not a good curve.')
+			raise Flipper.AssumptionError('Not a good curve.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
@@ -324,7 +324,7 @@ class Lamination:
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
 		if not self.is_pants_boundary():
-			raise Flipper.kernel.error.AssumptionError('Not a boundary of a pair of pants.')
+			raise Flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		

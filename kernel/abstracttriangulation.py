@@ -255,7 +255,7 @@ class AbstractTriangulation:
 			for i in range(3):
 				try:
 					isometry = extend_isometry(self, triangulation, self.triangles[0], triangle, i)
-				except Flipper.kernel.error.AssumptionError:
+				except Flipper.AssumptionError:
 					pass
 				else:
 					isometries.append(isometry)

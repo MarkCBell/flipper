@@ -36,4 +36,8 @@ AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulati
 LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
 Matrix = Flipper.kernel.matrix.Matrix
 
+ApproximationError = Flipper.kernel.error.ApproximationError
+AssumptionError = Flipper.kernel.error.AssumptionError
+ComputationError = Flipper.kernel.error.ComputationError
+
 isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map

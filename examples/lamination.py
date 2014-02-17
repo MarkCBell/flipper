@@ -23,9 +23,9 @@ def determine_type(mapping_class, verbose=False):
 			print(' -- Pseudo-Anosov.')
 		except ImportError:
 			print(' Cannot determine without a symbolic library.')
-		except Flipper.kernel.error.ComputationError:
+		except Flipper.ComputationError:
 			print(' ~~ Probably reducible.')
-		except Flipper.kernel.error.AssumptionError:
+		except Flipper.AssumptionError:
 			print(' -- Reducible.')
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time

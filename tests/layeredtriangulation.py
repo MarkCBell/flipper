@@ -61,7 +61,7 @@ def main():
 				# print(M.volume())
 				# print(word)
 				# return False
-		# except (Flipper.kernel.error.AssumptionError, Flipper.kernel.error.ComputationError):
+		# except (Flipper.AssumptionError, Flipper.ComputationError):
 			# print('Not pA.')
 	
 	return True

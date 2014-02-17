@@ -29,6 +29,16 @@ class Lamination:
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	
+	def projectively_equal(self, other):
+		w1, w2 = self.weight(), other.weight()
+		return all(x * w2 == y * w1 for x, y in zip(self, other))
+	
+	def projective_hash(self):
+		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
+		# so we achieve this by sorting the hash values.
+		w = self.weight()
+		return tuple(sorted([x.algebraic_hash_ratio(w) for x in self]))
+	
 	def weight(self):
 		return sum(self.vector)
 	
@@ -212,15 +222,6 @@ class Lamination:
 		# Note that when exact is False we require far less from the symbolic library. For example, we do not need:
 		#	addition, subtraction, division, comparison and equality (+, -, /, <, ==) with integers or other algebraic_types.
 		
-		def projectively_equal(lamination1, lamination2):
-			return all(lamination1[i] * lamination2[0] == lamination2[i] * lamination1[0] for i in range(1, lamination1.zeta))
-		
-		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
-		# so we achieve this by sorting the hash values.
-		def projectively_hash_lamination(lamination1):
-			s = lamination1.weight()
-			return tuple(sorted([v.algebraic_hash_ratio(s) for v in lamination1]))
-		
 		if exact:
 			initial_lamination = self
 		else:
@@ -234,7 +235,7 @@ class Lamination:
 		lamination = initial_lamination.encode_puncture_trigons() * initial_lamination
 		
 		flipped = []
-		seen = {projectively_hash_lamination(lamination):[(0, lamination)]}
+		seen = {lamination.projective_hash():[(0, lamination)]}
 		while True:
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry.
 			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
@@ -249,12 +250,12 @@ class Lamination:
 			flipped.append(edge_index)
 			
 			# Check if it (projectively) matches a lamination we've already seen.
-			target = projectively_hash_lamination(lamination)
+			target = lamination.projective_hash()
 			if target in seen:
 				for index, old_lamination in seen[target]:
-					isometries = [isometry for isometry in lamination.abstract_triangulation.all_isometries(old_lamination.abstract_triangulation) if projectively_equal(isometry * lamination, old_lamination)]
+					isometries = [isometry for isometry in lamination.abstract_triangulation.all_isometries(old_lamination.abstract_triangulation) if old_lamination.projectively_equal(isometry * lamination)]
 					if len(isometries) > 0:
-						return flipped[:index], flipped[index:], old_lamination[isometries[0].edge_map[0]] / lamination[0], old_lamination, isometries
+						return flipped[:index], flipped[index:], old_lamination.weight() / lamination.weight(), old_lamination, isometries
 				seen[target].append((len(flipped), lamination))
 			else:
 				seen[target] = [(len(flipped), lamination)]

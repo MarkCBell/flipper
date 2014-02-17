@@ -10,6 +10,7 @@ import Flipper.kernel.layeredtriangulation
 import Flipper.kernel.matrix
 import Flipper.kernel.numbersystem
 import Flipper.kernel.permutation
+import Flipper.kernel.splittingsequence
 import Flipper.kernel.symboliccomputation
 import Flipper.kernel.types
 import Flipper.kernel.version

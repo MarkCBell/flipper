@@ -364,3 +364,6 @@ class EncodingSequence:
 		
 		new_lamination = self * lamination
 		return new_lamination.weight() / lamination.weight()
+	
+	def splitting_sequence(self):
+		return self.invariant_lamination().splitting_sequence()

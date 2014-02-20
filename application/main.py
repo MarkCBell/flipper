@@ -1048,11 +1048,11 @@ class FlipperApp:
 				else:
 					try:
 						start_time = time()
-						preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+						splitting = lamination.splitting_sequence()
 					except Flipper.AssumptionError:
 						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 					else:
-						tkMessageBox.showinfo('Splitting sequence', 'Preperiodic splits: %s \nPeriodic splits: %s' % (preperiodic, periodic))
+						tkMessageBox.showinfo('Splitting sequence', 'Periodic splits: %s' % (len(splitting.flips)))
 	
 	def build_bundle(self, composition):
 		if self.is_complete():
@@ -1075,17 +1075,14 @@ class FlipperApp:
 							tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
 						else:
 							try:
-								preperiodic, periodic, dilatation, correct_lamination, isometries = lamination.splitting_sequence()
+								splitting = lamination.splitting_sequence()
 							except Flipper.AssumptionError:
 								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 							else:
-								L = Flipper.LayeredTriangulation(correct_lamination.abstract_triangulation, composition)
-								L.flips(periodic)
-								closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in isometries)]
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-								M = L.close(closing_isometries[0])
+								M = splitting.build_bundle(0, composition)
 								file.write(M.SnapPy_string())
-								description = 'It was built using the first of %d isometries.\n' % len(closing_isometries) + \
+								description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
 								'Cusp types: %s\n' % M.cusp_types + \
 								'Fibre slopes: %s\n' % M.fibre_slopes + \

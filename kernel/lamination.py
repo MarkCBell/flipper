@@ -29,6 +29,12 @@ class Lamination:
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	
+	def all_isometries(self, other):
+		return [isometry for isometry in self.abstract_triangulation.all_isometries(other.abstract_triangulation) if other == isometry * self]
+	
+	def all_projective_isometries(self, other):
+		return [isometry for isometry in self.abstract_triangulation.all_isometries(other.abstract_triangulation) if other.projectively_equal(isometry * self)]
+	
 	def projectively_equal(self, other):
 		w1, w2 = self.weight(), other.weight()
 		return all(x * w2 == y * w1 for x, y in zip(self, other))
@@ -234,11 +240,16 @@ class Lamination:
 		# Puncture out all trigon regions.
 		lamination = initial_lamination.encode_puncture_trigons() * initial_lamination
 		
-		flipped = []
-		seen = {lamination.projective_hash():[(0, lamination)]}
+		laminations = [lamination]
+		flips = []
+		encodings = []
+		seen = {lamination.projective_hash():[0]}
 		while True:
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry.
-			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
+			E = lamination.abstract_triangulation.encode_flip(edge_index)
+			lamination = E * lamination
+			encodings.append(E)
+			laminations.append(lamination)
 			
 			if lamination[edge_index] == 0:
 				try:
@@ -247,18 +258,20 @@ class Lamination:
 				except Flipper.AssumptionError:
 					raise Flipper.AssumptionError('Lamination is not filling.')
 			
-			flipped.append(edge_index)
+			flips.append(edge_index)
 			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
-				for index, old_lamination in seen[target]:
-					isometries = [isometry for isometry in lamination.abstract_triangulation.all_isometries(old_lamination.abstract_triangulation) if old_lamination.projectively_equal(isometry * lamination)]
+				for index in seen[target]:
+					old_lamination = laminations[index]
+					isometries = lamination.all_projective_isometries(old_lamination)
 					if len(isometries) > 0:
-						return flipped[:index], flipped[index:], old_lamination.weight() / lamination.weight(), old_lamination, isometries
-				seen[target].append((len(flipped), lamination))
+						# return flips[:index], flips[index:], old_lamination.weight() / lamination.weight(), old_lamination, isometries
+						return Flipper.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+				seen[target].append(len(laminations)-1)
 			else:
-				seen[target] = [(len(flipped), lamination)]
+				seen[target] = [len(laminations)-1]
 	
 	def is_filling(self):
 		try:

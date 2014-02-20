@@ -19,6 +19,8 @@ class Isometry:
 		return str(self.triangle_map)
 	def __getitem__(self, index):
 		return self.triangle_map[index]
+	def __eq__(self, other):
+		return self.triangle_map == other.triangle_map
 	def __iter__(self):
 		return iter(self.source_triangulation)
 	def __mul__(self, other):

@@ -34,6 +34,7 @@ import Flipper.application.widgets
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
 LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
+SplittingSequence = Flipper.kernel.splittingsequence.SplittingSequence
 Matrix = Flipper.kernel.matrix.Matrix
 
 ApproximationError = Flipper.kernel.error.ApproximationError

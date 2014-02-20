@@ -10,7 +10,7 @@ def determine_type(mapping_class):
 		return PERIODIC
 	else:
 		try:
-			preperiodic, periodic, new_dilatation, correct_lamination, isometries = mapping_class.invariant_lamination().splitting_sequence()
+			mapping_class.splitting_sequence()
 			return PSEUDO_ANOSOV
 		except ImportError:
 			pass  # !?!

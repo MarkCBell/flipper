@@ -17,8 +17,9 @@ def determine_type(mapping_class, verbose=False):
 			dilatation = mapping_class.dilatation(lamination)
 			print('      (Midpoint time: %0.4fs)' % (time() - start_time))
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
-			preperiodic, periodic, new_dilatation, correct_lamination, isometries = lamination.splitting_sequence()
-			if verbose: print('Perperiodic, periodic length: %d, %d' %(len(preperiodic), len(periodic)))
+			splitting = lamination.splitting_sequence()
+			new_dilatation = splitting.dilatation()
+			if verbose: print('Perperiodic, periodic length: %d, %d' %(len(splitting.flips)))
 			if verbose: print('Dilatation: %s, %s' % (dilatation, new_dilatation))
 			print(' -- Pseudo-Anosov.')
 		except ImportError:

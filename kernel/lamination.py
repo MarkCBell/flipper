@@ -250,6 +250,7 @@ class Lamination:
 			lamination = E * lamination
 			encodings.append(E)
 			laminations.append(lamination)
+			flips.append(edge_index)
 			
 			if lamination[edge_index] == 0:
 				try:
@@ -258,16 +259,11 @@ class Lamination:
 				except Flipper.AssumptionError:
 					raise Flipper.AssumptionError('Lamination is not filling.')
 			
-			flips.append(edge_index)
-			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					old_lamination = laminations[index]
-					isometries = lamination.all_projective_isometries(old_lamination)
-					if len(isometries) > 0:
-						# return flips[:index], flips[index:], old_lamination.weight() / lamination.weight(), old_lamination, isometries
+					if len(lamination.all_projective_isometries(laminations[index])) > 0:
 						return Flipper.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
 				seen[target].append(len(laminations)-1)
 			else:

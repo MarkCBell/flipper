@@ -5,7 +5,7 @@ import Flipper
 def main(word):
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
-	Example = Flipper.examples.abstracttriangulation.Example_S_1_1m
+	Example = Flipper.examples.abstracttriangulation.Example_S_1_2
 	word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
 	splitting = mapping_class.splitting_sequence()  # Requires the SymbolicComputation library.
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
@@ -24,6 +24,6 @@ def main(word):
 	print('the manifold you were expecting.')
 
 if __name__ == '__main__':
-	main('aB')
+	main('abC')
 	# import cProfile
 	# cProfile.run("main('aBBBBaBB')", sort='time')

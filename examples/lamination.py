@@ -37,14 +37,14 @@ def random_test(Example, words=None, num_trials=None, verbose=False):
 	times = []
 	if num_trials is not None:
 		for k in range(num_trials):
-			word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example)
-			print(word)
+			mapping_class = Example()
+			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))
 	elif words is not None:
 		num_trials = len(words)
 		for word in words:
-			word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
-			print(word)
+			mapping_class = Example(word)
+			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))
 	else:
 		raise TypeError('words or num_trials must be set')

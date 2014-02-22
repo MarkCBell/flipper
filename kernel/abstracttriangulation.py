@@ -258,7 +258,13 @@ class AbstractTriangulation:
 				except Flipper.AssumptionError:
 					pass
 				else:
-					isometries.append(isometry)
+					for triangle in self:
+						target, perm = isometry[triangle]
+						if any(target.corner_labels[perm[side]] != triangle.corner_labels[side] for side in range(3)):
+							# print('missed')
+							break
+					else:
+						isometries.append(isometry)
 		
 		return isometries
 

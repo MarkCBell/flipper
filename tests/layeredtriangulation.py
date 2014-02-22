@@ -4,11 +4,10 @@ from __future__ import print_function
 import Flipper
 
 def build_bundle(word, isometry_number):
-	Example = Flipper.examples.abstracttriangulation.Example_S_1_1
-	word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
+	mapping_class = Flipper.examples.abstracttriangulation.Example_S_1_1(word)
 	# !?! Could throw an ImportError if no SymbolicComputation library is present.
 	splitting = mapping_class.splitting_sequence()
-	return splitting.build_bundle(isometry_number, word)
+	return splitting.bundle(isometry_number, word)
 
 def main():
 	try:
@@ -44,8 +43,8 @@ def main():
 		
 	
 	# for _ in range(50):
-		# word, mapping_class = build_example_mapping_class(Example, random_length=10)
-		
+		# mapping_class = Example(10)
+		# word = mapping_class.name
 		# print(word)
 		# try:
 			# M = snappy.twister.Surface('S_1_1').bundle(word)

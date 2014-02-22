@@ -31,11 +31,11 @@ def main():
 		]
 	
 	for word, mapping_class_type in tests:
-		word, mapping_class = Flipper.examples.abstracttriangulation.build_example_mapping_class(Example, word)
+		mapping_class = Example(word)
 		try:
 			determined_type = determine_type(mapping_class)
 			if determined_type != mapping_class_type:
-				print(word)
+				print(mapping_class.name)
 				print(mapping_class_type)
 				print(determined_type)
 				return False

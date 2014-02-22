@@ -28,35 +28,35 @@ def algebraic_simplify(self, value=None):
 	else:
 		return AlgebraicType(sympy.simplify(self.value))
 
-def _minimal_polynomial_coefficients(self):
+def algebraic_minimal_polynomial_coefficients(self):
 	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(self.value)).all_coeffs()[::-1])
 
 # We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
 # uniform bound on the number of collisions.
 def algebraic_hash(self):
-	return self._minimal_polynomial_coefficients()
+	return self.algebraic_minimal_polynomial_coefficients()
 
 def algebraic_degree(self):
-	return len(self._minimal_polynomial_coefficients()) - 1
+	return len(self.algebraic_minimal_polynomial_coefficients()) - 1
 
 def algebraic_log_height(self):
-	return log(max(abs(x) for x in self._minimal_polynomial_coefficients()))
+	return log(max(abs(x) for x in self.algebraic_minimal_polynomial_coefficients()))
 
-def algebraic_approximate(self, accuracy, degree=None):
+def algebraic_approximate(self, accuracy, degree=None, power=1):
 	if degree is None: degree = self.algebraic_degree()  # If not given, assume that the degree of the number field is the degree of this number.
 	
 	if self.value.is_Integer:
-		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.value, accuracy, degree, self.algebraic_log_height())
+		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.value**power, accuracy, degree, self.algebraic_log_height())
 	else:
 		# First we need to correct for the fact that we may lose some digits of accuracy
 		# if the integer part of the number is big.
 		precision = accuracy + int(log(max(sympy.N(self.value, n=1), 1))) + 1
-		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(str(sympy.N(self.value, n=precision)), degree, self.algebraic_log_height())
+		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(str(sympy.N(self.value**power, n=precision)), degree, self.algebraic_log_height())
 		assert(A.interval.accuracy >= accuracy)
 		return A
 
 AlgebraicType.algebraic_simplify = algebraic_simplify
-AlgebraicType._minimal_polynomial_coefficients = _minimal_polynomial_coefficients
+AlgebraicType.algebraic_minimal_polynomial_coefficients = algebraic_minimal_polynomial_coefficients
 AlgebraicType.algebraic_hash = algebraic_hash
 AlgebraicType.algebraic_degree = algebraic_degree
 AlgebraicType.algebraic_log_height = algebraic_log_height

@@ -7,7 +7,7 @@ import Flipper
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 class Encoding:
-	def __init__(self, actions, conditions, source_triangulation, target_triangulation, as_latex=None):
+	def __init__(self, actions, conditions, source_triangulation, target_triangulation, name=None, as_latex=None):
 		assert(len(actions) > 0)
 		zeta = source_triangulation.zeta
 		zeta2 = target_triangulation.zeta
@@ -24,6 +24,7 @@ class Encoding:
 		self.target_triangulation = target_triangulation
 		self.zeta = zeta
 		self.as_latex = as_latex
+		self.name = name
 	
 	def __str__(self):
 		return '\n'.join(str(self.action_matrices[i]) + '\n' + str(self.condition_matrices[i]) for i in range(self.size))
@@ -90,7 +91,7 @@ class Encoding:
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
 
 class EncodingSequence:
-	def __init__(self, L, source_triangulation, target_triangulation):
+	def __init__(self, L, source_triangulation, target_triangulation, name=None):
 		# Should make sure the triangulations of the encodings in L chain together.
 		assert(source_triangulation.zeta == target_triangulation.zeta)
 		assert(all(isinstance(x, Encoding) for x in L))
@@ -99,6 +100,7 @@ class EncodingSequence:
 		self.zeta = source_triangulation.zeta
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
+		self.name = name
 		
 		self.size = len(self.sequence)
 	def __call__(self, other):

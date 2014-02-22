@@ -214,7 +214,7 @@ class Lamination:
 		
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, exact=False):
+	def splitting_sequence(self, exact=True):
 		# Computes the splitting sequence of this lamination where each of the entries an AlgebraicType.
 		
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.

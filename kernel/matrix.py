@@ -137,6 +137,9 @@ class Matrix:
 			p.append(ci)
 			A = self * (A + Id_Matrix(self.width) * ci)
 		return p[::-1]
+	def solve(self, target):
+		A = self.transpose()
+		return [A.substitute_row(i, target).determinant() for i in range(A.height)]
 	def substitute_row(self, index, new_row):
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)], self.width)
 	def discard_column(self, column):
@@ -314,3 +317,9 @@ def Empty_Matrix(dim):
 def Permutation_Matrix(perm):
 	dim = len(perm)
 	return Matrix([[1 if i == perm[j] else 0 for j in range(dim)] for i in range(dim)], dim)
+
+def Companion_Matrix(polynomial):
+	assert(polynomial[-1] == 1)
+	degree = len(polynomial) - 1
+	
+	return Matrix([[-polynomial[i] if j == degree-1 else 1 if j == i-1 else 0 for j in range(degree)] for i in range(degree)], degree)

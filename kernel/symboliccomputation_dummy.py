@@ -101,6 +101,9 @@ class AlgebraicType:
 	def algebraic_hash(self):
 		return None
 	
+	def algebraic_minimal_polynomial_coefficients(self):
+		return None
+	
 	def algebraic_hash_ratio(self, other):
 		return (self / other).algebraic_hash()
 	
@@ -110,7 +113,7 @@ class AlgebraicType:
 	def algebraic_log_height(self):
 		return -1
 	
-	def algebraic_approximate(self, accuracy, degree=None):
+	def algebraic_approximate(self, accuracy, degree=None, power=1):
 		return None
 
 def Perron_Frobenius_eigen(matrix):

@@ -1080,7 +1080,7 @@ class FlipperApp:
 								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
 							else:
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-								M = splitting.build_bundle(0, composition)
+								M = splitting.bundle(0, composition)
 								file.write(M.SnapPy_string())
 								description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \

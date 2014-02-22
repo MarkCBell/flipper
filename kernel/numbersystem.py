@@ -74,9 +74,9 @@ class NumberSystemElement:
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, NumberSystemElement):
-			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) * other.algebraic_approximation(multiplicative_error=3, additive_error=3)
+			return self.algebraic_approximation(multiplicative_error=4, additive_error=3) * other.algebraic_approximation(multiplicative_error=4, additive_error=3)
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
-			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) * other
+			return self.algebraic_approximation(multiplicative_error=4, additive_error=3) * other
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
 			return NumberSystemElement(self.number_system, [a * other for a in self])
 		else:

@@ -15,12 +15,14 @@
 #		Returns a sortable, hasahble value representing this algebraic number.
 #	algebraic_hash_ratio(self, other)
 #		Returns a sortable, hasahble value representing this algebraic number divided by other.
+#	algebraic_minimal_polynomial_coefficients(self):
+#		Returns the coefficients of the minimal polynomial of this algebraic number.
 #	algebraic_degree(self)
 #		Returns the degree of this algebraic number.
 #	algebraic_log_height(self):
 #		Returns the log_10 of the height of this algebraic number.
-#	algebraic_approximate(self, accuracy, degree=None)
-#		Returns an algebraic approximation of this algebraic number, correct to the requested accuracy.
+#	algebraic_approximate(self, accuracy, degree=None, power=1)
+#		Returns an algebraic approximation of this algebraic number to the requested power, correct to the requested accuracy.
 #
 # Typically each library sets these methods to work with its underlying type. Additionally, 
 # Lamination.splitting_sequence(exact=True) requires that AlgebraicType implements:

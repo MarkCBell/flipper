@@ -4,11 +4,15 @@ from math import log10 as log
 
 import Flipper
 
-# Eventually this will replace numbersystem as a way of storing / manipulating
-# elements of QQ(\lambda). The advantage that this has is that it can do multiplication
-# of these elements without having to drop to an AlgebraicApproximation. However
-# this requires the symbolic computation library to return the entries of the 
+# This provides us with a way of storing and manipulating elements of QQ(\lambda),
+# where \lambda is an algebraic integer (however technically this can currently only actually
+# manipulate elements of ZZ[\lambda]). This can even do multiplication of these 
+# elements without having to drop to an AlgebraicApproximation and so is significantly
+# faster that the previous way of doing this sort of calculation. However this
+# requires the symbolic computation library to return the entries of the 
 # eigenvector of a PF matrix as linear combinations of 1, \lambda, ..., \lambda^{d-1}.
+
+# Currently only Sage can do this.
 
 log_height_int = Flipper.kernel.algebraicapproximation.log_height_int
 
@@ -133,26 +137,27 @@ class NumberFieldElement(object):
 	def algebraic_approximation(self, accuracy=None, multiplicative_error=1, additive_error=0):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the AlgebraicApproximation produced is well defined.
-		N = self.number_field
 		
 		# Let N = QQ(\lambda) and d := N.degree.
+		N = self.number_field
+		d = N.degree
 		# Let [a_i] := self.linear_combination, [\alpha_i] := \lambda^i.algebraic_approximations and [I_i] := [\alpha_i.interval].
 		# Let \alpha := sum(a_i * \alpha_i) and I := \alpha.interval = sum(a_i * I_i)
 		# As \alpha also lies in K = QQ(\lambda) it also has degree at most d.
-		
+		#
 		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) [Interval.py L:13].
 		# Additionally, 
-		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + log(d) <= sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2) [AlgebraicApproximation.py L:9].
+		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + d log(2) <= sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2) [AlgebraicApproximation.py L:9].
 		# Hence for \alpha to determine a unique algebraic number we need that:
-		#	acc(I) >= log(d)) + log(height(\alpha)).
+		#	acc(I) >= log(d) + log(height(\alpha)).
 		# That is:
-		#	k - (d-1) >= log(n) + sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2).
-		# Hence:
-		#	k >= sum(log(a_i)) + N.sum_log_height_powers + log(N.degree) + (d-1) + d log(2).
-		
+		#	k - (d-1) >= log(d) + sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2).
+		# or equivalently that:
+		#	k >= sum(log(a_i)) + N.sum_log_height_powers + log(d) + (d-1) + d log(2).
+		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_powers + log(N.degree) + 2*d).
-		if accuracy is None: accuracy = int(sum(log_height_int(coefficient) for coefficient in self) + N.sum_log_height_powers + log(N.degree) + 2*N.degree)
+		if accuracy is None: accuracy = int(sum(log_height_int(coefficient) for coefficient in self) + N.sum_log_height_powers + log(d) + 2*d)
 		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:

@@ -34,7 +34,7 @@ def log_height_int(number):
 # This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
 # by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
 # upper bound on the log height of this number.
-class AlgebraicApproximation:
+class AlgebraicApproximation(object):
 	__slots__ = ['interval', 'degree', 'log_height', 'accuracy_needed']  # Force minimal RAM usage.
 	
 	def __init__(self, interval, degree, log_height):
@@ -84,7 +84,7 @@ class AlgebraicApproximation:
 			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
-	def __rmult__(self, other):
+	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
 		if isinstance(other, AlgebraicApproximation):

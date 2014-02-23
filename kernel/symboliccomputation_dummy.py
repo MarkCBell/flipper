@@ -9,7 +9,7 @@ _name = 'dummy'
 # all of these features from scratch. Features which don't work should be removed
 # by setting the functions to NotImplemented.
 
-class AlgebraicType:
+class AlgebraicType(object):
 	def __init__(self, value):
 		# We make sure to always start by using AlgebraicType.algebraic_simplify(), just to be safe.
 		self.value = self.algebraic_simplify(value)

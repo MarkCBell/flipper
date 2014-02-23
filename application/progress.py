@@ -6,7 +6,7 @@ except ImportError: # Python 3
 
 import Flipper
 
-class ProgressApp:
+class ProgressApp(object):
 	def __init__(self, host_app):
 		self.host_app = host_app
 		self.parent = TK.Toplevel(self.host_app.parent)

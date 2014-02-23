@@ -2,7 +2,7 @@
 from itertools import permutations, combinations
 
 # Represents a permutation on N elements.
-class Permutation:
+class Permutation(object):
 	def __init__(self, permutation):
 		assert(set(permutation) == set(range(len(permutation))))
 		self.permutation = tuple(permutation)

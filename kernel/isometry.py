@@ -3,7 +3,7 @@ from itertools import combinations
 
 import Flipper
 
-class Isometry:
+class Isometry(object):
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
 		# source_triangulation and target_triangulation are two AbstractTriangulations
 		# triangle_map is a dictionary sending each AbstractTriangle of source_triangulation to a pair

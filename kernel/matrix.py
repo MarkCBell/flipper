@@ -51,7 +51,7 @@ def dot(a, b):
 	return sum([a[i] * b[i] for i in range(len(a))])
 	# return sum(x * y for x, y in zip(a,b))
 
-class Matrix:
+class Matrix(object):
 	def __init__(self, data, width):
 		if not data or isinstance(data[0], (list, tuple)):
 			assert(all(isinstance(row, (list, tuple)) for row in data))

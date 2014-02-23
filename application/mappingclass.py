@@ -6,7 +6,7 @@ except ImportError: # Python 3
 
 import Flipper
 
-class MappingClassApp:
+class MappingClassApp(object):
 	def __init__(self, host_app, name, mapping_class):
 		self.host_app = host_app
 		self.name = name

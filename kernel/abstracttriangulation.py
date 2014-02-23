@@ -7,7 +7,7 @@ except ImportError: # Python 3
 
 import Flipper
 
-class AbstractTriangle:
+class AbstractTriangle(object):
 	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	
 	def __init__(self, index=None, edge_indices=None, corner_labels=None):
@@ -26,7 +26,7 @@ class AbstractTriangle:
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]
 
-class AbstractTriangulation:
+class AbstractTriangulation(object):
 	def __init__(self, all_edge_indices, all_corner_labels=None):
 		self.num_triangles = len(all_edge_indices)
 		self.zeta = self.num_triangles * 3 // 2

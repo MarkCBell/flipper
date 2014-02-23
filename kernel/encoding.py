@@ -6,7 +6,7 @@ import Flipper
 
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
-class Encoding:
+class Encoding(object):
 	def __init__(self, actions, conditions, source_triangulation, target_triangulation, name=None, as_latex=None):
 		assert(len(actions) > 0)
 		zeta = source_triangulation.zeta
@@ -90,7 +90,7 @@ class Encoding:
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
 
-class EncodingSequence:
+class EncodingSequence(object):
 	def __init__(self, L, source_triangulation, target_triangulation, name=None):
 		# Should make sure the triangulations of the encodings in L chain together.
 		assert(source_triangulation.zeta == target_triangulation.zeta)
@@ -331,6 +331,9 @@ class EncodingSequence:
 		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
 			raise Flipper.AssumptionError('Mapping class is periodic.')
+		
+		if exact and Flipper.kernel.symboliccomputation._name == 'dummy': raise ImportError('Dummy symbolic library used.')
+		
 		curves = self.source_triangulation.key_curves()
 		
 		def projective_difference(A, B, error_reciprocal):
@@ -341,11 +344,10 @@ class EncodingSequence:
 		new_curves = [self * curve for curve in curves]
 		for i in range(1000):
 			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
-			if i > 3:  # Make sure to do at least n==4 iterations.
+			if i > 3:  # Make sure to do at least 4 iterations.
 				for new_curve, curve in zip(new_curves, curves):
-					if projective_difference(new_curve, curve, 1000000000):
+					if projective_difference(new_curve, curve, 1000):
 						if exact:
-							if Flipper.kernel.symboliccomputation._name == 'dummy': raise ImportError('Dummy symbolic library used.')
 							if curve == new_curve:
 								return Flipper.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
 							else:
@@ -354,7 +356,7 @@ class EncodingSequence:
 									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
 									return Flipper.Lamination(self.source_triangulation, eigenvector)
 								except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
-									raise Flipper.ComputationError('Could not estimate invariant lamination.')
+									pass  # Keep going.
 						else:
 							return Flipper.Lamination(self.source_triangulation, curve)
 		else:
@@ -368,4 +370,8 @@ class EncodingSequence:
 		return new_lamination.weight() / lamination.weight()
 	
 	def splitting_sequence(self):
-		return self.invariant_lamination().splitting_sequence()
+		lamination = self.invariant_lamination()
+		dilatation = self.dilatation(lamination)
+		splitting = lamination.splitting_sequence()
+		new_dilatation = splitting.dilatation()
+		return splitting

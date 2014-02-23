@@ -59,7 +59,7 @@ size_LARGE = 6
 size_XLARGE = 8
 #label_edges_ALGEBRAIC = 'Algebraic'
 
-class Options:
+class Options(object):
 	def __init__(self, redraw):
 		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
 		
@@ -114,7 +114,7 @@ class Options:
 		self.redraw()
 
 
-class FlipperApp:
+class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
 		

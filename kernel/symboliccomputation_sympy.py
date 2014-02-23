@@ -50,7 +50,7 @@ def algebraic_approximate(self, accuracy, degree=None, power=1):
 	else:
 		# First we need to correct for the fact that we may lose some digits of accuracy
 		# if the integer part of the number is big.
-		precision = accuracy + int(log(max(sympy.N(self.value, n=1), 1))) + 1
+		precision = accuracy + int(log(max(sympy.N(self.value**power, n=1), 1))) + 1
 		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(str(sympy.N(self.value**power, n=precision)), degree, self.algebraic_log_height())
 		assert(A.interval.accuracy >= accuracy)
 		return A

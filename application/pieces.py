@@ -24,7 +24,7 @@ def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	
 	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
-class ColourPalette:
+class ColourPalette(object):
 	def __init__(self):
 		self.state = 0
 	
@@ -36,7 +36,7 @@ class ColourPalette:
 		r, g, b = hls_to_rgb(hue, lightness, saturation)
 		return '#%02x%02x%02x' % (int(r * 255), int(g * 255), int(b * 255))
 
-class Vertex:
+class Vertex(object):
 	def __init__(self, canvas, p, options):
 		self.options = options
 		self.default_colour = self.options.default_vertex_colour
@@ -73,7 +73,7 @@ class Vertex:
 	def update(self):
 		self.canvas.coords(self.drawn_self, self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size)
 
-class Edge:
+class Edge(object):
 	def __init__(self, source_vertex, target_vertex, options):
 		self.options = options
 		self.default_colour = self.options.default_edge_colour
@@ -128,7 +128,7 @@ class Edge:
 	def update(self):
 		self.canvas.coords(self.drawn_self, self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y)
 
-class Triangle:
+class Triangle(object):
 	def __init__(self, e1, e2, e3, options):
 		self.options = options
 		self.default_colour = self.options.default_triangle_colour
@@ -187,7 +187,7 @@ class Triangle:
 	def update(self):
 		self.canvas.coords(self.drawn_self, *[self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y])
 
-class CurveComponent:
+class CurveComponent(object):
 	def __init__(self, canvas, source_point, options, multiplicity=1):
 		self.options = options
 		self.default_colour = self.options.default_curve_colour

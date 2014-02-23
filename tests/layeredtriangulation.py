@@ -28,18 +28,18 @@ def main():
 		]
 	
 	for word, isometry_number, target_manifold in tests:
-		# try:
-		M = build_bundle(word, isometry_number)
-		# except IndexError:
-			# print('Invalid index.')
-		# else:
-		Ma = snappy.Manifold(M.SnapPy_string())
-		Mb = snappy.Manifold(target_manifold)
-		if not Ma.is_isometric_to(Mb):
-			print(word, isometry_number, target_manifold)
-			print(Ma.volume(), Mb.volume())
-			print(Ma.homology(), Mb.homology())
-			return False
+		try:
+			M = build_bundle(word, isometry_number)
+		except IndexError:
+			print('Invalid index.')
+		else:
+			Ma = snappy.Manifold(M.SnapPy_string())
+			Mb = snappy.Manifold(target_manifold)
+			if not Ma.is_isometric_to(Mb):
+				print(word, isometry_number, target_manifold)
+				print(Ma.volume(), Mb.volume())
+				print(Ma.homology(), Mb.homology())
+				return False
 	
 	# for _ in range(50):
 		# mapping_class = Example(10)

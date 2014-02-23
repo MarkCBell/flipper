@@ -27,7 +27,7 @@ vertices_meeting = {0:(1,2,3), 1:(0,3,2), 2:(0,1,3), 3:(0,2,1)}  # This order wa
 exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
 exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
 
-class Tetrahedron:
+class Tetrahedron(object):
 	def __init__(self, label=None):
 		self.label = label
 		self.glued_to = [None] * 4  # None or (Tetrahedron, permutation).
@@ -91,7 +91,7 @@ class Tetrahedron:
 		s += '  0.000000000000   0.000000000000\n'
 		return s
 
-class Triangulation:
+class Triangulation(object):
 	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]

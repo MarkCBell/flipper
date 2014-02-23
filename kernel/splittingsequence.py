@@ -1,7 +1,7 @@
 
 import Flipper
 
-class SplittingSequence:
+class SplittingSequence(object):
 	def __init__(self, initial_lamination, prepreiodic_encoding, laminations, flips, encodings, prefered_isometry=None):
 		self.initial_lamination = initial_lamination
 		self.prepreiodic_encoding = prepreiodic_encoding

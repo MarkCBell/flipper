@@ -7,7 +7,7 @@ import Flipper
 # This class represents the number ring ZZ[x_1, ..., x_n] where x_1, ..., x_n are elements of K := QQ(\lambda)
 # and are given as the list of generators and an upper bound on the degree of K. We store an algebraic
 # approximation of each generator, correct to the current accuracy. We can increase the accuracy at any point.
-class NumberSystem:
+class NumberSystem(object):
 	def __init__(self, generators, degree):
 		self.generators = generators
 		self.sum_log_height_generators = sum(generator.algebraic_log_height() for generator in generators)
@@ -31,7 +31,7 @@ class NumberSystem:
 
 # This class represents an element of a NumberSystem. At any point we can convert it to an Flipper.kernel.algebraicapproximation. In fact we have
 # to do this if you want to do multiply or divide two of these.
-class NumberSystemElement:
+class NumberSystemElement(object):
 	def __init__(self, number_system, linear_combination):
 		self.number_system = number_system
 		self.linear_combination = linear_combination

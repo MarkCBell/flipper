@@ -214,31 +214,18 @@ class Lamination(object):
 		
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, exact=True):
+	def splitting_sequence(self):
 		# Computes the splitting sequence of this lamination where each of the entries an AlgebraicType.
-		
-		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.
-		# We assume that self is given as a list of algebraic numbers.
-		
-		# If exact is set to False then an NumberSystem is created to how sufficiently good AlgebraicApproximations of the
-		# algebraic numbers involved. If at any point the precision would drop below what is required to maintain exactness 
-		# then the NumberSystem automatically requests a more accurate approximation from the symbolic library. This is much 
-		# faster than even sage.
 		#
-		# Note that when exact is False we require far less from the symbolic library. For example, we do not need:
-		#	addition, subtraction, division, comparison and equality (+, -, /, <, ==) with integers or other algebraic_types.
-		
-		if exact:
-			initial_lamination = self
-		else:
-			initial_lamination = Lamination(self.abstract_triangulation, Flipper.kernel.numbersystem.number_system_basis(self.vector, self.zeta))
+		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.
+		# We assume that self is given as a list of algebraic numbers or as elements of a NumberField.
 		
 		# Check if vector is obviously reducible.
-		if any(v == 0 for v in initial_lamination.vector):
+		if any(v == 0 for v in self.vector):
 			raise Flipper.AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
-		lamination = initial_lamination.encode_puncture_trigons() * initial_lamination
+		lamination = self.encode_puncture_trigons() * self
 		
 		laminations = [lamination]
 		flips = []

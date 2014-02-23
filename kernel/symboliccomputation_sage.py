@@ -85,7 +85,7 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 		
 		solution = M4.solve([1] + [0] * (len(M4)-1))
 		
-		eigenvector = [Flipper.kernel.numberfield.NumberFieldElement(N, solution[i:i+d]) for i in range(0, len(solution), d)]
+		eigenvector = [N.element(solution[i:i+d]) for i in range(0, len(solution), d)]
 	elif APPROACH == 2:
 		M = Matrix(matrix.rows)
 		eigenvalue = max(M.eigenvalues())
@@ -98,10 +98,8 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 			raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
 		
 		scale = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
-		# scale = lcm([x.denominator() for v in eigenvector for x in lam.coordinates_in_terms_of_powers()(v)])
 		
 		N = Flipper.kernel.numberfield.NumberField(AlgebraicType(eigenvalue))
-		# eigenvector = [N.element([int(scale * x) for x in lam.coordinates_in_terms_of_powers()(v)]) for v in eigenvector]
 		eigenvector = [N.element([int(scale * x) for x in v.polynomial().coeffs()]) for v in eigenvector]
 	
 	if condition_matrix is not None:

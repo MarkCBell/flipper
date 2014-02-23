@@ -8,7 +8,6 @@ import Flipper.kernel.isometry
 import Flipper.kernel.lamination
 import Flipper.kernel.layeredtriangulation
 import Flipper.kernel.matrix
-import Flipper.kernel.numbersystem
 import Flipper.kernel.numberfield
 import Flipper.kernel.permutation
 import Flipper.kernel.splittingsequence

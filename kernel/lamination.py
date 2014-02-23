@@ -21,7 +21,7 @@ class Lamination:
 		return self.vector[index]
 	
 	def __rmul__(self, other):
-		if isinstance(other, Flipper.kernel.isometry.Isometry) and other.source_triangulation == self.abstract_triangulation:
+		if isinstance(other, Flipper.Isometry) and other.source_triangulation == self.abstract_triangulation:
 			return Lamination(other.target_triangulation, [self[j] for i in range(self.zeta) for j in range(self.zeta) if i == other.edge_map[j]])
 		else:
 			return NotImplemented
@@ -214,7 +214,7 @@ class Lamination:
 		
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, exact=True):
+	def splitting_sequence(self, exact=False):
 		# Computes the splitting sequence of this lamination where each of the entries an AlgebraicType.
 		
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.
@@ -264,7 +264,7 @@ class Lamination:
 			if target in seen:
 				for index in seen[target]:
 					if len(lamination.all_projective_isometries(laminations[index])) > 0:
-						return Flipper.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+						return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

@@ -17,7 +17,7 @@ def build_mapping_class(T, dic, word):
 	if word is None:
 		return T, dic
 	
-	if isinstance(word, Flipper.kernel.types.Integer_Type):
+	if isinstance(word, Flipper.Integer_Type):
 		word = ''.join(choice(list(dic.keys())) for _ in range(word))
 	
 	h = T.Id_EncodingSequence()
@@ -27,7 +27,7 @@ def build_mapping_class(T, dic, word):
 	
 	return h
 
-def Example_S_1_1(word):
+def Example_S_1_1(word=None):
 	# S_1_1 and its standard (Twister) curves:
 	T = Flipper.AbstractTriangulation([[0,2,1], [0,2,1]])
 	
@@ -36,7 +36,7 @@ def Example_S_1_1(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
 
-def Example_S_1_1m(word):
+def Example_S_1_1m(word=None):
 	# Mirror image of S_1_1 and its standard (Twister) curves:
 	T = Flipper.AbstractTriangulation([[0,1,2], [0,1,2]])
 	
@@ -45,7 +45,7 @@ def Example_S_1_1m(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
 
-def Example_S_1_2(word):
+def Example_S_1_2(word=None):
 	# S_1_2 and its standard (Twister) curves:
 	T = Flipper.AbstractTriangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
 	
@@ -55,7 +55,7 @@ def Example_S_1_2(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b, c], [], []), word)
 
-def Example_S_2_1(word):
+def Example_S_2_1(word=None):
 	# S_1_2 and its standard (Twister) curves:
 	T = Flipper.AbstractTriangulation([[1, 2, 4], [5, 3, 0], [2, 6, 1], [3, 0, 7], [4, 5, 8], [7, 8, 6]])
 	
@@ -68,7 +68,7 @@ def Example_S_2_1(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f], [], []), word)
 
-def Example_S_3_1():
+def Example_S_3_1(word=None):
 	T = Flipper.AbstractTriangulation([[1, 2, 5], [0, 6, 3], [4, 1, 7], [3, 8, 2], [9, 5, 6],
 									   [10, 0, 9], [10, 7, 8], [11, 12, 4], [12, 14, 13], [13, 11, 14]])
 	
@@ -84,7 +84,7 @@ def Example_S_3_1():
 	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f, g, h], [], []), word)
 
 
-def Example_12(word):
+def Example_12(word=None):
 	# A 12-gon:
 	T = Flipper.AbstractTriangulation([[6, 7, 0], [8, 1, 7], [8, 9, 2], [9, 10, 3], [11, 4, 10], [12, 5, 11], [12, 13, 0], [14, 1, 13], 
 		[14, 15, 2], [15, 16, 3], [16, 17, 4], [6, 5, 17]])
@@ -95,7 +95,7 @@ def Example_12(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
 
-def Example_24(word):
+def Example_24(word=None):
 	# A 24-gon.
 	T = Flipper.AbstractTriangulation([[12, 13, 0], [14, 1, 13], [15, 2, 14], [15, 16, 3], [17, 4, 16], [17, 18, 5], 
 		[18, 19, 6], [20, 7, 19], [21, 8, 20], [21, 22, 9], [22, 23, 10], [24, 11, 23], [25, 0, 24], [25, 26, 1], 
@@ -108,7 +108,7 @@ def Example_24(word):
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
 
-def Example_36(word):
+def Example_36(word=None):
 	# A 36-gon
 	T = Flipper.AbstractTriangulation([[18, 19, 0], [20, 1, 19], [21, 2, 20], [21, 22, 3], [22, 23, 4], [24, 5, 23], [25, 6, 24], [25, 26, 7], 
 		[27, 8, 26], [27, 28, 9], [28, 29, 10], [30, 11, 29], [31, 12, 30], [31, 32, 13], [32, 33, 14], [34, 15, 33], [35, 16, 34], 

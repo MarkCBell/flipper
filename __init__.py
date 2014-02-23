@@ -34,12 +34,15 @@ import Flipper.application.widgets
 
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
+Isometry = Flipper.kernel.isometry.Isometry
 LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
-SplittingSequence = Flipper.kernel.splittingsequence.SplittingSequence
 Matrix = Flipper.kernel.matrix.Matrix
 
+isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
+
+AbortError = Flipper.kernel.error.AbortError
 ApproximationError = Flipper.kernel.error.ApproximationError
 AssumptionError = Flipper.kernel.error.AssumptionError
 ComputationError = Flipper.kernel.error.ComputationError
 
-isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
+Integer_Type = Flipper.kernel.types.Integer_Type

@@ -227,9 +227,9 @@ class AbstractTriangulation:
 		
 		return homology_generators
 	
-	def all_isometries(self, triangulation):
-		# Returns a list of all orientation preserving isometries from self to triangulation.
-		if self.zeta != triangulation.zeta: return []
+	def all_isometries(self, other_triangulation):
+		# Returns a list of all orientation preserving isometries from self to other_triangle.
+		if self.zeta != other_triangulation.zeta: return []
 		
 		def extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle):
 			triangle_map = {}
@@ -237,39 +237,37 @@ class AbstractTriangulation:
 			# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
 			triangles_to_process.put((source_triangle, target_triangle, cycle))
 			seen_triangles = set([source_triangle])
-			triangle_map[source_triangle] = (target_triangle, cycle)
 			while not triangles_to_process.empty():
 				from_triangle, to_triangle, cycle = triangles_to_process.get()
-				triangle_map[from_triangle] = (to_triangle, Flipper.kernel.permutation.cyclic_permutation(cycle, 3))
+				triangle_map[from_triangle] = (to_triangle, cycle)
 				for side in range(3):
 					from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
-					to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, (side+cycle)%3)
+					to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, cycle[side])
 					if from_triangle_neighbour not in seen_triangles:
-						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, (to_neighbour_side-from_neighbour_side) % 3))
+						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, Flipper.kernel.permutation.cyclic_permutation((to_neighbour_side-from_neighbour_side) % 3, 3)))
 						seen_triangles.add(from_triangle_neighbour)
 			
-			return Flipper.kernel.isometry.Isometry(source_triangulation, target_triangulation, triangle_map)
+			return Flipper.Isometry(source_triangulation, target_triangulation, triangle_map)
 		
 		isometries = []
-		for triangle in triangulation:
+		for other_triangle in other_triangulation:
 			for i in range(3):
 				try:
-					isometry = extend_isometry(self, triangulation, self.triangles[0], triangle, i)
+					isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, Flipper.kernel.permutation.cyclic_permutation(i, 3))
 				except Flipper.AssumptionError:
 					pass
 				else:
 					for triangle in self:
 						target, perm = isometry[triangle]
 						if any(target.corner_labels[perm[side]] != triangle.corner_labels[side] for side in range(3)):
-							# print('missed')
 							break
 					else:
 						isometries.append(isometry)
 		
 		return isometries
 
-	def is_isometric_to(self, triangulation):
-		return len(self.all_isometries(triangulation)) > 0
+	def is_isometric_to(self, other_triangulation):
+		return len(self.all_isometries(other_triangulation)) > 0
 	
 	# Laminations we can build on the triangulation.
 	def empty_lamination(self):

@@ -153,7 +153,7 @@ class EncodingSequence:
 	def __getitem__(self, key):
 		if isinstance(key, slice):
 			return EncodingSequence(self.sequence[key], self.sequence[key.end].source_triangulation, self.sequence[key.start].target_triangulation)
-		elif isinstance(key, Flipper.kernel.types.Integer_Type):
+		elif isinstance(key, Flipper.Integer_Type):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')

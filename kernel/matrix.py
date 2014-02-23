@@ -89,7 +89,7 @@ class Matrix:
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == len(other))
 			return [dot(row, other) for row in self]
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
 			return NotImplemented

@@ -987,7 +987,7 @@ class FlipperApp:
 						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
 					else:
 						tkMessageBox.showinfo('Reducible', '%s is irreducible.' % composition)
-				except Flipper.kernel.error.AbortError:
+				except Flipper.AbortError:
 					pass
 	
 	def is_pseudo_Anosov(self, composition):
@@ -1004,7 +1004,7 @@ class FlipperApp:
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 					else:
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
-				except Flipper.kernel.error.AbortError:
+				except Flipper.AbortError:
 					pass
 	
 	

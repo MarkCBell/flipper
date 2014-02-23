@@ -514,9 +514,10 @@ class LayeredTriangulation:
 				if cusp_types[tetrahedron.cusp_indices[permutation[side]]] is None:
 					cusp_types[tetrahedron.cusp_indices[permutation[side]]] = triangle.corner_labels[side]
 				else:
-					# assert(cusp_types[tetrahedron.cusp_indices[permutation[side]]] == triangle.corner_labels[side])
-					# print('Failed')
-					pass
+					assert(cusp_types[tetrahedron.cusp_indices[permutation[side]]] == triangle.corner_labels[side])
+					# if cusp_types[tetrahedron.cusp_indices[permutation[side]]] != triangle.corner_labels[side]:
+						# raise print('Failed')
+					# pass
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps

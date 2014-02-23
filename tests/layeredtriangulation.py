@@ -17,30 +17,29 @@ def main():
 		return True
 	
 	tests = [
-		('aB', 0, 'm004'),
-		('aB', 1, 'm003'),
-		('Ba', 0, 'm004'),
-		('Ba', 1, 'm003'),
-		('Ab', 0, 'm004'),
-		('Ab', 1, 'm003'),
-		('bA', 0, 'm004'),
-		('bA', 1, 'm003')
+		('aB', 0, 'm003'),
+		('aB', 1, 'm004'),
+		('Ba', 0, 'm003'),
+		('Ba', 1, 'm004'),
+		('Ab', 0, 'm003'),
+		('Ab', 1, 'm004'),
+		('bA', 0, 'm003'),
+		('bA', 1, 'm004')
 		]
 	
 	for word, isometry_number, target_manifold in tests:
-		try:
-			M = build_bundle(word, isometry_number)
-		except IndexError:
-			print('Invalid index.')
-		else:
-			Ma = snappy.Manifold(M.SnapPy_string())
-			Mb = snappy.Manifold(target_manifold)
-			if Ma.is_isometric_to(Mb):
-				print(word, isometry_number, target_manifold)
-				print(Ma.volume(), Mb.volume())
-				print(Ma.homology(), Mb.homology())
-				return False
-		
+		# try:
+		M = build_bundle(word, isometry_number)
+		# except IndexError:
+			# print('Invalid index.')
+		# else:
+		Ma = snappy.Manifold(M.SnapPy_string())
+		Mb = snappy.Manifold(target_manifold)
+		if not Ma.is_isometric_to(Mb):
+			print(word, isometry_number, target_manifold)
+			print(Ma.volume(), Mb.volume())
+			print(Ma.homology(), Mb.homology())
+			return False
 	
 	# for _ in range(50):
 		# mapping_class = Example(10)

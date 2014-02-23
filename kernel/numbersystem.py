@@ -51,7 +51,7 @@ class NumberSystemElement:
 			return NumberSystemElement(self.number_system, [a+b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation() + other
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			if other == 0: return self
 			return self.algebraic_approximation() + other
 		else:
@@ -65,7 +65,7 @@ class NumberSystemElement:
 			return NumberSystemElement(self.number_system, [a-b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation() - other
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			if other == 0: return self
 			return self.algebraic_approximation() - other
 		else:
@@ -77,7 +77,7 @@ class NumberSystemElement:
 			return self.algebraic_approximation(multiplicative_error=4, additive_error=3) * other.algebraic_approximation(multiplicative_error=4, additive_error=3)
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation(multiplicative_error=4, additive_error=3) * other
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return NumberSystemElement(self.number_system, [a * other for a in self])
 		else:
 			return NotImplemented
@@ -88,7 +88,7 @@ class NumberSystemElement:
 			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) / other.algebraic_approximation(multiplicative_error=3, additive_error=3)
 		elif isinstance(other, Flipper.kernel.algebraicapproximation.AlgebraicApproximation):
 			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) / other
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return self.algebraic_approximation(multiplicative_error=3, additive_error=3) / other
 		else:
 			return NotImplemented
@@ -144,6 +144,8 @@ class NumberSystemElement:
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
+	def exact(self):
+		return sum(generator * a for a, generator in zip(self, self.number_system.generators))
 	def __lt__(self, other):
 		return (self - other).algebraic_approximation() < 0
 	def __eq__(self, other):

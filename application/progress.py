@@ -32,7 +32,7 @@ class ProgressApp:
 		self.parent.destroy()
 	
 	def update_bar(self, value):
-		if not self.running: raise Flipper.kernel.error.AbortError()
+		if not self.running: raise Flipper.AbortError()
 		
 		self.progress.set(value, '%0.1f %%' % (value * 100))
 		self.host_app.parent.update()

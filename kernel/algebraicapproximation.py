@@ -60,7 +60,7 @@ class AlgebraicApproximation:
 	def __add__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval + other.interval, self.degree, self.log_height + other.log_height + log(2))
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(self.interval + other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
@@ -69,7 +69,7 @@ class AlgebraicApproximation:
 	def __sub__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval - other.interval, self.degree, self.log_height + other.log_height + log(2))
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(self.interval - other, self.degree, self.log_height + log_height_int(other) + log(2))
 		else:
 			return NotImplemented
@@ -78,7 +78,7 @@ class AlgebraicApproximation:
 	def __mul__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval * other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
 			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
@@ -89,14 +89,14 @@ class AlgebraicApproximation:
 	def __div__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+		elif isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, Flipper.kernel.types.Integer_Type):
+		if isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented  # !?!

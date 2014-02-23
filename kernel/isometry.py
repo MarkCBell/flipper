@@ -11,10 +11,12 @@ class Isometry:
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.triangle_map = triangle_map
-		self.edge_map = dict((triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3))
-		# Check that the thing that we've built is actually well defined.
-		if any(self.edge_map[i] == self.edge_map[j] for i, j in combinations(range(self.source_triangulation.zeta), 2)):
+		edge_map = [(triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3)]
+		if any((a == b) != (x == y) for (a, x), (b, y) in combinations(edge_map, 2)):
 			raise Flipper.AssumptionError('Map does not induce a well defined map on edges.')
+		
+		self.edge_map = dict(edge_map)
+		# Check that the thing that we've built is actually well defined.
 	def __repr__(self):
 		return str(self.triangle_map)
 	def __getitem__(self, index):

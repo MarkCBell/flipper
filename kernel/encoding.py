@@ -349,11 +349,14 @@ class EncodingSequence(object):
 					if projective_difference(new_curve, curve, 1000):
 						if exact:
 							if curve == new_curve:
-								return Flipper.Lamination(self.source_triangulation, [Flipper.kernel.symboliccomputation.algebraic_type_from_int(v) for v in curve])  # Convert to AlgebraicType!
+								return Flipper.Lamination(self.source_triangulation, Flipper.kernel.numberfield.number_field_from_integers(curve))
 							else:
 								action_matrix, condition_matrix = self.applied_matrix(curve)
 								try:
-									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve.vector, condition_matrix)
+									eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
+									# Check that we actually found the invariant lamination.
+									if not condition_matrix.nonnegative_image(eigenvector):
+										raise Flipper.AssumptionError('Could not estimate invariant lamination.')
 									return Flipper.Lamination(self.source_triangulation, eigenvector)
 								except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
 									pass  # Keep going.

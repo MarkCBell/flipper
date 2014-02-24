@@ -1,36 +1,20 @@
 
 from math import log10 as log
 
-from sage.all import Matrix, lcm, simplify, AlgebraicNumber, NumberField, MatrixSpace
+from sage.all import Matrix, lcm, NumberField
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import AlgebraicType
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, matrix_eigenvector
 
 _name = 'sage'
 
-def algebraic_simplify(self, value=None):
-	if value is not None:
-		value.simplify()
-		return value
-	else:
-		self.value.simplify()
-		return self
+def algebraic_simplify(self):
+	self.value.simplify()
 
 def algebraic_minimal_polynomial_coefficients(self):
 	X = tuple(self.value.minpoly().coeffs())
 	scale = abs(lcm([x.denominator() for x in X]))
 	return tuple(int(scale * x) for x in X)
-
-# We take the coefficients of the minimal polynomial of each entry and sort them. This has the nice property that there is a
-# uniform bound on the number of collisions.
-def algebraic_hash(self):
-	return self.algebraic_minimal_polynomial_coefficients()
-
-def algebraic_degree(self):
-	return len(self.algebraic_minimal_polynomial_coefficients()) - 1
-
-def algebraic_log_height(self):
-	return log(max(abs(x) for x in self.algebraic_minimal_polynomial_coefficients()))
 
 def algebraic_approximate(self, accuracy, degree=None, power=1):
 	# First we need to correct for the fact that we may lose some digits of accuracy
@@ -43,50 +27,21 @@ def algebraic_approximate(self, accuracy, degree=None, power=1):
 
 AlgebraicType.algebraic_simplify = algebraic_simplify
 AlgebraicType.algebraic_minimal_polynomial_coefficients = algebraic_minimal_polynomial_coefficients
-AlgebraicType.algebraic_hash = algebraic_hash
-AlgebraicType.algebraic_degree = algebraic_degree
-AlgebraicType.algebraic_log_height = algebraic_log_height
 AlgebraicType.algebraic_approximate = algebraic_approximate
 
 
-def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
+def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	
-	APPROACH = 2
+	APPROACH = 1
 	
 	if APPROACH == 0:
 		M = Matrix(matrix.rows)
-		eigenvalue = max(M.eigenvalues())
-		N = M - eigenvalue
-		try:
-			[eigenvector] = N.right_kernel().basis()
-		except ValueError:
-			raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
-		
-		s = sum(eigenvector)
-		if s == 0:
-			raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
-		
-		eigenvector = [AlgebraicType(x / s).algebraic_simplify() for x in eigenvector]
-	elif APPROACH == 1:
-		M = Matrix(matrix.rows)
 		eigenvalue = AlgebraicType(max(M.eigenvalues()))
-		N = Flipper.kernel.numberfield.NumberField(eigenvalue)
 		
-		d = eigenvalue.algebraic_degree()
-		Id_d = Flipper.kernel.matrix.Id_Matrix(d)
-		eigen_companion = Flipper.kernel.matrix.Companion_Matrix(eigenvalue.algebraic_minimal_polynomial_coefficients())
-		
-		M2 = matrix.substitute_row(0, [1] * len(matrix))
-		M3 = Id_d.substitute_row(0, [0] * d)
-		
-		M4 = M2 ^ Id_d - M3 ^ eigen_companion
-		
-		solution = M4.solve([1] + [0] * (len(M4)-1))
-		
-		eigenvector = [N.element(solution[i:i+d]) for i in range(0, len(solution), d)]
-	elif APPROACH == 2:
+		return matrix_eigenvector(matrix, eigenvalue)
+	elif APPROACH == 1:
 		M = Matrix(matrix.rows)
 		eigenvalue = max(M.eigenvalues())
 		K = NumberField(eigenvalue.minpoly(), 'L')
@@ -102,11 +57,4 @@ def Perron_Frobenius_eigen(matrix, vector=None, condition_matrix=None):
 		N = Flipper.kernel.numberfield.NumberField(AlgebraicType(eigenvalue))
 		eigenvector = [N.element([int(scale * x) for x in v.polynomial().coeffs()]) for v in eigenvector]
 	
-	if condition_matrix is not None:
-		if not condition_matrix.nonnegative_image(eigenvector):
-			raise Flipper.AssumptionError('Could not estimate invariant lamination.')  # If not then the curve failed to get close enough to the invariant lamination.
-	
 	return eigenvector
-
-def algebraic_type_from_int(integer):
-	return AlgebraicType(AlgebraicNumber(integer))

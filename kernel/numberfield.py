@@ -18,12 +18,20 @@ log_height_int = Flipper.kernel.algebraicapproximation.log_height_int
 
 class NumberField(object):
 	def __init__(self, generator):
+		assert(isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType) or isinstance(generator, Flipper.kernel.types.Integer_Type))
+		
 		self.generator = generator
-		self.minpoly_coefficients = self.generator.algebraic_minimal_polynomial_coefficients()
-		self.generator_d = [-a for a in self.minpoly_coefficients[:-1]]  # The expression of self.generator^d.
-		self.degree = len(self.minpoly_coefficients) - 1
-		self.log_height = max(log_height_int(coefficient) for coefficient in self.minpoly_coefficients)
+		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
+			self.generator_minpoly_coefficients = self.generator.algebraic_minimal_polynomial_coefficients()
+		else:
+			self.generator_minpoly_coefficients = [-self.generator, 1]
+		
+		# The expression of self.generator^d. Here we use the fact that the generator is an algebraic integer.
+		self.generator_d = [-a for a in self.generator_minpoly_coefficients[:-1]]
+		self.degree = len(self.generator_minpoly_coefficients) - 1
+		self.log_height = max(log_height_int(coefficient) for coefficient in self.generator_minpoly_coefficients)
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
+		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.generator_minpoly_coefficients).powers(self.degree)
 		
 		self.verbose = False
 		self.current_accuracy = -1
@@ -35,10 +43,19 @@ class NumberField(object):
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
-			self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, degree=self.degree, power=index) for index in range(self.degree)]
+			if isinstance(self.generator, Flipper.kernel.symboliccomputation.AlgebraicType):
+				self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, degree=self.degree, power=index) for index in range(self.degree)]
+			else:
+				self.algebraic_approximations = [Flipper.kernel.algebraic_approximation.algebraicapproximation_from_int(self.generator, 1, self.current_accuracy, self.degree, Flipper.kernel.algebraicapproximation.log_height_int(self.generator))]
 	
 	def element(self, linear_combination):
 		return NumberFieldElement(self, linear_combination)
+	
+	def __iter__(self):
+		return iter(self.generator_d)
+	
+	def __repr__(self):
+		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 
 class NumberFieldElement(object):
 	def __init__(self, number_field, linear_combination):
@@ -51,6 +68,7 @@ class NumberFieldElement(object):
 	
 	def __repr__(self):
 		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(self.algebraic_approximation())
+		# return str(list(self))
 	def __iter__(self):
 		return iter(self.linear_combination)
 	
@@ -83,23 +101,10 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number systems.')
 			
-			w = [a * other.linear_combination[0] for a in self]
-			x = [0] + self.linear_combination[:-1]
-			y = [a * self.linear_combination[-1] for a in self.number_field.generator_d]
-			z = other.linear_combination[1:] + [0]
-			
-			W = NumberFieldElement(self.number_field, w)
-			X = NumberFieldElement(self.number_field, x)
-			Y = NumberFieldElement(self.number_field, y)
-			Z = NumberFieldElement(self.number_field, z)
-			
-			if z == [0] * self.number_field.degree:
-				return W
-			else:
-				return W + (X + Y) * Z
+			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.matrix.Zero_Matrix(self.number_field.degree))
+			return NumberFieldElement(self.number_field, M * other.linear_combination)
 		elif isinstance(other, Flipper.Integer_Type):
 			w = [a * other for a in self]
-			assert(len(w) == len(self.linear_combination))
 			return NumberFieldElement(self.number_field, w)
 		else:
 			return NotImplemented
@@ -182,4 +187,7 @@ class NumberFieldElement(object):
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
-	
+
+def number_field_from_integers(integers):
+	N = NumberField(1)
+	return [N.element(integer) for integer in integers]

@@ -93,6 +93,20 @@ class Matrix(object):
 			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
 			return NotImplemented
+	def __rmul__(self, other):
+		return self * other
+	def __pow__(self, power):
+		assert(self.width == self.height)
+		M = Id_Matrix(self.width)
+		for i in range(power):
+			M = self * M
+		return M
+	def powers(self, max_power):
+		assert(self.width == self.height)
+		Ms = [Id_Matrix(self.width)]
+		for i in range(max_power):
+			Ms.append(self * Ms[-1])
+		return Ms
 	def __add__(self, other):
 		assert(self.width == other.width and self.height == other.height)
 		return Matrix([[self[i][j] + other[i][j] for j in range(self.width)] for i in range(self.height)], self.width)
@@ -138,8 +152,9 @@ class Matrix(object):
 			A = self * (A + Id_Matrix(self.width) * ci)
 		return p[::-1]
 	def solve(self, target):
+		sign = +1 if self.determinant() > 0 else -1
 		A = self.transpose()
-		return [A.substitute_row(i, target).determinant() for i in range(A.height)]
+		return [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
 	def substitute_row(self, index, new_row):
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)], self.width)
 	def discard_column(self, column):
@@ -308,7 +323,8 @@ class Matrix(object):
 def Id_Matrix(dim):
 	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)], dim)
 
-def Zero_Matrix(width, height):
+def Zero_Matrix(width, height=None):
+	if height is None: height = width
 	return Matrix([[0] * width for _ in range(height)], width)
 
 def Empty_Matrix(dim):

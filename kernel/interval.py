@@ -19,7 +19,7 @@ import Flipper
 #	acc(x * I) >= acc(I) - log+(x)
 
 class Interval(object):
-	__slots__ = ['lower', 'upper', 'precision', 'accuracy', 'log_plus']  # Force minimal RAM usage.
+	# __slots__ = ['lower', 'upper', 'precision', 'accuracy', 'log_plus']  # Force minimal RAM usage.
 	
 	def __init__(self, lower, upper, precision):
 		if lower == upper: 

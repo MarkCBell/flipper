@@ -14,12 +14,14 @@ from itertools import combinations
 from time import time
 try:
 	import Tkinter as TK
+	import ttk as TTK
 	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
 	import tkSimpleDialog
 except ImportError: # Python 3
 	import tkinter as TK
+	import ttk as TTK
 	import tkinter.font as TK_FONT
 	import tkinter.filedialog as tkFileDialog
 	import tkinter.messagebox as tkMessageBox
@@ -121,24 +123,20 @@ class FlipperApp(object):
 		self.options = Options(self.redraw)
 		
 		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
-		self.frame_interface.grid(column=1, sticky='nse')
+		self.frame_interface.grid(column=0, sticky='nse')
 		
 		###
-		self.label_curves = TK.Label(self.frame_interface, text='Multicurves:', anchor='w', font=self.options.custom_font)
-		self.label_curves.pack(fill='x')
+		self.label_objects = TK.Label(self.frame_interface, text='Objects:', anchor='w', font=self.options.custom_font)
+		self.label_objects.pack(fill='x')
 		
-		self.list_curves = TK.Listbox(self.frame_interface, font=self.options.custom_font)
-		self.list_curves.pack(fill='both', expand=True)
-		
-		self.label_mapping_classes = TK.Label(self.frame_interface, text='Mapping Classes:', anchor='w', font=self.options.custom_font)
-		self.label_mapping_classes.pack(fill='x')
-		
-		self.list_mapping_classes = TK.Listbox(self.frame_interface, font=self.options.custom_font)
-		self.list_mapping_classes.pack(fill='both', expand=True)
+		self.treeview_objects = TTK.Treeview(self.frame_interface)
+		self.treeview_objects.pack(fill='both', expand=True)
+		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
+		self.treeview_objects.bind('<Button-3>', self.treeview_objects_right_click)
 		###
 		
 		self.frame_command = TK.Frame(self.parent)
-		self.frame_command.grid(row=1, column=0, sticky='wes')
+		self.frame_command.grid(row=1, column=1, sticky='wes')
 		###
 		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.custom_font)
 		self.label_command.pack(side='left')
@@ -149,18 +147,14 @@ class FlipperApp(object):
 		###
 		
 		self.frame_draw = TK.Frame(self.parent)
-		self.frame_draw.grid(row=0, column=0, sticky='nesw')
+		self.frame_draw.grid(row=0, column=1, sticky='nesw')
 		###
 		self.canvas = TK.Canvas(self.frame_draw, width=500, height=500, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
-		# self.canvas.bind('<Shift-Button-1>', self.canvas_shift_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
-		self.list_curves.bind('<Button-1>', self.list_curves_left_click)
-		self.list_mapping_classes.bind('<Button-1>', self.list_mapping_classes_left_click)
-		self.list_mapping_classes.bind('<Button-3>', self.list_mapping_classes_right_click)
 		
 		###
 		
@@ -236,8 +230,11 @@ class FlipperApp(object):
 		self.curves = {}
 		self.mapping_classes = {}
 		self.selected_object = None
-		self.list_curves.delete(0, TK.END)
-		self.list_mapping_classes.delete(0, TK.END)
+		root_children = self.treeview_objects.get_children('')
+		for child in root_children:
+			self.treeview_objects.delete(child)
+		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True)
+		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True)
 		
 		self.build_complete_structure()
 		
@@ -258,8 +255,8 @@ class FlipperApp(object):
 				abstract_triangulation = self.abstract_triangulation
 				curves = self.curves
 				mapping_classes = self.mapping_classes
-				list_curves = self.list_curves.get(0, TK.END)
-				list_mapping_classes = self.list_mapping_classes.get(0, TK.END)
+				list_curves = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('curve')]
+				list_mapping_classes = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_class')]
 				
 				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes], open(path, 'wb'))
 			except IOError:
@@ -291,12 +288,14 @@ class FlipperApp(object):
 				
 				self.curves = curves
 				self.mapping_classes = mapping_classes
+
+				# !?! TO DO
 				
 				for name in list_curves:
-					self.list_curves.insert(TK.END, name)
+					self.treeview_objects.insert('curve', 'end', text=name)
 				
 				for name in list_mapping_classes:
-					self.list_mapping_classes.insert(TK.END, name)
+					self.treeview_objects.insert('mapping_class', 'end', text=name)
 				
 				if self.is_complete():
 					self.lamination_to_canvas(self.curves['_'])
@@ -450,7 +449,6 @@ class FlipperApp(object):
 				elif task == 'ngon': self.initialise_circular_n_gon(combined)
 				elif task == 'rngon': self.initialise_radial_n_gon(combined)
 				elif task == 'information': self.show_surface_information()
-				elif task == 'mc': self.mapping_class_information(combined)
 				
 				elif task == 'zoom': self.auto_zoom()
 				
@@ -757,8 +755,8 @@ class FlipperApp(object):
 		self.abstract_triangulation = None
 		self.curves = {}
 		self.mapping_classes = {}
-		self.list_curves.delete(0, TK.END)
-		self.list_mapping_classes.delete(0, TK.END)
+		for child in self.treeview_objects.get_children('curves') + self.treeview_objects.get_children('mapping_class'):
+			self.treeview_objects.delete(child)
 	
 	def build_complete_structure(self):
 		if self.is_complete() and self.abstract_triangulation is None:
@@ -834,7 +832,8 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
-					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					if name not in self.curves: 
+						self.treeview_objects.insert('curve', 'end', text=name)
 					self.curves[name] = lamination
 					self.destroy_curve()
 				else:
@@ -845,9 +844,11 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
-					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					if name not in self.curves:
+						self.treeview_objects.insert('curve', 'end', text=name)
 					self.curves[name] = lamination
-					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					if name not in self.mapping_classes:
+						self.treeview_objects.insert('mapping_class', 'end', text=name)
 					self.mapping_classes[name] = (lamination.encode_twist(), ('twist', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_twist(k=-1), ('twist', lamination, -1))
 					self.destroy_curve()
@@ -859,9 +860,11 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
-					if name not in self.curves: self.list_curves.insert(TK.END, name)
+					if name not in self.curves:
+						self.treeview_objects.insert('curve', 'end', text=name)
 					self.curves[name] = lamination
-					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					if name not in self.mapping_classes:
+						self.treeview_objects.insert('mapping_class', 'end', text=name)
 					self.mapping_classes[name] = (lamination.encode_halftwist(), ('half', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_halftwist(k=-1), ('half', lamination, -1))
 					self.destroy_curve()
@@ -884,7 +887,8 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			else:
 				if valid_name(name):
-					if name not in self.mapping_classes: self.list_mapping_classes.insert(TK.END, name)
+					if name not in self.mapping_classes:
+						self.treeview_objects.insert('mapping_class', 'end', text=name)
 					self.mapping_classes[name] = (mapping_class, ('isometry', isometry, +1))
 					self.mapping_classes[name.swapcase()] = (mapping_class_inverse, ('isometry', isometry, -1))
 	
@@ -1125,18 +1129,9 @@ class FlipperApp(object):
 			finally:
 				file.close()
 	
-	######################################################################
-	
-	def mapping_class_information(self, composition):
-		if self.is_complete():
-			try:
-				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.AssumptionError:
-				pass
-			else:
-				Flipper.application.mappingclass.MappingClassApp(self, composition, mapping_class)
 	
 	######################################################################
+	
 	
 	def canvas_left_click(self, event):
 		# Modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
@@ -1256,26 +1251,28 @@ class FlipperApp(object):
 		elif key == 'Next':
 			self.zoom_centre(0.95)
 	
-	def list_curves_left_click(self, event):
-		if self.list_curves.size() > 0:
-			index = self.list_curves.nearest(event.y)
-			xoffset, yoffset, width, height = self.list_curves.bbox(index)
-			if yoffset <= event.y <= yoffset + height:
-				self.show_curve(self.list_curves.get(index))
+	def treeview_objects_left_click(self, event):
+		iid = self.treeview_objects.identify('row', event.x, event.y)
+		parent = self.treeview_objects.parent(iid)
+		name = self.treeview_objects.item(iid)['text']
+		if parent == 'curve':
+			self.show_curve(name)
+		elif parent == 'mapping_class':
+			self.show_apply(name)
+		else:
+			pass  # !?! To do.
 	
-	def list_mapping_classes_left_click(self, event):
-		if self.list_mapping_classes.size() > 0:
-			index = self.list_mapping_classes.nearest(event.y)
-			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
-			if yoffset <= event.y <= yoffset + height:
-				self.show_apply(self.list_mapping_classes.get(index))
+	def treeview_objects_right_click(self, event):
+		iid = self.treeview_objects.identify('row', event.x, event.y)
+		parent = self.treeview_objects.parent(iid)
+		name = self.treeview_objects.item(iid)['text']
+		if parent == 'curve':
+			self.show_curve(name)
+		elif parent == 'mapping_class':
+			self.show_apply(name.swapcase())
+		else:
+			pass  # !?! To do.
 	
-	def list_mapping_classes_right_click(self, event):
-		if self.list_mapping_classes.size() > 0:
-			index = self.list_mapping_classes.nearest(event.y)
-			xoffset, yoffset, width, height = self.list_mapping_classes.bbox(index)
-			if yoffset <= event.y <= yoffset + height:
-				self.show_apply(self.list_mapping_classes.get(index).swapcase())
 
 def main(load_path=None):
 	root = TK.Tk()

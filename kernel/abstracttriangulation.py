@@ -8,7 +8,7 @@ except ImportError: # Python 3
 import Flipper
 
 class AbstractTriangle(object):
-	__slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
+	# __slots__ = ['index', 'edge_indices', 'corner_labels']  # Force minimal RAM usage.
 	
 	def __init__(self, index=None, edge_indices=None, corner_labels=None):
 		# Edges are ordered anti-clockwise.

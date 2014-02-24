@@ -12,6 +12,19 @@
 # [-1, 0, -3, -1, 1, 0, 0, 4, 1],
 # [0, 0, -1, 1, 0, -1, 0, 1, 1]
 # ]
+# or:
+# [
+# [0, -1, -2, 2, 1, 0, 1, 0, 0],
+# [0, 0, -1, 1, 1, 0, 0, 0, 0],
+# [1, -1, 0, 1, 0, 0, 0, -1, 1],
+# [1, -1, -1, 1, 1, 0, 1, -1, 0],
+# [0, -1, -1, 1, 1, 0, 0, 0, 1],
+# [1, -3, -4, 3, 3, 0, 2, -1, 0],
+# [1, -2, -2, 2, 1, 0, 1, -1, 1],
+# [1, 0, 1, 1, -1, -1, 0, -1, 1],
+# [1, -2, -3, 2, 2, 0, 1, 0, 0]
+# ]
+
 
 from math import log10 as log
 
@@ -48,6 +61,6 @@ def Perron_Frobenius_eigen(matrix):
 	# magnitude. If not an AssumptionError is thrown.
 	
 	M = sympy.Matrix(matrix.rows)
-	eigenvalue = AlgebraicType(max(M.eigenvals()))
+	eigenvalue = AlgebraicType(max(M.eigenvals(), key=abs))
 	
 	return matrix_eigenvector(matrix, eigenvalue)

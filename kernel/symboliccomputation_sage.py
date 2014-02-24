@@ -34,27 +34,24 @@ def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	
-	APPROACH = 1
+	# We could use the matrix_eigenvector function.
+	# M = Matrix(matrix.rows)
+	# eigenvalue = AlgebraicType(max(M.eigenvalues(), key=abs))
+	#
+	# return matrix_eigenvector(matrix, eigenvalue)
+	# but this is much faster.
+		
+	M = Matrix(matrix.rows)
+	eigenvalue = max(M.eigenvalues(), key=abs)
+	K = NumberField(eigenvalue.minpoly(), 'L')
+	lam = K.gens()[0]
 	
-	if APPROACH == 0:
-		M = Matrix(matrix.rows)
-		eigenvalue = AlgebraicType(max(M.eigenvalues()))
-		
-		return matrix_eigenvector(matrix, eigenvalue)
-	elif APPROACH == 1:
-		M = Matrix(matrix.rows)
-		eigenvalue = max(M.eigenvalues())
-		K = NumberField(eigenvalue.minpoly(), 'L')
-		lam = K.gens()[0]
-		
-		try:
-			[eigenvector] = (M - lam).right_kernel().basis()
-		except ValueError:
-			raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
-		
-		scale = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
-		
-		N = Flipper.kernel.numberfield.NumberField(AlgebraicType(eigenvalue))
-		eigenvector = [N.element([int(scale * x) for x in v.polynomial().coeffs()]) for v in eigenvector]
+	try:
+		[eigenvector] = (M - lam).right_kernel().basis()
+	except ValueError:
+		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
 	
-	return eigenvector
+	scale = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
+	
+	N = Flipper.kernel.numberfield.NumberField(AlgebraicType(eigenvalue))
+	return [N.element([int(scale * x) for x in v.polynomial().coeffs()]) for v in eigenvector]

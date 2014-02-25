@@ -26,15 +26,14 @@ AlgebraicType.minimal_polynomial_coefficients = minimal_polynomial_coefficients
 AlgebraicType.string_approximate = string_approximate
 
 
-def Perron_Frobenius_eigen(matrix):
+def PF_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	
 	M = Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvalues(), key=abs)
 	
-	# We could use the eigenvector_from_eigenvalue function.
-	# but this is much faster.  # !?!
+	# We could just return None as the eigenvector but this is much faster.
 	K = NumberField(eigenvalue.minpoly(), 'L')
 	lam = K.gens()[0]
 	

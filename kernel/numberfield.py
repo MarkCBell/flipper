@@ -28,7 +28,7 @@ class NumberField(object):
 		
 		# The expression of self.generator^d. Here we use the fact that the generator is an algebraic integer.
 		self.generator_d = [-a for a in self.generator_minpoly_coefficients[:-1]]
-		self.degree = len(self.generator_minpoly_coefficients) - 1
+		self.degree = self.generator.degree()
 		self.log_height = max(log_height_int(coefficient) for coefficient in self.generator_minpoly_coefficients)
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
 		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.generator_minpoly_coefficients).powers(self.degree)
@@ -77,7 +77,7 @@ class NumberFieldElement(object):
 	def __add__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number systems.')
+				raise TypeError('Cannot add elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a+b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] + other] + self.linear_combination[1:])
@@ -88,7 +88,7 @@ class NumberFieldElement(object):
 	def __sub__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot subtract elements of different number systems.')
+				raise TypeError('Cannot subtract elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a-b for a, b in zip(self, other)])
 		elif isinstance(other, Flipper.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] - other] + self.linear_combination[1:])
@@ -99,7 +99,7 @@ class NumberFieldElement(object):
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number systems.')
+				raise TypeError('Cannot add elements of different number fields.')
 			
 			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.matrix.Zero_Matrix(self.number_field.degree))
 			return NumberFieldElement(self.number_field, M * other.linear_combination)
@@ -113,7 +113,7 @@ class NumberFieldElement(object):
 	def __div__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number systems.')
+				raise TypeError('Cannot add elements of different number fields.')
 			
 			return self.algebraic_approximation(multiplicative_error=3) / other.algebraic_approximation(multiplicative_error=3) 
 		else:

@@ -1,6 +1,6 @@
 
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
-#	compute the stable lamination exactly.
+#	compute the stable lamination exactly, and
 #	compute splitting sequences.
 #
 # This module selects and imports the appropriate library for manipulating algebraic numbers.
@@ -15,8 +15,8 @@
 #	minimal_polynomial_coefficients(self):
 #		Returns the coefficients of the minimal polynomial of this algebraic number.
 #	string_approximate(self, precision, power=1):
-#		Returns a string containing an approximation of this algebraic number to the requested power, 
-#		correct to the requested precision.
+#		Returns a string containing an approximation of this algebraic number raised to the 
+#		requested power correct to the requested precision.
 #
 # The AlgebraicType also provides:
 #	def degree(self):
@@ -28,18 +28,16 @@
 # but these are derived automatically from AlgebraicType.minimal_polynomial_coefficients and AlgebraicType.string_approximate.
 #
 # Each library also provides a function for creating AlgebraicTypes:
-#	Perron_Frobenius_eigen(matrix):
+#	PF_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Flipper.kernel.matrix.Matrix) this must 
-#		return its PF eigenvalue L, that is the unique eigenvalue with largest absolute value, 
-#		as an AlgebraicType along with either: 
-#			A list of integer coefficients [[v_ij]] such that:
-#				v_i := sum(v_ij L^j) 
-#			is the entries of the corresponding eigenvector, or
+#		return a pair (L, v) where L is the matrix's PF eigenvalue, that is the unique eigenvalue with 
+#		largest absolute value, as an AlgebraicType and v is either: 
+#			A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
 #			None.
 #
 # and a _name variable containing a string identifying the module. This is very useful for debugging.
-
-# You can provide your own algebraic number library so long as it provides these methods and can be cast to a string via str().
+#
+# You can provide your own algebraic number library so long as it provides these methods.
 
 _name = None
 
@@ -47,7 +45,7 @@ if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sage
 		AlgebraicType = Flipper.kernel.symboliccomputation_sage.AlgebraicType
-		Perron_Frobenius_eigen2 = Flipper.kernel.symboliccomputation_sage.Perron_Frobenius_eigen
+		PF_eigen = Flipper.kernel.symboliccomputation_sage.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_sage._name
 	except ImportError:
 		pass
@@ -56,7 +54,7 @@ if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sympy
 		AlgebraicType = Flipper.kernel.symboliccomputation_sympy.AlgebraicType
-		Perron_Frobenius_eigen2 = Flipper.kernel.symboliccomputation_sympy.Perron_Frobenius_eigen
+		PF_eigen = Flipper.kernel.symboliccomputation_sympy.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_sympy._name
 	except ImportError:
 		pass
@@ -65,13 +63,13 @@ if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_dummy
 		AlgebraicType = Flipper.kernel.symboliccomputation_dummy.AlgebraicType
-		Perron_Frobenius_eigen2 = Flipper.kernel.symboliccomputation_dummy.Perron_Frobenius_eigen
+		PF_eigen = Flipper.kernel.symboliccomputation_dummy.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_dummy._name
 	except ImportError:
 		pass
 
 def Perron_Frobenius_eigen(matrix):
-	eigenvalue, eigenvector = Perron_Frobenius_eigen2(matrix)
+	eigenvalue, eigenvector = PF_eigen(matrix)
 	if eigenvector is None:
 		d = eigenvalue.degree()
 		w = matrix.width

@@ -17,12 +17,6 @@ class AlgebraicType(object):
 		self.value = value
 		self.simplify()
 	
-	def __str__(self):
-		return str(self.value)
-	
-	def __repr__(self):
-		return repr(self.value)
-	
 	def simplify(self):
 		pass
 	
@@ -40,11 +34,11 @@ class AlgebraicType(object):
 	
 	def algebraic_approximate(self, accuracy, power=1):
 		# First we need to correct for the fact that we may lose some digits of accuracy if the integer part of the number is big.
-		precision = accuracy + len(self.string_approximate(1))
-		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(self.string_approximate(precision), self.degree(), self.log_height())
+		precision = accuracy + len(self.string_approximate(1, power))
+		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(self.string_approximate(precision, power), self.degree(), self.log_height())
 		assert(A.interval.accuracy >= accuracy)
 		return A
 
-def Perron_Frobenius_eigen(matrix):
+def PF_eigen(matrix):
 	raise ImportError('Dummy symbolic computation library cannot do this calculation.')
 	return None, None

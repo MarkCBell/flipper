@@ -49,14 +49,14 @@ AlgebraicType.minimal_polynomial_coefficients = minimal_polynomial_coefficients
 AlgebraicType.string_approximate = string_approximate
 
 
-def Perron_Frobenius_eigen(matrix):
+def PF_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	
 	M = sympy.Matrix(matrix.rows)
-	try:
-		eigenvalue = AlgebraicType(max(M.eigenvals(), key=abs))
-	except:
+	eigenvalues = M.eigenvals()
+	eigenvalue = max(eigenvalues, key=abs)
+	if eigenvalues[eigenvalue] != 1:
 		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')  # !?! To do.
 	
-	return eigenvalue, None
+	return AlgebraicType(eigenvalue), None

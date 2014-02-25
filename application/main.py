@@ -14,18 +14,25 @@ from itertools import combinations
 from time import time
 try:
 	import Tkinter as TK
-	import ttk as TTK
 	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
 	import tkSimpleDialog
 except ImportError: # Python 3
-	import tkinter as TK
-	import ttk as TTK
-	import tkinter.font as TK_FONT
-	import tkinter.filedialog as tkFileDialog
-	import tkinter.messagebox as tkMessageBox
-	import tkinter.simpledialog as tkSimpleDialog
+	try:
+		import tkinter as TK
+		import ttk as TTK
+		import tkinter.font as TK_FONT
+		import tkinter.filedialog as tkFileDialog
+		import tkinter.messagebox as tkMessageBox
+		import tkinter.simpledialog as tkSimpleDialog
+	except ImportError:
+		raise ImportError('Tkinter / tkinter not available.')	
+
+#try:
+import ttk as TTK
+#except ImportError: # not installed
+#	raise ImportError('ttk not available.')
 
 import Flipper
 
@@ -55,14 +62,15 @@ render_lamination_C_TRAIN_TRACK = 'Compressed train track'
 label_edges_NONE = 'None'
 label_edges_INDEX = 'Index'
 label_edges_GEOMETRIC = 'Geometric'
-size_SMALL = 2
-size_MEDIUM = 4
-size_LARGE = 6
-size_XLARGE = 8
+size_SMALL = 10
+size_MEDIUM = 12
+size_LARGE = 14
+#size_XLARGE = 16
 #label_edges_ALGEBRAIC = 'Algebraic'
 
 class Options(object):
-	def __init__(self, redraw):
+	def __init__(self, parent):
+		self.parent = parent
 		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
 		
 		self.render_lamination_var = TK.StringVar(value=render_lamination_FULL)
@@ -81,8 +89,6 @@ class Options(object):
 		self.label_edges_var.trace('w', self.update)
 		self.size_var.trace('w', self.update)
 		
-		self.redraw = redraw
-		
 		# Drawing parameters.
 		self.epsilon = 10
 		self.float_error = 0.001
@@ -91,9 +97,6 @@ class Options(object):
 		
 		self.vertex_buffer = 0.2  # Must be in (0,0.5)
 		self.zoom_fraction = 0.9 # Must be in (0,1)
-		
-		#self.dot_size = 3
-		#self.line_size = 2
 		
 		self.default_vertex_colour = 'black'
 		self.default_edge_colour = 'black'
@@ -111,38 +114,44 @@ class Options(object):
 		self.label_edges = str(self.label_edges_var.get())
 		self.line_size = int(self.size_var.get())
 		self.dot_size = int(self.size_var.get()) + 1
-		self.custom_font.configure(size=int(self.size_var.get()) + 8)
-		
-		self.redraw()
+		self.custom_font.configure(size=int(self.size_var.get()))
+		self.parent.treeview_objects.tag_configure('txt', font=self.custom_font)
+
+		self.parent.redraw()
 
 
 class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
 		
-		self.options = Options(self.redraw)
+		self.options = Options(self)
 		
 		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
 		self.frame_interface.grid(column=0, sticky='nsw')
 		
 		###
-		self.label_objects = TK.Label(self.frame_interface, text='Objects:', anchor='w', font=self.options.custom_font)
-		self.label_objects.pack(fill='x')
-		
-		self.treeview_objects = TTK.Treeview(self.frame_interface)
+		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
 		self.treeview_objects.pack(fill='both', expand=True)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Button-3>', self.treeview_objects_right_click)
+		#self.treeview_objects.bind('<Double-1>', lambda e: 'break')  # Prevent double clicks from opening menus.
+
+		# p = TTK.Panedwindow(self.frame_interface, orient='vertical')
+		# f1 = TTK.Labelframe(p, text='Pane1', width=100, height=100)
+		# f2 = TTK.Labelframe(p, text='Pane2', width=100, height=100); # second pane
+		# p.add(f1)
+		# p.add(f2)
+		# p.pack(fill='both', expand=True)
 		###
 		
 		self.frame_command = TK.Frame(self.parent)
-		self.frame_command.grid(row=1, column=1, sticky='wes')
+		self.frame_command.grid(row=1, columnspan=2, sticky='wes')
 		###
 		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.custom_font)
 		self.label_command.pack(side='left')
 		
 		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.custom_font)
-		self.entry_command.pack(padx=15, pady=1, side='top', fill='x', expand=True)
+		self.entry_command.pack(padx=10, pady=1, side='top', fill='x', expand=True)
 		self.entry_command.bind('<Return>', self.command_return)
 		###
 		
@@ -178,7 +187,7 @@ class FlipperApp(object):
 		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=size_SMALL)
 		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=size_MEDIUM)
 		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=size_LARGE)
-		sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=size_XLARGE)
+		# sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=size_XLARGE)
 
 		edgelabelmenu = TK.Menu(menubar, tearoff=0)
 		edgelabelmenu.add_radiobutton(label=label_edges_NONE, var=self.options.label_edges_var)
@@ -230,11 +239,11 @@ class FlipperApp(object):
 		self.curves = {}
 		self.mapping_classes = {}
 		self.selected_object = None
-		root_children = self.treeview_objects.get_children('')
-		for child in root_children:
+		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
-		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True)
-		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True)
+		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True, tags='txt')
+		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True, tags='txt')
+		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
 		
 		self.build_complete_structure()
 		
@@ -244,6 +253,11 @@ class FlipperApp(object):
 		self.entry_command.delete(0, TK.END)
 		
 		self.entry_command.focus()
+	
+	def add_mapping_class(self, name):
+		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags='txt')
+		self.treeview_objects.insert(iid, 'end', text='Order: ??', tags='txt')
+		self.treeview_objects.insert(iid, 'end', text='Lamination: ??', tags='txt')
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -292,10 +306,10 @@ class FlipperApp(object):
 				# !?! TO DO
 				
 				for name in list_curves:
-					self.treeview_objects.insert('curve', 'end', text=name)
+					self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
 				
 				for name in list_mapping_classes:
-					self.treeview_objects.insert('mapping_class', 'end', text=name)
+					self.add_mapping_class(name)
 				
 				if self.is_complete():
 					self.lamination_to_canvas(self.curves['_'])
@@ -833,7 +847,7 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
 					if name not in self.curves: 
-						self.treeview_objects.insert('curve', 'end', text=name)
+						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
 					self.curves[name] = lamination
 					self.destroy_curve()
 				else:
@@ -845,10 +859,10 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
 					if name not in self.curves:
-						self.treeview_objects.insert('curve', 'end', text=name)
+						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
 					self.curves[name] = lamination
 					if name not in self.mapping_classes:
-						self.treeview_objects.insert('mapping_class', 'end', text=name)
+						self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_twist(), ('twist', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_twist(k=-1), ('twist', lamination, -1))
 					self.destroy_curve()
@@ -861,10 +875,10 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
 					if name not in self.curves:
-						self.treeview_objects.insert('curve', 'end', text=name)
+						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
 					self.curves[name] = lamination
 					if name not in self.mapping_classes:
-						self.treeview_objects.insert('mapping_class', 'end', text=name)
+						self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_halftwist(), ('half', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_halftwist(k=-1), ('half', lamination, -1))
 					self.destroy_curve()
@@ -888,7 +902,7 @@ class FlipperApp(object):
 			else:
 				if valid_name(name):
 					if name not in self.mapping_classes:
-						self.treeview_objects.insert('mapping_class', 'end', text=name)
+						self.add_mapping_class(name)
 					self.mapping_classes[name] = (mapping_class, ('isometry', isometry, +1))
 					self.mapping_classes[name.swapcase()] = (mapping_class_inverse, ('isometry', isometry, -1))
 	
@@ -1004,7 +1018,7 @@ class FlipperApp(object):
 				try:
 					if mapping_class.is_periodic():
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.ProgressApp(self), options=self.options):
+					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.ProgressApp(self)):
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
 					else:
 						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
@@ -1258,7 +1272,8 @@ class FlipperApp(object):
 		if parent == 'curve':
 			self.show_curve(name)
 		elif parent == 'mapping_class':
-			self.show_apply(name)
+			pass
+			#self.show_apply(name)
 		else:
 			pass  # !?! To do.
 	
@@ -1269,7 +1284,8 @@ class FlipperApp(object):
 		if parent == 'curve':
 			self.show_curve(name)
 		elif parent == 'mapping_class':
-			self.show_apply(name.swapcase())
+			pass
+			# self.show_apply(name.swapcase())
 		else:
 			pass  # !?! To do.
 	

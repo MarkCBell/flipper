@@ -1,8 +1,10 @@
 
 try:
 	import Tkinter as TK
+	import ttk as TTK
 except ImportError: # Python 3
 	import tkinter as TK
+	import ttk as TTK
 
 import Flipper
 
@@ -15,6 +17,7 @@ class ProgressApp(object):
 		self.label = TK.Label(self.parent, text='Computing:', anchor='w')
 		self.label.pack(fill='x', expand=True)
 		
+		#self.progress = TTK.Progressbar(self.parent, mode='determinate', length=300)  # We could use ttk's progress bar.
 		self.progress = Flipper.application.widgets.Meter(self.parent)
 		self.progress.pack(padx=2, pady=2)
 		
@@ -34,5 +37,6 @@ class ProgressApp(object):
 	def update_bar(self, value):
 		if not self.running: raise Flipper.AbortError()
 		
+		#self.progress['value'] = int(value * 100)
 		self.progress.set(value, '%0.1f %%' % (value * 100))
 		self.host_app.parent.update()

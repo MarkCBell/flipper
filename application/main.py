@@ -123,47 +123,40 @@ class Options(object):
 class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
-		
 		self.options = Options(self)
 		
-		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
-		self.frame_interface.grid(column=0, sticky='nsw')
-		
+		self.panels = TTK.Panedwindow(self.parent, orient='horizontal')
+
+		self.frame_interface = TK.Frame(self.parent, width=50)
 		###
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
 		self.treeview_objects.pack(fill='both', expand=True)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
-		self.treeview_objects.bind('<Button-3>', self.treeview_objects_right_click)
-		#self.treeview_objects.bind('<Double-1>', lambda e: 'break')  # Prevent double clicks from opening menus.
-
-		# p = TTK.Panedwindow(self.frame_interface, orient='vertical')
-		# f1 = TTK.Labelframe(p, text='Pane1', width=100, height=100)
-		# f2 = TTK.Labelframe(p, text='Pane2', width=100, height=100); # second pane
-		# p.add(f1)
-		# p.add(f2)
-		# p.pack(fill='both', expand=True)
-		###
-		
-		self.frame_command = TK.Frame(self.parent)
-		self.frame_command.grid(row=1, columnspan=2, sticky='wes')
-		###
-		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.custom_font)
-		self.label_command.pack(side='left')
-		
-		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.custom_font)
-		self.entry_command.pack(padx=10, pady=1, side='top', fill='x', expand=True)
-		self.entry_command.bind('<Return>', self.command_return)
 		###
 		
 		self.frame_draw = TK.Frame(self.parent)
-		self.frame_draw.grid(row=0, column=1, sticky='nesw')
 		###
-		self.canvas = TK.Canvas(self.frame_draw, width=500, height=500, bg='#dcecff')
+		self.canvas = TK.Canvas(self.frame_draw, height=500, width=500, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
+		
+		self.frame_command = TK.Frame(self.parent)
+		###
+		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.custom_font)
+		self.label_command.pack(side='left')
+		
+		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.custom_font)
+		self.entry_command.pack(side='left', fill='x', expand=True, padx=10, pady=2)
+		self.entry_command.bind('<Return>', self.command_return)
+		###
+		
+		self.panels.add(self.frame_interface)
+		self.panels.add(self.frame_draw)
+		self.panels.pack(fill='both', expand=True)
+		self.frame_command.pack(fill='x', expand=False)
 		
 		###
 		
@@ -211,8 +204,6 @@ class FlipperApp(object):
 		helpmenu.add_command(label='About', command=self.show_about)
 		
 		menubar.add_cascade(label='File', menu=filemenu)
-		#menubar.add_cascade(label='Edit', menu=editmenu)
-		#menubar.add_cascade(label='View', menu=viewmenu)
 		menubar.add_cascade(label='Settings', menu=settingsmenu)
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
@@ -222,9 +213,6 @@ class FlipperApp(object):
 		parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
 		parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
 		parent.bind('<Key>', self.parent_key_press) 
-		
-		self.parent.columnconfigure(1, weight=1)
-		self.parent.rowconfigure(0, weight=1)
 		
 		self.command_history = ['']
 		self.history_position = 0
@@ -241,8 +229,8 @@ class FlipperApp(object):
 		self.selected_object = None
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
-		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True, tags='txt')
-		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True, tags='txt')
+		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True, tags=['txt', 'menu'])
+		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
 		
 		self.build_complete_structure()
@@ -254,10 +242,14 @@ class FlipperApp(object):
 		
 		self.entry_command.focus()
 	
+	def add_curve(self, name):
+		self.treeview_objects.insert('curve', 'end', text=name, tags=['txt', 'curve'])
+	
 	def add_mapping_class(self, name):
-		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags='txt')
-		self.treeview_objects.insert(iid, 'end', text='Order: ??', tags='txt')
-		self.treeview_objects.insert(iid, 'end', text='Lamination: ??', tags='txt')
+		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags=['txt', 'mapping_class'])
+		self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
+		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
+		self.treeview_objects.insert(iid, 'end', text='Order: ??', tags=['txt', 'mapping_class_order'])
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -303,10 +295,8 @@ class FlipperApp(object):
 				self.curves = curves
 				self.mapping_classes = mapping_classes
 
-				# !?! TO DO
-				
 				for name in list_curves:
-					self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
+					self.add_curve(name)
 				
 				for name in list_mapping_classes:
 					self.add_mapping_class(name)
@@ -847,7 +837,7 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
 					if name not in self.curves: 
-						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
+						self.add_curve(name)
 					self.curves[name] = lamination
 					self.destroy_curve()
 				else:
@@ -859,7 +849,7 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
 					if name not in self.curves:
-						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
+						self.add_curve(name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes:
 						self.add_mapping_class(name)
@@ -875,7 +865,7 @@ class FlipperApp(object):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
 					if name not in self.curves:
-						self.treeview_objects.insert('curve', 'end', text=name, tags='txt')
+						self.add_curve(name)
 					self.curves[name] = lamination
 					if name not in self.mapping_classes:
 						self.add_mapping_class(name)
@@ -1267,28 +1257,23 @@ class FlipperApp(object):
 	
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
-		parent = self.treeview_objects.parent(iid)
-		name = self.treeview_objects.item(iid)['text']
-		if parent == 'curve':
+		tags = self.treeview_objects.item(iid, 'tags')
+
+		name = self.treeview_objects.item(iid, 'text')
+		parent_name = self.treeview_objects.item(self.treeview_objects.parent(iid), 'text')
+		if 'curve' in tags:
 			self.show_curve(name)
-		elif parent == 'mapping_class':
-			pass
-			#self.show_apply(name)
+		elif 'apply_mapping_class' in tags:
+			self.show_apply(parent_name)
+		elif 'apply_mapping_class_inverse' in tags:
+			self.show_apply(parent_name.swapcase())
+		elif 'mapping_class_order' in tags:
+			mapping_class = self.create_composition(parent_name.split('.'))
+			order = mapping_class.order()
+			self.treeview_objects.item(iid, text='Order: %s' % ('infinite' if order == 0 else str(order)))
 		else:
 			pass  # !?! To do.
-	
-	def treeview_objects_right_click(self, event):
-		iid = self.treeview_objects.identify('row', event.x, event.y)
-		parent = self.treeview_objects.parent(iid)
-		name = self.treeview_objects.item(iid)['text']
-		if parent == 'curve':
-			self.show_curve(name)
-		elif parent == 'mapping_class':
-			pass
-			# self.show_apply(name.swapcase())
-		else:
-			pass  # !?! To do.
-	
+
 
 def main(load_path=None):
 	root = TK.Tk()

@@ -42,7 +42,7 @@ def Perron_Frobenius_eigen(matrix):
 	raise ImportError('Dummy symbolic computation library cannot do this calculation.')
 	return None
 
-def matrix_eigenvector(matrix, eigenvalue):
+def eigenvector_from_eigenvalue(matrix, eigenvalue):
 	N = Flipper.kernel.numberfield.NumberField(eigenvalue)
 	d = eigenvalue.algebraic_degree()
 	w = matrix.width

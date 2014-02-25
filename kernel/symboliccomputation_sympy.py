@@ -31,7 +31,7 @@ from math import log10 as log
 import sympy
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, matrix_eigenvector
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, eigenvector_from_eigenvalue
 
 _name = 'sympy'
 
@@ -63,4 +63,4 @@ def Perron_Frobenius_eigen(matrix):
 	M = sympy.Matrix(matrix.rows)
 	eigenvalue = AlgebraicType(max(M.eigenvals(), key=abs))
 	
-	return matrix_eigenvector(matrix, eigenvalue)
+	return eigenvector_from_eigenvalue(matrix, eigenvalue)

@@ -75,7 +75,6 @@ def compute_powers(a, b):
 	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 
 	# integers returns m, n. This uses a variant of the Euclidean algorithm and can probably be done smarter.
 	
-	a, b = algebraic_simplify(a), algebraic_simplify(b)
 	if a == b:
 		return (1, 1)
 	elif a > b:

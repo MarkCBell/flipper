@@ -4,7 +4,7 @@ from math import log10 as log
 from sage.all import Matrix, lcm, NumberField
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, matrix_eigenvector
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, eigenvector_from_eigenvalue
 
 _name = 'sage'
 
@@ -34,11 +34,11 @@ def Perron_Frobenius_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
 	# magnitude. If not an AssumptionError is thrown.
 	
-	# We could use the matrix_eigenvector function.
+	# We could use the eigenvector_from_eigenvalue function.
 	# M = Matrix(matrix.rows)
 	# eigenvalue = AlgebraicType(max(M.eigenvalues(), key=abs))
 	#
-	# return matrix_eigenvector(matrix, eigenvalue)
+	# return eigenvector_from_eigenvalue(matrix, eigenvalue)
 	# but this is much faster.
 		
 	M = Matrix(matrix.rows)

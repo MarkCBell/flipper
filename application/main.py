@@ -123,7 +123,7 @@ class FlipperApp(object):
 		self.options = Options(self.redraw)
 		
 		self.frame_interface = TK.Frame(self.parent, width=50, height=2)
-		self.frame_interface.grid(column=0, sticky='nse')
+		self.frame_interface.grid(column=0, sticky='nsw')
 		
 		###
 		self.label_objects = TK.Label(self.frame_interface, text='Objects:', anchor='w', font=self.options.custom_font)
@@ -214,7 +214,7 @@ class FlipperApp(object):
 		parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
 		parent.bind('<Key>', self.parent_key_press) 
 		
-		self.parent.columnconfigure(0, weight=1)
+		self.parent.columnconfigure(1, weight=1)
 		self.parent.rowconfigure(0, weight=1)
 		
 		self.command_history = ['']

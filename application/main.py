@@ -1,10 +1,4 @@
 
-# To run from within sage you might need to first update tkiner by doing:
-# sudo apt-get install tk8.5-dev
-# sage -f python
-# Then run with:
-# sage -python App.py
-
 import re
 import os
 import sys
@@ -29,10 +23,7 @@ except ImportError: # Python 3
 	except ImportError:
 		raise ImportError('Tkinter / tkinter not available.')	
 
-#try:
 import ttk as TTK
-#except ImportError: # not installed
-#	raise ImportError('ttk not available.')
 
 import Flipper
 

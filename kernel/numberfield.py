@@ -46,7 +46,7 @@ class NumberField(object):
 			if isinstance(self.generator, Flipper.kernel.symboliccomputation.AlgebraicType):
 				self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, degree=self.degree, power=index) for index in range(self.degree)]
 			else:
-				self.algebraic_approximations = [Flipper.kernel.algebraicapproximation.algebraicapproximation_from_int(self.generator, 1, self.current_accuracy, self.degree, Flipper.kernel.algebraicapproximation.log_height_int(self.generator))]
+				self.algebraic_approximations = [Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.generator, self.current_accuracy, self.degree, Flipper.kernel.algebraicapproximation.log_height_int(self.generator))]
 	
 	def element(self, linear_combination):
 		return NumberFieldElement(self, linear_combination)
@@ -190,4 +190,4 @@ class NumberFieldElement(object):
 
 def number_field_from_integers(integers):
 	N = NumberField(1)
-	return [N.element(integer) for integer in integers]
+	return [N.element([integer]) for integer in integers]

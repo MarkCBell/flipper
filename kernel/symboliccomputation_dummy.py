@@ -13,9 +13,9 @@ _name = 'dummy'
 
 class AlgebraicType(object):
 	def __init__(self, value):
-		# We make sure to always start by using AlgebraicType.algebraic_simplify(), just to be safe.
+		# We make sure to always start by using AlgebraicType.simplify(), just to be safe.
 		self.value = value
-		self.algebraic_simplify()
+		self.simplify()
 	
 	def __str__(self):
 		return str(self.value)
@@ -23,38 +23,28 @@ class AlgebraicType(object):
 	def __repr__(self):
 		return repr(self.value)
 	
-	def algebraic_simplify(self):
+	def simplify(self):
 		pass
 	
-	def algebraic_minimal_polynomial_coefficients(self):
+	def minimal_polynomial_coefficients(self):
 		return None
 	
-	def algebraic_degree(self):
-		return len(self.algebraic_minimal_polynomial_coefficients()) - 1
+	def degree(self):
+		return len(self.minimal_polynomial_coefficients()) - 1
 	
-	def algebraic_log_height(self):
-		return log(max(abs(x) for x in self.algebraic_minimal_polynomial_coefficients()))
+	def log_height(self):
+		return log(max(abs(x) for x in self.minimal_polynomial_coefficients()))
 	
-	def algebraic_approximate(self, accuracy, degree=None, power=1):
-		return None
+	def string_approximate(self, precision, power=1):
+		return '1.0'
+	
+	def algebraic_approximate(self, accuracy, power=1):
+		# First we need to correct for the fact that we may lose some digits of accuracy if the integer part of the number is big.
+		precision = accuracy + len(self.string_approximate(1))
+		A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(self.string_approximate(precision), self.degree(), self.log_height())
+		assert(A.interval.accuracy >= accuracy)
+		return A
 
 def Perron_Frobenius_eigen(matrix):
 	raise ImportError('Dummy symbolic computation library cannot do this calculation.')
-	return None
-
-def eigenvector_from_eigenvalue(matrix, eigenvalue):
-	N = Flipper.kernel.numberfield.NumberField(eigenvalue)
-	d = eigenvalue.algebraic_degree()
-	w = matrix.width
-	
-	Id_d = Flipper.kernel.matrix.Id_Matrix(d)
-	eigen_companion = Flipper.kernel.matrix.Companion_Matrix(eigenvalue.algebraic_minimal_polynomial_coefficients())
-	
-	M2 = matrix.substitute_row(0, [1] * len(matrix))
-	M3 = Flipper.kernel.matrix.Id_Matrix(w).substitute_row(0, [0] * w)
-	
-	M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
-	
-	solution = M4.solve([1] + [0] * (len(M4)-1))
-	return [N.element(solution[i:i+d]) for i in range(0, len(solution), d)]
-
+	return None, None

@@ -22,7 +22,7 @@ class NumberField(object):
 		
 		self.generator = generator
 		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
-			self.generator_minpoly_coefficients = self.generator.algebraic_minimal_polynomial_coefficients()
+			self.generator_minpoly_coefficients = self.generator.minimal_polynomial_coefficients()
 		else:
 			self.generator_minpoly_coefficients = [-self.generator, 1]
 		
@@ -44,7 +44,7 @@ class NumberField(object):
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
 			if isinstance(self.generator, Flipper.kernel.symboliccomputation.AlgebraicType):
-				self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, degree=self.degree, power=index) for index in range(self.degree)]
+				self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, power=index) for index in range(self.degree)]
 			else:
 				self.algebraic_approximations = [Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.generator, self.current_accuracy, self.degree, Flipper.kernel.algebraicapproximation.log_height_int(self.generator))]
 	

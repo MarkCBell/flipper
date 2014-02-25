@@ -31,29 +31,22 @@ from math import log10 as log
 import sympy
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import AlgebraicType, eigenvector_from_eigenvalue
+from Flipper.kernel.symboliccomputation_dummy import AlgebraicType
 
 _name = 'sympy'
 
-def algebraic_simplify(self):
+def simplify(self):
 	self.value = sympy.simplify(self.value)
 
-def algebraic_minimal_polynomial_coefficients(self):
+def minimal_polynomial_coefficients(self):
 	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(self.value)).all_coeffs()[::-1])
 
-def algebraic_approximate(self, accuracy, degree=None, power=1):
-	if degree is None: degree = self.algebraic_degree()  # If not given, assume that the degree of the number field is the degree of this number.
-	
-	# First we need to correct for the fact that we may lose some digits of accuracy
-	# if the integer part of the number is big.
-	precision = accuracy + int(log(max(sympy.N(self.value**power, n=1), 1))) + 1
-	A = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(str(sympy.N(self.value**power, n=precision)), degree, self.algebraic_log_height())
-	assert(A.interval.accuracy >= accuracy)
-	return A
+def string_approximate(self, precision, power=1):
+	return str(sympy.N(self.value**power, n=precision))
 
-AlgebraicType.algebraic_simplify = algebraic_simplify
-AlgebraicType.algebraic_minimal_polynomial_coefficients = algebraic_minimal_polynomial_coefficients
-AlgebraicType.algebraic_approximate = algebraic_approximate
+AlgebraicType.simplify = simplify
+AlgebraicType.minimal_polynomial_coefficients = minimal_polynomial_coefficients
+AlgebraicType.string_approximate = string_approximate
 
 
 def Perron_Frobenius_eigen(matrix):
@@ -61,6 +54,9 @@ def Perron_Frobenius_eigen(matrix):
 	# magnitude. If not an AssumptionError is thrown.
 	
 	M = sympy.Matrix(matrix.rows)
-	eigenvalue = AlgebraicType(max(M.eigenvals(), key=abs))
+	try:
+		eigenvalue = AlgebraicType(max(M.eigenvals(), key=abs))
+	except:
+		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')  # !?! To do.
 	
-	return eigenvector_from_eigenvalue(matrix, eigenvalue)
+	return eigenvalue, None

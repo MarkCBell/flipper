@@ -55,6 +55,6 @@ def check_bundle_specs(surface_name):
 		print('Computed in %f' % (time() - start_time))
 
 if __name__ == '__main__':
-	# check_bundle_specs('S_1_1')
-	check_bundle_specs('S_2_1')
+	check_bundle_specs('S_1_1')
+	# check_bundle_specs('S_2_1')
 	# check_bundle_specs('S_3_1')

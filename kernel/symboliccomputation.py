@@ -71,14 +71,22 @@ if _name is None:
 def Perron_Frobenius_eigen(matrix):
 	eigenvalue, eigenvector = PF_eigen(matrix)
 	if eigenvector is None:
+		# We will calculate the eigenvector ourselves. 
+		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
+		
+		# We now consider QQ(\lambda) as a vector space over QQ with basis 1, \lambda, ..., \lambda^{d-1}. 
+		# Therefore finding a vector in ker(matrix - \lambda id) with entries in QQ(\lambda) is equivalent 
+		# to finding a vector in ken(M ^ id_d - C ^ id_n) with entries in QQ, where ^ denotes the tensor
+		# product of matrices. We can now do this just by using linear algebra.
+		
 		d = eigenvalue.degree()
-		w = matrix.width
+		n = matrix.width
 		
 		Id_d = Flipper.kernel.matrix.Id_Matrix(d)
 		eigen_companion = Flipper.kernel.matrix.Companion_Matrix(eigenvalue.minimal_polynomial_coefficients())
 		
 		M2 = matrix.substitute_row(0, [1] * len(matrix))
-		M3 = Flipper.kernel.matrix.Id_Matrix(w).substitute_row(0, [0] * w)
+		M3 = Flipper.kernel.matrix.Id_Matrix(n).substitute_row(0, [0] * n)
 		
 		M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
 		

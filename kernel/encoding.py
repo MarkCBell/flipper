@@ -371,11 +371,15 @@ class EncodingSequence(object):
 		# This only makes sense if the lamination is projectively invariant.
 		
 		new_lamination = self * lamination
+		if not lamination.projectively_equal(new_lamination):
+			raise Flipper.AssumptionError('Lamination is not projectively invariant.')
+		
 		return new_lamination.weight() / lamination.weight()
 	
 	def splitting_sequence(self):
 		lamination = self.invariant_lamination()
-		dilatation = self.dilatation(lamination)
-		splitting = lamination.splitting_sequence()
+		# dilatation = self.dilatation(lamination)
+		dilatation = lamination.vector[0].number_field.lmbda
+		splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		new_dilatation = splitting.dilatation()
 		return splitting

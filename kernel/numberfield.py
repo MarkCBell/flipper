@@ -37,6 +37,9 @@ class NumberField(object):
 		self.current_accuracy = -1
 		self.algebraic_approximations = [None] * self.degree  # A list of approximations of \lambda^0, ..., \lambda^(d-1).
 		self.increase_accuracy(100)
+		
+		self.one = self.element([1])
+		self.lmbda = self.element([0,1])
 	
 	def increase_accuracy(self, accuracy):
 		if self.current_accuracy < accuracy:
@@ -62,6 +65,8 @@ class NumberFieldElement(object):
 		self.number_field = number_field
 		if len(linear_combination) < self.number_field.degree:
 			linear_combination = linear_combination + [0] * (self.number_field.degree - len(linear_combination))
+		elif len(linear_combination) > self.number_field.degree:
+			raise TypeError('')
 		self.linear_combination = linear_combination
 		self._algebraic_approximation = None
 		self.current_accuracy = -1

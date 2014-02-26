@@ -214,7 +214,7 @@ class Lamination(object):
 		
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self):
+	def splitting_sequence(self, target_dilatation=None):
 		# Computes the splitting sequence of this lamination where each of the entries an AlgebraicType.
 		#
 		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.
@@ -250,8 +250,10 @@ class Lamination(object):
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					if len(lamination.all_projective_isometries(laminations[index])) > 0:
-						return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+					old_lamination = laminations[index]
+					if len(lamination.all_projective_isometries(old_lamination)) > 0:
+						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
+							return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

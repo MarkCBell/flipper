@@ -31,11 +31,9 @@ def with_bundle_structure(manifold_name, surface_name, word):
 	else:
 		print('Could not match %s on %s' % (manifold_name, surface_name))
 		print(M.volume(), M.homology(), M.chern_simons())
-		print(M.length_spectrum(2))
 		print('with any of:')
 		for B in buns:
 			print(B.volume(), B.homology(), B.chern_simons())
-			print(B.length_spectrum(2))
 		return None
 
 def bundle_specs(surface_name=None):
@@ -56,5 +54,6 @@ def check_bundle_specs(surface_name):
 
 if __name__ == '__main__':
 	check_bundle_specs('S_1_1')
-	# check_bundle_specs('S_2_1')
-	# check_bundle_specs('S_3_1')
+	check_bundle_specs('S_2_1')
+	check_bundle_specs('S_3_1')
+

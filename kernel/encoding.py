@@ -4,6 +4,10 @@ from itertools import product
 
 import Flipper
 
+NT_TYPE_PERIODIC = 'Periodic'
+NT_TYPE_REDUCIBLE = 'Reducible'
+NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
+
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 class Encoding(object):
@@ -101,6 +105,8 @@ class EncodingSequence(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.name = name
+		# A cache of properties of this encoding.
+		self._properties = {'NT_type':None, 'order':None, 'invariant_lamination':None}
 		
 		self.size = len(self.sequence)
 	def __call__(self, other):
@@ -214,11 +220,17 @@ class EncodingSequence(object):
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
-		for i in range(1, max_order+1):
-			if all(self**i * v == v for v in curves):
-				return i
-		return 0
+		if self._properties['order'] is None:
+
+			curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
+			for i in range(1, max_order+1):
+				if all(self**i * v == v for v in curves):
+					self._properties['order'] = i
+					break
+			else:
+				self._properties['order'] = 0
+		
+		return self._properties['order']
 	
 	def is_identity(self):
 		return self.order() == 1
@@ -226,7 +238,7 @@ class EncodingSequence(object):
 	def is_periodic(self):
 		return self.order() > 0
 	
-	def is_reducible(self, certify=False, show_progress=None):
+	def is_reducible(self, certify=False, progression=None):
 		''' This determines if the induced action of self on V has a fixed point satisfying:
 		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices.
 		
@@ -271,7 +283,7 @@ class EncodingSequence(object):
 			if len(indices) not in buckets: buckets[len(indices)] = 0
 			buckets[len(indices)] += 1
 			As, Cs = self.expand_indices(indices)
-			if show_progress is not None: show_progress.update_bar(progress(indices))
+			if progression is not None: progression(progress(indices))
 			if len(indices) < self.size:
 				S, certificate = Cs.nontrivial_polytope()
 				indices = next(indices) if S else jump(indices)
@@ -289,11 +301,9 @@ class EncodingSequence(object):
 					if S:
 						certificate = Flipper.Lamination(self.source_triangulation, [2*i for i in certificate])
 						assert(self.check_fixedpoint(certificate))
-						if show_progress is not None: show_progress.cancel()
 						return (True, certificate) if certify else True
 				indices = jump(indices)
 		
-		if show_progress is not None: show_progress.cancel()
 		return (False, None) if certify else False
 	
 	def is_reducible2(self, is_multicurve, certify=False):
@@ -310,6 +320,17 @@ class EncodingSequence(object):
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
 	
+	def NT_type(self, progression=None):
+		if self._properties['NT_type'] is None:
+			if self.is_periodic():
+				self._properties['NT_type'] = NT_TYPE_PERIODIC
+			elif self.is_reducible(progression=progression):
+				self._properties['NT_type'] = NT_TYPE_REDUCIBLE
+			else:
+				self._properties['NT_type'] = NT_TYPE_PSEUDO_ANOSOV
+		
+		return self._properties['NT_type']
+
 	def invariant_lamination(self, exact=True):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
 		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 

@@ -15,7 +15,6 @@ try:
 except ImportError: # Python 3
 	try:
 		import tkinter as TK
-		import ttk as TTK
 		import tkinter.font as TK_FONT
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
@@ -116,18 +115,21 @@ class FlipperApp(object):
 		self.parent = parent
 		self.options = Options(self)
 		
-		self.panels = TTK.Panedwindow(self.parent, orient='horizontal')
+		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
 
 		self.frame_interface = TK.Frame(self.parent, width=50)
 		###
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
 		self.treeview_objects.pack(fill='both', expand=True)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
+		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
 		###
 		
 		self.frame_draw = TK.Frame(self.parent)
 		###
-		self.canvas = TK.Canvas(self.frame_draw, height=500, width=500, bg='#dcecff')
+		# Now for some reason which I can't explain, we need this height=1 to prevent the command
+		# bar below from collapsing when the application is small.
+		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
@@ -240,7 +242,9 @@ class FlipperApp(object):
 		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags=['txt', 'mapping_class'])
 		self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
 		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
-		self.treeview_objects.insert(iid, 'end', text='Order: ??', tags=['txt', 'mapping_class_order'])
+		self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
+		self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
+		# self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ??', tags=['txt', 'mapping_class_invariant_lamination'])
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -456,12 +460,11 @@ class FlipperApp(object):
 				elif task == 'twist': self.store_twist(combined)
 				elif task == 'half': self.store_halftwist(combined)
 				elif task == 'isometry': self.store_isometry(combined)
+				elif task == 'compose': self.store_composition(combined)
 				elif task == 'apply': self.show_apply(combined)
 				
 				elif task == 'order': self.order(combined)
-				elif task == 'periodic': self.is_periodic(combined)
-				elif task == 'reducible': self.is_reducible(combined)
-				elif task == 'pA': self.is_pseudo_Anosov(combined)
+				elif task == 'type': self.NT_type(combined)
 				elif task == 'lamination': self.invariant_lamination(combined)
 				elif task == 'lamination_estimate': self.invariant_lamination(combined, exact=False)
 				elif task == 'split': self.splitting_sequence(combined)
@@ -827,8 +830,7 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_multicurve():
-					if name not in self.curves: 
-						self.add_curve(name)
+					self.add_curve(name)
 					self.curves[name] = lamination
 					self.destroy_curve()
 				else:
@@ -839,11 +841,9 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
-					if name not in self.curves:
-						self.add_curve(name)
+					self.add_curve(name)
 					self.curves[name] = lamination
-					if name not in self.mapping_classes:
-						self.add_mapping_class(name)
+					self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_twist(), ('twist', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_twist(k=-1), ('twist', lamination, -1))
 					self.destroy_curve()
@@ -855,11 +855,9 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
-					if name not in self.curves:
-						self.add_curve(name)
+					self.add_curve(name)
 					self.curves[name] = lamination
-					if name not in self.mapping_classes:
-						self.add_mapping_class(name)
+					self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_halftwist(), ('half', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_halftwist(k=-1), ('half', lamination, -1))
 					self.destroy_curve()
@@ -882,10 +880,17 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			else:
 				if valid_name(name):
-					if name not in self.mapping_classes:
-						self.add_mapping_class(name)
+					self.add_mapping_class(name)
 					self.mapping_classes[name] = (mapping_class, ('isometry', isometry, +1))
 					self.mapping_classes[name.swapcase()] = (mapping_class_inverse, ('isometry', isometry, -1))
+
+	def store_composition(self, composition):
+		if self.is_complete():
+			name, twists = composition.split(' ')
+			if valid_name(name):
+				self.add_mapping_class(name)
+				self.mapping_classes[name] = (self.create_composition(twists.split('.')), ('composition', twists, +1))
+				self.mapping_classes[name.swapcase()] = (self.create_composition(twists.swapcase().split('.')[::-1]), ('composition', twists, -1))
 	
 	def show_curve(self, name):
 		if self.is_complete():
@@ -960,51 +965,24 @@ class FlipperApp(object):
 				else:
 					tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, order))
 	
-	def is_periodic(self, composition):
+	def NT_type(self, composition):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.AssumptionError:
-				pass
-			else:
-				if mapping_class.is_periodic():
+				progress_app=Flipper.application.progress.ProgressApp(self)
+				NT_type = mapping_class.NT_type(progression=progress_app.update_bar)
+				progress_app.cancel()
+				
+				if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:
 					tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
-				else:
-					tkMessageBox.showinfo('Periodic', '%s is not periodic.' % composition)
-	
-	def is_reducible(self, composition):
-		if self.is_complete():
-			try:
-				mapping_class = self.create_composition(composition.split('.'))
+				elif NT_type == Flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
+					tkMessageBox.showinfo('Periodic', '%s is reducible.' % composition)
+				elif NT_type == Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
+					tkMessageBox.showinfo('Periodic', '%s is pseudo-Anosov.' % composition)
 			except Flipper.AssumptionError:
 				pass
-			else:
-				try:
-					start_time = time()
-					result = mapping_class.is_reducible(certify=True, show_progress=Flipper.application.progress.ProgressApp(self))
-					if result[0]:
-						tkMessageBox.showinfo('Reducible', '%s is reducible, it fixes %s.' % (composition, result[1]))
-					else:
-						tkMessageBox.showinfo('Reducible', '%s is irreducible.' % composition)
-				except Flipper.AbortError:
-					pass
-	
-	def is_pseudo_Anosov(self, composition):
-		if self.is_complete():
-			try:
-				mapping_class = self.create_composition(composition.split('.'))
-			except Flipper.AssumptionError:
+			except Flipper.AbortError:
 				pass
-			else:
-				try:
-					if mapping_class.is_periodic():
-						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is periodic.' % composition)
-					elif mapping_class.is_reducible(certify=False, show_progress=Flipper.application.progress.ProgressApp(self)):
-						tkMessageBox.showinfo('pseudo-Anosov', '%s is not pseudo-Anosov because it is reducible.' % composition)
-					else:
-						tkMessageBox.showinfo('pseudo-Anosov', '%s is pseudo-Anosov.' % composition)
-				except Flipper.AbortError:
-					pass
 	
 	
 	######################################################################
@@ -1258,10 +1236,38 @@ class FlipperApp(object):
 			self.show_apply(parent_name)
 		elif 'apply_mapping_class_inverse' in tags:
 			self.show_apply(parent_name.swapcase())
-		elif 'mapping_class_order' in tags:
-			mapping_class = self.create_composition(parent_name.split('.'))
+		else:
+			pass  # !?! To do.
+	
+	def treeview_objects_double_left_click(self, event):
+		self.treeview_objects_left_click(event)
+		iid = self.treeview_objects.identify('row', event.x, event.y)
+		tags = self.treeview_objects.item(iid, 'tags')
+
+		name = self.treeview_objects.item(iid, 'text')
+		parent_name = self.treeview_objects.item(self.treeview_objects.parent(iid), 'text')
+		if 'mapping_class_order' in tags:
+			mapping_class = self.mapping_classes[parent_name][0]
 			order = mapping_class.order()
-			self.treeview_objects.item(iid, text='Order: %s' % ('infinite' if order == 0 else str(order)))
+			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
+		if 'mapping_class_type' in tags:
+			mapping_class = self.mapping_classes[parent_name][0]
+			try:
+				progress_app = Flipper.application.progress.ProgressApp(self)
+				self.treeview_objects.item(iid, text='Type: %s' % mapping_class.NT_type(progression=progress_app.update_bar))
+				progress_app.cancel()
+			except Flipper.AbortError:
+				pass
+		if 'mapping_class_invariant_lamination' in tags:
+			try:
+				mapping_class = self.mapping_classes[parent_name][0]
+				lamination = mapping_class.invariant_lamination()
+				self.treeview_objects.item(iid, text='Invariant lamination')
+				self.lamination_to_canvas(lamination)
+			except Flipper.ComputationError:
+				pass
+			except Flipper.AssumptionError:
+				pass
 		else:
 			pass  # !?! To do.
 
@@ -1270,6 +1276,8 @@ def main(load_path=None):
 	root = TK.Tk()
 	root.title('Flipper')
 	flipper = FlipperApp(root)
+	root.minsize(300, 300)
+	root.geometry('700x500')
 	if load_path is not None: flipper.load(load_path)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.

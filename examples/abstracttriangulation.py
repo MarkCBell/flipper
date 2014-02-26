@@ -3,15 +3,18 @@
 # Mainly used for running tests on.
 
 from random import choice
-from string import ascii_lowercase, ascii_uppercase
+from string import ascii_lowercase
 
 import Flipper
 
-def make_mapping_classes(twists, half_twists, isometries):
+def make_mapping_classes(twists, half_twists, isometries, names=None):
 	mapping_classes = [C.encode_twist(k=1) for C in twists] + [C.encode_halftwist(k=1) for C in half_twists] + [isom.encode_isometry() for isom in isometries]
 	mapping_classes_inverses = [C.encode_twist(k=-1) for C in twists] + [C.encode_halftwist(k=-1) for C in half_twists] + [isom.inverse().encode_isometry() for isom in isometries]
 	
-	return dict(zip(ascii_lowercase, mapping_classes) + zip(ascii_uppercase, mapping_classes_inverses))
+	if names is None: names = ascii_lowercase
+	inverse_names = [name.swapcase() for name in names]
+	
+	return dict(zip(names, mapping_classes) + zip(inverse_names, mapping_classes_inverses))
 
 def build_mapping_class(T, dic, word):
 	if word is None:

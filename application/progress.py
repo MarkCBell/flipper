@@ -27,6 +27,7 @@ class ProgressApp(object):
 		self.running = True
 		
 		self.parent.resizable(0,0)
+		self.parent.withdraw()
 		self.parent.lift()
 		self.button_cancel.focus()
 	
@@ -36,6 +37,7 @@ class ProgressApp(object):
 	
 	def update_bar(self, value):
 		if not self.running: raise Flipper.AbortError()
+		self.parent.deiconify()
 		
 		#self.progress['value'] = int(value * 100)
 		self.progress.set(value, '%0.1f %%' % (value * 100))

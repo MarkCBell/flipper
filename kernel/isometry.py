@@ -10,6 +10,7 @@ class Isometry(object):
 		# (AbstractTriangle, Permutation).
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
+		self.zeta = self.source_triangulation.zeta
 		self.triangle_map = triangle_map
 		edge_map = [(triangle[i], self.triangle_map[triangle][0][self.triangle_map[triangle][1][i]]) for triangle in self.source_triangulation for i in range(3)]
 		if any((a == b) != (x == y) for (a, x), (b, y) in combinations(edge_map, 2)):
@@ -30,6 +31,8 @@ class Isometry(object):
 			assert(other.target_triangulation == self.source_triangulation)
 			new_triangle_map = dict((triangle, self.apply(*other[triangle])) for triangle in other.source_triangulation)
 			return Isometry(other.source_triangulation, self.target_triangulation, new_triangle_map)
+		elif isinstance(other, Flipper.Lamination) and self.source_triangulation == other.abstract_triangulation:
+			return self.target_triangulation.lamination([other[j] for i in range(self.zeta) for j in range(self.zeta) if i == self.edge_map[j]])
 		else:
 			return NotImplemented
 	def apply(self, triangle, permutation):

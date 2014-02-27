@@ -1,23 +1,20 @@
-sum / disjoint union
+
 handle commands better
-translate, zoom, autoscale
+sum / disjoint union
+show all laminations
 fatten train tracks
-Switch application.Main to use a treeview on the RHS.
+add scrollbar to treeview
+switch all mentions of curves to laminations
+have weighted brush for painting laminations
 
-algebraic intersection number
-floating point approximations
-fast algebra
-show algebraic laminations
-
-Create / use InputBox
-Update all documentation
+compute algebraic intersection number
+create / use InputBox
+update all documentation
 more documentation
 
-Remove all dependence on sage / smypy
-Switch SymbolicComputation to only require external polynomial factorisation.
-Add unit tests
+remove all dependence on sage / smypy
+add unit tests
 
-Add set accuracy to Algebraic_Approximation
+add set accuracy to AlgebraicApproximation
 
-is_curve (and encode twist) fails if a component of S - curve has no punctures!
-Currently we can only (half) twist along "good" curves.
+be able to (half) twist along all curves

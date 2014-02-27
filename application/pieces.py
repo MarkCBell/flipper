@@ -226,3 +226,6 @@ class CurveComponent(object):
 	def update(self):
 		for i in range(len(self.drawn_segments)):
 			self.canvas.coords(self.drawn_segments[i], self.vertices[i][0], self.vertices[i][1], self.vertices[i+1][0], self.vertices[i+1][1])
+
+class TrainTrackBlock(object):
+	pass

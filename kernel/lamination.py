@@ -7,6 +7,9 @@ class Lamination(object):
 		self.zeta = self.abstract_triangulation.zeta
 		self.vector = list(vector)
 		self.labels = [str(v) for v in self.vector]
+		# A cache of properties of this lamination.
+		self._properties = {'is_filling':None}
+		assert(self.is_lamination())
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -19,12 +22,6 @@ class Lamination(object):
 	
 	def __getitem__(self, index):
 		return self.vector[index]
-	
-	def __rmul__(self, other):
-		if isinstance(other, Flipper.Isometry) and other.source_triangulation == self.abstract_triangulation:
-			return Lamination(other.target_triangulation, [self[j] for i in range(self.zeta) for j in range(self.zeta) if i == other.edge_map[j]])
-		else:
-			return NotImplemented
 	
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
@@ -48,10 +45,22 @@ class Lamination(object):
 	def weight(self):
 		return sum(self.vector)
 	
-	def is_multicurve(self):
-		if not Flipper.kernel.matrix.nontrivial(self.vector): return False
+	def is_lamination(self):
 		if not Flipper.kernel.matrix.nonnegative(self.vector): return False
-		if not self.abstract_triangulation.face_matrix().nonnegative_image(self.vector): return False
+		for vertex in self.abstract_triangulation.corner_classes:
+			for triangle, side in vertex:
+				weights = [self.vector[index] for index in triangle]
+				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
+				if dual_weights_doubled[side] == 0:
+					break
+			else:
+				return False
+		
+		return True
+	
+	def is_multicurve(self):
+		if not self.is_lamination(): return False
+		if not Flipper.kernel.matrix.nontrivial(self.vector): return False
 		
 		for vertex in self.abstract_triangulation.corner_classes:
 			for triangle, side in vertex:
@@ -60,10 +69,6 @@ class Lamination(object):
 				for i in range(3):
 					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
 						return False
-				if dual_weights_doubled[side] == 0:
-					break
-			else:
-				return False
 		
 		return True
 	
@@ -259,12 +264,15 @@ class Lamination(object):
 				seen[target] = [len(laminations)-1]
 	
 	def is_filling(self):
-		try:
-			self.splitting_sequence()
-		except Flipper.AssumptionError:
-			return False
-		else:
-			return True
+		if self._properties['is_filling'] is None:
+			try:
+				self.splitting_sequence()
+			except Flipper.AssumptionError:
+				self._properties['is_filling'] = False
+			else:
+				self._properties['is_filling'] = True
+		
+		return self._properties['is_filling']
 	
 	def encode_twist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.

@@ -228,7 +228,7 @@ class FlipperApp(object):
 		self.selected_object = None
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
-		self.treeview_objects.insert('', 'end', 'curve', text='Curves:', open=True, tags=['txt', 'menu'])
+		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
 		
@@ -241,8 +241,11 @@ class FlipperApp(object):
 		
 		self.entry_command.focus()
 	
-	def add_curve(self, name):
-		self.treeview_objects.insert('curve', 'end', text=name, tags=['txt', 'curve'])
+	def add_curve(self, name, add_below='laminations'):
+		iid = self.treeview_objects.insert(add_below, 'end', text=name, tags=['txt', 'lamination'])
+		self.treeview_objects.item(iid)['_lamination'] = other
+		self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Filling: ??', tags=['txt', 'filling_lamination'])
 	
 	def add_mapping_class(self, name):
 		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags=['txt', 'mapping_class'])
@@ -250,7 +253,7 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
 		self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
 		self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
-		# self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ??', tags=['txt', 'mapping_class_invariant_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -719,7 +722,7 @@ class FlipperApp(object):
 		elif self.options.label_edges == 'Geometric':
 			lamination = self.curves['_']
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(lamination[edge.index]), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -796,13 +799,8 @@ class FlipperApp(object):
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
-				if self.options.render_lamination == render_lamination_C_TRAIN_TRACK:
-					if dual_weights[i] > 0:
-						scale = float(1) / 2
-						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
-						end_point = triangle.vertices[i][0] + b[0] * scale, triangle.vertices[i][1] + b[1] * scale
-						self.create_curve_component(start_point).append_point(end_point)
-				elif self.options.render_lamination == render_lamination_FULL:  # This is the slowest bit when the weight of the image curve is 10000.
+				
+				if self.options.render_lamination == render_lamination_FULL and isinstance(dual_weights[i], Flipper.kernel.types.Integer_Type):  # This is the slowest bit when the weight of the image curve is 10000.  # !?! This is a bit of a hack for now.
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-1] - 1)
@@ -811,6 +809,12 @@ class FlipperApp(object):
 						self.create_curve_component(start_point).append_point(end_point)
 				elif self.options.render_lamination == render_lamination_W_TRAIN_TRACK:  # !?! To Do.
 					pass
+				else self.options.render_lamination == render_lamination_C_TRAIN_TRACK:
+					if dual_weights[i] > 0:
+						scale = float(1) / 2
+						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
+						end_point = triangle.vertices[i][0] + b[0] * scale, triangle.vertices[i][1] + b[1] * scale
+						self.create_curve_component(start_point).append_point(end_point)
 		
 		self.set_current_curve(lamination)
 	
@@ -826,9 +830,9 @@ class FlipperApp(object):
 		if self.is_complete():
 			if valid_name(name):
 				lamination = self.curves['_']
-				if lamination.is_multicurve():
-					self.add_curve(name)
+				if lamination.is_lamination():
 					self.curves[name] = lamination
+					self.add_curve(name)
 					self.destroy_curve()
 				else:
 					tkMessageBox.showwarning('Curve', 'Not an essential multicurve.')
@@ -838,8 +842,8 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_good_curve():
-					self.add_curve(name)
 					self.curves[name] = lamination
+					self.add_curve(name)
 					self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_twist(), ('twist', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_twist(k=-1), ('twist', lamination, -1))
@@ -852,8 +856,8 @@ class FlipperApp(object):
 			if valid_name(name):
 				lamination = self.curves['_']
 				if lamination.is_pants_boundary():
-					self.add_curve(name)
 					self.curves[name] = lamination
+					self.add_curve(name)
 					self.add_mapping_class(name)
 					self.mapping_classes[name] = (lamination.encode_halftwist(), ('half', lamination, +1))
 					self.mapping_classes[name.swapcase()] = (lamination.encode_halftwist(k=-1), ('half', lamination, -1))
@@ -1223,12 +1227,16 @@ class FlipperApp(object):
 	
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
-		tags = self.treeview_objects.item(iid, 'tags')
+		item = self.treeview_objects.item(iid)
+		tags = item['tags']
 
 		name = self.treeview_objects.item(iid, 'text')
-		parent_name = self.treeview_objects.item(self.treeview_objects.parent(iid), 'text')
-		if 'curve' in tags:
-			self.show_curve(name)
+		parent = self.treeview_objects.item(self.treeview_objects.parent(iid))
+		parent_name = parent['text']
+		if 'show_lamination' in tags:
+			print(parent)
+			print(parent['_lamination'])
+			self.show_curve(parent_name)
 		elif 'apply_mapping_class' in tags:
 			self.show_apply(parent_name)
 		elif 'apply_mapping_class_inverse' in tags:
@@ -1243,13 +1251,16 @@ class FlipperApp(object):
 
 		name = self.treeview_objects.item(iid, 'text')
 		parent_name = self.treeview_objects.item(self.treeview_objects.parent(iid), 'text')
-		if 'mapping_class_order' in tags:
+		if 'filling_lamination' in tags:
+			lamination = self.curves[parent_name]
+			self.treeview_objects.item(iid, text='Filling: %s' % lamination.is_filling())
+		elif 'mapping_class_order' in tags:
 			mapping_class = self.mapping_classes[parent_name][0]
 			order = mapping_class.order()
 			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
 		if 'mapping_class_type' in tags:
-			mapping_class = self.mapping_classes[parent_name][0]
 			try:
+				mapping_class = self.mapping_classes[parent_name][0]
 				progress_app = Flipper.application.progress.ProgressApp(self)
 				self.treeview_objects.item(iid, text='Type: %s' % mapping_class.NT_type(progression=progress_app.update_bar))
 				progress_app.cancel()

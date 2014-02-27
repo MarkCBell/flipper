@@ -53,6 +53,9 @@ class AlgebraicApproximation(object):
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.log_height))
 	
+	def __float__(self):
+		return float(self.interval)
+	
 	def __neg__(self):
 		return AlgebraicApproximation(-self.interval, self.degree, self.log_height)
 	

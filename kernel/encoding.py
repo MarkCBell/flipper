@@ -94,6 +94,7 @@ class Encoding(object):
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
 
+
 class EncodingSequence(object):
 	def __init__(self, L, source_triangulation, target_triangulation, name=None):
 		# Should make sure the triangulations of the encodings in L chain together.

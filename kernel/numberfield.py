@@ -82,6 +82,8 @@ class NumberFieldElement(object):
 		# return str(list(self))
 	def __iter__(self):
 		return iter(self.linear_combination)
+	def __float__(self):
+		return float(self.algebraic_approximation())
 	
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])
@@ -127,6 +129,8 @@ class NumberFieldElement(object):
 				raise TypeError('Cannot add elements of different number fields.')
 			
 			return self.algebraic_approximation(multiplicative_error=3) / other.algebraic_approximation(multiplicative_error=3) 
+		elif isinstance(other, Flipper.kernel.types.Integer_Type):
+			return self.algebraic_approximation(multiplicative_error=3) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):

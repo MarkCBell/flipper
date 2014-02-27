@@ -37,6 +37,10 @@ class Interval(object):
 	
 	def __repr__(self):
 		return self.approximate_string(6)
+	
+	def __float__(self):
+		return float(self.upper + self.lower) / (2 * 10**self.precision)
+	
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))

@@ -67,6 +67,9 @@ class Lamination(object):
 				weights = [self.vector[index] for index in triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
 				for i in range(3):
+					if not isinstance(dual_weights_doubled[i], Flipper.kernel.types.Integer_Type):
+						return False
+					
 					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
 						return False
 		

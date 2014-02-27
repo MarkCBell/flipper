@@ -60,14 +60,14 @@ def Example_S_1_2(word=None):
 
 def Example_S_2_1(word=None):
 	# S_1_2 and its standard (Twister) curves:
-	T = Flipper.AbstractTriangulation([[1, 2, 4], [5, 3, 0], [2, 6, 1], [3, 0, 7], [4, 5, 8], [7, 8, 6]])
+	T = Flipper.AbstractTriangulation([[4, 1, 2], [3, 0, 5], [2, 6, 1], [7, 3, 0], [4, 5, 8], [7, 8, 6]])
 	
-	a = Flipper.Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0])
-	b = Flipper.Lamination(T, [0, 0, 1, 0, 1, 0, 1, 0, 1])
-	c = Flipper.Lamination(T, [1, 0, 0, 0, 0, 1, 0, 1, 1])
-	d = Flipper.Lamination(T, [0, 1, 1, 1, 0, 1, 2, 1, 1])
-	e = Flipper.Lamination(T, [0, 1, 1, 1, 2, 1, 0, 1, 1])
-	f = Flipper.Lamination(T, [0, 1, 2, 1, 1, 1, 1, 1, 0])
+	a = Flipper.Lamination(T, [1, 1, 0, 0, 1, 1, 1, 1, 2])
+	b = Flipper.Lamination(T, [1, 0, 0, 1, 0, 0, 0, 0, 0])
+	c = Flipper.Lamination(T, [0, 0, 1, 1, 1, 1, 1, 1, 0])
+	d = Flipper.Lamination(T, [0, 0, 1, 0, 1, 0, 1, 0, 1])
+	e = Flipper.Lamination(T, [2, 2, 1, 2, 1, 2, 3, 2, 3])
+	f = Flipper.Lamination(T, [1, 0, 1, 1, 1, 0, 1, 2, 1])
 	
 	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f], [], []), word)
 

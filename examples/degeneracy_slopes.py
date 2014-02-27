@@ -34,6 +34,7 @@ def with_bundle_structure(manifold_name, surface_name, word):
 		print('with any of:')
 		for B in buns:
 			print(B.volume(), B.homology(), B.chern_simons())
+			print(B.identify())
 		return None
 
 def bundle_specs(surface_name=None):

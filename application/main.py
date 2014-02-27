@@ -108,8 +108,8 @@ class Options(object):
 		self.render_lamination = str(self.render_lamination_var.get())
 		self.show_internals = bool(self.show_internals_var.get())
 		self.label_edges = str(self.label_edges_var.get())
-		self.line_size = int(self.size_var.get())
-		self.dot_size = int(self.size_var.get()) + 1
+		self.line_size = int(self.size_var.get()) - 8
+		self.dot_size = int(self.size_var.get()) - 7
 		self.custom_font.configure(size=int(self.size_var.get()))
 		self.parent.treeview_objects.tag_configure('txt', font=self.custom_font)
 

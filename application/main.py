@@ -326,32 +326,23 @@ class FlipperApp(object):
 					halfs  = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half'  and self.mapping_classes[mapping_class][1][2] == +1]
 					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
 					
+					twist_names = [mapping_class for mapping_class, _ in twists]
+					half_names = [mapping_class for mapping_class, _ in halfs]
+					isom_names = [mapping_class for mapping_class, _ in isoms]
+					
 					example = '\n' + \
 					'import Flipper\n' + \
 					'\n' + \
-					'def Example():\n' + \
+					'def Example(word=None):\n' + \
 					'	T = Flipper.AbstractTriangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
 					'	\n' + \
-					''.join('\t%s = Flipper.Lamination(T, %s).encode_twist()\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = Flipper.Lamination(T, %s).encode_twist(k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = Flipper.Lamination(T, %s).encode_halftwist()\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
-					''.join('\t%s = Flipper.Lamination(T, %s).encode_halftwist(k=-1)\n' % (mapping_class.swapcase(), vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = Flipper.Lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = Flipper.Lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
 					''.join('\t%s = Flipper.isometry_from_edge_map(T, T, %s).encode_isometry()\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
-					''.join('\t%s = Flipper.isometry_from_edge_map(T, T, %s).inverse().encode_isometry()\n' % (mapping_class.swapcase(), edge_map) for (mapping_class, edge_map) in isoms) + \
 					'	\n' + \
-					'	return T, {%s}\n' % ', '.join('\'%s\':%s' % (mapping_class, mapping_class) for mapping_class in self.mapping_classes) + \
-					'	\n' + \
-					'def build_example_mapping_class(example, word=None, random_length=50):\n' + \
-					'	from random import choice\n' + \
-					'	\n' + \
-					'	T, twists = example()\n' + \
-					'	\n' + \
-					'	if word is None: word = \'\'.join(choice(list(twists.keys())) for _ in range(random_length))\n' + \
-					'	h = T.Id_EncodingSequence()\n' + \
-					'	for letter in word:\n' + \
-					'		h = twists[letter] * h\n' + \
-					'	return word, h\n' + \
-					'\n'
+					'	return build_mapping_class(T, Flipper.examples.abstracttriangulation.make_mapping_classes(%s, %s, %s), word)\n' % (twist_names, half_names, isom_names)
+					
+					example = example.replace("'", '')
 					
 					file.write(example)
 				except IOError:
@@ -795,7 +786,7 @@ class FlipperApp(object):
 			for index, double in meets:
 				vector[index] += (2 if double else 1) * curve.multiplicity
 		
-		return Flipper.Lamination(self.abstract_triangulation, [i / 2 for i in vector])
+		return Flipper.Lamination(self.abstract_triangulation, [i // 2 for i in vector])
 	
 	def lamination_to_canvas(self, lamination):
 		self.destroy_curve()

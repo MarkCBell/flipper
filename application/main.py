@@ -336,8 +336,8 @@ class FlipperApp(object):
 					'def Example(word=None):\n' + \
 					'	T = Flipper.AbstractTriangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
 					'	\n' + \
-					''.join('\t%s = Flipper.Lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = Flipper.Lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = T.lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = T.lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
 					''.join('\t%s = Flipper.isometry_from_edge_map(T, T, %s).encode_isometry()\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
 					'	\n' + \
 					'	return build_mapping_class(T, Flipper.examples.abstracttriangulation.make_mapping_classes(%s, %s, %s), word)\n' % (twist_names, half_names, isom_names)
@@ -786,7 +786,7 @@ class FlipperApp(object):
 			for index, double in meets:
 				vector[index] += (2 if double else 1) * curve.multiplicity
 		
-		return Flipper.Lamination(self.abstract_triangulation, [i // 2 for i in vector])
+		return self.abstract_triangulation.lamination([i // 2 for i in vector])
 	
 	def lamination_to_canvas(self, lamination):
 		self.destroy_curve()
@@ -934,7 +934,7 @@ class FlipperApp(object):
 	
 	def show_render(self, composition):
 		if self.is_complete():
-			self.set_current_curve(Flipper.Lamination(self.abstract_triangulation, [int(i) for i in composition.split('.')]))
+			self.set_current_curve(self.abstract_triangulation.lamination([int(i) for i in composition.split('.')]))
 			self.lamination_to_canvas(self.curves['_'])
 	
 	def vectorise(self):

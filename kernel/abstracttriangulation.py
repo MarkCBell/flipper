@@ -270,8 +270,11 @@ class AbstractTriangulation(object):
 		return len(self.all_isometries(other_triangulation)) > 0
 	
 	# Laminations we can build on the triangulation.
+	def lamination(self, vector):
+		return Flipper.kernel.lamination.Lamination(self, vector)
+	
 	def empty_lamination(self):
-		return Flipper.Lamination(self, [0] * self.zeta)
+		return self.lamination([0] * self.zeta)
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
@@ -281,7 +284,7 @@ class AbstractTriangulation(object):
 			for triangle, side in corner_class:
 				if triangle[side+2] != edge_index:
 					vector[triangle[side+2]] += 1
-		return Flipper.Lamination(self, vector)
+		return self.lamination(vector)
 	
 	def key_curves(self):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]

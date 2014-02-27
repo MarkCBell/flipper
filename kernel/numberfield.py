@@ -23,12 +23,14 @@ class NumberField(object):
 		self.generator = generator
 		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
 			self.generator_minpoly_coefficients = self.generator.minimal_polynomial_coefficients()
+			self.degree = self.generator.degree()
 		else:
 			self.generator_minpoly_coefficients = [-self.generator, 1]
+			self.degree = 1
 		
 		# The expression of self.generator^d. Here we use the fact that the generator is an algebraic integer.
 		self.generator_d = [-a for a in self.generator_minpoly_coefficients[:-1]]
-		self.degree = self.generator.degree()
+		
 		self.log_height = max(log_height_int(coefficient) for coefficient in self.generator_minpoly_coefficients)
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
 		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.generator_minpoly_coefficients).powers(self.degree)
@@ -39,7 +41,10 @@ class NumberField(object):
 		self.increase_accuracy(100)
 		
 		self.one = self.element([1])
-		self.lmbda = self.element([0,1])
+		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
+			self.lmbda = self.element([0,1])
+		else:
+			self.lmbda = self.element([1])
 	
 	def increase_accuracy(self, accuracy):
 		if self.current_accuracy < accuracy:
@@ -66,6 +71,7 @@ class NumberFieldElement(object):
 		if len(linear_combination) < self.number_field.degree:
 			linear_combination = linear_combination + [0] * (self.number_field.degree - len(linear_combination))
 		elif len(linear_combination) > self.number_field.degree:
+			print(linear_combination)
 			raise TypeError('')
 		self.linear_combination = linear_combination
 		self._algebraic_approximation = None

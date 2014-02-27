@@ -5,6 +5,7 @@ from time import time
 import snappy, Flipper
 
 surfaces = {'S_1_1':Flipper.examples.abstracttriangulation.Example_S_1_1, 
+			'S_1_2':Flipper.examples.abstracttriangulation.Example_S_1_2,
 			'S_2_1':Flipper.examples.abstracttriangulation.Example_S_2_1,
 			'S_3_1':Flipper.examples.abstracttriangulation.Example_S_3_1 
 			}
@@ -19,10 +20,10 @@ def bundles(surface_name, word):
 	
 	return manifolds
 
-def with_bundle_structure(manifold_name, surface_name, word):
-	M = snappy.Manifold(manifold_name)
+def with_bundle_structure(manifold_name, surface_name, word, *args):
+	# M = snappy.Manifold(manifold_name)
 	# This should be the same as:
-	# N = snappy.twister.Surface(surface_name).bundle(word)
+	M = snappy.twister.Surface(surface_name).bundle(word)
 	
 	buns = bundles(surface_name, word)
 	for B in buns:
@@ -43,18 +44,19 @@ def bundle_specs(surface_name=None):
 		if not surface_name or datum[1] == surface_name:
 			yield datum
 
-def check_bundle_specs(surface_name):
+def check_bundle_specs(surface_name=None):
 	print('##################################')
-	print('\tComputing over %s' % surface_name)
+	print('\tComputing over %s' % (surface_name if surface_name is not None else 'all'))
 	print('##################################')
 	for datum in bundle_specs(surface_name):
 		start_time = time()
-		print(datum[0])
+		print(datum[0], datum[2])
 		with_bundle_structure(*datum)
 		print('Computed in %f' % (time() - start_time))
 
 if __name__ == '__main__':
 	check_bundle_specs('S_1_1')
+	check_bundle_specs('S_1_2')
 	check_bundle_specs('S_2_1')
 	check_bundle_specs('S_3_1')
 

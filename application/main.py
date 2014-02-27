@@ -336,8 +336,8 @@ class FlipperApp(object):
 					'def Example(word=None):\n' + \
 					'	T = Flipper.AbstractTriangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
 					'	\n' + \
-					''.join('\t%s = T.lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = T.lamination(T, %s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
+					''.join('\t%s = T.lamination(%s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
+					''.join('\t%s = T.lamination(%s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
 					''.join('\t%s = Flipper.isometry_from_edge_map(T, T, %s).encode_isometry()\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
 					'	\n' + \
 					'	return build_mapping_class(T, Flipper.examples.abstracttriangulation.make_mapping_classes(%s, %s, %s), word)\n' % (twist_names, half_names, isom_names)

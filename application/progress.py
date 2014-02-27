@@ -4,7 +4,7 @@ try:
 	import ttk as TTK
 except ImportError: # Python 3
 	import tkinter as TK
-	import ttk as TTK
+	from tkinter import ttk as TTK
 
 import Flipper
 

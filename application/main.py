@@ -12,7 +12,7 @@ try:
 	import tkFileDialog
 	import tkMessageBox
 	import tkSimpleDialog
-except ImportError: # Python 3
+except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.font as TK_FONT
@@ -20,9 +20,15 @@ except ImportError: # Python 3
 		import tkinter.messagebox as tkMessageBox
 		import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
-		raise ImportError('Tkinter / tkinter not available.')	
+		raise ImportError('Tkinter not available.')
 
-import ttk as TTK
+try:
+	import ttk as TTK
+except ImportError:  # Python 3.
+	try:
+		from tkinter import ttk as TTK
+	except ImportError:
+		raise ImportError('Ttk not available.')
 
 import Flipper
 

@@ -126,9 +126,15 @@ class FlipperApp(object):
 		self.frame_interface = TK.Frame(self.parent, width=50)
 		###
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
-		self.treeview_objects.pack(fill='both', expand=True)
+		self.scrollbar_treeview = TTK.Scrollbar(self.frame_interface, orient='vertical', command=self.treeview_objects.yview)
+		self.treeview_objects.configure(yscroll=self.scrollbar_treeview.set)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
+		
+		self.treeview_objects.grid(row=0, column=0, sticky='nesw')
+		self.scrollbar_treeview.grid(row=0, column=1, sticky='nws')
+		self.frame_interface.grid_rowconfigure(0, weight=1)
+		self.frame_interface.grid_columnconfigure(0, weight=1)
 		###
 		
 		self.frame_draw = TK.Frame(self.parent)

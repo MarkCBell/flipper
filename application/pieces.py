@@ -97,6 +97,10 @@ class Edge(object):
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
+	def length(self):
+		v = self.target_vertex - self.source_vertex
+		return sqrt(dot(v, v))
+	
 	def __contains__(self, p):
 		if p in self.source_vertex or p in self.target_vertex:
 			return False
@@ -106,7 +110,7 @@ class Edge(object):
 			Dy = y - self.source_vertex.y
 			dx = self.target_vertex.x - self.source_vertex.x
 			dy = self.target_vertex.y - self.source_vertex.y
-			length = sqrt(dx**2 + dy**2)
+			length = self.length()
 			A = (Dx*dx + Dy*dy)/length
 			B = (Dy*dx - Dx*dy)/length
 			return -self.options.epsilon < A < length + self.options.epsilon and -self.options.epsilon < B < self.options.epsilon
@@ -152,12 +156,18 @@ class Triangle(object):
 		assert(self.edges[0] != self.edges[1] and self.edges[1] != self.edges[2] and self.edges[2] != self.edges[0])
 		
 		self.canvas = self.edges[0].source_vertex.canvas
-		self.drawn_self = self.canvas.create_polygon([self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y], fill=self.default_colour, tag='polygon')
+		self.drawn_self = self.canvas.create_polygon([self.vertices[i][j] for i in range(3) for j in range(2)], fill=self.default_colour, tag='polygon')
 		for edge in self.edges:
 			edge.in_triangles.append(self)
 	
 	def __str__(self):
 		return '%s %s %s' % (self.vertices[0], self.vertices[1], self.vertices[2])
+	
+	def __getitem__(self, index):
+		return self.edges[index]
+	
+	def __iter__(self):
+		return iter(self.edges)
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
@@ -185,17 +195,18 @@ class Triangle(object):
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
 	
 	def update(self):
-		self.canvas.coords(self.drawn_self, *[self.vertices[0].x, self.vertices[0].y, self.vertices[1].x, self.vertices[1].y, self.vertices[2].x, self.vertices[2].y])
+		self.canvas.coords(self.drawn_self, *[self.vertices[i][j] for i in range(3) for j in range(2)])
 
 class CurveComponent(object):
-	def __init__(self, canvas, source_point, options, multiplicity=1):
+	def __init__(self, canvas, source_point, options, multiplicity=1, counted=False):
 		self.options = options
 		self.default_colour = self.options.default_curve_colour
 		self.colour = self.default_colour
 		self.vertices = [source_point]
-		self.drawn_segments = []
 		self.canvas = canvas
+		self.drawn_segments = []
 		self.multiplicity = multiplicity
+		self.counted = counted
 	
 	def append_point(self, point):
 		self.vertices.append(point)
@@ -207,6 +218,10 @@ class CurveComponent(object):
 			self.vertices.pop()
 			self.canvas.delete(self.drawn_segments[-1])
 			self.drawn_segments.pop()
+	
+	def destroy(self):
+		for i in range(len(self.vertices)):
+			self.pop_point()
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
@@ -228,4 +243,27 @@ class CurveComponent(object):
 			self.canvas.coords(self.drawn_segments[i], self.vertices[i][0], self.vertices[i][1], self.vertices[i+1][0], self.vertices[i+1][1])
 
 class TrainTrackBlock(object):
-	pass
+	def __init__(self, canvas, vertices, options, multiplicity=1, counted=False):
+		self.options = options
+		self.default_colour = self.options.default_curve_colour
+		self.colour = self.default_colour
+		self.vertices = vertices
+		self.canvas = canvas
+		self.drawn_self = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
+		self.multiplicity = multiplicity
+		self.counted = counted
+	
+	def destroy(self):
+		self.canvas.delete(self.drawn_self)
+	
+	def set_colour(self, colour=None):
+		if colour is None: colour = self.default_colour
+		self.colour = colour
+		self.canvas.itemconfig(self.drawn_self, fill=colour)
+	
+	def set_default_colour(self, colour):
+		self.default_colour = colour
+		self.set_colour(self.default_colour)
+	
+	def update(self):
+		self.canvas.coords(self.drawn_self, *[v[j] for v in self.vertices for j in range(2)])

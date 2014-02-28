@@ -9,7 +9,8 @@ class Lamination(object):
 		self.labels = [str(v) for v in self.vector]
 		# A cache of properties of this lamination.
 		self._properties = {'is_filling':None}
-		assert(self.is_lamination())
+		if not self.is_lamination():
+			raise Flipper.AssumptionError('Not a lamination.')
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))

@@ -239,6 +239,8 @@ class FlipperApp(object):
 		self.mapping_class_names = {}
 		self.selected_object = None
 		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
+		for child in self.treeview_objects.get_children(''):
+			self.treeview_objects.delete(child)
 		
 		self.build_abstract_triangulation()
 		
@@ -286,10 +288,12 @@ class FlipperApp(object):
 				abstract_triangulation = self.abstract_triangulation
 				curves = self.curves
 				mapping_classes = self.mapping_classes
-				list_curves = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('curve')]
-				list_mapping_classes = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_class')]
-				
-				pickle.dump([spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes], open(path, 'wb'))
+				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
+				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
+				laminations = self.curves
+				mapping_classes = self.mapping_classes
+
+				pickle.dump([spec, vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes], open(path, 'wb'))
 			except IOError:
 				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
 	
@@ -297,7 +301,7 @@ class FlipperApp(object):
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
 		if path != '':
 			try:
-				spec, vertices, edges, abstract_triangulation, curves, mapping_classes, list_curves, list_mapping_classes = pickle.load(open(path, 'rb'))
+				spec, vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes = pickle.load(open(path, 'rb'))
 				# Might throw value error.
 				# !?! Add more error checking.
 				assert(spec == 'A Flipper file.')
@@ -317,17 +321,12 @@ class FlipperApp(object):
 				
 				self.abstract_triangulation = abstract_triangulation
 				
-				self.curves = curves
-				self.mapping_classes = mapping_classes
+				for name in lamination_names:
+					self.add_curve(name, laminations[name])
 				
-				for name in list_curves:
-					self.add_curve(name)
+				for name in mapping_class_names:
+					self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
 				
-				for name in list_mapping_classes:
-					self.add_mapping_class(name)
-				
-				if self.is_complete():
-					self.lamination_to_canvas(self.curves['_'])
 			except IOError:
 				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
 	
@@ -857,12 +856,11 @@ class FlipperApp(object):
 		
 		if render == render_lamination_W_TRAIN_TRACK:
 			if any(lamination[edge.index] > 0 for edge in self.edges):
-				master_scale = min(edge.length() / lamination[edge.index] for edge in self.edges if lamination[edge.index] > 0)
-				shortest = min(edge.length() for edge in self.edges)
+				master_scale = max(lamination)
 			else:
-				master_scale = 0
+				master_scale = 1
 		
-		print(lamination)
+		vb =self.options.vertex_buffer  # We are going to use this a lot.
 		for triangle in self.triangles:
 			weights = [lamination[edge.index] for edge in triangle]
 			dual_weights = [(weights[1] + weights[2] - weights[0]) / 2, (weights[2] + weights[0] - weights[1]) / 2, (weights[0] + weights[1] - weights[2]) / 2]
@@ -872,17 +870,12 @@ class FlipperApp(object):
 				
 				if render == render_lamination_W_TRAIN_TRACK:  # !?! To Do.
 					if dual_weights[i] > 0:
-						# rescale_a = master_scale * lamination[triangle[i-2].index] / triangle[i-2].length()
-						rescale_a = 1 #shortest / triangle[i-2].length()
-						# rescale_b = master_scale * lamination[triangle[i-1].index] / triangle[i-1].length()
-						rescale_b = 1 # shortest / triangle[i-1].length()
-						print(rescale_a, rescale_b)
-						
-						scale_a = self.options.vertex_buffer / rescale_a
-						scale_b = self.options.vertex_buffer / rescale_b
-						scale_a2 = self.options.vertex_buffer / rescale_a + (1 - 2 * self.options.vertex_buffer) * rescale_a * dual_weights[i] / (dual_weights[i] + dual_weights[i-1])
-						scale_b2 = self.options.vertex_buffer / rescale_b + (1 - 2 * self.options.vertex_buffer) * rescale_b * dual_weights[i] / (dual_weights[i] + dual_weights[i-2])
-						print(scale_a, scale_b, scale_a2, scale_b2)
+						scale_a = vb # * master_scale / lamination[triangle[i-2].index]
+						scale_b = vb # * master_scale / lamination[triangle[i-1].index]
+						# scale_a2 = vb + (1 - 2*vb * master_scale / lamination[triangle[i-2].index]) * dual_weights[i] / (dual_weights[i] + dual_weights[i-1])
+						scale_a2 = vb + (1 - 2*vb) * dual_weights[i] / (dual_weights[i] + dual_weights[i-1])
+						# scale_b2 = vb + (1 - 2*vb * master_scale / lamination[triangle[i-1].index]) * dual_weights[i] / (dual_weights[i] + dual_weights[i-2])
+						scale_b2 = vb + (1 - 2*vb) * dual_weights[i] / (dual_weights[i] + dual_weights[i-2])
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						
@@ -893,12 +886,11 @@ class FlipperApp(object):
 						self.create_train_track_block(vertices, multiplicity=dual_weights[i], counted=True)
 				elif render == render_lamination_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					for j in range(int(dual_weights[i])):
-						scale_a = float(1) / 2 if weights[i-2] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-2] - 1)
-						scale_b = float(1) / 2 if weights[i-1] == 1 else self.options.vertex_buffer + (1 - 2*self.options.vertex_buffer) * j / (weights[i-1] - 1)
+						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
+						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						component = self.create_curve_component(start_point, counted=True).append_point(end_point)
-						component.counted = True
 				elif render == render_lamination_C_TRAIN_TRACK:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2

@@ -85,8 +85,6 @@ class AlgebraicApproximation(object):
 			# Multiplication by 0 would cause problems here as we work with open intervals.
 			if other == 0: return 0
 			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
-		elif isinstance(other, float):
-			return float(self) * other
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
@@ -96,8 +94,6 @@ class AlgebraicApproximation(object):
 			return AlgebraicApproximation(self.interval / other.interval, self.degree, self.log_height + other.log_height)
 		elif isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(self.interval / other, self.degree, self.log_height + log_height_int(other))
-		elif isinstance(other, float):
-			return float(self) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -105,8 +101,6 @@ class AlgebraicApproximation(object):
 	def __rdiv__(self, other):
 		if isinstance(other, Flipper.Integer_Type):
 			return AlgebraicApproximation(other / self.interval, self.degree, self.log_height + log_height_int(other))
-		elif isinstance(other, float):
-			return other / float(self)
 		else:
 			return NotImplemented  # !?!
 	def __rtruediv__(self, other):

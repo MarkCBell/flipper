@@ -854,32 +854,37 @@ class FlipperApp(object):
 			else:
 				render = self.options.render_lamination
 		
-		if render == render_lamination_W_TRAIN_TRACK:
-			if any(lamination[edge.index] > 0 for edge in self.edges):
-				master_scale = max(lamination)
-			else:
-				master_scale = 1
-		
+		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb =self.options.vertex_buffer  # We are going to use this a lot.
+		approximate_weights = [float(x) for x in lamination]
+		if render == render_lamination_W_TRAIN_TRACK:
+			master_scale = max(approximate_weights) if any(lamination[edge.index] > 0 for edge in self.edges) else float(1)
+		
 		for triangle in self.triangles:
 			weights = [lamination[edge.index] for edge in triangle]
 			dual_weights = [(weights[1] + weights[2] - weights[0]) / 2, (weights[2] + weights[0] - weights[1]) / 2, (weights[0] + weights[1] - weights[2]) / 2]
+			approximate_dual_weights = [float(w) for w in dual_weights]
 			for i in range(3):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
 				
 				if render == render_lamination_W_TRAIN_TRACK:  # !?! To Do.
 					if dual_weights[i] > 0:
-						scale_a = vb # * master_scale / lamination[triangle[i-2].index]
-						scale_b = vb # * master_scale / lamination[triangle[i-1].index]
-						# scale_a2 = vb + (1 - 2*vb * master_scale / lamination[triangle[i-2].index]) * dual_weights[i] / (dual_weights[i] + dual_weights[i-1])
-						scale_a2 = vb + (1 - 2*vb) * dual_weights[i] / (dual_weights[i] + dual_weights[i-1])
-						# scale_b2 = vb + (1 - 2*vb * master_scale / lamination[triangle[i-1].index]) * dual_weights[i] / (dual_weights[i] + dual_weights[i-2])
-						scale_b2 = vb + (1 - 2*vb) * dual_weights[i] / (dual_weights[i] + dual_weights[i-2])
+						# We first do the edge to the left of the vertex.
+						# Correction factor to take into account the weight on this edge.
+						s_a = approximate_weights[triangle[i-2].index] / master_scale
+						# The fractions of the distance of the two points on this edge.
+						scale_a = vb * s_a + (1 - s_a) / 2
+						scale_a2 = scale_a + (1 - 2*vb) * s_a * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-1])
+						# The actual points of intersection.
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
-						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
-						
 						start_point2 = triangle.vertices[i][0] + a[0] * scale_a2, triangle.vertices[i][1] + a[1] * scale_a2
+						
+						# Now repeat for the other edge of the triangle.
+						s_b = approximate_weights[triangle[i-1].index] / master_scale
+						scale_b = vb * s_b + (1 - s_b) / 2
+						scale_b2 = scale_b + (1 - 2*vb) * s_b * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-2])
+						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						end_point2 = triangle.vertices[i][0] + b[0] * scale_b2, triangle.vertices[i][1] + b[1] * scale_b2
 						
 						vertices = [start_point, end_point, end_point2, start_point2]

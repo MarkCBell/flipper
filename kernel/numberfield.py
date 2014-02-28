@@ -119,8 +119,6 @@ class NumberFieldElement(object):
 		elif isinstance(other, Flipper.Integer_Type):
 			w = [a * other for a in self]
 			return NumberFieldElement(self.number_field, w)
-		elif isinstance(other, float):
-			return float(self) * other
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
@@ -133,16 +131,10 @@ class NumberFieldElement(object):
 			return self.algebraic_approximation(multiplicative_error=3) / other.algebraic_approximation(multiplicative_error=3) 
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
 			return self.algebraic_approximation(multiplicative_error=3) / other
-		elif isinstance(other, float):
-			return self.algebraic_approximation(multiplicative_error=3) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
-	def __rdiv__(self, other):
-		return other / float(self)
-	def __rtruediv__(self, other):
-		return self.__rdiv__(other)
 	
 	def __lt__(self, other):
 		return (self - other).is_negative()

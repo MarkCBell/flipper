@@ -112,7 +112,7 @@ class Options(object):
 		self.dot_size = int(self.size_var.get()) - 7
 		self.custom_font.configure(size=int(self.size_var.get()))
 		self.parent.treeview_objects.tag_configure('txt', font=self.custom_font)
-
+		
 		self.parent.redraw()
 
 
@@ -126,7 +126,7 @@ class FlipperApp(object):
 		self.frame_interface = TK.Frame(self.parent, width=50)
 		###
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
-		self.scrollbar_treeview = TTK.Scrollbar(self.frame_interface, orient='vertical', command=self.treeview_objects.yview)
+		self.scrollbar_treeview = TK.Scrollbar(self.frame_interface, orient='vertical', command=self.treeview_objects.yview)
 		self.treeview_objects.configure(yscroll=self.scrollbar_treeview.set)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
@@ -238,7 +238,7 @@ class FlipperApp(object):
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
 		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
-		self.treeview_objects.insert('', 'end', 'mapping_class', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
+		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
 		
 		self.build_abstract_triangulation()
@@ -251,6 +251,9 @@ class FlipperApp(object):
 		self.entry_command.focus()
 	
 	def add_curve(self, name, lamination, add_below='laminations'):
+		if name in self.curves:
+			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.curve_names[child] == name])
+		
 		iid = self.treeview_objects.insert(add_below, 'end', text=name, tags=['txt', 'lamination'])
 		self.curves[name] = lamination
 		self.curve_names[iid] = name
@@ -258,7 +261,10 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Filling: ??', tags=['txt', 'filling_lamination'])
 	
 	def add_mapping_class(self, name, mapping_class, mapping_class_inverse):
-		iid = self.treeview_objects.insert('mapping_class', 'end', text=name, tags=['txt', 'mapping_class'])
+		if name in self.mapping_classes:
+			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name])
+		
+		iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
 		iid_inverse = iid + INVERSE_MAPPING_CLASS_ID_SUFFIX
 		self.mapping_classes[name] = mapping_class
 		self.mapping_classes[name.swapcase()] = mapping_class_inverse
@@ -499,7 +505,6 @@ class FlipperApp(object):
 	
 	def redraw(self):  # !?! To do.
 		self.build_edge_labels()
-		# if self.is_complete(): self.lamination_to_canvas(self.curves['_'])
 		
 		for vertex in self.vertices:
 			self.canvas.coords(vertex.drawn_self, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
@@ -703,6 +708,10 @@ class FlipperApp(object):
 	def destroy_curve(self):
 		while self.curve_components != []:
 			self.destroy_curve_component(self.curve_components[-1])
+		
+		self.current_curve = None
+		self.select_object(None)
+		self.redraw()
 	
 	
 	######################################################################
@@ -743,7 +752,7 @@ class FlipperApp(object):
 	
 	def destroy_edge_labels(self):
 		self.canvas.delete('edge_label')
-
+	
 	def build_edge_labels(self):
 		if self.is_complete():
 			self.create_edge_labels()
@@ -803,7 +812,12 @@ class FlipperApp(object):
 				for index, double in meets:
 					vector[index] += (2 if double else 1) * curve.multiplicity
 			
-			self.current_curve = self.abstract_triangulation.lamination([i // 2 for i in vector])
+			if all(isinstance(x, Flipper.kernel.types.Integer_Type) and x % 2 == 0 for x in vector):
+				vector = [i // 2 for i in vector]
+			else:
+				vector = [i / 2 for i in vector]
+			
+			self.current_curve = self.abstract_triangulation.lamination(vector)
 		
 		return self.current_curve
 	
@@ -846,8 +860,9 @@ class FlipperApp(object):
 	
 	def tighten_curve(self):
 		if self.is_complete():
-			if curve.is_lamination():
-				self.lamination_to_canvas(self.canvas_to_lamination())
+			lamination = self.canvas_to_lamination()
+			if lamination.is_lamination():
+				self.lamination_to_canvas(lamination)
 			else:
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
@@ -1172,6 +1187,7 @@ class FlipperApp(object):
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:
 			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+				print(len(self.selected_object.vertices))
 				if len(self.selected_object.vertices) > 2:
 					(x,y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()

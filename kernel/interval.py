@@ -147,6 +147,5 @@ def interval_from_int(integer, accuracy):
 	x = integer * 10**accuracy
 	return Interval(x-1, x+1, accuracy)
 
-def interval_from_fraction(numerator, denominator, accuracy):
-	x = numerator * 10**accuracy // denominator
-	return Interval(x-1, x+1, accuracy)
+def interval_from_fraction(numerator, accuracy):
+	return Interval(numerator-1, numerator+1, accuracy)

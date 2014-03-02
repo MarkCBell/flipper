@@ -133,5 +133,5 @@ def algebraic_approximation_from_string(string, degree, log_height):
 def algebraic_approximation_from_int(integer, accuracy, degree, log_height):
 	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_int(integer, accuracy), degree, log_height)
 
-def algebraic_approximation_from_fraction(numerator, denominator, accuracy, degree, log_height):
-	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_fraction(numerator, denominator, accuracy), degree, log_height)
+def algebraic_approximation_from_fraction(numerator, accuracy, degree, log_height):
+	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_fraction(numerator, accuracy), degree, log_height)

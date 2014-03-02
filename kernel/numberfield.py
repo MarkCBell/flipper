@@ -59,6 +59,9 @@ class NumberField(object):
 	def element(self, linear_combination):
 		return NumberFieldElement(self, linear_combination)
 	
+	def is_QQ(self):
+		return self.degree == 1
+	
 	def __iter__(self):
 		return iter(self.generator_d)
 	

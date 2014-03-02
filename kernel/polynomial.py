@@ -24,6 +24,7 @@ class Polynomial(object):
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
+		self.old_root = None
 		self.root = Fraction(self.height * self.degree, 1)
 	
 	def __call__(self, other):
@@ -33,20 +34,17 @@ class Polynomial(object):
 		return Polynomial([index * coefficient for index, coefficient in enumerate(self.coefficients)][1:]) 
 	
 	def find_leading_root(self, precision):
-		old_root, new_root = None, self.root
 		f = self
 		f_prime = self.derivative()
-		while old_root is None or log(abs(new_root - old_root)) > -precision:
-			old_root, new_root = new_root, new_root - f(new_root) / f_prime(new_root)
+		while self.old_root is None or log(abs(self.root - self.old_root)) > -precision:
+			self.old_root, self.root = self.root, self.root - f(self.root) / f_prime(self.root)
 		
-		self.root = new_root
 		return self.root
 	
 	def algebraic_approximate_leading_root(self, precision=None, power=1):
 		# Returns an algebraic approximation of this polynomials leading root
 		# which is correct to at least precision decimal places.
-		root = self.find_leading_root(precision)
-		numerator, precision = round_fraction(root, 2*precision)
+		numerator, precision = round_fraction(self.find_leading_root(precision), 2*precision)
 		
 		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, precision, self.degree, self.log_height)
 

@@ -3,8 +3,7 @@ from sage.all import Matrix, lcm, NumberField
 
 import Flipper
 
-_name = 'sage'
-
+symbolic_libaray_name = 'sage'
 
 def minimal_polynomial_coefficients(value):
 	X = tuple(value.minpoly().coeffs())

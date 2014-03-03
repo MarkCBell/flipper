@@ -30,7 +30,7 @@ import sympy
 
 import Flipper
 
-_name = 'sympy'
+symbolic_libaray_name = 'sympy'
 
 def minimal_polynomial_coefficients(value):
 	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(value)).all_coeffs()[::-1])

@@ -321,9 +321,3 @@ def Empty_Matrix(dim):
 def Permutation_Matrix(perm):
 	dim = len(perm)
 	return Matrix([[1 if i == perm[j] else 0 for j in range(dim)] for i in range(dim)], dim)
-
-def Companion_Matrix(polynomial):
-	assert(polynomial[-1] == 1)
-	degree = len(polynomial) - 1
-	
-	return Matrix([[-polynomial[i] if j == degree-1 else 1 if j == i-1 else 0 for j in range(degree)] for i in range(degree)], degree)

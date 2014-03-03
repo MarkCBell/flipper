@@ -29,7 +29,7 @@ class NumberField(object):
 		
 		self.log_height = self.polynomial.log_height
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
-		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.polynomial_coefficients).powers(self.degree)
+		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.verbose = False
 		self.current_accuracy = -1

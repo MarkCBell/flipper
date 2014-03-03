@@ -38,8 +38,7 @@ def main():
 				print(determined_type)
 				return False
 		except ImportError:
-			print('SymbolicComputation library unavailable, tests skipped.')
-			return True
+			print('Symbolic computation library required but unavailable, test skipped.')
 	
 	return True
 

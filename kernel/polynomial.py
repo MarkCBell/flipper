@@ -20,7 +20,8 @@ def ceiling_fraction(fraction):
 	return numerator + 1
 
 # This class represents an integral polynomial. In various places we will assume that it is 
-# irreducible and / or monic.
+# irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
+# See symboliccomputation.py for more information.
 class Polynomial(object):
 	def __init__(self, coefficients):
 		self.coefficients = coefficients
@@ -34,11 +35,17 @@ class Polynomial(object):
 	def __iter__(self):
 		return iter(self.coefficients)
 	
+	def __getitem__(self, item):
+		return self.coefficients[item]
+	
 	def __repr__(self):
 		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 	
 	def __call__(self, other):
 		return sum(coefficient * other**index for index, coefficient in enumerate(self))
+	
+	def is_monic(self):
+		return abs(self[-1]) == 1
 	
 	def derivative(self):
 		return Polynomial([index * coefficient for index, coefficient in enumerate(self)][1:]) 
@@ -66,3 +73,11 @@ class Polynomial(object):
 		numerator, precision = round_fraction(self.find_leading_root(working_accuracy), working_accuracy)
 		
 		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, precision, self.degree, self.log_height)**power
+	
+	def companion_matrix(self):
+		# Assumes that this polynomial is monic.
+		if not self.is_monic():
+			raise Flipper.AssumptionError('Polynomial is not monic.')
+		
+		scale = -1 if self[-1] == 1 else 1
+		return Flipper.Matrix([[scale * self[i] if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)

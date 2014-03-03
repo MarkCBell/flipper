@@ -1,20 +1,13 @@
 
 handle commands better
 sum / disjoint union
-show all laminations
-fatten train tracks
-add scrollbar to treeview
-switch all mentions of curves to laminations
 have weighted brush for painting laminations
-fix saving in sage
 
 compute algebraic intersection number
 create / use InputBox
 update all documentation
 more documentation
 
-do approximations manually
-only use sage / sympy to factor a polynomial
 remove all dependence on sage / smypy
 add unit tests
 

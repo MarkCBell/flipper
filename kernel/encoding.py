@@ -334,8 +334,6 @@ class EncodingSequence(object):
 		if self.is_periodic():
 			raise Flipper.AssumptionError('Mapping class is periodic.')
 		
-		if exact and Flipper.kernel.symboliccomputation._name == 'dummy': raise ImportError('Dummy symbolic library used.')
-		
 		curves = self.source_triangulation.key_curves()
 		
 		def projective_difference(A, B, error_reciprocal):

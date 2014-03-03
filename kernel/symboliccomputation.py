@@ -17,39 +17,35 @@
 #				A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
 #				None.
 #
-# and a _name variable containing a string identifying the module. This is very useful for debugging.
+# and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
-# You can provide your own algebraic number library so long as it provides this function.
+# You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
 
-_name = None
+from importlib import import_module
 
-if _name is None:
-	try:
-		import Flipper.kernel.symboliccomputation_sage
-		PF_eigen = Flipper.kernel.symboliccomputation_sage.PF_eigen
-		_name = Flipper.kernel.symboliccomputation_sage._name
-	except ImportError:
-		pass
+import Flipper
 
-if _name is None:
-	try:
-		import Flipper.kernel.symboliccomputation_sympy
-		PF_eigen = Flipper.kernel.symboliccomputation_sympy.PF_eigen
-		_name = Flipper.kernel.symboliccomputation_sympy._name
-	except ImportError:
-		pass
+### Add new libraries here ###
+load_order = ['sage', 'sympy']
+libraries = {'sage':'symboliccomputation_sage', 'sympy':'symboliccomputation_sympy'}
 
-if _name is None:
-	try:
-		import Flipper.kernel.symboliccomputation_dummy
-		PF_eigen = Flipper.kernel.symboliccomputation_dummy.PF_eigen
-		_name = Flipper.kernel.symboliccomputation_dummy._name
-	except ImportError:
-		pass
+def load_library(library_name=None):
+	for library in ([library_name] + load_order) if library_name in libraries else load_order:
+		try:
+			symbolic_computation_library = import_module('Flipper.kernel.' + libraries[library])
+			return symbolic_computation_library.PF_eigen, symbolic_computation_library.symbolic_libaray_name
+		except ImportError:
+			pass
+	
+	raise ImportError('No symbolic computation library available.')
 
 def Perron_Frobenius_eigen(matrix):
+	PF_eigen, used_library_name = load_library()
 	eigenvalue_coefficients, eigenvector = PF_eigen(matrix)
+	eigenvalue_polynomial = Flipper.Polynomial(eigenvalue_coefficients)
 	if eigenvector is None:
+		print('x')
+		print(eigenvector)
 		# We will calculate the eigenvector ourselves. 
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
 		
@@ -58,11 +54,11 @@ def Perron_Frobenius_eigen(matrix):
 		# to finding a vector in ken(M ^ id_d - C ^ id_n) with entries in QQ, where ^ denotes the tensor
 		# product of matrices. We can now do this just by using linear algebra.
 		
-		d = eigenvalue.degree()
+		d = eigenvalue_polynomial.degree
 		n = matrix.width
 		
 		Id_d = Flipper.kernel.matrix.Id_Matrix(d)
-		eigen_companion = Flipper.kernel.matrix.Companion_Matrix(eigenvalue.minimal_polynomial_coefficients())
+		eigen_companion = eigenvalue_polynomial.companion_matrix()
 		
 		M2 = matrix.substitute_row(0, [1] * len(matrix))
 		M3 = Flipper.kernel.matrix.Id_Matrix(n).substitute_row(0, [0] * n)
@@ -72,7 +68,7 @@ def Perron_Frobenius_eigen(matrix):
 		solution = M4.solve([1] + [0] * (len(M4)-1))
 		eigenvector = [solution[i:i+d] for i in range(0, len(solution), d)]
 	
-	N = Flipper.kernel.numberfield.NumberField(Flipper.Polynomial(eigenvalue_coefficients))
+	N = Flipper.kernel.numberfield.NumberField(eigenvalue_polynomial)
 	return [N.element(v) for v in eigenvector]
 
 #############################################################################

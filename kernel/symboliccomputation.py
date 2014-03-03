@@ -27,6 +27,7 @@ import Flipper
 
 ### Add new libraries here ###
 load_order = ['sage', 'sympy']
+# load_order = ['sympy', 'sage']
 libraries = {'sage':'symboliccomputation_sage', 'sympy':'symboliccomputation_sympy'}
 
 def load_library(library_name=None):
@@ -44,9 +45,7 @@ def Perron_Frobenius_eigen(matrix):
 	eigenvalue_coefficients, eigenvector = PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.Polynomial(eigenvalue_coefficients)
 	if eigenvector is None:
-		print('x')
-		print(eigenvector)
-		# We will calculate the eigenvector ourselves. 
+		# We will calculate the eigenvector ourselves.
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
 		
 		# We now consider QQ(\lambda) as a vector space over QQ with basis 1, \lambda, ..., \lambda^{d-1}. 
@@ -60,9 +59,8 @@ def Perron_Frobenius_eigen(matrix):
 		Id_d = Flipper.kernel.matrix.Id_Matrix(d)
 		eigen_companion = eigenvalue_polynomial.companion_matrix()
 		
-		M2 = matrix.substitute_row(0, [1] * len(matrix))
+		M2 = matrix.substitute_row(0, [1] * n)
 		M3 = Flipper.kernel.matrix.Id_Matrix(n).substitute_row(0, [0] * n)
-		
 		M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
 		
 		solution = M4.solve([1] + [0] * (len(M4)-1))

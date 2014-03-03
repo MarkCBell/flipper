@@ -1,4 +1,7 @@
 
+confirm before new
+invariant lamination as a sublamination
+lamination is_curve, is pants boundary, is good curve.
 handle commands better
 sum / disjoint union
 have weighted brush for painting laminations

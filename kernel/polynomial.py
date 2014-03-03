@@ -80,4 +80,4 @@ class Polynomial(object):
 			raise Flipper.AssumptionError('Polynomial is not monic.')
 		
 		scale = -1 if self[-1] == 1 else 1
-		return Flipper.Matrix([[scale * self[i] if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+		return Flipper.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)

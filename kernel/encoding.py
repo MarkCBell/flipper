@@ -11,7 +11,7 @@ NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 class Encoding(object):
-	def __init__(self, actions, conditions, source_triangulation, target_triangulation, name=None, as_latex=None):
+	def __init__(self, actions, conditions, source_triangulation, target_triangulation, name=None):
 		assert(len(actions) > 0)
 		zeta = source_triangulation.zeta
 		zeta2 = target_triangulation.zeta
@@ -27,18 +27,10 @@ class Encoding(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = zeta
-		self.as_latex = as_latex
 		self.name = name
 	
 	def __str__(self):
 		return '\n'.join(str(self.action_matrices[i]) + '\n' + str(self.condition_matrices[i]) for i in range(self.size))
-	def latex_string(self):
-		if len(self) == 1: return '%s(\\underline{x}) &= (' + ','.join(self.action_matrices[0].latex_string()) + ')'
-		if self.as_latex is not None: return self.as_latex
-		
-		actions = ['(' + ','.join(action_matrix.latex_string()) + ')' for action_matrix in self.action_matrices]
-		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in self.condition_matrices]
-		return '%s(\\underline{x}) &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
 	def __len__(self):
 		return self.size
 	def __eq__(self, other):
@@ -143,18 +135,6 @@ class EncodingSequence(object):
 		return self.size
 	def __str__(self):
 		return '\n###\n'.join(str(A) for A in self.sequence)
-	def latex_string(self):
-		s = ''
-		if len(self) == 1:
-			s += '\\[ f_1 \\]\n'
-		elif len(self) == 2:
-			s += '\\[ f_2 \\circ f_1 \\]\n'
-		elif len(self) > 2:
-			s += '\\[ f_{%d} \\circ \\cdots \\circ f_{1} \\]\n' % len(self)
-		s += 'where if $\\underline{x} = (x_1, \\ldots, x_{%d})$ and $\\underline{x}[i] = x_i$ then:\n' % self.zeta  # This is always >= 3.
-		s += '\\begin{align*} \n' + ' \\\\ \n'.join(encoding.latex_string() % ('f_{%d}' % (index+1)) for index, encoding in enumerate(self.sequence)) + '\n\\end{align*}\n'
-		s += 'and $f_i[j](\\underline{x}) = \\underline{x}[j]$ otherwise. \n'
-		return s
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):

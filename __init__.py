@@ -31,6 +31,7 @@ AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulati
 Isometry = Flipper.kernel.isometry.Isometry
 LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
 Matrix = Flipper.kernel.matrix.Matrix
+Polynomial = Flipper.kernel.polynomial.Polynomial
 
 isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
 

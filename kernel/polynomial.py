@@ -24,22 +24,30 @@ class Polynomial(object):
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
-		self.old_root = None
-		self.root = Fraction(self.height * self.degree, 1)
+		self._old_root = None
+		self._root = Fraction(self.height * self.degree, 1)
+	
+	def __iter__(self):
+		return iter(self.coefficients)
+	
+	def __repr__(self):
+		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 	
 	def __call__(self, other):
-		return sum(coefficient * other**index for index, coefficient in enumerate(self.coefficients))
+		return sum(coefficient * other**index for index, coefficient in enumerate(self))
 	
 	def derivative(self):
-		return Polynomial([index * coefficient for index, coefficient in enumerate(self.coefficients)][1:]) 
+		return Polynomial([index * coefficient for index, coefficient in enumerate(self)][1:]) 
 	
 	def find_leading_root(self, precision):
 		f = self
 		f_prime = self.derivative()
-		while self.old_root is None or log(abs(self.root - self.old_root)) > -precision:
-			self.old_root, self.root = self.root, self.root - f(self.root) / f_prime(self.root)
+		# Iterate using Newton's method until the error becomes small enough. 
+		while self._old_root is None or log(abs(self._root.denominator)) + log(abs(self._old_root.denominator)) - log(abs(self._root.numerator * self._old_root.denominator - self._old_root.numerator * self._root.denominator)) < precision:
+		# while self._old_root is None or - log(abs(self._root - self._old_root)) < precision:
+			self._old_root, self._root = self._root, self._root - f(self._root) / f_prime(self._root)
 		
-		return self.root
+		return self._root
 	
 	def algebraic_approximate_leading_root(self, precision=None, power=1):
 		# Returns an algebraic approximation of this polynomials leading root
@@ -47,9 +55,3 @@ class Polynomial(object):
 		numerator, precision = round_fraction(self.find_leading_root(precision), 2*precision)
 		
 		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, precision, self.degree, self.log_height)
-
-
-if __name__ == '__main__':
-	f = Polynomial([-2, 0, 1])
-	print(f.find_leading_root(10))
-	print(f.algebraic_approximate_leading_root(10))

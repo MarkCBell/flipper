@@ -20,7 +20,7 @@
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
-
+# You can provide your own algebraic number library so long as it provides this function.
 from importlib import import_module
 
 import Flipper

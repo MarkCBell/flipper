@@ -26,28 +26,14 @@
 # ]
 
 
-from math import log10 as log
-
 import sympy
 
 import Flipper
-from Flipper.kernel.symboliccomputation_dummy import AlgebraicType
 
 _name = 'sympy'
 
-def simplify(self):
-	self.value = sympy.simplify(self.value)
-
-def minimal_polynomial_coefficients(self):
-	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(self.value)).all_coeffs()[::-1])
-
-def string_approximate(self, precision, power=1):
-	return str(sympy.N(self.value**power, n=precision))
-
-AlgebraicType.simplify = simplify
-AlgebraicType.minimal_polynomial_coefficients = minimal_polynomial_coefficients
-AlgebraicType.string_approximate = string_approximate
-
+def minimal_polynomial_coefficients(value):
+	return tuple(int(x) for x in sympy.Poly(sympy.minpoly(value)).all_coeffs()[::-1])
 
 def PF_eigen(matrix):
 	# Assumes that matrix is Perron-Frobenius and so has a unique real eigenvalue of largest
@@ -59,4 +45,4 @@ def PF_eigen(matrix):
 	if eigenvalues[eigenvalue] != 1:
 		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')  # !?! To do.
 	
-	return AlgebraicType(eigenvalue), None
+	return minimal_polynomial_coefficients(eigenvalue), None

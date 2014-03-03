@@ -17,23 +17,19 @@ import Flipper
 log_height_int = Flipper.kernel.algebraicapproximation.log_height_int
 
 class NumberField(object):
-	def __init__(self, generator):
-		assert(isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType) or isinstance(generator, Flipper.kernel.types.Integer_Type))
+	def __init__(self, polynomial=None):
+		if polynomial is None: polynomial = Flipper.Polynomial([-1, 1])
 		
-		self.generator = generator
-		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
-			self.generator_minpoly_coefficients = self.generator.minimal_polynomial_coefficients()
-			self.degree = self.generator.degree()
-		else:
-			self.generator_minpoly_coefficients = [-self.generator, 1]
-			self.degree = 1
+		self.polynomial = polynomial
+		self.polynomial_coefficients = self.polynomial.coefficients
+		self.degree = self.polynomial.degree
 		
 		# The expression of self.generator^d. Here we use the fact that the generator is an algebraic integer.
-		self.generator_d = [-a for a in self.generator_minpoly_coefficients[:-1]]
+		self.generator_d = [-a for a in self.polynomial_coefficients[:-1]]
 		
-		self.log_height = max(log_height_int(coefficient) for coefficient in self.generator_minpoly_coefficients)
+		self.log_height = self.polynomial.log_height
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
-		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.generator_minpoly_coefficients).powers(self.degree)
+		self.companion_matrices = Flipper.kernel.matrix.Companion_Matrix(self.polynomial_coefficients).powers(self.degree)
 		
 		self.verbose = False
 		self.current_accuracy = -1
@@ -41,29 +37,26 @@ class NumberField(object):
 		self.increase_accuracy(100)
 		
 		self.one = self.element([1])
-		if isinstance(generator, Flipper.kernel.symboliccomputation.AlgebraicType):
-			self.lmbda = self.element([0,1])
-		else:
-			self.lmbda = self.element([1])
+		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])
 	
 	def increase_accuracy(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
-			if isinstance(self.generator, Flipper.kernel.symboliccomputation.AlgebraicType):
-				self.algebraic_approximations = [self.generator.algebraic_approximate(self.current_accuracy, power=index) for index in range(self.degree)]
-			else:
-				self.algebraic_approximations = [Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(self.generator, self.current_accuracy, self.degree, Flipper.kernel.algebraicapproximation.log_height_int(self.generator))]
+			self.algebraic_approximations = [self.polynomial.algebraic_approximate_leading_root(self.current_accuracy, power=index) for index in range(self.degree)]
 	
 	def element(self, linear_combination):
 		return NumberFieldElement(self, linear_combination)
+	
+	def is_QQ(self):
+		return self.degree == 1
 	
 	def __iter__(self):
 		return iter(self.generator_d)
 	
 	def __repr__(self):
-		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self))
+		return 'QQ[%s]' % str(self.polynomial)
 
 class NumberFieldElement(object):
 	def __init__(self, number_field, linear_combination):
@@ -79,7 +72,6 @@ class NumberFieldElement(object):
 	
 	def __repr__(self):
 		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(self.algebraic_approximation())
-		# return str(list(self))
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __float__(self):
@@ -204,5 +196,5 @@ class NumberFieldElement(object):
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
 def number_field_from_integers(integers):
-	N = NumberField(1)
+	N = NumberField()
 	return [N.element([integer]) for integer in integers]

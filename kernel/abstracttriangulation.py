@@ -310,11 +310,7 @@ class AbstractTriangulation(object):
 		Flipper.kernel.matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
 		C2 = Flipper.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
 		
-		actions = [action_matrix.latex_string()[edge_index] for action_matrix in [A1, A2]]
-		conditions = [' \\wedge '.join(condition_matrix.latex_string()) for condition_matrix in [C1, C2]]
-		as_latex = '%s(\\underline{x})' + ('[%d]' % edge_index) + ' &= \n\t\\begin{cases} \n' + ' \\\\ \n'.join('\t\t%s &\\mbox{if } %s \\geq 0' % (a, c) for a,c in zip(actions, conditions)) + '\n\t\\end{cases}'
-		
-		forwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation, as_latex)
-		backwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self, as_latex)
+		forwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation)
+		backwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self)
 		
 		return (forwards, backwards) if both else forwards

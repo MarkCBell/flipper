@@ -69,18 +69,6 @@ class Matrix(object):
 		return self.rows[index]
 	def __str__(self):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
-	def latex_string(self):
-		def format_value(index, value):
-			if value == 0: return ''
-			if value == 1: return ' + x_{%d}' % (index + 1)
-			if value == -1: return ' - x_{%d}' % (index + 1)
-			if value > 1: return ' + %d x_{%d}' % (value, index + 1)
-			if value < -1: return ' - %d x_{%d}' % (abs(value), index + 1)
-		
-		def trim(string):
-			return string[2:] if string.startswith(' + ') else string
-		
-		return [trim(''.join(format_value(index, value) for index, value in enumerate(row))) for row in self.rows]
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == len(other))

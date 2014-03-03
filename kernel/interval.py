@@ -39,7 +39,7 @@ class Interval(object):
 		return self.approximate_string(6)
 	
 	def __float__(self):
-		return float(self.upper + self.lower) / (2 * 10**self.precision)
+		return float(self.approximate_string(30)[:-1])
 	
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
@@ -147,6 +147,5 @@ def interval_from_int(integer, accuracy):
 	x = integer * 10**accuracy
 	return Interval(x-1, x+1, accuracy)
 
-def interval_from_fraction(numerator, denominator, accuracy):
-	x = numerator * 10**accuracy // denominator
-	return Interval(x-1, x+1, accuracy)
+def interval_from_fraction(numerator, accuracy):
+	return Interval(numerator-1, numerator+1, accuracy)

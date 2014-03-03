@@ -8,43 +8,24 @@
 # a dummy library which can't do anything but makes sure that the imports never fail.
 # Currently Sage is the best by a _large_ margin and so this is our first choice.
 #
-# Each library provides a class called AlgebraicType based off of 
-# Flipper.kernel.symboliccomputation_dummy.AlgebraicType. The library must define:
-#	simplify(self)
-#		Puts self into a standard form.
-#	minimal_polynomial_coefficients(self):
-#		Returns the coefficients of the minimal polynomial of this algebraic number.
-#	string_approximate(self, precision, power=1):
-#		Returns a string containing an approximation of this algebraic number raised to the 
-#		requested power correct to the requested precision.
-#
-# The AlgebraicType also provides:
-#	def degree(self):
-#		Returns the degree of this number.
-#	def log_height(self):
-#		Returns the log height of this number.
-#	def algebraic_approximate(self, accuracy, power=1):
-#		Returns an AlgebraicApproximation of this number, correct to at least the requested accuracy.
-# but these are derived automatically from AlgebraicType.minimal_polynomial_coefficients and AlgebraicType.string_approximate.
-#
-# Each library also provides a function for creating AlgebraicTypes:
+# Each library provides a single function:
 #	PF_eigen(matrix):
-#		Given a Perron-Frobenius matrix (of type Flipper.kernel.matrix.Matrix) this must 
-#		return a pair (L, v) where L is the matrix's PF eigenvalue, that is the unique eigenvalue with 
-#		largest absolute value, as an AlgebraicType and v is either: 
-#			A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
-#			None.
+#		Given a Perron-Frobenius matrix (of type Flipper.kernel.matrix.Matrix) with PF eigenvalue / vector L, v 
+#		(i.e. the unique eigenvalue with largest absolute value) this must return a pair (c, l) where:
+#			c is a list of the coefficients of the minimal polynomial of L, and 
+#			v is either: 
+#				A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
+#				None.
 #
 # and a _name variable containing a string identifying the module. This is very useful for debugging.
 #
-# You can provide your own algebraic number library so long as it provides these methods.
+# You can provide your own algebraic number library so long as it provides this function.
 
 _name = None
 
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sage
-		AlgebraicType = Flipper.kernel.symboliccomputation_sage.AlgebraicType
 		PF_eigen = Flipper.kernel.symboliccomputation_sage.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_sage._name
 	except ImportError:
@@ -53,7 +34,6 @@ if _name is None:
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_sympy
-		AlgebraicType = Flipper.kernel.symboliccomputation_sympy.AlgebraicType
 		PF_eigen = Flipper.kernel.symboliccomputation_sympy.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_sympy._name
 	except ImportError:
@@ -62,14 +42,13 @@ if _name is None:
 if _name is None:
 	try:
 		import Flipper.kernel.symboliccomputation_dummy
-		AlgebraicType = Flipper.kernel.symboliccomputation_dummy.AlgebraicType
 		PF_eigen = Flipper.kernel.symboliccomputation_dummy.PF_eigen
 		_name = Flipper.kernel.symboliccomputation_dummy._name
 	except ImportError:
 		pass
 
 def Perron_Frobenius_eigen(matrix):
-	eigenvalue, eigenvector = PF_eigen(matrix)
+	eigenvalue_coefficients, eigenvector = PF_eigen(matrix)
 	if eigenvector is None:
 		# We will calculate the eigenvector ourselves. 
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
@@ -93,7 +72,7 @@ def Perron_Frobenius_eigen(matrix):
 		solution = M4.solve([1] + [0] * (len(M4)-1))
 		eigenvector = [solution[i:i+d] for i in range(0, len(solution), d)]
 	
-	N = Flipper.kernel.numberfield.NumberField(eigenvalue)
+	N = Flipper.kernel.numberfield.NumberField(Flipper.Polynomial(eigenvalue_coefficients))
 	return [N.element(v) for v in eigenvector]
 
 #############################################################################

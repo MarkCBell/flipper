@@ -10,6 +10,7 @@ import Flipper.kernel.layeredtriangulation
 import Flipper.kernel.matrix
 import Flipper.kernel.numberfield
 import Flipper.kernel.permutation
+import Flipper.kernel.polynomial
 import Flipper.kernel.splittingsequence
 import Flipper.kernel.symboliccomputation
 import Flipper.kernel.types
@@ -24,12 +25,14 @@ import Flipper.tests.interval
 import Flipper.tests.lamination
 import Flipper.tests.layeredtriangulation
 import Flipper.tests.matrix
+import Flipper.tests.polynomial
 
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
 Isometry = Flipper.kernel.isometry.Isometry
 LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
 Matrix = Flipper.kernel.matrix.Matrix
+Polynomial = Flipper.kernel.polynomial.Polynomial
 
 isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
 

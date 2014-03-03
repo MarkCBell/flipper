@@ -12,8 +12,6 @@ def determine_type(mapping_class):
 		try:
 			mapping_class.splitting_sequence()
 			return PSEUDO_ANOSOV
-		except ImportError:
-			pass  # !?!
 		except Flipper.ComputationError:
 			return UNKNOWN
 		except Flipper.AssumptionError:

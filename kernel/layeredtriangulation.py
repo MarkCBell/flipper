@@ -411,8 +411,8 @@ class LayeredTriangulation:
 			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		new_upper_map[new_A] = (object_A, perm_A * Flipper.kernel.permutation.Permutation((0,2,1,3)))
-		new_upper_map[new_B] = (object_B, perm_B * Flipper.kernel.permutation.Permutation((0,2,1,3)))
+		new_upper_map[new_A] = (object_A, Flipper.kernel.permutation.Permutation((0,2,1,3)))
+		new_upper_map[new_B] = (object_B, Flipper.kernel.permutation.Permutation((0,2,1,3)))
 		
 		# Finally, install the new objects.
 		self.upper_triangulation = new_upper_triangulation

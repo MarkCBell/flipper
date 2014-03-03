@@ -87,6 +87,16 @@ class AlgebraicApproximation(object):
 			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
+	def __pow__(self, other):
+		if other == 0:
+			return algebraic_approximation_from_int(1, self.interval.accuracy, self.degree, self.log_height)
+		if other > 0:
+			sqrt = self**(other//2)
+			square = sqrt * sqrt
+			if other % 2 == 1:
+				return self * square
+			else:
+				return square
 	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
@@ -119,6 +129,8 @@ class AlgebraicApproximation(object):
 		return (self - other).is_zero()
 	def __gt__(self, other):
 		return (self - other).is_positive()
+	def __ne__(self, other):
+		return not (self == other)
 	
 	def __le__(self, other):
 		return self < other or self == other
@@ -133,5 +145,5 @@ def algebraic_approximation_from_string(string, degree, log_height):
 def algebraic_approximation_from_int(integer, accuracy, degree, log_height):
 	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_int(integer, accuracy), degree, log_height)
 
-def algebraic_approximation_from_fraction(numerator, denominator, accuracy, degree, log_height):
-	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_fraction(numerator, denominator, accuracy), degree, log_height)
+def algebraic_approximation_from_fraction(numerator, accuracy, degree, log_height):
+	return AlgebraicApproximation(Flipper.kernel.interval.interval_from_fraction(numerator, accuracy), degree, log_height)

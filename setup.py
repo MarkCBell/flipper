@@ -29,6 +29,8 @@ class TestCommand(Command):
 		print('\tPassed' if Flipper.tests.layeredtriangulation.main() else '\tFailed')
 		print('Running Matrix test...')
 		print('\tPassed' if Flipper.tests.matrix.main() else '\tFailed')
+		print('Running Polynomial test...')
+		print('\tPassed' if Flipper.tests.polynomial.main() else '\tFailed')
 
 setup(
 	name='Flipper',

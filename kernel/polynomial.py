@@ -4,19 +4,16 @@ from math import log10 as log
 
 import Flipper
 
-# In Python3 we can just do round(fraction, precision) however this
+# In Python3 we can just do round(fraction, accuracy) however this
 # doesn't exist in Python2 so we recreate it here. 
-def round_fraction(fraction, precision):
-	shift = 10**precision
-	shifted = fraction * shift
-	floor, remainder = divmod(shifted.numerator, shifted.denominator)
+def round_fraction(fraction, accuracy):
+	shifted = fraction * 10**accuracy
+	# We will always round down.
+	numerator = shifted.numerator // shifted.denominator
 	
-	if remainder * 2 < shifted.denominator or (remainder * 2 == shifted.denominator and floor % 2 == 0):
-		numerator = floor
-	else:
-		numerator = floor + 1
-	
-	return (numerator, precision)
+	# If we tried to return a Fraction then we might lose most of the 
+	# accuracy that we created due to simplification.
+	return (numerator, accuracy)
 
 class Polynomial(object):
 	def __init__(self, coefficients):
@@ -49,9 +46,9 @@ class Polynomial(object):
 		
 		return self._root
 	
-	def algebraic_approximate_leading_root(self, precision=None, power=1):
+	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root
-		# which is correct to at least precision decimal places.
-		numerator, precision = round_fraction(self.find_leading_root(precision), 2*precision)
+		# which is correct to at least accuracy decimal places.
+		numerator, accuracy = round_fraction(self.find_leading_root(accuracy), 2*accuracy)
 		
-		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, precision, self.degree, self.log_height)
+		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, accuracy, self.degree, self.log_height)

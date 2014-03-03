@@ -14,7 +14,7 @@ def make_mapping_classes(twists, half_twists, isometries, names=None):
 	if names is None: names = ascii_lowercase
 	inverse_names = [name.swapcase() for name in names]
 	
-	return dict(zip(names, mapping_classes) + zip(inverse_names, mapping_classes_inverses))
+	return dict(list(zip(names, mapping_classes)) + list(zip(inverse_names, mapping_classes_inverses)))
 
 def build_mapping_class(T, dic, word):
 	if word is None:

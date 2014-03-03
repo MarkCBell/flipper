@@ -25,6 +25,7 @@ import Flipper.tests.interval
 import Flipper.tests.lamination
 import Flipper.tests.layeredtriangulation
 import Flipper.tests.matrix
+import Flipper.tests.polynomial
 
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation

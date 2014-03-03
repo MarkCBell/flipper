@@ -488,7 +488,6 @@ class FlipperApp(object):
 				elif task == 'lamination_estimate': self.invariant_lamination(combined, exact=False)
 				elif task == 'split': self.splitting_sequence(combined)
 				elif task == 'bundle': self.build_bundle(combined)
-				elif task == 'latex': self.latex(combined)
 				# elif task == '':
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
@@ -1150,34 +1149,6 @@ class FlipperApp(object):
 					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
 				finally:
 					file.close()
-	
-	def latex(self, composition):
-		path = tkFileDialog.asksaveasfilename(defaultextension='.tex', filetypes=[('Tex / Latex document', '.tex'), ('all files', '.*')], title='Export Latex code')
-		if path != '':
-			try:
-				file = open(path, 'w')
-				try:
-					mapping_class = self.create_composition(composition)
-				except Flipper.AssumptionError:
-					pass
-				else:
-					s = '\\documentclass[a4paper]{article}\n'
-					s += '\\usepackage{fullpage}\n'
-					s += '\\usepackage{amsmath}\n'
-					s += '\\allowdisplaybreaks\n'
-					s += '\\begin{document}\n'
-					s += 'The mapping class \\texttt{%s} on the triangulation\n' % composition
-					s += '\\[ %s \\]\n' % ','.join(str(triangle.edge_indices) for triangle in self.abstract_triangulation)
-					s += 'induces the PL--function\n'
-					s += mapping_class.latex_string()
-					s += '\\end{document}\n'
-					
-					with open('test.tex', 'w') as file:
-						file.write(s)
-			except IOError:
-				tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
-			finally:
-				file.close()
 	
 	
 	######################################################################

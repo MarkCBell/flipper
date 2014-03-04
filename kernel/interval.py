@@ -135,6 +135,16 @@ class Interval(object):
 			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
+	def subdivide(self):
+		if self.upper - self.lower == 1:
+			lower = self.lower * 10
+			precision = self.precision + 1
+			steps = 10
+		else:
+			lower = self.lower
+			precision = self.precision
+			steps = self.upper - self.lower
+		return [Interval(lower+i, lower+i+1, precision) for i in range(steps)]
 
 #### Some special Intervals we know how to build.
 

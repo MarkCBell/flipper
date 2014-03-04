@@ -20,6 +20,7 @@ import Flipper.examples.abstracttriangulation
 import Flipper.examples.lamination
 import Flipper.examples.layeredtriangulation
 
+import Flipper.tests.abstracttriangulation
 import Flipper.tests.algebraicapproximation
 import Flipper.tests.interval
 import Flipper.tests.lamination

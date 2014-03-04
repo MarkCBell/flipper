@@ -251,15 +251,9 @@ class FlipperApp(object):
 		
 		self.entry_command.focus()
 	
-<<<<<<< local
 	def add_lamination(self, name, lamination, add_below='laminations'):
 		if name in self.laminations:
 			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name])
-=======
-	def add_curve(self, name, lamination, add_below='laminations'):
-		if name in self.curves:
-			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.curve_names[child] == name])
->>>>>>> other
 		
 		iid = self.treeview_objects.insert(add_below, 'end', text=name, tags=['txt', 'lamination'])
 		self.laminations[name] = lamination
@@ -292,18 +286,9 @@ class FlipperApp(object):
 				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
-<<<<<<< local
-=======
-				curves = self.curves
-				mapping_classes = self.mapping_classes
->>>>>>> other
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-<<<<<<< local
 				laminations = self.laminations
-=======
-				laminations = self.curves
->>>>>>> other
 				mapping_classes = self.mapping_classes
 
 				pickle.dump([spec, vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes], open(path, 'wb'))
@@ -335,11 +320,7 @@ class FlipperApp(object):
 				self.abstract_triangulation = abstract_triangulation
 				
 				for name in lamination_names:
-<<<<<<< local
 					self.add_lamination(name, laminations[name])
-=======
-					self.add_curve(name, laminations[name])
->>>>>>> other
 				
 				for name in mapping_class_names:
 					self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
@@ -716,11 +697,7 @@ class FlipperApp(object):
 		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, point, self.options, multiplicity, counted))
 		return self.curve_components[-1]
 	
-<<<<<<< local
 	def destory_curve_component(self, curve_component):
-=======
-	def destroy_curve_component(self, curve_component):
->>>>>>> other
 		curve_component.destroy()
 		self.curve_components.remove(curve_component)
 	
@@ -732,26 +709,14 @@ class FlipperApp(object):
 		curve_component.destroy()
 		self.train_track_blocks.remove(curve_component)
 	
-<<<<<<< local
 	def destory_lamination(self):
-=======
-	def destroy_curve(self):
->>>>>>> other
 		while self.curve_components != []:
-<<<<<<< local
 			self.destory_curve_component(self.curve_components[-1])
-=======
-			self.destroy_curve_component(self.curve_components[-1])
->>>>>>> other
 		
 		while self.train_track_blocks != []:
 			self.destroy_train_track_block(self.train_track_blocks[-1])
 		
-<<<<<<< local
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
-=======
-		self.current_curve = self.abstract_triangulation.empty_lamination()
->>>>>>> other
 		self.drawn_something = False
 		self.select_object(None)
 		self.redraw()
@@ -806,19 +771,10 @@ class FlipperApp(object):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		self.abstract_triangulation = Flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
-<<<<<<< local
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
-=======
-		self.current_curve = self.abstract_triangulation.empty_lamination()
->>>>>>> other
 		self.drawn_something = False
-<<<<<<< local
 		self.laminations = {}
 		self.lamination_names = {}
-=======
-		self.curves = {}
-		self.curve_names = {}
->>>>>>> other
 		self.mapping_classes = {}
 		self.mapping_classes_lookup = {}
 		self.create_edge_labels()
@@ -830,19 +786,10 @@ class FlipperApp(object):
 		self.destroy_edge_labels()
 		self.destory_lamination()
 		self.abstract_triangulation = None
-<<<<<<< local
 		self.current_lamination = None
-=======
-		self.current_curve = None
->>>>>>> other
 		self.drawn_something = False
-<<<<<<< local
 		self.laminations = {}
 		self.lamination_names = {}
-=======
-		self.curves = {}
-		self.curve_names = {}
->>>>>>> other
 		self.mapping_classes = {}
 		self.mapping_classes_lookup = {}
 		for child in self.treeview_objects.get_children(''):
@@ -876,22 +823,6 @@ class FlipperApp(object):
 				
 				for index, double in meets:
 					vector[index] += (2 if double else 1) * curve.multiplicity
-<<<<<<< local
-=======
-		
-		for curve in self.train_track_blocks:
-			if not curve.counted:
-				pass  # !?! to do
-		
-		if all(isinstance(x, Flipper.kernel.types.Integer_Type) and x % 2 == 0 for x in vector):
-			vector = [i // 2 for i in vector]
-		else:
-			vector = [i / 2 for i in vector]
-		
-		current_vector = self.current_curve.vector
-		new_vector = [a+b for a, b in zip(vector, current_vector)]
-		self.current_curve = self.abstract_triangulation.lamination(new_vector)
->>>>>>> other
 		
 		if all(isinstance(x, Flipper.kernel.types.Integer_Type) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]
@@ -905,11 +836,7 @@ class FlipperApp(object):
 		return self.current_lamination
 	
 	def lamination_to_canvas(self, lamination):
-<<<<<<< local
 		self.destory_lamination()
-=======
-		self.destroy_curve()
->>>>>>> other
 		
 		# Choose the right way to render this lamination.
 		if lamination.is_multicurve(): 
@@ -961,11 +888,7 @@ class FlipperApp(object):
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
-<<<<<<< local
 						self.create_curve_component(start_point, counted=True).append_point(end_point)
-=======
-						component = self.create_curve_component(start_point, counted=True).append_point(end_point)
->>>>>>> other
 				elif render == render_lamination_C_TRAIN_TRACK:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
@@ -989,13 +912,8 @@ class FlipperApp(object):
 			if valid_name(name):
 				try:
 					lamination = self.canvas_to_lamination()
-<<<<<<< local
 					self.add_lamination(name, lamination)
 					self.destory_lamination()
-=======
-					self.add_curve(name, lamination)
-					self.destroy_curve()
->>>>>>> other
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
@@ -1005,17 +923,9 @@ class FlipperApp(object):
 				try:
 					lamination = self.canvas_to_lamination()
 					if lamination.is_good_curve():
-<<<<<<< local
 						self.add_lamination(name, lamination)
-=======
-						self.add_curve(name, lamination)
->>>>>>> other
 						self.add_mapping_class(name, lamination.encode_twist(), lamination.encode_twist(k=-1))
-<<<<<<< local
 						self.destory_lamination()
-=======
-						self.destroy_curve()
->>>>>>> other
 					else:
 						tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
 				except Flipper.AssumptionError:
@@ -1027,17 +937,9 @@ class FlipperApp(object):
 				try:
 					lamination = self.canvas_to_lamination()
 					if lamination.is_pants_boundary():
-<<<<<<< local
 						self.add_lamination(name, lamination)
-=======
-						self.add_curve(name, lamination)
->>>>>>> other
 						self.add_mapping_class(name, lamination.encode_halftwist(), lamination.encode_halftwist(k=-1))
-<<<<<<< local
 						self.destory_lamination()
-=======
-						self.destroy_curve()
->>>>>>> other
 					else:
 						tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
 				except Flipper.AssumptionError:

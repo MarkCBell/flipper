@@ -7,7 +7,6 @@ def build_bundle(word, isometry_number):
 	mapping_class = Flipper.examples.abstracttriangulation.Example_S_1_1(word)
 	# !?! Could throw an ImportError if no SymbolicComputation library is present.
 	splitting = mapping_class.splitting_sequence()
-	print(splitting.flips)
 	return splitting.bundle(isometry_number, word)
 
 def main():

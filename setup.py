@@ -19,6 +19,8 @@ class TestCommand(Command):
 		''' Runs all of the tests in the Tests directory. '''
 		import Flipper
 		
+		print('Running AbstractTriangulation test...')
+		print('\tPassed' if Flipper.tests.abstracttriangulation.main() else '\tFailed')
 		print('Running AlgebraicApproximation test...')
 		print('\tPassed' if Flipper.tests.algebraicapproximation.main() else '\tFailed')
 		print('Running Interval test...')

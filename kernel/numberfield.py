@@ -8,13 +8,10 @@ import Flipper
 # where \lambda is an algebraic integer (however technically this can currently only actually
 # manipulate elements of ZZ[\lambda]). This can even do multiplication of these 
 # elements without having to drop to an AlgebraicApproximation and so is significantly
-# faster that the previous way of doing this sort of calculation. However this
-# requires the symbolic computation library to return the entries of the 
-# eigenvector of a PF matrix as linear combinations of 1, \lambda, ..., \lambda^{d-1}.
+# faster that the previous way of doing this sort of calculation. 
 
-# Currently only Sage can do this.
-
-log_height_int = Flipper.kernel.algebraicapproximation.log_height_int
+# This requires the numbers to be given as a linear combinations of 
+# 1, \lambda, ..., \lambda^{d-1}. Currently only Sage can do this.
 
 class NumberField(object):
 	def __init__(self, polynomial=None):
@@ -169,7 +166,7 @@ class NumberFieldElement(object):
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	int(sum(log(a_i)) + N.sum_log_height_powers + log(N.degree) + 2*d).
-		if accuracy is None: accuracy = int(sum(log_height_int(coefficient) for coefficient in self) + N.sum_log_height_powers + log(d) + 2*d)
+		if accuracy is None: accuracy = int(sum(Flipper.kernel.algebraicapproximation.log_height_int(coefficient) for coefficient in self) + N.sum_log_height_powers + log(d) + 2*d)
 		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:

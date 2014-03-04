@@ -1,33 +1,10 @@
 
-import Flipper.kernel.abstracttriangulation
-import Flipper.kernel.algebraicapproximation
-import Flipper.kernel.encoding
-import Flipper.kernel.error
-import Flipper.kernel.interval
-import Flipper.kernel.isometry
-import Flipper.kernel.lamination
-import Flipper.kernel.layeredtriangulation
-import Flipper.kernel.matrix
-import Flipper.kernel.numberfield
-import Flipper.kernel.permutation
-import Flipper.kernel.polynomial
-import Flipper.kernel.splittingsequence
-import Flipper.kernel.symboliccomputation
-import Flipper.kernel.types
-import Flipper.kernel.version
+import Flipper.kernel
+import Flipper.examples
+import Flipper.tests
+import Flipper.application
 
-import Flipper.examples.abstracttriangulation
-import Flipper.examples.lamination
-import Flipper.examples.layeredtriangulation
-
-import Flipper.tests.abstracttriangulation
-import Flipper.tests.algebraicapproximation
-import Flipper.tests.interval
-import Flipper.tests.lamination
-import Flipper.tests.layeredtriangulation
-import Flipper.tests.matrix
-import Flipper.tests.polynomial
-
+# Load shorter names for commonly used classes and functions.
 Lamination =  Flipper.kernel.lamination.Lamination
 AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
 Isometry = Flipper.kernel.isometry.Isometry

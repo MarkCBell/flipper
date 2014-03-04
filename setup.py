@@ -2,8 +2,10 @@
 from __future__ import print_function
 import os
 from distutils.core import setup, Command
+import importlib
 
-from kernel.version import Flipper_version
+# Get the correct version by running the version script to set the Flipper_version variable.
+exec(open('./kernel/version.py').read())
 
 # So we can access all of the test suite just by doing "python setup.py test"
 class TestCommand(Command):
@@ -17,26 +19,20 @@ class TestCommand(Command):
 	
 	def run(self):
 		''' Runs all of the tests in the Tests directory. '''
-		import Flipper
-		
-		print('Running AbstractTriangulation test...')
-		print('\tPassed' if Flipper.tests.abstracttriangulation.main() else '\tFailed')
-		print('Running AlgebraicApproximation test...')
-		print('\tPassed' if Flipper.tests.algebraicapproximation.main() else '\tFailed')
-		print('Running Interval test...')
-		print('\tPassed' if Flipper.tests.interval.main() else '\tFailed')
-		print('Running Lamination test...')
-		print('\tPassed' if Flipper.tests.lamination.main() else '\tFailed')
-		print('Running LayeredTriangulation test...')
-		print('\tPassed' if Flipper.tests.layeredtriangulation.main() else '\tFailed')
-		print('Running Matrix test...')
-		print('\tPassed' if Flipper.tests.matrix.main() else '\tFailed')
-		print('Running Polynomial test...')
-		print('\tPassed' if Flipper.tests.polynomial.main() else '\tFailed')
+		try:
+			test_module = importlib.import_module('Flipper.tests')
+		except ImportError:
+			print('Flipper module unavailable, install by running: \n>>> python setup.py install [--user]')
+		else:
+			for test_name in dir(test_module):
+				if not test_name.startswith('_') and test_name != 'Flipper':
+					test = importlib.import_module('Flipper.tests.%s' % test_name)
+					print('Running %s test...' % test_name)
+					print('\tPassed' if test.main() else '\tFailed')
 
 setup(
 	name='Flipper',
-	version=Flipper_version,  # Get the correct version.
+	version=Flipper_version,
 	description='Flipper',
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',

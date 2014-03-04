@@ -24,25 +24,80 @@ def ceiling_fraction(fraction):
 # See symboliccomputation.py for more information.
 class Polynomial(object):
 	def __init__(self, coefficients):
-		self.coefficients = coefficients
+		self.coefficients = coefficients[:min(i for i in range(len(coefficients)+1) if not any(coefficients[i:]))]
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
-		self._old_root = None
-		self._root = Fraction(self.height * self.degree, 1)
-		self.accuracy = -1
+		self._interval = Flipper.kernel.interval.Interval(-self.height * max(self.degree, 0) - 1, self.height * max(self.degree, 0) + 1, 0)
+		self._sturm_chain = None
 	
 	def __iter__(self):
 		return iter(self.coefficients)
+
+	def copy(self):
+		return Polynomial(list(self.coefficients))
+
+	def copy_over_QQ(self):
+		return Polynomial([Fraction(x, 1) for x in self])
 	
+	def __eq__(self, other):
+		return self.coefficients == other.coefficients
+	
+	def __ne__(self, other):
+		return self.coefficients != other.coefficients
+
+	def __neg__(self):
+		return Polynomial([-x for x in self])
+
 	def __getitem__(self, item):
 		return self.coefficients[item]
 	
 	def __repr__(self):
-		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
+		return ' + '.join('%s x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 	
 	def __call__(self, other):
 		return sum(coefficient * other**index for index, coefficient in enumerate(self))
+	
+	def __mod__(self, other):
+		if isinstance(other, Polynomial):
+			if other.degree < 0: 
+				raise ZeroDivisionError
+			
+			N = self.copy_over_QQ()
+			D = other.copy_over_QQ()
+			dD = D.degree
+			dN = N.degree
+			while dN >= dD:
+				mult = N[-1] / D[-1]
+				d = [0]*(dN - dD) + [coeff*mult for coeff in D]
+				N = Polynomial([coeffN - coeffd for coeffN, coeffd in zip(N, d)])
+				dN = N.degree
+			return N
+		else:
+			return NotImplemented
+	
+	def sturm_chain(self):
+		if self._sturm_chain is None:
+			f1 = self
+			f2 = self.derivative()
+			self._sturm_chain = [f1, f2]
+			while self._sturm_chain[-1] != Polynomial([]):
+				self._sturm_chain.append(-(self._sturm_chain[-2] % self._sturm_chain[-1]))
+		
+		return self._sturm_chain
+	
+	def num_roots(self, lower, upper):
+		chain = self.sturm_chain()
+		lower_signs = [f(lower) for f in chain]
+		upper_signs = [f(upper) for f in chain]
+		lower_non_zero_signs = [x for x in lower_signs if x != 0]
+		upper_non_zero_signs = [x for x in upper_signs if x != 0]
+		lower_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]))
+		upper_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]))
+		return lower_sign_changes - upper_sign_changes
+	
+	def num_roots_in_interval(self, interval):
+		return self.num_roots(Fraction(interval.lower, 10**interval.precision), Fraction(interval.upper, 10**interval.precision))
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -51,18 +106,10 @@ class Polynomial(object):
 		return Polynomial([index * coefficient for index, coefficient in enumerate(self)][1:]) 
 	
 	def find_leading_root(self, accuracy):
-		if self.accuracy < accuracy:
-			f = self
-			f_prime = self.derivative()
-			# Iterate using Newton's method until the error becomes small enough. 
-			while self.accuracy < accuracy:
-				self._old_root, self._root = self._root, self._root - f(self._root) / f_prime(self._root)
-				if self._old_root == self._root: 
-					self.accuracy = accuracy
-				else:
-					self.accuracy = log(abs(self._root.denominator)) + log(abs(self._old_root.denominator)) - log(abs(self._root.numerator * self._old_root.denominator - self._old_root.numerator * self._root.denominator))
+		while self._interval.accuracy < accuracy:
+			self._interval = [interval for interval in self._interval.subdivide() if self.num_roots_in_interval(interval) > 0][-1]
 		
-		return self._root
+		return self._interval
 	
 	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
@@ -81,3 +128,12 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return Flipper.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+
+
+if __name__ == '__main__':
+	f = Polynomial([-1, -1, 0, 1, 1])
+	print(f.sturm_chain())
+	print(f.num_roots(-1000, 1000))
+	print(f.find_leading_root(10))
+
+

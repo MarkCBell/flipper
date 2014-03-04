@@ -4,21 +4,6 @@ from math import log10 as log
 
 import Flipper
 
-# In Python3 we can just do round(fraction, accuracy) however this
-# doesn't exist in Python2 so we recreate it here. 
-def round_fraction(fraction, accuracy):
-	shifted = fraction * 10**accuracy
-	# We will always round down.
-	numerator = shifted.numerator // shifted.denominator
-	
-	# If we tried to return a Fraction then we might lose most of the 
-	# accuracy that we created due to simplification.
-	return (numerator, accuracy)
-
-def ceiling_fraction(fraction):
-	numerator, accuracy = round_fraction(fraction, 0)
-	return numerator + 1
-
 # This class represents an integral polynomial. In various places we will assume that it is 
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
 # See symboliccomputation.py for more information.
@@ -76,6 +61,10 @@ class Polynomial(object):
 		else:
 			return NotImplemented
 	
+	def sign(self, numerator, denominator):
+		s = sum(coefficient * numerator**index * denominator**(self.degree - index) for index, coefficient in enumerate(self))
+		return 1 if s > 0 else -1 if s < 0 else 0
+	
 	def sturm_chain(self):
 		if self._sturm_chain is None:
 			f1 = self
@@ -86,10 +75,10 @@ class Polynomial(object):
 		
 		return self._sturm_chain
 	
-	def num_roots(self, lower, upper):
+	def num_roots(self, lower, upper, precision):
 		chain = self.sturm_chain()
-		lower_signs = [f(lower) for f in chain]
-		upper_signs = [f(upper) for f in chain]
+		lower_signs = [f.sign(lower, 10**precision) for f in chain]
+		upper_signs = [f.sign(upper, 10**precision) for f in chain]
 		lower_non_zero_signs = [x for x in lower_signs if x != 0]
 		upper_non_zero_signs = [x for x in upper_signs if x != 0]
 		lower_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]))
@@ -97,7 +86,7 @@ class Polynomial(object):
 		return lower_sign_changes - upper_sign_changes
 	
 	def num_roots_in_interval(self, interval):
-		return self.num_roots(Fraction(interval.lower, 10**interval.precision), Fraction(interval.upper, 10**interval.precision))
+		return self.num_roots(interval.lower, interval.upper, interval.precision)
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -108,18 +97,19 @@ class Polynomial(object):
 	def find_leading_root(self, accuracy):
 		while self._interval.accuracy < accuracy:
 			self._interval = [interval for interval in self._interval.subdivide() if self.num_roots_in_interval(interval) > 0][-1]
+			print(self._interval.accuracy, accuracy)
 		
 		return self._interval
 	
 	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
 		# which is correct to at least accuracy decimal places.
-		power_error = int(log(ceiling_fraction(self.find_leading_root(accuracy)))) + 1
-		
+		power_error = int(log(float(self.find_leading_root(2)))) + 1
+		print(self._interval)
+		print(power_error)
 		working_accuracy = accuracy + power * power_error
-		numerator, precision = round_fraction(self.find_leading_root(working_accuracy), working_accuracy)
 		
-		return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_fraction(numerator, precision, self.degree, self.log_height)**power
+		return Flipper.kernel.algebraicapproximation.AlgebraicApproximation(self.find_leading_root(working_accuracy), self.degree, self.log_height)**power
 	
 	def companion_matrix(self):
 		# Assumes that this polynomial is monic.
@@ -133,7 +123,7 @@ class Polynomial(object):
 if __name__ == '__main__':
 	f = Polynomial([-1, -1, 0, 1, 1])
 	print(f.sturm_chain())
-	print(f.num_roots(-1000, 1000))
+	print(f.num_roots(-1000, 1000, 1))
 	print(f.find_leading_root(10))
 
 

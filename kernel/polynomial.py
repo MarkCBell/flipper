@@ -13,15 +13,18 @@ class Polynomial(object):
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
+		self.algebraic_approximations = [None] * self.degree
+		self.accuracy = 0
+		self.increase_accuracy(5)
 		self._interval = Flipper.kernel.interval.Interval(-self.height * max(self.degree, 0) - 1, self.height * max(self.degree, 0) + 1, 0)
 		self._sturm_chain = None
 	
 	def __iter__(self):
 		return iter(self.coefficients)
-
+	
 	def copy(self):
 		return Polynomial(list(self.coefficients))
-
+	
 	def copy_over_QQ(self):
 		return Polynomial([Fraction(x, 1) for x in self])
 	
@@ -30,10 +33,10 @@ class Polynomial(object):
 	
 	def __ne__(self, other):
 		return self.coefficients != other.coefficients
-
+	
 	def __neg__(self):
 		return Polynomial([-x for x in self])
-
+	
 	def __getitem__(self, item):
 		return self.coefficients[item]
 	
@@ -42,6 +45,17 @@ class Polynomial(object):
 	
 	def __call__(self, other):
 		return sum(coefficient * other**index for index, coefficient in enumerate(self))
+	
+	def _call_fraction(self, numerator, denominator):
+		return sum(coefficient * numerator**index * denominator**(self.degree - index) for index, coefficient in enumerate(self)), denominator**self.degree
+	
+	def _call_interval(self, interval):
+		if self.derivative().num_roots_in_interval(interval) > 0:
+			raise ValueError('Derivative is zero inside of interval.')
+		
+		lower, precision = self._call_fraction(interval.lower, interval.precison)
+		upper, precision = self._call_fraction(interval.upper, interval.precison)
+		return Flipper.kernel.interval.Interval(lower, upper, precision)
 	
 	def __mod__(self, other):
 		if isinstance(other, Polynomial):
@@ -62,7 +76,8 @@ class Polynomial(object):
 			return NotImplemented
 	
 	def sign(self, numerator, denominator):
-		s = sum(coefficient * numerator**index * denominator**(self.degree - index) for index, coefficient in enumerate(self))
+		# Returns the sign of self(numerator / denominator).
+		s = self._call_fraction(numerator, denominator)
 		return 1 if s > 0 else -1 if s < 0 else 0
 	
 	def sturm_chain(self):
@@ -88,28 +103,45 @@ class Polynomial(object):
 	def num_roots_in_interval(self, interval):
 		return self.num_roots(interval.lower, interval.upper, interval.precision)
 	
+	def definitely_contains_root(self, interval):
+		return self.sign(interval.lower, 10**interval.precision) != self.sign(interval.upper, 10**interval.precision)
+	
+	def descartes_signs(self):
+		non_zero_signs = [x for x in self if x != 0]
+		return sum(1 if x * y < 0 else 0 for x, y in zip(non_zero_signs, non_zero_signs[1:]))
+	
 	def is_monic(self):
 		return abs(self[-1]) == 1
 	
 	def derivative(self):
 		return Polynomial([index * coefficient for index, coefficient in enumerate(self)][1:]) 
 	
-	def find_leading_root(self, accuracy):
-		while self._interval.accuracy < accuracy:
+	def increase_accuracy(self, accuracy):
+		# Eventually we will find the interval ourselves, however at the minute sage is much faster so
+		# we'll just use that.
+		if self.accuracy < accuracy:
+			self.algebraic_approximations = [Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy, power) for power in range(self.degree)]
+			self.accuracy = accuracy
+		
+		return
+		
+		# Alternatively ...
+		# Subdivide using repeated subdivision until we have a unique root.
+		while self.num_roots_in_interval(self._interval) > 1:
 			self._interval = [interval for interval in self._interval.subdivide() if self.num_roots_in_interval(interval) > 0][-1]
-			print(self._interval.accuracy, accuracy)
+		
+		# Subdivide using repeated subdivision.
+		# Eventually we should use NR-iteration here to get quadratic convergence.
+		while self._interval.accuracy < accuracy:
+			self._interval = [interval for interval in self._interval.subdivide() if self.definitely_contains_root(interval)][-1]
 		
 		return self._interval
 	
 	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
 		# which is correct to at least accuracy decimal places.
-		power_error = int(log(float(self.find_leading_root(2)))) + 1
-		print(self._interval)
-		print(power_error)
-		working_accuracy = accuracy + power * power_error
-		
-		return Flipper.kernel.algebraicapproximation.AlgebraicApproximation(self.find_leading_root(working_accuracy), self.degree, self.log_height)**power
+		self.increase_accuracy(accuracy)
+		return self.algebraic_approximations[power]
 	
 	def companion_matrix(self):
 		# Assumes that this polynomial is monic.
@@ -118,12 +150,3 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return Flipper.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
-
-
-if __name__ == '__main__':
-	f = Polynomial([-1, -1, 0, 1, 1])
-	print(f.sturm_chain())
-	print(f.num_roots(-1000, 1000, 1))
-	print(f.find_leading_root(10))
-
-

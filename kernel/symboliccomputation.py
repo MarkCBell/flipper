@@ -1,5 +1,6 @@
 
 from importlib import import_module
+from math import log10 as log
 
 import Flipper
 
@@ -43,10 +44,13 @@ def load_library(library_name=None):
 	raise ImportError('No symbolic computation library available.')
 
 
-def algebraic_approximation_largest_root(polynomial, accuracy, power=1):
+def algebraic_approximation_largest_root(polynomial, accuracy):
 	symbolic_computation_library = load_library()
 	
-	s = symbolic_computation_library.largest_root_string(polynomial, accuracy, power)
+	accuracy_needed = int(log(polynomial.degree)) + (int(polynomial.log_height) + 1) + 1
+	accuracy = max(accuracy, accuracy_needed)
+	
+	s = symbolic_computation_library.largest_root_string(polynomial, accuracy)
 	return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(s, polynomial.degree, polynomial.log_height)
 
 def Perron_Frobenius_eigen(matrix):

@@ -483,7 +483,6 @@ class FlipperApp(object):
 				elif task == 'order': self.order(combined)
 				elif task == 'type': self.NT_type(combined)
 				elif task == 'invariant_lamination': self.invariant_lamination(combined)
-				elif task == 'invariant_lamination_estimate': self.invariant_lamination(combined, exact=False)
 				elif task == 'split': self.splitting_sequence(combined)
 				elif task == 'bundle': self.build_bundle(combined)
 				# elif task == '':
@@ -1058,7 +1057,7 @@ class FlipperApp(object):
 	######################################################################
 	
 	
-	def invariant_lamination(self, composition, exact=True):
+	def invariant_lamination(self, composition):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition)
@@ -1066,7 +1065,7 @@ class FlipperApp(object):
 				pass
 			else:
 				try:
-					lamination = mapping_class.invariant_lamination(exact)
+					lamination = mapping_class.invariant_lamination()
 					dilatation = mapping_class.dilatation(lamination)
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)

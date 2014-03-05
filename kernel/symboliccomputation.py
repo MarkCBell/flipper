@@ -12,7 +12,7 @@ import Flipper
 # a dummy library which can't do anything but makes sure that the imports never fail.
 # Currently Sage is the best by a _large_ margin and so this is our first choice.
 #
-# Each library provides a single function:
+# Each library provides two functions:
 #	PF_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Flipper.kernel.matrix.Matrix) with PF eigenvalue / vector L, v 
 #		(i.e. the unique eigenvalue with largest absolute value) this must return a pair (c, l) where:
@@ -20,29 +20,38 @@ import Flipper
 #			v is either: 
 #				A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
 #				None.
+#	
+#	largest_root_string(polynomial, accuracy, power=1):
+#		Given a polynomial f (of type Flipper.kernel.polynomial.Polynomial) returns a string containing 
+#		the largest real root of f as a decimal raised to the required power and correct to the required accuracy.
 #
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
 
 ### Add new libraries here ###
-load_order = ['sage', 'sympy']
-# load_order = ['sympy', 'sage']
-libraries = {'sage':'symboliccomputation_sage', 'sympy':'symboliccomputation_sympy'}
+load_order = ['sage']
+libraries = {'sage':'symboliccomputation_sage'}
 
 def load_library(library_name=None):
 	for library in ([library_name] + load_order) if library_name in libraries else load_order:
 		try:
-			symbolic_computation_library = import_module('Flipper.kernel.' + libraries[library])
-			return symbolic_computation_library.PF_eigen, symbolic_computation_library.symbolic_libaray_name
+			return import_module('Flipper.kernel.' + libraries[library])
 		except ImportError:
 			pass
 	
 	raise ImportError('No symbolic computation library available.')
 
+
+def algebraic_approximation_largest_root(polynomial, accuracy, power=1):
+	symbolic_computation_library = load_library()
+	
+	s = symbolic_computation_library.largest_root_string(polynomial, accuracy, power)
+	return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(s, polynomial.degree, polynomial.log_height)
+
 def Perron_Frobenius_eigen(matrix):
-	PF_eigen, used_library_name = load_library()
-	eigenvalue_coefficients, eigenvector = PF_eigen(matrix)
+	symbolic_computation_library = load_library()
+	eigenvalue_coefficients, eigenvector = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.Polynomial(eigenvalue_coefficients)
 	if eigenvector is None:
 		# We will calculate the eigenvector ourselves.

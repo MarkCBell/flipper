@@ -6,12 +6,12 @@ import Flipper
 
 symbolic_libaray_name = 'sage'
 
-def largest_root_string(polynomial, accuracy, power=1):
+def largest_root_string(polynomial, accuracy, ):
 	K = QQbar['x']
 	[x] = K.gens()
 	
 	f = K(list(polynomial))
-	x = max(f.real_roots())**power
+	x = max(f.roots())[0]
 	precision = accuracy + int(log(max(x.n(digits=1), 1))) + 1
 	return x.n(digits=precision).str(no_sci=2)
 

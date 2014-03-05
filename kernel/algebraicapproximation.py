@@ -89,7 +89,7 @@ class AlgebraicApproximation(object):
 			return NotImplemented
 	def __pow__(self, other):
 		if other == 0:
-			return algebraic_approximation_from_int(1, self.interval.accuracy, self.degree, self.log_height)
+			return algebraic_approximation_from_int(1, self.interval.accuracy, self.degree, 0)
 		if other > 0:
 			sqrt = self**(other//2)
 			square = sqrt * sqrt

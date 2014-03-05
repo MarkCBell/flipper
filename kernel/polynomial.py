@@ -12,7 +12,7 @@ class Polynomial(object):
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
-		self.algebraic_approximations = [None] * self.degree
+		self.algebraic_approximation = None
 		self.accuracy = 0
 		self.increase_accuracy(5)
 	
@@ -29,19 +29,25 @@ class Polynomial(object):
 		# Eventually we will find the interval ourselves, however at the minute sage is much faster so
 		# we'll just use that.
 		if self.accuracy < accuracy:
-			self.algebraic_approximations = [Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy, power) for power in range(self.degree)]
+			self.algebraic_approximation = Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy)
 			self.accuracy = accuracy
 	
 	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
 		# which is correct to at least accuracy decimal places.
-		self.increase_accuracy(accuracy)
-		return self.algebraic_approximations[power]
+		min_accuracy = int(log(self.degree)) + int(self.log_height) + 2 
+		accuracy_needed = max(accuracy, min_accuracy)
+		accuracy_requested = accuracy_needed + power * int(log(float(self.algebraic_approximation)) + 1)
+		
+		self.increase_accuracy(accuracy_requested)
+		AA = self.algebraic_approximation**power
+		assert(AA.interval.accuracy >= accuracy)  # Let's just make sure.
+		return AA
 	
 	def companion_matrix(self):
-		# Assumes that this polynomial is monic.
+		# Assumes that this polynomial is irreducible and monic.
 		if not self.is_monic():
-			raise Flipper.AssumptionError('Polynomial is not monic.')
+			raise Flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
 		
 		scale = -1 if self[-1] == 1 else 1
 		return Flipper.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)

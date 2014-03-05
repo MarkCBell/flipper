@@ -10,7 +10,7 @@ def largest_root_string(polynomial, accuracy, power=1):
 	K = QQbar['x']
 	[x] = K.gens()
 	
-	f = K(list(polynomial.coefficients))
+	f = K(list(polynomial))
 	x = max(f.real_roots())**power
 	precision = accuracy + int(log(max(x.n(digits=1), 1))) + 1
 	return x.n(digits=precision).str(no_sci=2)

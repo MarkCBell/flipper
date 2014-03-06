@@ -81,7 +81,7 @@ class Encoding(object):
 		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices], self.source_triangulation, self.target_triangulation)
 	def inverse(self):
 		# Assumes that the matrices are invertible square.
-		assert(source_triangulation.zeta == target_triangulation.zeta)
+		assert(self.source_triangulation.zeta == self.target_triangulation.zeta)
 		X = [self.action_matrices[i].inverse() for i in range(self.size)]  # This is the very slow bit.
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)

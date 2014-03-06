@@ -1,10 +1,9 @@
 
 import sys
 from cx_Freeze import setup, Executable
-try:
-	from Flipper.Kernel.Version import Flipper_version
-except ImportError:
-	Flipper_version = ''
+
+# Get the correct version by running the version script to set the Flipper_version variable.
+exec(open('./kernel/version.py').read())
 
 setup(
 	name = 'Flipper',

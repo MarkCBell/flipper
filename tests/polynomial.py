@@ -8,7 +8,7 @@ def main():
 		print(f, AA)
 		return False
 	
-	BB = f.algebraic_approximate_leading_root(100, power=2)
+	BB = f.algebraic_approximate_leading_root(10, power=2)
 	if BB != 2:
 		print(f, BB)
 		return False

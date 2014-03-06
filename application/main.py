@@ -259,7 +259,10 @@ class FlipperApp(object):
 		self.laminations[name] = lamination
 		self.lamination_names[iid] = name
 		self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Filling: ??', tags=['txt', 'filling_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Multicurve: ?', tags=['txt', 'multicurve_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
+		self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
 	
 	def add_mapping_class(self, name, mapping_class, mapping_class_inverse):
 		name_inverse = name.swapcase()
@@ -1289,14 +1292,24 @@ class FlipperApp(object):
 		
 		name = self.treeview_objects.item(iid, 'text')
 		parent = self.treeview_objects.parent(iid)
-		if 'filling_lamination' in tags:
+		
+		if 'multicurve_lamination' in tags:
+			lamination = self.laminations[self.lamination_names[parent]]
+			self.treeview_objects.item(iid, text='Multicurve: %s' % lamination.is_multicurve())
+		elif 'twist_lamination' in tags:
+			lamination = self.laminations[self.lamination_names[parent]]
+			self.treeview_objects.item(iid, text='Twistable: %s' % lamination.is_good_curve())
+		elif 'half_twist_lamination' in tags:
+			lamination = self.laminations[self.lamination_names[parent]]
+			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_pants_boundary())
+		elif 'filling_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
 			self.treeview_objects.item(iid, text='Filling: %s' % lamination.is_filling())
 		elif 'mapping_class_order' in tags:
 			mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 			order = mapping_class.order()
 			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
-		if 'mapping_class_type' in tags:
+		elif 'mapping_class_type' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				progress_app = Flipper.application.progress.ProgressApp(self)
@@ -1304,7 +1317,7 @@ class FlipperApp(object):
 				progress_app.cancel()
 			except Flipper.AbortError:
 				pass
-		if 'mapping_class_invariant_lamination' in tags:
+		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				lamination = mapping_class.invariant_lamination()
@@ -1315,7 +1328,7 @@ class FlipperApp(object):
 			except Flipper.ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except ImportError:
-				tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
+				tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 		else:
 			pass  # !?! To do.
 

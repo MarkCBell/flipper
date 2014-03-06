@@ -232,7 +232,7 @@ class EncodingSequence(object):
 		# advances to the next index according to the lex ordering.
 		
 		sizes = [encoding.size for encoding in self][::-1]
-		sizes_mul = [reduce(lambda x,y: x*y, sizes[i:], 1) for i in range(len(sizes))]
+		sizes_mul = [reduce(lambda x, y: x*y, sizes[i:], 1) for i in range(len(sizes))]
 		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
 		
 		def jump(indices):

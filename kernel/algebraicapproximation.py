@@ -130,7 +130,7 @@ class AlgebraicApproximation(object):
 	def __gt__(self, other):
 		return (self - other).is_positive()
 	def __ne__(self, other):
-		return not (self == other)
+		return not self == other
 	
 	def __le__(self, other):
 		return self < other or self == other

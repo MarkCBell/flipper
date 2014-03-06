@@ -114,7 +114,7 @@ class AbstractTriangulation(object):
 	
 	def find_adjacent(self, triangle, side):
 		# Returns the (triangle, side) one click anti-clockwise around this vertex from this one.
-		opposite_corner = self.find_neighbour(triangle,(side+1)%3)
+		opposite_corner = self.find_neighbour(triangle, (side+1)%3)
 		return (opposite_corner[0], (opposite_corner[1]+1)%3)
 	
 	def edge_is_flippable(self, edge_index):
@@ -130,7 +130,7 @@ class AbstractTriangulation(object):
 		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(edge_index)
 		
 		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
-		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r,s,v], [u,v,s]]
+		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [u, v, s]]
 		new_triangulation = AbstractTriangulation(new_edge_indices, new_corner_labels)
 		
 		return new_triangulation
@@ -147,13 +147,13 @@ class AbstractTriangulation(object):
 		assert(self.edge_is_flippable(edge_index))
 		
 		containing_triangles = self.find_edge(edge_index)
-		return [containing_triangles[i][0][containing_triangles[i][1] + j] for i in (0,1) for j in (1,2)]
+		return [containing_triangles[i][0][containing_triangles[i][1] + j] for i in (0, 1) for j in (1, 2)]
 	
 	def find_corner_labels_of_square_about_edge(self, edge_index):
 		assert(self.edge_is_flippable(edge_index))
 		
 		containing_triangles = self.find_edge(edge_index)
-		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0,1) for j in (-1,0,1)]
+		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0, 1) for j in (-1, 0, 1)]
 	
 	def homology_basis(self):
 		# Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path

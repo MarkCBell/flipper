@@ -39,7 +39,7 @@ class Isometry(object):
 		new_triangle, perm = self[triangle]
 		return (new_triangle, perm * permutation)
 	def inverse(self):
-		Id_Perm = Flipper.kernel.permutation.Permutation([0,1,2])
+		Id_Perm = Flipper.kernel.permutation.Permutation([0, 1, 2])
 		possible_inverses = self.target_triangulation.all_isometries(self.source_triangulation)
 		return [isom for isom in possible_inverses if all((isom*self)[triangle] == (triangle, Id_Perm) for triangle in self.source_triangulation)][0]
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):

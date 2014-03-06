@@ -136,19 +136,19 @@ class Lamination(object):
 			a, b, c = triangle.edge_indices
 			if self[a] + self[b] > self[c] and self[b] + self[c] > self[a] and self[c] + self[a] > self[b]:
 				x, y, z = zeta, zeta+1, zeta+2
-				new_labels.append([a,z,y])
-				new_labels.append([b,x,z])
-				new_labels.append([c,y,x])
-				new_corner_labels.append([1,0,0])
-				new_corner_labels.append([1,0,0])
-				new_corner_labels.append([1,0,0])
+				new_labels.append([a, z, y])
+				new_labels.append([b, x, z])
+				new_labels.append([c, y, x])
+				new_corner_labels.append([1, 0, 0])
+				new_corner_labels.append([1, 0, 0])
+				new_corner_labels.append([1, 0, 0])
 				
 				M = M.join(Flipper.kernel.matrix.tweak_matrix(Flipper.kernel.matrix.Zero_Matrix(zeta1, 3), [(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)]))
 				
 				zeta = zeta + 3
 			else:
-				new_labels.append([a,b,c])
-				new_corner_labels.append([0,0,0])
+				new_labels.append([a, b, c])
+				new_corner_labels.append([0, 0, 0])
 		
 		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
 		return Flipper.kernel.encoding.Encoding([M], [Flipper.kernel.matrix.Empty_Matrix(zeta1)], self.abstract_triangulation, T)

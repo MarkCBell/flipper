@@ -43,7 +43,7 @@ def random_test(example, words=None, num_trials=None, verbose=False):
 	elif words is not None:
 		num_trials = len(words)
 		for word in words:
-			mapping_class = Example(word)
+			mapping_class = example(word)
 			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))
 	else:

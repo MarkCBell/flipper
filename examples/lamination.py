@@ -31,13 +31,13 @@ def determine_type(mapping_class, verbose=False):
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
 
-def random_test(Example, words=None, num_trials=None, verbose=False):
+def random_test(example, words=None, num_trials=None, verbose=False):
 	print('Start')
 	
 	times = []
 	if num_trials is not None:
 		for k in range(num_trials):
-			mapping_class = Example()
+			mapping_class = example()
 			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))
 	elif words is not None:
@@ -56,8 +56,8 @@ def main():
 	# random_test(['aBBap' * 3])
 	# random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	
-	Example = Flipper.examples.abstracttriangulation.Example_S_1_2
-	random_test(Example, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
+	example = Flipper.examples.abstracttriangulation.Example_S_1_2
+	random_test(example, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 	# k = 2
 	# random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)
 	# import cProfile

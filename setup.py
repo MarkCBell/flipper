@@ -3,8 +3,8 @@ from __future__ import print_function
 from distutils.core import setup, Command
 import importlib
 
-# Get the correct version by running the version script to set the Flipper_version variable.
-exec(open('./kernel/version.py').read())
+# Get the correct version.
+from kernel.version import Flipper_version
 
 # So we can access all of the test suite just by doing "python setup.py test"
 class TestCommand(Command):
@@ -39,6 +39,6 @@ setup(
 	packages=['Flipper'],
 	package_dir={'Flipper':''},
 	# Remember to update these if the directory structure changes.
-	package_data={'Flipper': ['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'docs/*']},
-	cmdclass = {'test': TestCommand}
+	package_data={'Flipper':['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'docs/*']},
+	cmdclass={'test':TestCommand}
 	)

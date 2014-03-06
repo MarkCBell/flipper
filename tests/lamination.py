@@ -18,7 +18,7 @@ def determine_type(mapping_class):
 			return REDUCIBLE
 
 def main():
-	Example = Flipper.examples.abstracttriangulation.Example_S_1_2
+	example = Flipper.examples.abstracttriangulation.Example_S_1_2
 	
 	# Add more tests here.
 	tests = [
@@ -29,7 +29,7 @@ def main():
 		]
 	
 	for word, mapping_class_type in tests:
-		mapping_class = Example(word)
+		mapping_class = example(word)
 		try:
 			determined_type = determine_type(mapping_class)
 			if determined_type != mapping_class_type:

@@ -5,18 +5,18 @@ import Flipper.tests
 import Flipper.application
 
 # Load shorter names for commonly used classes and functions.
-Lamination =  Flipper.kernel.lamination.Lamination
-AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
-Isometry = Flipper.kernel.isometry.Isometry
-LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
-Matrix = Flipper.kernel.matrix.Matrix
-Polynomial = Flipper.kernel.polynomial.Polynomial
+Flipper.Lamination = Flipper.kernel.lamination.Lamination
+Flipper.AbstractTriangulation = Flipper.kernel.abstracttriangulation.AbstractTriangulation
+Flipper.Isometry = Flipper.kernel.isometry.Isometry
+Flipper.LayeredTriangulation = Flipper.kernel.layeredtriangulation.LayeredTriangulation
+Flipper.Matrix = Flipper.kernel.matrix.Matrix
+Flipper.Polynomial = Flipper.kernel.polynomial.Polynomial
 
-isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
+Flipper.isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
 
-AbortError = Flipper.kernel.error.AbortError
-ApproximationError = Flipper.kernel.error.ApproximationError
-AssumptionError = Flipper.kernel.error.AssumptionError
-ComputationError = Flipper.kernel.error.ComputationError
+Flipper.AbortError = Flipper.kernel.error.AbortError
+Flipper.ApproximationError = Flipper.kernel.error.ApproximationError
+Flipper.AssumptionError = Flipper.kernel.error.AssumptionError
+Flipper.ComputationError = Flipper.kernel.error.ComputationError
 
-Integer_Type = Flipper.kernel.types.Integer_Type
+Flipper.Integer_Type = Flipper.kernel.types.Integer_Type

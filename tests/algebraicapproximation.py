@@ -10,25 +10,25 @@ def main():
 	y = algebraic_approximation_from_string('1.41421356237', 2, 2)
 	z = algebraic_approximation_from_string('1.000000', 2, 2)
 	
-	if not (z != y):
+	if not z != y:
 		return False
-	if not (x == y):
+	if not x == y:
 		return False
-	if not (x + y == x + x):
+	if not x + y == x + x:
 		return False
-	if not (x * x == 2):
+	if not x * x == 2:
 		return False
-	if not (y * y == 2):
+	if not y * y == 2:
 		return False
-	if not (y * y + x == 2 + x):
+	if not y * y + x == 2 + x:
 		return False
-	if not (y * (y + y) == 4):
+	if not y * (y + y) == 4:
 		return False
-	if not (x * x == y * y):
+	if not x * x == y * y:
 		return False
-	if not ((x + x) > 0):
+	if not x + x > 0:
 		return False
-	if not (-(x + x) < 0):
+	if not -(x + x) < 0:
 		return False
 	
 	return True

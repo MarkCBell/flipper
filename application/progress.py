@@ -1,10 +1,10 @@
 
 try:
 	import Tkinter as TK
-	import ttk as TTK
+	# import ttk as TTK
 except ImportError: # Python 3
 	import tkinter as TK
-	from tkinter import ttk as TTK
+	# from tkinter import ttk as TTK
 
 import Flipper
 
@@ -26,7 +26,7 @@ class ProgressApp(object):
 		
 		self.running = True
 		
-		self.parent.resizable(0,0)
+		self.parent.resizable(0, 0)
 		self.parent.withdraw()
 		self.parent.lift()
 		self.button_cancel.focus()

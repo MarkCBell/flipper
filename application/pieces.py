@@ -55,7 +55,7 @@ class Vertex(object):
 			raise KeyError('%s' % key)
 	
 	def __contains__(self, p):
-		(x,y) = p
+		(x, y) = p
 		return abs(x - self.x) < self.options.epsilon and abs(y - self.y) < self.options.epsilon
 	
 	def set_colour(self, colour=None):
@@ -101,7 +101,7 @@ class Edge(object):
 		if p in self.source_vertex or p in self.target_vertex:
 			return False
 		try:
-			(x,y) = p
+			(x, y) = p
 			Dx = x - self.source_vertex.x
 			Dy = y - self.source_vertex.y
 			dx = self.target_vertex.x - self.source_vertex.x
@@ -216,7 +216,7 @@ class CurveComponent(object):
 			self.drawn_segments.pop()
 	
 	def destroy(self):
-		for i in range(len(self.vertices)):
+		for _ in range(len(self.vertices)):
 			self.pop_point()
 	
 	def set_colour(self, colour=None):

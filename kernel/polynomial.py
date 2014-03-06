@@ -12,9 +12,8 @@ class Polynomial(object):
 		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - 1
-		self.algebraic_approximation = None
+		self.algebraic_approximation = self.degree * self.height
 		self.accuracy = 0
-		self.increase_accuracy(5)
 	
 	def __iter__(self):
 		return iter(self.coefficients)

@@ -36,7 +36,7 @@ def random_test(example, words=None, num_trials=None, verbose=False):
 	
 	times = []
 	if num_trials is not None:
-		for k in range(num_trials):
+		for _ in range(num_trials):
 			mapping_class = example()
 			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))

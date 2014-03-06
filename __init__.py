@@ -3,6 +3,7 @@ import Flipper.kernel
 import Flipper.examples
 import Flipper.tests
 import Flipper.application
+import Flipper.version
 
 # Load shorter names for commonly used classes and functions.
 Flipper.Lamination = Flipper.kernel.lamination.Lamination

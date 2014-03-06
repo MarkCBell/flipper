@@ -196,7 +196,7 @@ class AbstractTriangulation(object):
 		for edge_index in range(self.zeta):
 			if not tree[edge_index] and not dual_tree[edge_index]:
 				generator = [edge_index]
-				(source, side_source), (target, side_targe) = self.find_edge(edge_index)
+				(source, side_source), (target, side_target) = self.find_edge(edge_index)
 				
 				# Find a path in dual_tree from source to target. This is a really
 				# inefficient way to do this. We initially define the distance to

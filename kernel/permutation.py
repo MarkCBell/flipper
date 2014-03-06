@@ -25,13 +25,13 @@ class Permutation(object):
 		return Permutation([j for i in range(len(self)) for j in range(len(self)) if self[j] == i])
 	def is_even(self):
 		even = True
-		for j, i in combinations(range(len(self)),2):
+		for j, i in combinations(range(len(self)), 2):
 			if self[j] > self[i]: even = not even
 		return even
 	def embed(self, n):
 		# Returns the permutation given by including this permutation into Sym(n). Assumes n >= len(self).
 		assert(n >= len(self))
-		return Permutation(list(self.permutation) + list(range(len(self),n)))
+		return Permutation(list(self.permutation) + list(range(len(self), n)))
 
 #### Some special Permutations we know how to build.
 

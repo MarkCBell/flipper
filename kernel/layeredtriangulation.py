@@ -23,17 +23,17 @@ SOURCE = -1
 PERIPHERAL_TYPES = list(range(3))
 LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
-vertices_meeting = {0:(1,2,3), 1:(0,3,2), 2:(0,1,3), 3:(0,2,1)}  # This order was chosen so they appear ordered anti-clockwise from the cusp.
-exit_cusp_left  = {(0,1):3, (0,2):1, (0,3):2, (1,0):2, (1,2):3, (1,3):0, (2,0):3, (2,1):0, (2,3):1, (3,0):1, (3,1):2, (3,2):0}
-exit_cusp_right = {(0,1):2, (0,2):3, (0,3):1, (1,0):3, (1,2):0, (1,3):2, (2,0):1, (2,1):3, (2,3):0, (3,0):2, (3,1):0, (3,2):1}
+vertices_meeting = {0:(1, 2, 3), 1:(0, 3, 2), 2:(0, 1, 3), 3:(0, 2, 1)} # This order was chosen so they appear ordered anti-clockwise from the cusp.
+exit_cusp_left = {(0, 1):3, (0, 2):1, (0, 3):2, (1, 0):2, (1, 2):3, (1, 3):0, (2, 0):3, (2, 1):0, (2, 3):1, (3, 0):1, (3, 1):2, (3, 2):0}
+exit_cusp_right = {(0, 1):2, (0, 2):3, (0, 3):1, (1, 0):3, (1, 2):0, (1, 3):2, (2, 0):1, (2, 1):3, (2, 3):0, (3, 0):2, (3, 1):0, (3, 2):1}
 
 class Tetrahedron(object):
 	def __init__(self, label=None):
 		self.label = label
-		self.glued_to = [None] * 4  # None or (Tetrahedron, permutation).
+		self.glued_to = [None] * 4 # None or (Tetrahedron, permutation).
 		self.cusp_indices = [-1, -1, -1, -1]
-		self.peripheral_curves = [[[0,0,0,0] for i in range(4)] for j in PERIPHERAL_TYPES]
-		self.edge_labels = {(0,1):VEERING_UNKNOWN, (0,2):VEERING_UNKNOWN, (0,3):VEERING_UNKNOWN, (1,2):VEERING_UNKNOWN, (1,3):VEERING_UNKNOWN, (2,3):VEERING_UNKNOWN}
+		self.peripheral_curves = [[[0, 0, 0, 0] for i in range(4)] for j in PERIPHERAL_TYPES]
+		self.edge_labels = {(0, 1):VEERING_UNKNOWN, (0, 2):VEERING_UNKNOWN, (0, 3):VEERING_UNKNOWN, (1, 2):VEERING_UNKNOWN, (1, 3):VEERING_UNKNOWN, (2, 3):VEERING_UNKNOWN}
 		self.vertex_labels = [None, None, None, None]
 	
 	def __repr__(self):
@@ -85,10 +85,10 @@ class Tetrahedron(object):
 		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
 		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
 		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
-		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
+		s += ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n'
 		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
-		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-		s += '  0.000000000000   0.000000000000\n'
+		s += ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n'
+		s += ' 0.000000000000 0.000000000000\n'
 		return s
 
 class Triangulation(object):
@@ -137,7 +137,7 @@ class Triangulation(object):
 		for side in range(4):
 			tetrahedron.unglue(side)
 		self.tetrahedra.remove(tetrahedron)
-		self.num_tetrahedra -= 1  # !?! This makes tetrahedron names non-unique.
+		self.num_tetrahedra -= 1 # !?! This makes tetrahedron names non-unique.
 	
 	def reindex(self):
 		for index, tetrahedron in enumerate(self):
@@ -145,7 +145,7 @@ class Triangulation(object):
 	
 	def clear_temp_peripheral_structure(self):
 		for tetrahedron in self.tetrahedra:
-			tetrahedron.peripheral_curves[TEMPS] = [[0,0,0,0] for i in range(4)]
+			tetrahedron.peripheral_curves[TEMPS] = [[0, 0, 0, 0] for i in range(4)]
 	
 	def is_closed(self):
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
@@ -199,12 +199,12 @@ class Triangulation(object):
 		# See SnapPy/kernel_code/intersection_numbers.c for how to do this.
 		
 		# Convention:
-		#    B
-		#    ^
-		#    |
-		# ---+--->  A
-		#    |
-		#    |
+		# B
+		# ^
+		# |
+		# ---+---> A
+		# |
+		# |
 		# has intersection +1.
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
@@ -260,7 +260,7 @@ class Triangulation(object):
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
 			
-			# Install the longitude and meridian.  # !?! Double check and optimise this.
+			# Install the longitude and meridian. # !?! Double check and optimise this.
 			for peripheral_type in [LONGITUDES, MERIDIANS]:
 				first, last = homology_basis_paths[peripheral_type][0], homology_basis_paths[peripheral_type][-1]
 				# Find a starting point.
@@ -327,13 +327,13 @@ class Triangulation(object):
 		s = ''
 		s += '% Triangulation\n'
 		s += '%s\n' % self.name
-		s += 'not_attempted  0.0\n'
+		s += 'not_attempted 0.0\n'
 		s += 'oriented_manifold\n'
 		s += 'CS_unknown\n'
 		s += '\n'
 		s += '%d 0\n' % self.num_cusps
 		for i in range(self.num_cusps):
-			s += '    torus   0.000000000000   0.000000000000\n'
+			s += ' torus 0.000000000000 0.000000000000\n'
 		s += '\n'
 		s += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:
@@ -342,7 +342,7 @@ class Triangulation(object):
 		return s
 
 # A class to represent a layered triangulation over a surface specified by an Flipper.kernel.abstracttriangulation.
-class LayeredTriangulation:
+class LayeredTriangulation(object):
 	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
@@ -351,12 +351,12 @@ class LayeredTriangulation:
 		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
 		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
-			lower.glue(3, upper, Flipper.kernel.permutation.Permutation((0,2,1,3)))
+			lower.glue(3, upper, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each AbstractTriangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, Flipper.kernel.permutation.Permutation((0,1,2,3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, Flipper.kernel.permutation.Permutation((0,2,1,3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		self.lower_map = dict((lower, (lower_tetra, Flipper.kernel.permutation.Permutation((0, 1, 2, 3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
+		self.upper_map = dict((upper, (upper_tetra, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -373,10 +373,10 @@ class LayeredTriangulation:
 		
 		# Get a new tetrahedra.
 		new_tetrahedron = self.core_triangulation.create_tetrahedra()
-		new_tetrahedron.edge_labels[(0,1)] = VEERING_RIGHT
-		new_tetrahedron.edge_labels[(1,2)] = VEERING_LEFT
-		new_tetrahedron.edge_labels[(2,3)] = VEERING_RIGHT
-		new_tetrahedron.edge_labels[(0,3)] = VEERING_LEFT
+		new_tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
+		new_tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
+		new_tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
+		new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
@@ -395,8 +395,8 @@ class LayeredTriangulation:
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		
-		new_tetrahedron.glue(1, object_A, Flipper.kernel.permutation.Permutation((2,3,1,0)))
-		new_tetrahedron.glue(3, object_B, Flipper.kernel.permutation.Permutation((1,0,2,3)))
+		new_tetrahedron.glue(1, object_A, Flipper.kernel.permutation.Permutation((2, 3, 1, 0)))
+		new_tetrahedron.glue(3, object_B, Flipper.kernel.permutation.Permutation((1, 0, 2, 3)))
 		
 		# Get the new upper triangulation
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
@@ -411,8 +411,8 @@ class LayeredTriangulation:
 			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		new_upper_map[new_A] = (object_A, Flipper.kernel.permutation.Permutation((0,2,1,3)))
-		new_upper_map[new_B] = (object_B, Flipper.kernel.permutation.Permutation((0,2,1,3)))
+		new_upper_map[new_A] = (object_A, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
+		new_upper_map[new_B] = (object_B, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
 		
 		# Finally, install the new objects.
 		self.upper_triangulation = new_upper_triangulation

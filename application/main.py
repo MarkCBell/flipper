@@ -5,7 +5,6 @@ import sys
 import pickle
 from math import sin, cos, pi
 from itertools import combinations
-from time import time
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -32,16 +31,35 @@ except ImportError:  # Python 3.
 
 import Flipper
 
-# Modes.
-TRIANGULATION_MODE = 0
-GLUING_MODE = 1
-CURVE_MODE = 2
-CURVE_DRAWING_MODE = 3
-
+# Some constants.
 COMMAND_MODIFIERS = {'darwin':'Command', 'win32':'Ctrl', 'linux2':'Ctrl', 'linux3':'Ctrl'}
 COMMAND_MODIFIER = COMMAND_MODIFIERS[sys.platform] if sys.platform in COMMAND_MODIFIERS else 'Ctrl'
 COMMAND_MODIFIER_BINDINGS = {'darwin':'Command', 'win32':'Control', 'linux2':'Control', 'linux3':'Control'}
 COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platform in COMMAND_MODIFIER_BINDINGS else 'Control'
+
+# Event modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
+BIT_SHIFT = 0x001
+# BIT_CAPSLOCK = 0x002
+# BIT_CONTROL = 0x004
+# BIT_LEFT_ALT = 0x008
+# BIT_NUMLOCK = 0x010
+# BIT_RIGHT_ALT = 0x080
+# BIT_MB_1 = 0x100
+# BIT_MB_2 = 0x200
+# BIT_MB_3 = 0x400
+
+RENDER_LAMINATION_FULL = 'Full'
+RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'
+RENDER_LAMINATION_C_TRAIN_TRACK = 'Compressed train track'
+LABEL_EDGES_NONE = 'None'
+LABEL_EDGES_INDEX = 'Index'
+LABEL_EDGES_GEOMETRIC = 'Geometric'
+LABEL_EDGES_ALGEBRAIC = 'Algebraic'
+SIZE_SMALL = 10
+SIZE_MEDIUM = 12
+SIZE_LARGE = 14
+# SIZE_XLARGE = 16
+INVERSE_MAPPING_CLASS_ID_SUFFIX = 'foobar'
 
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
@@ -51,32 +69,19 @@ def valid_name(name):
 		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
 		return False
 
-render_lamination_FULL = 'Full'
-render_lamination_W_TRAIN_TRACK = 'Weighted train track'
-render_lamination_C_TRAIN_TRACK = 'Compressed train track'
-label_edges_NONE = 'None'
-label_edges_INDEX = 'Index'
-label_edges_GEOMETRIC = 'Geometric'
-size_SMALL = 10
-size_MEDIUM = 12
-size_LARGE = 14
-#size_XLARGE = 16
-#label_edges_ALGEBRAIC = 'Algebraic'
-INVERSE_MAPPING_CLASS_ID_SUFFIX = 'foobar'
-
 class Options(object):
 	def __init__(self, parent):
 		self.parent = parent
 		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
 		
-		self.render_lamination_var = TK.StringVar(value=render_lamination_FULL)
+		self.render_lamination_var = TK.StringVar(value=RENDER_LAMINATION_FULL)
 		self.show_internals_var = TK.BooleanVar(value=False)
-		self.label_edges_var = TK.StringVar(value=label_edges_NONE)
-		self.size_var = TK.IntVar(value=size_SMALL)
+		self.label_edges_var = TK.StringVar(value=LABEL_EDGES_NONE)
+		self.size_var = TK.IntVar(value=SIZE_SMALL)
 		
-		self.render_lamination = render_lamination_FULL
+		self.render_lamination = RENDER_LAMINATION_FULL
 		self.show_internals = False
-		self.label_edges = label_edges_NONE
+		self.label_edges = LABEL_EDGES_NONE
 		self.line_size = 2
 		self.dot_size = 3
 		
@@ -91,8 +96,8 @@ class Options(object):
 		self.dilatation_error = 0.001
 		self.spacing = 10
 		
-		self.vertex_buffer = 0.2  # Must be in (0,0.5)
-		self.zoom_fraction = 0.9 # Must be in (0,1)
+		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
+		self.zoom_fraction = 0.9 # Must be in (0, 1)
 		
 		self.default_vertex_colour = 'black'
 		self.default_edge_colour = 'black'
@@ -102,7 +107,7 @@ class Options(object):
 		self.default_edge_label_colour = 'red'
 		self.default_curve_label_colour = 'black'
 		
-		self.version = Flipper.kernel.version.Flipper_version
+		self.version = Flipper.version.Flipper_version
 	
 	def update(self, *args):
 		self.render_lamination = str(self.render_lamination_var.get())
@@ -183,21 +188,21 @@ class FlipperApp(object):
 		settingsmenu = TK.Menu(menubar, tearoff=0)
 
 		sizemenu = TK.Menu(menubar, tearoff=0)
-		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=size_SMALL)
-		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=size_MEDIUM)
-		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=size_LARGE)
-		# sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=size_XLARGE)
+		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=SIZE_SMALL)
+		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=SIZE_MEDIUM)
+		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=SIZE_LARGE)
+		# sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=SIZE_XLARGE)
 
 		edgelabelmenu = TK.Menu(menubar, tearoff=0)
-		edgelabelmenu.add_radiobutton(label=label_edges_NONE, var=self.options.label_edges_var)
-		edgelabelmenu.add_radiobutton(label=label_edges_INDEX, var=self.options.label_edges_var)
-		edgelabelmenu.add_radiobutton(label=label_edges_GEOMETRIC, var=self.options.label_edges_var)
+		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var)
+		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var)
+		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var)
 		# edgelabelmenu.add_radiobutton(label=label_edges_ALGEBRAIC, var=self.options.edge_labels_var)
 		
 		laminationdrawmenu = TK.Menu(menubar, tearoff=0)
-		laminationdrawmenu.add_radiobutton(label=render_lamination_FULL, var=self.options.render_lamination_var)
-		laminationdrawmenu.add_radiobutton(label=render_lamination_C_TRAIN_TRACK, var=self.options.render_lamination_var)
-		laminationdrawmenu.add_radiobutton(label=render_lamination_W_TRAIN_TRACK, var=self.options.render_lamination_var)
+		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var)
+		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var)
+		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var)
 
 		settingsmenu.add_cascade(label='Sizes', menu=sizemenu)
 		settingsmenu.add_cascade(label='Edge label', menu=edgelabelmenu)
@@ -346,9 +351,9 @@ class FlipperApp(object):
 				try:
 					disk_file = open(path, 'w')
 					
-					twists = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'twist' and self.mapping_classes[mapping_class][1][2] == +1]
-					halfs  = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half'  and self.mapping_classes[mapping_class][1][2] == +1]
-					isoms  = [(mapping_class,self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
+					twists = [(mapping_class, self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'twist' and self.mapping_classes[mapping_class][1][2] == +1]
+					halfs = [(mapping_class, self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half' and self.mapping_classes[mapping_class][1][2] == +1]
+					isoms = [(mapping_class, self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
 					
 					twist_names = [mapping_class for mapping_class, _ in twists]
 					half_names = [mapping_class for mapping_class, _ in halfs]
@@ -375,7 +380,6 @@ class FlipperApp(object):
 					disk_file.close()
 		else:
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
-			
 	
 	def quit(self):
 		self.parent.quit()
@@ -455,40 +459,42 @@ class FlipperApp(object):
 			task, arguements = sections[0], sections[1:]
 			combined = ' '.join(arguements)
 			try:
-				if task == '': pass
-				elif task == 'new': self.initialise()
-				elif task == 'save': self.save(combined)
-				elif task == 'open': self.load(combined)
-				elif task == 'export_image': self.export_image(combined)
-				elif task == 'export_script': self.export_script(combined)
-				elif task == 'erase': self.destory_lamination()
-				elif task == 'help': self.show_help()
-				elif task == 'about': self.show_about()
-				elif task == 'exit': self.quit()
+				optionless_tasks = {
+				'new': self.initialise,
+				'erase': self.destory_lamination,
+				'help': self.show_help,
+				'about': self.show_about,
+				'exit': self.quit,
+				'information': self.show_surface_information,
+				'zoom': self.auto_zoom,
+				'tighten': self.tighten_lamination,
+				'vectorise': self.vectorise}
 				
-				elif task == 'ngon': self.initialise_circular_n_gon(combined)
-				elif task == 'rngon': self.initialise_radial_n_gon(combined)
-				elif task == 'information': self.show_surface_information()
+				option_tasks = {
+				'save': self.save,
+				'open': self.load,
+				'export_image': self.export_image,
+				'export_script': self.export_script,
+				'ngon': self.initialise_circular_n_gon,
+				'rngon': self.initialise_radial_n_gon,
+				'render': self.show_render,
+				'lamination': self.store_lamination,
+				'twist': self.store_twist,
+				'half': self.store_halftwist,
+				'isometry': self.store_isometry,
+				'compose': self.store_composition,
+				'apply': self.show_apply,
+				'order': self.order,
+				'type': self.NT_type,
+				'invariant_lamination': self.invariant_lamination,
+				'split': self.splitting_sequence,
+				'bundle': self.build_bundle
+				}
 				
-				elif task == 'zoom': self.auto_zoom()
-				
-				elif task == 'tighten': self.tighten_lamination()
-				elif task == 'render': self.show_render(combined)
-				elif task == 'vectorise': self.vectorise()
-				
-				elif task == 'lamination': self.store_lamination(combined)
-				elif task == 'twist': self.store_twist(combined)
-				elif task == 'half': self.store_halftwist(combined)
-				elif task == 'isometry': self.store_isometry(combined)
-				elif task == 'compose': self.store_composition(combined)
-				elif task == 'apply': self.show_apply(combined)
-				
-				elif task == 'order': self.order(combined)
-				elif task == 'type': self.NT_type(combined)
-				elif task == 'invariant_lamination': self.invariant_lamination(combined)
-				elif task == 'split': self.splitting_sequence(combined)
-				elif task == 'bundle': self.build_bundle(combined)
-				# elif task == '':
+				if task in optionless_tasks:
+					optionless_tasks[task]()
+				elif task in option_tasks:
+					option_tasks[task](combined)
 				else:
 					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
 				self.entry_command.delete(0, TK.END)
@@ -544,7 +550,7 @@ class FlipperApp(object):
 		self.create_vertex((w / 2, h / 2))
 		for i in range(n):
 			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
-		for i in range(1,n):
+		for i in range(1, n):
 			self.create_edge(self.vertices[i], self.vertices[i+1])
 		self.create_edge(self.vertices[n], self.vertices[1])
 		for i in range(n):
@@ -553,7 +559,6 @@ class FlipperApp(object):
 			for i, j in combinations(range(n), r=2):
 				if gluing[i] == gluing[j].swapcase():
 					self.create_edge_identification(self.edges[i], self.edges[j])
-			# self.store_isometry('p %d.%d.%d %d.%d.%d' % (0,n+1,n,1,n+2,n+1))  # !?! Add in a 1/n rotation by default.
 	
 	def initialise_circular_n_gon(self, specification):
 		self.initialise()
@@ -587,7 +592,7 @@ class FlipperApp(object):
 			num_marked_points = self.abstract_triangulation.num_vertices
 			Euler_characteristic = self.abstract_triangulation.Euler_characteristic
 			genus = (2 - Euler_characteristic - num_marked_points) // 2
-			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus ,num_marked_points, Euler_characteristic))
+			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus, num_marked_points, Euler_characteristic))
 		else:
 			tkMessageBox.showwarning('Surface information', 'Cannot compute information about an incomplete surface.')
 	
@@ -628,7 +633,7 @@ class FlipperApp(object):
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
 				if e1.free_sides() > 0 and e2.free_sides() > 0:
-					if len(set([e.source_vertex for e in [e0,e1,e2]] + [e.target_vertex for e in [e0,e1,e2]])) == 3:
+					if len(set([e.source_vertex for e in [e0, e1, e2]] + [e.target_vertex for e in [e0, e1, e2]])) == 3:
 						self.create_triangle(e0, e1, e2)
 		self.redraw()
 		self.build_abstract_triangulation()
@@ -649,10 +654,10 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.application.pieces.Triangle(e1,e2,e3, self.options)
+		new_triangle = Flipper.application.pieces.Triangle(e1, e2, e3, self.options)
 		self.triangles.append(new_triangle)
 		
-		corner_vertices = [e.source_vertex for e in [e1,e2,e3]] + [e.target_vertex for e in [e1,e2,e3]]
+		corner_vertices = [e.source_vertex for e in [e1, e2, e3]] + [e.target_vertex for e in [e1, e2, e3]]
 		if any(vertex in new_triangle and vertex not in corner_vertices for vertex in self.vertices):
 			self.destroy_triangle(new_triangle)
 			return None
@@ -844,15 +849,15 @@ class FlipperApp(object):
 		if lamination.is_multicurve(): 
 			render = self.options.render_lamination
 		else:
-			if self.options.render_lamination == render_lamination_FULL:
-				render = render_lamination_W_TRAIN_TRACK
+			if self.options.render_lamination == RENDER_LAMINATION_FULL:
+				render = RENDER_LAMINATION_W_TRAIN_TRACK
 			else:
 				render = self.options.render_lamination
 		
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
-		vb =self.options.vertex_buffer  # We are going to use this a lot.
+		vb = self.options.vertex_buffer  # We are going to use this a lot.
 		approximate_weights = [float(x) for x in lamination]
-		if render == render_lamination_W_TRAIN_TRACK:
+		if render == RENDER_LAMINATION_W_TRAIN_TRACK:
 			master_scale = max(approximate_weights) if any(lamination[edge.index] > 0 for edge in self.edges) else float(1)
 		
 		for triangle in self.triangles:
@@ -863,7 +868,7 @@ class FlipperApp(object):
 				a = triangle.vertices[i-1] - triangle.vertices[i]
 				b = triangle.vertices[i-2] - triangle.vertices[i]
 				
-				if render == render_lamination_W_TRAIN_TRACK:  # !?! To Do.
+				if render == RENDER_LAMINATION_W_TRAIN_TRACK:  # !?! To Do.
 					if dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
@@ -884,14 +889,14 @@ class FlipperApp(object):
 						
 						vertices = [start_point, end_point, end_point2, start_point2]
 						self.create_train_track_block(vertices, multiplicity=dual_weights[i], counted=True)
-				elif render == render_lamination_FULL:  # We can ONLY use this method when the lamination is a multicurve.
+				elif render == RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
 						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
 						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
 						self.create_curve_component(start_point, counted=True).append_point(end_point)
-				elif render == render_lamination_C_TRAIN_TRACK:
+				elif render == RENDER_LAMINATION_C_TRAIN_TRACK:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
@@ -1041,7 +1046,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition)
-				progress_app=Flipper.application.progress.ProgressApp(self)
+				progress_app = Flipper.application.progress.ProgressApp(self)
 				NT_type = mapping_class.NT_type(progression=progress_app.update_bar)
 				progress_app.cancel()
 				
@@ -1151,24 +1156,22 @@ class FlipperApp(object):
 	
 	
 	def canvas_left_click(self, event):
-		# Modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
-		BIT_SHIFT = 0x001; BIT_CAPSLOCK = 0x002; BIT_CONTROL = 0x004; BIT_LEFT_ALT = 0x008;
-		BIT_NUMLOCK = 0x010; BIT_RIGHT_ALT = 0x080; BIT_MB_1 = 0x100; BIT_MB_2 = 0x200; BIT_MB_3 = 0x400;
+		
 		shift_pressed = (event.state & BIT_SHIFT) == BIT_SHIFT
 		
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		possible_object = self.object_here((x,y))
+		possible_object = self.object_here((x, y))
 		
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
-				self.select_object(self.create_curve_component((x,y)))
-				self.selected_object.append_point((x,y))
+				self.select_object(self.create_curve_component((x, y)))
+				self.selected_object.append_point((x, y))
 			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
-				self.selected_object.append_point((x,y))
+				self.selected_object.append_point((x, y))
 		else:
 			if self.selected_object is None:
 				if possible_object is None:
-					self.select_object(self.create_vertex((x,y)))
+					self.select_object(self.create_vertex((x, y)))
 				elif isinstance(possible_object, Flipper.application.pieces.Edge):
 					self.destroy_edge_identification(possible_object)
 					if possible_object.free_sides() > 0:
@@ -1179,7 +1182,7 @@ class FlipperApp(object):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
-					new_vertex = self.create_vertex((x,y))
+					new_vertex = self.create_vertex((x, y))
 					self.create_edge(self.selected_object, new_vertex)
 					self.select_object(new_vertex)
 				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
@@ -1192,7 +1195,7 @@ class FlipperApp(object):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
-					new_vertex = self.create_vertex((x,y))
+					new_vertex = self.create_vertex((x, y))
 					self.create_edge(self.selected_object.source_vertex, new_vertex)
 					self.create_edge(self.selected_object.target_vertex, new_vertex)
 					self.select_object(None)
@@ -1216,10 +1219,10 @@ class FlipperApp(object):
 		if self.selected_object is not None:
 			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				if len(self.selected_object.vertices) > 2:
-					(x,y) = self.selected_object.vertices[-1]
+					(x, y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
 					self.selected_object.pop_point()
-					self.selected_object.append_point((x,y))
+					self.selected_object.append_point((x, y))
 				else:
 					self.destory_curve_component(self.selected_object)
 					self.select_object(None)
@@ -1237,7 +1240,7 @@ class FlipperApp(object):
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
-			self.selected_object.move_last_point((x,y))
+			self.selected_object.move_last_point((x, y))
 	
 	def parent_key_press(self, event):
 		key = event.keysym

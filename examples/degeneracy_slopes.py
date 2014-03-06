@@ -4,14 +4,14 @@ from time import time
 
 import snappy, Flipper
 
-surfaces = {'S_1_1':Flipper.examples.abstracttriangulation.Example_S_1_1, 
+SURFACES = {'S_1_1':Flipper.examples.abstracttriangulation.Example_S_1_1, 
 			'S_1_2':Flipper.examples.abstracttriangulation.Example_S_1_2,
 			'S_2_1':Flipper.examples.abstracttriangulation.Example_S_2_1,
 			'S_3_1':Flipper.examples.abstracttriangulation.Example_S_3_1 
 			}
 
 def bundles(surface_name, word):
-	splitting = surfaces[surface_name](word).splitting_sequence()
+	splitting = SURFACES[surface_name](word).splitting_sequence()
 	bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
 	manifolds = [snappy.Manifold(bundle.SnapPy_string()) for bundle in bundles]
 	for bundle, manifold in zip(bundles, manifolds):
@@ -29,14 +29,14 @@ def with_bundle_structure(manifold_name, surface_name, word, *args):
 	for B in buns:
 		if B.is_isometric_to(M):
 			return B
-	else:
-		print('Could not match %s on %s' % (manifold_name, surface_name))
-		print(M.volume(), M.homology(), M.chern_simons())
-		print('with any of:')
-		for B in buns:
-			print(B.volume(), B.homology(), B.chern_simons())
-			print(B.identify())
-		return None
+	
+	print('Could not match %s on %s' % (manifold_name, surface_name))
+	print(M.volume(), M.homology(), M.chern_simons())
+	print('with any of:')
+	for B in buns:
+		print(B.volume(), B.homology(), B.chern_simons())
+		print(B.identify())
+	return None
 
 def bundle_specs(surface_name=None):
 	for line in open(os.path.join(os.path.dirname(__file__), 'census_mondromies')):

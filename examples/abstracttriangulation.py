@@ -32,19 +32,19 @@ def build_mapping_class(T, dic, word):
 
 def Example_S_1_1(word=None):
 	# S_1_1 and its standard (Twister) curves:
-	T = Flipper.AbstractTriangulation([[0,2,1], [0,2,1]])
+	T = Flipper.AbstractTriangulation([[0, 2, 1], [0, 2, 1]])
 	
-	a = Flipper.Lamination(T, [1,0,1])
-	b = Flipper.Lamination(T, [0,1,1])
+	a = Flipper.Lamination(T, [1, 0, 1])
+	b = Flipper.Lamination(T, [0, 1, 1])
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
 
 def Example_S_1_1m(word=None):
 	# Mirror image of S_1_1 and its standard (Twister) curves:
-	T = Flipper.AbstractTriangulation([[0,1,2], [0,1,2]])
+	T = Flipper.AbstractTriangulation([[0, 1, 2], [0, 1, 2]])
 	
-	a = Flipper.Lamination(T, [1,1,0]).encode_twist()
-	b = Flipper.Lamination(T, [0,1,1]).encode_twist()
+	a = Flipper.Lamination(T, [1, 1, 0]).encode_twist()
+	b = Flipper.Lamination(T, [0, 1, 1]).encode_twist()
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
 
@@ -52,9 +52,9 @@ def Example_S_1_2(word=None):
 	# S_1_2 and its standard (Twister) curves:
 	T = Flipper.AbstractTriangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
 	
-	a = Flipper.Lamination(T, [0,0,1,1,1,0])
-	b = Flipper.Lamination(T, [1,0,0,0,1,1])
-	c = Flipper.Lamination(T, [0,1,0,1,0,1])
+	a = Flipper.Lamination(T, [0, 0, 1, 1, 1, 0])
+	b = Flipper.Lamination(T, [1, 0, 0, 0, 1, 1])
+	c = Flipper.Lamination(T, [0, 1, 0, 1, 0, 1])
 	
 	return build_mapping_class(T, make_mapping_classes([a, b, c], [], []), word)
 
@@ -72,8 +72,8 @@ def Example_S_2_1(word=None):
 	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f], [], []), word)
 
 def Example_S_3_1(word=None):
-	T = Flipper.AbstractTriangulation([[1, 2, 5], [0, 6, 3], [4, 1, 7], [3, 8, 2], [9, 5, 6],
-									   [10, 0, 9], [10, 7, 8], [11, 12, 4], [12, 14, 13], [13, 11, 14]])
+	T = Flipper.AbstractTriangulation([[1, 2, 5], [0, 6, 3], [4, 1, 7], [3, 8, 2], [9, 5, 6], 
+									 [10, 0, 9], [10, 7, 8], [11, 12, 4], [12, 14, 13], [13, 11, 14]])
 	
 	a = Flipper.Lamination(T, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1])
 	b = Flipper.Lamination(T, [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
@@ -94,7 +94,7 @@ def Example_12(word=None):
 	
 	a = Flipper.Lamination(T, [1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
 	b = Flipper.Lamination(T, [1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1]  # This is a 1/12 click.
+	p = T.all_isometries(T)[1] # This is a 1/12 click.
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
 
@@ -107,7 +107,7 @@ def Example_24(word=None):
 	
 	a = Flipper.Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = Flipper.Lamination(T, [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1]  # This is a 1/24 click.
+	p = T.all_isometries(T)[1] # This is a 1/24 click.
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
 
@@ -115,11 +115,11 @@ def Example_36(word=None):
 	# A 36-gon
 	T = Flipper.AbstractTriangulation([[18, 19, 0], [20, 1, 19], [21, 2, 20], [21, 22, 3], [22, 23, 4], [24, 5, 23], [25, 6, 24], [25, 26, 7], 
 		[27, 8, 26], [27, 28, 9], [28, 29, 10], [30, 11, 29], [31, 12, 30], [31, 32, 13], [32, 33, 14], [34, 15, 33], [35, 16, 34], 
-		[35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41],	[43, 6, 42], [43, 44, 7], [44, 45, 8], 
-		[46, 9, 45], [47, 10, 46], [47, 48, 11], [48, 49, 12], [50, 13, 49], [51, 14, 50], [51, 52, 15], [52, 53, 16], [18, 17,53]])
+		[35, 36, 17], [36, 37, 0], [38, 1, 37], [39, 2, 38], [39, 40, 3], [40, 41, 4], [42, 5, 41], [43, 6, 42], [43, 44, 7], [44, 45, 8], 
+		[46, 9, 45], [47, 10, 46], [47, 48, 11], [48, 49, 12], [50, 13, 49], [51, 14, 50], [51, 52, 15], [52, 53, 16], [18, 17, 53]])
 	
 	a = Flipper.Lamination(T, [1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = Flipper.Lamination(T, [0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1]  # This is a 1/36 click.
+	p = T.all_isometries(T)[1] # This is a 1/36 click.
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)

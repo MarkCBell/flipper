@@ -85,7 +85,7 @@ class Lamination(object):
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
 		while lamination.weight() > 2:
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
 			new_weight = lamination.weight()
 			
@@ -108,7 +108,7 @@ class Lamination(object):
 		lamination = self.copy()
 		
 		while lamination.weight() > 2:
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lambda i: lamination.weight_difference_flip_edge(i))
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lamination.weight_difference_flip_edge)
 			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
 		
 		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
@@ -301,7 +301,7 @@ class Lamination(object):
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
 			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
 			conjugation = forwards * conjugation
@@ -351,7 +351,7 @@ class Lamination(object):
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lambda i: lamination.weight_difference_flip_edge(i))
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
 			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
 			conjugation = forwards * conjugation

@@ -3,7 +3,7 @@ import sys
 from cx_Freeze import setup, Executable
 
 # Get the correct version.
-from kernel.version import Flipper_version
+from version import Flipper_version
 
 setup(
 	name='Flipper',

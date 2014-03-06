@@ -311,7 +311,7 @@ class EncodingSequence(object):
 				self._properties['NT_type'] = NT_TYPE_PSEUDO_ANOSOV
 		
 		return self._properties['NT_type']
-
+	
 	def invariant_lamination(self):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
 		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
@@ -362,8 +362,8 @@ class EncodingSequence(object):
 								return self._properties['invariant_lamination']
 							except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
 								pass  # Keep going.
-		else:
-			raise Flipper.ComputationError('Could not estimate invariant lamination.')
+		
+		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	def dilatation(self, lamination):
 		# Returns the dilatation of this mapping class on the given lamination.

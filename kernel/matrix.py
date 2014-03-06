@@ -7,8 +7,10 @@ import Flipper
 
 # !?! This is not pure.
 def tweak_vector(v, add, subtract):
-	for i in add: v[i] += 1
-	for i in subtract: v[i] -= 1
+	for i in add:
+		v[i] += 1
+	for i in subtract:
+		v[i] -= 1
 	return v
 
 def tweak_matrix(M, one, minus_one):
@@ -19,8 +21,8 @@ def antipodal(v, w):
 	return all([v[i] == -w[i] for i in range(len(v))])
 
 def find_antipodal(R, width):
-	X = sorted(R, key=lambda x:[abs(i) for i in x])
-	for k, g in groupby(X, key=lambda x:[abs(i) for i in x]):
+	X = sorted(R, key=lambda x: [abs(i) for i in x])
+	for k, g in groupby(X, key=lambda x: [abs(i) for i in x]):
 		for R1, R2 in combinations(g, 2):
 			if antipodal(R1, R2):
 				yield (R1, R2)
@@ -57,7 +59,7 @@ class Matrix(object):
 			assert(all(isinstance(row, (list, tuple)) for row in data))
 			self.rows = [list(row) for row in data]
 		else:
-			self.rows = list(list(data[i:i+width]) for i in range(0,len(data),width))
+			self.rows = list(list(data[i:i+width]) for i in range(0, len(data), width))
 		self.width = width
 		self.height = len(self.rows)
 		assert(all(len(row) == self.width for row in self))
@@ -169,7 +171,7 @@ class Matrix(object):
 					# Update the reconstruction matrix.
 					for i in range(A.height):
 						for j in range(A.width):
-							if j != index: A[i][j] =  A[i][j] - (R1[j] * A[i][index])
+							if j != index: A[i][j] = A[i][j] - (R1[j] * A[i][index])
 					A.discard_column(index)
 					R.add(tuple([-R1[i] for i in range(R_width) if i != index]))
 					
@@ -226,14 +228,9 @@ class Matrix(object):
 			A = Matrix([R.rows[i] for i in rc[1:]], R.width).transpose()
 			v = [Matrix([A.rows[j] for j in range(A.height) if j != i], A.width).determinant() for i in range(A.height)]
 			A_det = sum(v)
-			if A_det > 0 : sign = 1 
-			elif A_det < 0: sign = -1
-			else: return None  # This is where the problem is!
+			if A_det == 0: return None
+			sign = 1 if A_det > 0 else -1
 			return [sign * (-1 if i % 2 else 1) * v[i] for i in range(len(v))]
-			
-			# A = Matrix([R.rows[i] for i in rc], R.width).transpose()
-			# v = [A.substitute_row(i, new_row).determinant() for i in range(A.height)]
-			# return [sign * A.substitute_row(i, new_row).determinant() for i in range(A.height)]
 		
 		def score_image(b):
 			return sum(1 if i < 0 else 0 for i in b)

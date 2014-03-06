@@ -2,10 +2,6 @@
 from math import sqrt, pi
 from random import random
 from colorsys import hls_to_rgb
-try:
-	import Tkinter as TK
-except ImportError: # Python 3
-	import tkinter as TK
 
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
@@ -118,7 +114,7 @@ class Edge(object):
 			return False
 	
 	def hide(self, hide=False):
-		self.canvas.itemconfig(self.drawn_self, state=TK.HIDDEN if hide else TK.NORMAL)
+		self.canvas.itemconfig(self.drawn_self, state='hidden' if hide else 'normal')
 	
 	def free_sides(self):
 		return 2-len(self.in_triangles)-(1 if self.equivalent_edge is not None else 0)

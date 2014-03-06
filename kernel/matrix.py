@@ -63,8 +63,6 @@ class Matrix(object):
 		assert(all(len(row) == self.width for row in self))
 	def copy(self):
 		return Matrix([list(row) for row in self], self.width)
-	def __iter__(self):
-		return iter(self.rows)
 	def __getitem__(self, index):
 		return self.rows[index]
 	def __str__(self):
@@ -302,9 +300,6 @@ class Matrix(object):
 			if all(x > 0 for row in A for x in row):
 				return True
 		return False
-	def contracting(self, action):
-		M = self * action
-		return all(M.nonnegative_image(v) for v in self.edge_vectors())
 
 #### Some special Matrices we know how to build.
 

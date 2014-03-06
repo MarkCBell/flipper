@@ -45,7 +45,7 @@ COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platfo
 
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
-	if re.match('\w+', name) is not None and re.match('\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
+	if re.match(r'\w+', name) is not None and re.match(r'\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
 		return True
 	else:
 		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
@@ -171,11 +171,11 @@ class FlipperApp(object):
 		
 		filemenu = TK.Menu(menubar, tearoff=0)
 		filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER)
-		filemenu.add_command(label='Open', command=lambda : self.load(), accelerator='%s+O' % COMMAND_MODIFIER)
-		filemenu.add_command(label='Save', command=lambda : self.save(), accelerator='%s+S' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Open', command=self.load, accelerator='%s+O' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Save', command=self.save, accelerator='%s+S' % COMMAND_MODIFIER)
 		exportmenu = TK.Menu(menubar, tearoff=0)
-		exportmenu.add_command(label='Export script', command=lambda : self.export_script())
-		exportmenu.add_command(label='Export image', command=lambda : self.export_image())
+		exportmenu.add_command(label='Export script', command=self.export_script)
+		exportmenu.add_command(label='Export image', command=self.export_image)
 		filemenu.add_cascade(label='Export', menu=exportmenu)
 		filemenu.add_separator()
 		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
@@ -344,7 +344,7 @@ class FlipperApp(object):
 			if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.py', filetypes=[('Python files', '.py'), ('all files', '.*')], title='Export Image')
 			if path != '':
 				try:
-					file = open(path, 'w')
+					disk_file = open(path, 'w')
 					
 					twists = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'twist' and self.mapping_classes[mapping_class][1][2] == +1]
 					halfs  = [(mapping_class,self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half'  and self.mapping_classes[mapping_class][1][2] == +1]
@@ -368,11 +368,11 @@ class FlipperApp(object):
 					
 					example = example.replace("'", '')
 					
-					file.write(example)
+					disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 				finally:
-					file.close()
+					disk_file.close()
 		else:
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
 			
@@ -382,14 +382,14 @@ class FlipperApp(object):
 	
 	def show_help(self):
 		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
-		file = os.path.join(datadir, 'docs', 'Flipper.pdf')
+		disk_file = os.path.join(datadir, 'docs', 'Flipper.pdf')
 		if sys.platform.startswith('darwin'):
 			command = 'open'
 		elif sys.platform.startswith('win'):
 			command = 'start'
 		else:
 			command = 'xdg-open'
-		os.system(command + ' ' + file)
+		os.system(command + ' ' + disk_file)
 	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
@@ -496,9 +496,9 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Command', 'Command requires more arguments.')
 	
 	def object_here(self, p):
-		for object in self.vertices + self.edges + self.triangles:
-			if p in object:
-				return object
+		for piece in self.vertices + self.edges + self.triangles:
+			if p in piece:
+				return piece
 		return None
 	
 	def redraw(self):  # !?! To do.
@@ -1069,7 +1069,7 @@ class FlipperApp(object):
 			else:
 				try:
 					lamination = mapping_class.invariant_lamination()
-					dilatation = mapping_class.dilatation(lamination)
+					# dilatation = mapping_class.dilatation(lamination)
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.ComputationError:
@@ -1108,7 +1108,7 @@ class FlipperApp(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':
 				try:
-					file = open(path, 'w')
+					disk_file = open(path, 'w')
 					try:
 						mapping_class = self.create_composition(composition)
 					except Flipper.AssumptionError:
@@ -1130,7 +1130,7 @@ class FlipperApp(object):
 							else:
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 								M = splitting.bundle(0, composition)
-								file.write(M.SnapPy_string())
+								disk_file.write(M.SnapPy_string())
 								description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
 								'Cusp types: %s\n' % M.cusp_types + \
@@ -1144,7 +1144,7 @@ class FlipperApp(object):
 				except IOError:
 					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
 				finally:
-					file.close()
+					disk_file.close()
 	
 	
 	######################################################################
@@ -1290,9 +1290,7 @@ class FlipperApp(object):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
 		
-		name = self.treeview_objects.item(iid, 'text')
 		parent = self.treeview_objects.parent(iid)
-		
 		if 'multicurve_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
 			self.treeview_objects.item(iid, text='Multicurve: %s' % lamination.is_multicurve())

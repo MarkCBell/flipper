@@ -10,8 +10,8 @@ def main(word):
 	splitting = mapping_class.splitting_sequence()  # Requires the SymbolicComputation library.
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	M = splitting.bundle(0, word)
-	with open('test.tri', 'w') as file:
-		file.write(M.SnapPy_string())  # Write the manifold to a file.
+	with open('test.tri', 'w') as disk_file:
+		disk_file.write(M.SnapPy_string())  # Write the manifold to a file.
 	print('I stored the bundle with monodromy \'%s\' in \'test.tri\'.' % word)
 	print('It was built using the first of %d isometries.' % len(splitting.closing_isometries))
 	print('It has %d cusp(s) with the following properties (in order):' % M.num_cusps)

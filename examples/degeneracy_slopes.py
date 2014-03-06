@@ -12,9 +12,9 @@ SURFACES = {'S_1_1':Flipper.examples.abstracttriangulation.Example_S_1_1,
 
 def bundles(surface_name, word):
 	splitting = SURFACES[surface_name](word).splitting_sequence()
-	bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
-	manifolds = [snappy.Manifold(bundle.SnapPy_string()) for bundle in bundles]
-	for bundle, manifold in zip(bundles, manifolds):
+	closed_bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
+	manifolds = [snappy.Manifold(bundle.SnapPy_string()) for bundle in closed_bundles]
+	for bundle, manifold in zip(closed_bundles, manifolds):
 		for index, (cusp_type, fibre_slope) in enumerate(zip(bundle.cusp_types, bundle.fibre_slopes)):
 			if cusp_type == 1: manifold.dehn_fill(fibre_slope, index)
 	

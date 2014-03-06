@@ -163,7 +163,6 @@ class Matrix(object):
 		while R_width > 1:
 			for R1, R2 in find_antipodal(R, R_width):
 				index = find_one(R1)
-				sign = R1[index] > 0
 				if index != -1:
 					if R1[index] == -1: R1 = R2  # Swap to R2 to ensure R1[index] > 0
 					R = set([tuple([row[j] - R1[j] * row[index] for j in range(len(row)) if j != index]) for row in R if row != R1])
@@ -244,8 +243,6 @@ class Matrix(object):
 				return B*v
 			else:
 				r = min([index for index in range(R.height)], key=lambda i: b[i])  # Gets the index of the most negative row.
-				row = R.rows[r]
-				
 				best_row = -1
 				best_row_score = b_score + 1
 				for i in range(1, R.width):
@@ -291,8 +288,8 @@ class Matrix(object):
 		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
 	def is_aperiodic(self):
 		assert(self.width == self.height)
-		A = Id_matrix(self.width)
-		for i in range(self.width):
+		A = Id_Matrix(self.width)
+		for _ in range(self.width):
 			A = A * self
 			if all(x > 0 for row in A for x in row):
 				return True

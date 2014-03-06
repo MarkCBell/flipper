@@ -380,5 +380,5 @@ class EncodingSequence(object):
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
 		splitting = lamination.splitting_sequence(target_dilatation=dilatation)
-		new_dilatation = splitting.dilatation()
+		# new_dilatation = splitting.dilatation()
 		return splitting

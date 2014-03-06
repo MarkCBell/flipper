@@ -10,14 +10,14 @@ try:
 	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
-	import tkSimpleDialog
+	# import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.font as TK_FONT
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
-		import tkinter.simpledialog as tkSimpleDialog
+		# import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 
@@ -197,7 +197,7 @@ class FlipperApp(object):
 		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var)
 		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var)
 		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var)
-		# edgelabelmenu.add_radiobutton(label=label_edges_ALGEBRAIC, var=self.options.edge_labels_var)
+		# edgelabelmenu.add_radiobutton(label=LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var)
 		
 		laminationdrawmenu = TK.Menu(menubar, tearoff=0)
 		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var)

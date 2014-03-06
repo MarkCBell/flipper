@@ -19,7 +19,7 @@ def determine_type(mapping_class, verbose=False):
 			# If this computation fails it will throw an AssumptionError - the map _is_ reducible.
 			splitting = lamination.splitting_sequence()
 			new_dilatation = splitting.dilatation()
-			if verbose: print('Perperiodic, periodic length: %d, %d' %(len(splitting.flips)))
+			if verbose: print('Periodic length: %d' % len(splitting.flips))
 			if verbose: print('Dilatation: %s, %s' % (dilatation, new_dilatation))
 			print(' -- Pseudo-Anosov.')
 		except ImportError:
@@ -47,23 +47,12 @@ def random_test(example, words=None, num_trials=None, verbose=False):
 			print(mapping_class.name)
 			times.append(determine_type(mapping_class, verbose))
 	else:
-		raise TypeError('words or num_trials must be set')
+		raise TypeError('A list of words or number of trials must be provided.')
 	
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 def main():
-	# random_test(['aBC'])
-	# random_test(['aBBap' * 3])
-	# random_test(['aB', 'bbaCBAaBabcABB', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
-	
-	example = Flipper.examples.abstracttriangulation.Example_S_1_2
-	random_test(example, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
-	# k = 2
-	# random_test(['AbCAbbbbCC' * k + 'BBacaBcBBBBBBBca' + 'ccBBBBacBa' * k], verbose=True)
-	# import cProfile
-	# cProfile.run('random_test(["aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa"])', sort='time')
-	# random_test()
-	pass
+	random_test(Flipper.examples.abstracttriangulation.Example_S_1_2, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 
 if __name__ == '__main__':
 	main()

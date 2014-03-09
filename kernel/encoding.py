@@ -98,8 +98,6 @@ class EncodingSequence(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.name = name
-		# A cache of properties of this encoding.
-		self._properties = {'NT_type':None, 'order':None, 'invariant_lamination':None}
 		
 		self.size = len(self.sequence)
 	def __call__(self, other):
@@ -201,17 +199,12 @@ class EncodingSequence(object):
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		if self._properties['order'] is None:
-
-			curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
-			for i in range(1, max_order+1):
-				if all(self**i * v == v for v in curves):
-					self._properties['order'] = i
-					break
-			else:
-				self._properties['order'] = 0
+		curves, max_order = self.source_triangulation.key_curves(), self.source_triangulation.max_order
+		for i in range(1, max_order+1):
+			if all(self**i * v == v for v in curves):
+				return i
 		
-		return self._properties['order']
+		return 0
 	
 	def is_identity(self):
 		return self.order() == 1
@@ -302,15 +295,12 @@ class EncodingSequence(object):
 		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def NT_type(self, progression=None):
-		if self._properties['NT_type'] is None:
-			if self.is_periodic():
-				self._properties['NT_type'] = NT_TYPE_PERIODIC
-			elif self.is_reducible(progression=progression):
-				self._properties['NT_type'] = NT_TYPE_REDUCIBLE
-			else:
-				self._properties['NT_type'] = NT_TYPE_PSEUDO_ANOSOV
-		
-		return self._properties['NT_type']
+		if self.is_periodic():
+			return NT_TYPE_PERIODIC
+		elif self.is_reducible(progression=progression):
+			return NT_TYPE_REDUCIBLE
+		else:
+			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def invariant_lamination(self):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
@@ -327,9 +317,6 @@ class EncodingSequence(object):
 		#
 		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
 		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
-		
-		if self._properties['invariant_lamination'] is not None:
-			return self._properties['invariant_lamination']
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
@@ -349,8 +336,7 @@ class EncodingSequence(object):
 				for new_curve, curve in zip(new_curves, curves):
 					if projective_difference(new_curve, curve, 1000):
 						if curve == new_curve:
-							self._properties['invariant_lamination'] = self.source_triangulation.lamination(Flipper.kernel.numberfield.number_field_from_integers(curve))
-							return self._properties['invariant_lamination']
+							return self.source_triangulation.lamination(Flipper.kernel.numberfield.number_field_from_integers(curve))
 						else:
 							action_matrix, condition_matrix = self.applied_matrix(curve)
 							try:
@@ -358,8 +344,7 @@ class EncodingSequence(object):
 								# Check that we actually found the invariant lamination.
 								if not condition_matrix.nonnegative_image(eigenvector):
 									raise Flipper.AssumptionError('Could not estimate invariant lamination.')
-								self._properties['invariant_lamination'] = self.source_triangulation.lamination(eigenvector)
-								return self._properties['invariant_lamination']
+								return self.source_triangulation.lamination(eigenvector)
 							except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
 								pass  # Keep going.
 		

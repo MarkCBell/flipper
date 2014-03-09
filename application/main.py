@@ -125,6 +125,7 @@ class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
 		self.options = Options(self)
+		self.colour_picker = Flipper.application.pieces.ColourPalette()
 		
 		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
 		
@@ -221,11 +222,13 @@ class FlipperApp(object):
 		menubar.add_cascade(label='Help', menu=helpmenu)
 		self.parent.config(menu=menubar)
 		
-		parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
-		parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
-		parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
-		parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
-		parent.bind('<Key>', self.parent_key_press) 
+		self.parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
+		self.parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
+		self.parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
+		self.parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
+		self.parent.bind('<Key>', self.parent_key_press)
+		
+		self.parent.protocol('WM_DELETE_WINDOW', self.quit)
 		
 		self.command_history = ['']
 		self.history_position = 0
@@ -245,22 +248,23 @@ class FlipperApp(object):
 		self.lamination_names = {}
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
+		self.cache = {}
 		
 		self.selected_object = None
-		
-		self.colour_picker = Flipper.application.pieces.ColourPalette()
 	
 	def initialise(self):
-		if not self.unsaved_work or tkMessageBox.showwarning('Unsaved work', 'You will lose all unsaved work if you continue.', type='okcancel') == 'ok':
-			self.select_object(None)
-			self.destroy_all_vertices()
-			self.colour_picker.reset()
-			
-			self.entry_command.focus()
-			self.unsaved_work = False
-			return True
-		else:
-			return False
+		if self.unsaved_work:
+			result = tkMessageBox.showwarning('Unsaved work', 'Save before unsaved work is lost?', type='yesnocancel')
+			if (result == 'yes' and not self.save()) or result == 'cancel':
+				return False
+		
+		self.select_object(None)
+		self.destroy_all_vertices()
+		self.colour_picker.reset()
+		
+		self.entry_command.focus()
+		self.unsaved_work = False
+		return True
 	
 	def add_lamination(self, name, lamination, add_below='laminations'):
 		if name in self.laminations:
@@ -274,6 +278,8 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
 		self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
 		self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
+		
+		self.cache[lamination] = {}
 		
 		self.unsaved_work = True
 	
@@ -294,6 +300,9 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
 		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
 		
+		self.cache[mapping_class] = {}
+		self.cache[mapping_class_inverse] = {}
+		
 		self.unsaved_work = True
 	
 	def save(self, path=''):
@@ -302,27 +311,29 @@ class FlipperApp(object):
 			try:
 				spec = 'A Flipper file.'
 				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
-				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else -1) for edge in self.edges]
+				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
 				laminations = self.laminations
 				mapping_classes = self.mapping_classes
-				data = (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes)
+				cache = self.cache
+				data = (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes, cache)
 				
 				pickle.dump((spec, data), open(path, 'wb'))
+				self.unsaved_work = False
+				return True
 			except IOError:
 				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
-			else:
-				self.unsaved_work = False
+		
+		return False
 	
 	def load(self, path=''):
-		if self.initialise():
-			if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-			if path != '':
-				try:
-					spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes) = pickle.load(open(path, 'rb'))
-					
+		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+		if path != '':
+			try:
+				spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes, cache) = pickle.load(open(path, 'rb'))
+				if self.initialise():
 					for vertex in vertices:
 						self.create_vertex(vertex)
 					
@@ -332,7 +343,7 @@ class FlipperApp(object):
 					
 					for index, edge in enumerate(edges):
 						start_index, end_index, glued_to_index = edge
-						if glued_to_index > index:
+						if glued_to_index is not None and glued_to_index > index:
 							self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
 					
 					self.abstract_triangulation = abstract_triangulation
@@ -343,11 +354,13 @@ class FlipperApp(object):
 					for name in mapping_class_names:
 						self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
 					
+					self.cache = cache
+					
 					self.unsaved_work = False
-				except IOError:
-					tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
-				except ValueError:
-					tkMessageBox.showerror('Load Error', '%s is not a Flipper file.' % path)
+			except IOError:
+				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
+			except ValueError:
+				tkMessageBox.showerror('Load Error', '%s is not a Flipper file.' % path)
 	
 	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -803,10 +816,6 @@ class FlipperApp(object):
 		self.set_edge_indices()
 		self.abstract_triangulation = Flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
-		self.laminations = {}
-		self.lamination_names = {}
-		self.mapping_classes = {}
-		self.mapping_classes_lookup = {}
 		self.create_edge_labels()
 		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
@@ -820,7 +829,8 @@ class FlipperApp(object):
 		self.laminations = {}
 		self.lamination_names = {}
 		self.mapping_classes = {}
-		self.mapping_classes_lookup = {}
+		self.mapping_classes_names = {}
+		self.cache = {}
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
 	
@@ -1315,7 +1325,10 @@ class FlipperApp(object):
 			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_pants_boundary())
 		elif 'filling_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Filling: %s' % lamination.is_filling())
+			if 'filling' not in self.cache[lamination]:
+				self.cache[lamination]['filling'] = lamination.is_filling()
+				self.unsaved_work = True
+			self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
 		elif 'mapping_class_order' in tags:
 			mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 			order = mapping_class.order()
@@ -1323,17 +1336,22 @@ class FlipperApp(object):
 		elif 'mapping_class_type' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
-				progress_app = Flipper.application.progress.ProgressApp(self)
-				self.treeview_objects.item(iid, text='Type: %s' % mapping_class.NT_type(progression=progress_app.update_bar))
-				progress_app.cancel()
+				if 'NT_type' not in self.cache[mapping_class]:
+					progress_app = Flipper.application.progress.ProgressApp(self)
+					self.cache[mapping_class]['NT_type'] = mapping_class.NT_type(progression=progress_app.update_bar)
+					progress_app.cancel()
+					self.unsaved_work = True
+				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except Flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
-				lamination = mapping_class.invariant_lamination()
+				if 'invariant_lamination' not in self.cache[mapping_class]:
+					self.cache[mapping_class]['invariant_lamination'] = mapping_class.invariant_lamination()
+					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination')
-				self.lamination_to_canvas(lamination)
+				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
 			except Flipper.AssumptionError:
 				tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations, mapping class is periodic.')
 			except Flipper.ComputationError:

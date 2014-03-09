@@ -7,8 +7,6 @@ class Lamination(object):
 		self.zeta = self.abstract_triangulation.zeta
 		self.vector = list(vector)
 		self.labels = [str(v) for v in self.vector]
-		# A cache of properties of this lamination.
-		self._properties = {'is_filling':None}
 		if not self.is_lamination():
 			raise Flipper.AssumptionError('Not a lamination.')
 	
@@ -26,6 +24,10 @@ class Lamination(object):
 	
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
+	
+	def __hash__(self):
+		# This should be done better.
+		return hash(tuple(self.vector))
 	
 	def all_isometries(self, other):
 		return [isometry for isometry in self.abstract_triangulation.all_isometries(other.abstract_triangulation) if other == isometry * self]
@@ -268,15 +270,12 @@ class Lamination(object):
 				seen[target] = [len(laminations)-1]
 	
 	def is_filling(self):
-		if self._properties['is_filling'] is None:
-			try:
-				self.splitting_sequence()
-			except Flipper.AssumptionError:
-				self._properties['is_filling'] = False
-			else:
-				self._properties['is_filling'] = True
-		
-		return self._properties['is_filling']
+		try:
+			self.splitting_sequence()
+		except Flipper.AssumptionError:
+			return False
+		else:
+			return True
 	
 	def encode_twist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.

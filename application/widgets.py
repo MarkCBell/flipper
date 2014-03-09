@@ -96,12 +96,12 @@ class Meter(TK.Frame):
 	def get(self):
 		return self._value, self._canv.itemcget(self._text, 'text')
 	
-	def set(self, value=0.0, text=None):
+	def set(self, value=0.0, text=None, lower_value=0.0):
 		# Make the value failsafe:
 		value = min(max(value, 0.0), 1.0)
-		if self._canv.winfo_width() * abs(self._value - value) > 1 or text is not None:  # Only bother updating if there has been a noticable change.
+		if self._canv.winfo_width() * abs(self._value - value) > 1 or text is not None:  # Only bother updating if there has been a noticeable change.
 			self._value = value
 			if text is None: text = '%0.1f %%' % (100 * value)  # If no text is specified use the default percentage string.
-			self._canv.coords(self._rect, 0, 0, self._canv.winfo_width() * value, self._canv.winfo_height())
+			self._canv.coords(self._rect, self._canv.winfo_width() * lower_value, 0, self._canv.winfo_width() * value, self._canv.winfo_height())
 			self._canv.itemconfigure(self._text, text=text)
 			self._canv.update_idletasks()

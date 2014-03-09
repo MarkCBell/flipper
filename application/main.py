@@ -721,7 +721,7 @@ class FlipperApp(object):
 		e2.equivalent_edge = e1
 		
 		# Change colour.
-		new_colour = self.colour_picker()
+		new_colour = self.colour_picker.get_colour()
 		e1.set_default_colour(new_colour)
 		e2.set_default_colour(new_colour)
 		self.build_abstract_triangulation()
@@ -829,7 +829,7 @@ class FlipperApp(object):
 		self.laminations = {}
 		self.lamination_names = {}
 		self.mapping_classes = {}
-		self.mapping_classes_names = {}
+		self.mapping_class_names = {}
 		self.cache = {}
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
@@ -1326,7 +1326,7 @@ class FlipperApp(object):
 		elif 'filling_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
 			if 'filling' not in self.cache[lamination]:
-				self.cache[lamination]['filling'] = lamination.is_filling()
+				self.cache[lamination]['filling'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(lamination.is_filling())
 				self.unsaved_work = True
 			self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
 		elif 'mapping_class_order' in tags:
@@ -1337,9 +1337,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					progress_app = Flipper.application.progress.ProgressApp(self)
-					self.cache[mapping_class]['NT_type'] = mapping_class.NT_type(progression=progress_app.update_bar)
-					progress_app.cancel()
+					self.cache[mapping_class]['NT_type'] = Flipper.application.progress.ProgressApp(self).process(mapping_class.NT_type)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except Flipper.AbortError:
@@ -1348,7 +1346,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['invariant_lamination'] = mapping_class.invariant_lamination()
+					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(mapping_class.invariant_lamination)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])

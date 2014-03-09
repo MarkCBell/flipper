@@ -4,14 +4,8 @@ from time import time
 
 import snappy, Flipper
 
-SURFACES = {'S_1_1':Flipper.examples.abstracttriangulation.Example_S_1_1, 
-			'S_1_2':Flipper.examples.abstracttriangulation.Example_S_1_2,
-			'S_2_1':Flipper.examples.abstracttriangulation.Example_S_2_1,
-			'S_3_1':Flipper.examples.abstracttriangulation.Example_S_3_1 
-			}
-
 def bundles(surface_name, word):
-	splitting = SURFACES[surface_name](word).splitting_sequence()
+	splitting = Flipper.examples.abstracttriangulation.SURFACES[surface_name](word).splitting_sequence()
 	closed_bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
 	manifolds = [snappy.Manifold(bundle.SnapPy_string()) for bundle in closed_bundles]
 	for bundle, manifold in zip(closed_bundles, manifolds):

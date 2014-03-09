@@ -210,56 +210,6 @@ class Matrix(object):
 	
 	def find_edge_vector(self):
 		''' Returns a non-trivial vector in the polytope or None if none exists. '''
-		# !?! This breaks when there is a linear determinancy in the equations.
-		
-		R, B = self.simplify()  # Reduce to a simpler problem.
-		# R, B = self.copy(), Id_Matrix(self.width)
-		
-		if R.width == 1:
-			if R.nonnegative_image([1]):
-				return B * [1]
-			else:
-				return None
-		
-		R = Matrix([[1] * R.width], R.width).join(Id_Matrix(R.width)).join(R)
-		
-		def row_choice_inverse(rc):
-			A = Matrix([R.rows[i] for i in rc[1:]], R.width).transpose()
-			v = [Matrix([A.rows[j] for j in range(A.height) if j != i], A.width).determinant() for i in range(A.height)]
-			A_det = sum(v)
-			if A_det == 0: return None
-			sign = 1 if A_det > 0 else -1
-			return [sign * (-1 if i % 2 else 1) * v[i] for i in range(len(v))]
-		
-		def score_image(b):
-			return sum(1 if i < 0 else 0 for i in b)
-		
-		rc = list(range(R.width))
-		v = row_choice_inverse(rc)
-		b = R*v
-		b_score = score_image(b)
-		while True:
-			if b_score == 0 and b[0] >= 1:
-				return B*v
-			else:
-				r = min([index for index in range(R.height)], key=lambda i: b[i])  # Gets the index of the most negative row.
-				best_row = -1
-				best_row_score = b_score + 1
-				for i in range(1, R.width):
-					rc2 = [rc[j] if j != i else r for j in range(R.width)]
-					v2 = row_choice_inverse(rc2)
-					if v2 is not None:
-						b2 = R * v2
-						b2_score = score_image(b2)
-						if b2_score < best_row_score or (b2_score == best_row_score and r < i):
-							best_row = i
-							best_row_score = b2_score
-				if best_row != -1:
-					rc = [rc[j] if j != best_row else r for j in range(R.width)]
-				else:
-					return None  # Infeasible.
-	
-	def find_edge_vector_old(self):
 		R, B = self.simplify()  # Reduce to a simpler problem.
 		
 		if any(all(x < 0 for x in row) for row in R): return
@@ -279,21 +229,12 @@ class Matrix(object):
 		return
 	
 	def nontrivial_polytope(self):
-		''' Determines if the polytope Ax >= 0, x >= 0 is non-trivial, i.e. not just {0}.'''
-		# certificate = self.find_edge_vector()
-		certificate = self.find_edge_vector_old()
+		''' Determines if the polytope Ax >= 0, x >= 0 is non-trivial, i.e. not just {0}. '''
+		certificate = self.find_edge_vector()
 		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))
 		return (certificate is not None), certificate
 	def check_nontrivial_polytope(self, certificate):
 		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
-	def is_aperiodic(self):
-		assert(self.width == self.height)
-		A = Id_Matrix(self.width)
-		for _ in range(self.width):
-			A = A * self
-			if all(x > 0 for row in A for x in row):
-				return True
-		return False
 
 #### Some special Matrices we know how to build.
 

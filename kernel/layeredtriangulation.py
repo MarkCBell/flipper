@@ -32,7 +32,7 @@ class Tetrahedron(object):
 		self.label = label
 		self.glued_to = [None] * 4 # None or (Tetrahedron, permutation).
 		self.cusp_indices = [-1, -1, -1, -1]
-		self.peripheral_curves = [[[0, 0, 0, 0] for i in range(4)] for j in PERIPHERAL_TYPES]
+		self.peripheral_curves = [[[0, 0, 0, 0] for _ in range(4)] for _ in PERIPHERAL_TYPES]
 		self.edge_labels = {(0, 1):VEERING_UNKNOWN, (0, 2):VEERING_UNKNOWN, (0, 3):VEERING_UNKNOWN, (1, 2):VEERING_UNKNOWN, (1, 3):VEERING_UNKNOWN, (2, 3):VEERING_UNKNOWN}
 		self.vertex_labels = [None, None, None, None]
 	
@@ -145,7 +145,7 @@ class Triangulation(object):
 	
 	def clear_temp_peripheral_structure(self):
 		for tetrahedron in self.tetrahedra:
-			tetrahedron.peripheral_curves[TEMPS] = [[0, 0, 0, 0] for i in range(4)]
+			tetrahedron.peripheral_curves[TEMPS] = [[0, 0, 0, 0] for _ in range(4)]
 	
 	def is_closed(self):
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
@@ -332,8 +332,7 @@ class Triangulation(object):
 		s += 'CS_unknown\n'
 		s += '\n'
 		s += '%d 0\n' % self.num_cusps
-		for i in range(self.num_cusps):
-			s += ' torus 0.000000000000 0.000000000000\n'
+		s += ' torus 0.000000000000 0.000000000000\n' * self.num_cusps
 		s += '\n'
 		s += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:

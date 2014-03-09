@@ -1,10 +1,7 @@
 
-confirm before new
-invariant lamination as a sublamination
+undo and redo
 handle commands better
-sum / disjoint union
 have weighted brush for painting laminations
-fix saving in sage
 
 compute algebraic intersection number
 create / use InputBox

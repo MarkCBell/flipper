@@ -24,7 +24,7 @@ class ColourPalette(object):
 	def __init__(self):
 		self.state = 0
 	
-	def __call__(self):
+	def get_colour(self):
 		self.state += 1
 		hue = (self.state * (pi * 20) / 360) % 1.
 		lightness = (50 + random() * 10)/100.

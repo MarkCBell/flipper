@@ -1064,9 +1064,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition)
-				progress_app = Flipper.application.progress.ProgressApp(self)
-				NT_type = mapping_class.NT_type(progression=progress_app.update_bar)
-				progress_app.cancel()
+				NT_type = Flipper.application.progress.ProgressApp(self).process(mapping_class.NT_type)
 				
 				if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:
 					tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
@@ -1094,11 +1092,11 @@ class FlipperApp(object):
 					lamination = mapping_class.invariant_lamination()
 					# dilatation = mapping_class.dilatation(lamination)
 				except Flipper.AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				except ImportError:
-					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
+					tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 				else:
 					self.lamination_to_canvas(lamination)
 					# tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
@@ -1113,11 +1111,11 @@ class FlipperApp(object):
 				try:
 					lamination = mapping_class.invariant_lamination()
 				except Flipper.AssumptionError:
-					tkMessageBox.showinfo('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showinfo('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				except ImportError:
-					tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
+					tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 				else:
 					try:
 						splitting = lamination.splitting_sequence()
@@ -1140,11 +1138,11 @@ class FlipperApp(object):
 						try:
 							lamination = mapping_class.invariant_lamination()
 						except Flipper.AssumptionError:
-							tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations of %s, it is periodic.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
 						except Flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						except ImportError:
-							tkMessageBox.showerror('Lamination', 'Can not compute projectively invariant laminations without a symbolic computation library.')
+							tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 						else:
 							try:
 								splitting = lamination.splitting_sequence()
@@ -1320,11 +1318,14 @@ class FlipperApp(object):
 			lamination = self.laminations[self.lamination_names[parent]]
 			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_pants_boundary())
 		elif 'filling_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[parent]]
-			if 'filling' not in self.cache[lamination]:
-				self.cache[lamination]['filling'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(lamination.is_filling())
-				self.unsaved_work = True
-			self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
+			try:
+				lamination = self.laminations[self.lamination_names[parent]]
+				if 'filling' not in self.cache[lamination]:
+					self.cache[lamination]['filling'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(lamination.is_filling)
+					self.unsaved_work = True
+				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
+			except Flipper.AbortError:
+				pass
 		elif 'mapping_class_order' in tags:
 			mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 			order = mapping_class.order()
@@ -1347,11 +1348,13 @@ class FlipperApp(object):
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
 			except Flipper.AssumptionError:
-				tkMessageBox.showwarning('Lamination', 'Can not find any projectively invariant laminations, mapping class is periodic.')
+				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is periodic.')
 			except Flipper.ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except ImportError:
 				tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
+			except Flipper.AbortError:
+				pass
 		else:
 			pass
 

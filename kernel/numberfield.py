@@ -61,8 +61,7 @@ class NumberFieldElement(object):
 		if len(linear_combination) < self.number_field.degree:
 			linear_combination = linear_combination + [0] * (self.number_field.degree - len(linear_combination))
 		elif len(linear_combination) > self.number_field.degree:
-			print(linear_combination)
-			raise TypeError('')
+			raise TypeError('Linear combination: %s has more terms than the degree of the field in which it lives' % linear_combination)
 		self.linear_combination = linear_combination
 		self._algebraic_approximation = None
 		self.current_accuracy = -1

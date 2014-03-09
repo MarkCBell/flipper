@@ -61,6 +61,9 @@ SIZE_LARGE = 14
 # SIZE_XLARGE = 16
 INVERSE_MAPPING_CLASS_ID_SUFFIX = 'foobar'
 
+DEFAULT_EDGE_LABEL_COLOUR = 'red'
+DEFAULT_SELECTED_COLOUR = 'red'
+
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
 	if re.match(r'\w+', name) is not None and re.match(r'\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
@@ -99,13 +102,7 @@ class Options(object):
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
 		self.zoom_fraction = 0.9 # Must be in (0, 1)
 		
-		self.default_vertex_colour = 'black'
-		self.default_edge_colour = 'black'
-		self.default_triangle_colour = 'gray80'
-		self.default_curve_colour = 'grey40'
-		self.default_selected_colour = 'red'
-		self.default_edge_label_colour = 'red'
-		self.default_curve_label_colour = 'black'
+		
 		
 		self.version = Flipper.version.Flipper_version
 	
@@ -537,7 +534,7 @@ class FlipperApp(object):
 		self.build_edge_labels()
 		
 		for vertex in self.vertices:
-			self.canvas.coords(vertex.drawn_self, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
+			self.canvas.coords(vertex.drawn, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
 		self.canvas.itemconfig('line', width=self.options.line_size)
 		self.canvas.itemconfig('curve', width=self.options.line_size)
 		
@@ -556,7 +553,7 @@ class FlipperApp(object):
 		for x in self.vertices + self.edges + self.curve_components + self.train_track_blocks:
 			x.set_colour()
 		if self.selected_object is not None:
-			self.selected_object.set_colour(self.options.default_selected_colour)
+			self.selected_object.set_colour(DEFAULT_SELECTED_COLOUR)
 	
 	
 	######################################################################
@@ -645,7 +642,7 @@ class FlipperApp(object):
 					break
 			else:
 				break
-		self.canvas.delete(vertex.drawn_self)
+		self.canvas.delete(vertex.drawn)
 		self.vertices.remove(vertex)
 		self.redraw()
 		self.build_abstract_triangulation()
@@ -677,7 +674,7 @@ class FlipperApp(object):
 	
 	def destroy_edge(self, edge=None):
 		if edge is None: edge = self.edges[-1]
-		self.canvas.delete(edge.drawn_self)
+		self.canvas.delete(edge.drawn)
 		for triangle in edge.in_triangles:
 			self.destroy_triangle(triangle)
 		self.destroy_edge_identification(edge)
@@ -705,7 +702,7 @@ class FlipperApp(object):
 	
 	def destroy_triangle(self, triangle=None):
 		if triangle is None: triangle = self.triangles[-1]
-		self.canvas.delete(triangle.drawn_self)
+		self.canvas.delete(triangle.drawn)
 		for edge in self.edges:
 			if triangle in edge.in_triangles:
 				edge.in_triangles.remove(triangle)
@@ -729,10 +726,10 @@ class FlipperApp(object):
 	def destroy_edge_identification(self, edge):
 		if edge.equivalent_edge is not None:
 			other_edge = edge.equivalent_edge
-			other_edge.default_colour = self.options.default_edge_colour
-			edge.default_colour = self.options.default_edge_colour
-			self.canvas.itemconfig(other_edge.drawn_self, fill=other_edge.default_colour)
-			self.canvas.itemconfig(edge.drawn_self, fill=edge.default_colour)
+			other_edge.set_default_colour()
+			edge.set_default_colour()
+			self.canvas.itemconfig(other_edge.drawn, fill=other_edge.default_colour)
+			self.canvas.itemconfig(edge.drawn, fill=edge.default_colour)
 			
 			edge.equivalent_edge.equivalent_edge = None
 			edge.equivalent_edge = None
@@ -743,7 +740,7 @@ class FlipperApp(object):
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
-		curve_component.destroy()
+		self.canvas.delete(curve_component.drawn)
 		self.curve_components.remove(curve_component)
 	
 	def create_train_track_block(self, vertices, multiplicity=1, counted=False):
@@ -751,7 +748,7 @@ class FlipperApp(object):
 		return self.train_track_blocks[-1]
 	
 	def destroy_train_track_block(self, curve_component):
-		curve_component.destroy()
+		self.canvas.delete(curve_component.drawn)
 		self.train_track_blocks.remove(curve_component)
 	
 	def destroy_lamination(self):
@@ -790,11 +787,11 @@ class FlipperApp(object):
 		self.destroy_edge_labels()
 		if self.options.label_edges == 'Index':
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Geometric':
 			lamination = self.canvas_to_lamination()
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=self.options.default_edge_label_colour)
+				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -1186,7 +1183,7 @@ class FlipperApp(object):
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
 				self.select_object(self.create_curve_component((x, y)))
-				self.selected_object.append_point((x, y))
+				# self.selected_object.append_point((x, y))  # !?!
 			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.append_point((x, y))
 		else:
@@ -1242,8 +1239,7 @@ class FlipperApp(object):
 				if len(self.selected_object.vertices) > 2:
 					(x, y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
-					self.selected_object.pop_point()
-					self.selected_object.append_point((x, y))
+					self.selected_object.move_point(-1, x, y)
 				else:
 					self.destory_curve_component(self.selected_object)
 					self.select_object(None)

@@ -18,11 +18,14 @@ import Flipper
 
 def _worker_thread(function, args, answer, indeterminant):
 	# What if an error occurs?
-	if not indeterminant:
-		result = function(*args, progression=lambda v: answer.put((False, v)))
-	else:
-		result = function(*args)
-	answer.put((True, result))
+	try:
+		if not indeterminant:
+			result = function(*args, progression=lambda v: answer.put((False, v)))
+		else:
+			result = function(*args)
+		answer.put((True, result))
+	except Exception as e:
+		answer.put((None, e))
 
 class ProgressApp(object):
 	def __init__(self, host_app, indeterminant=False):
@@ -68,15 +71,21 @@ class ProgressApp(object):
 					if complete:
 						result = value
 						break
+					elif complete is None:
+						self.cancel()
+						raise value
 				except Empty:
 					# Increase the bar by 1%.
 					self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
 		else:
 			while True:
 				complete, value = answer.get()
-				if complete: 
+				if complete:
 					result = value
 					break
+				elif complete is None:
+					self.cancel()
+					raise value
 				self.update_bar(value)
 		
 		self.cancel()

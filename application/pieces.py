@@ -3,6 +3,12 @@ from math import sqrt, pi
 from random import random
 from colorsys import hls_to_rgb
 
+DEFAULT_VERTEX_COLOUR = 'black'
+DEFAULT_EDGE_COLOUR = 'black'
+DEFAULT_TRIANGLE_COLOUR = 'gray80'
+DEFAULT_CURVE_COLOUR = 'grey40'
+DEFAULT_TRAIN_TRACK_BLOCK_COLOUR = 'grey40'
+
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
 
@@ -35,13 +41,28 @@ class ColourPalette(object):
 	def reset(self):
 		self.state = 0
 
+class DrawableObject(object):
+	def __init__(self, default_colour, canvas, options):
+		self.default_colour = default_colour
+		self.options = options
+		self.canvas = canvas
+		self.drawn = None
+	
+	def set_colour(self, colour=None):
+		if colour is None: colour = self.default_colour
+		self.canvas.itemconfig(self.drawn, fill=colour)
+	
+	def set_default_colour(self, colour):
+		self.default_colour = colour
+		self.set_colour(self.default_colour)
+
 class Vertex(object):
 	def __init__(self, canvas, p, options):
 		self.options = options
-		self.default_colour = self.options.default_vertex_colour
+		self.default_colour = DEFAULT_VERTEX_COLOUR
 		self.x, self.y = p
 		self.canvas = canvas
-		self.drawn_self = self.canvas.create_oval(self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size, outline=self.default_colour, fill=self.default_colour, tag='oval')
+		self.drawn = self.canvas.create_oval(self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size, outline=self.default_colour, fill=self.default_colour, tag='oval')
 	
 	def __str__(self):
 		return str((self.x, self.y))
@@ -63,24 +84,25 @@ class Vertex(object):
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
-		self.canvas.itemconfig(self.drawn_self, fill=colour)
+		self.canvas.itemconfig(self.drawn, fill=colour)
 	
-	def set_default_colour(self, colour):
+	def set_default_colour(self, colour=None):
+		if colour is None: colour = DEFAULT_VERTEX_COLOUR
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
 	def update(self):
-		self.canvas.coords(self.drawn_self, self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size)
+		self.canvas.coords(self.drawn, self.x-self.options.dot_size, self.y-self.options.dot_size, self.x+self.options.dot_size, self.y+self.options.dot_size)
 
 class Edge(object):
 	def __init__(self, source_vertex, target_vertex, options):
 		self.options = options
-		self.default_colour = self.options.default_edge_colour
+		self.default_colour = DEFAULT_EDGE_COLOUR
 		self.source_vertex = source_vertex
 		self.target_vertex = target_vertex
 		self.vertices = [self.target_vertex, self.source_vertex]
 		self.canvas = self.source_vertex.canvas
-		self.drawn_self = self.canvas.create_line(self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y, width=self.options.line_size, fill=self.default_colour, tag='line')
+		self.drawn = self.canvas.create_line(self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y, width=self.options.line_size, fill=self.default_colour, tag='line')
 		self.equivalent_edge = None
 		self.in_triangles = []
 		self.index = -1
@@ -90,9 +112,10 @@ class Edge(object):
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
-		self.canvas.itemconfig(self.drawn_self, fill=colour)
+		self.canvas.itemconfig(self.drawn, fill=colour)
 	
-	def set_default_colour(self, colour):
+	def set_default_colour(self, colour=None):
+		if colour is None: colour = DEFAULT_EDGE_COLOUR
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
@@ -117,7 +140,7 @@ class Edge(object):
 			return False
 	
 	def hide(self, hide=False):
-		self.canvas.itemconfig(self.drawn_self, state='hidden' if hide else 'normal')
+		self.canvas.itemconfig(self.drawn, state='hidden' if hide else 'normal')
 	
 	def free_sides(self):
 		return 2-len(self.in_triangles)-(1 if self.equivalent_edge is not None else 0)
@@ -129,12 +152,12 @@ class Edge(object):
 		self.source_vertex, self.target_vertex = self.target_vertex, self.source_vertex
 	
 	def update(self):
-		self.canvas.coords(self.drawn_self, self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y)
+		self.canvas.coords(self.drawn, self.source_vertex.x, self.source_vertex.y, self.target_vertex.x, self.target_vertex.y)
 
 class Triangle(object):
 	def __init__(self, e1, e2, e3, options):
 		self.options = options
-		self.default_colour = self.options.default_triangle_colour
+		self.default_colour = DEFAULT_TRIANGLE_COLOUR
 		self.edges = (e1, e2, e3)
 		self.vertices = list(set([e.source_vertex for e in self.edges] + [e.target_vertex for e in self.edges]))
 		assert(self.vertices[0] != self.vertices[1] and self.vertices[1] != self.vertices[2] and self.vertices[2] != self.vertices[0])
@@ -155,7 +178,7 @@ class Triangle(object):
 		assert(self.edges[0] != self.edges[1] and self.edges[1] != self.edges[2] and self.edges[2] != self.edges[0])
 		
 		self.canvas = self.edges[0].source_vertex.canvas
-		self.drawn_self = self.canvas.create_polygon([self.vertices[i][j] for i in range(3) for j in range(2)], fill=self.default_colour, tag='polygon')
+		self.drawn = self.canvas.create_polygon([self.vertices[i][j] for i in range(3) for j in range(2)], fill=self.default_colour, tag='polygon')
 		for edge in self.edges:
 			edge.in_triangles.append(self)
 	
@@ -170,9 +193,10 @@ class Triangle(object):
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
-		self.canvas.itemconfig(self.drawn_self, fill=colour)
+		self.canvas.itemconfig(self.drawn, fill=colour)
 	
-	def set_default_colour(self, colour):
+	def set_default_colour(self, colour=None):
+		if colour is None: colour = DEFAULT_TRIANGLE_COLOUR
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
@@ -194,75 +218,71 @@ class Triangle(object):
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
 	
 	def update(self):
-		self.canvas.coords(self.drawn_self, *[self.vertices[i][j] for i in range(3) for j in range(2)])
+		self.canvas.coords(self.drawn, *[self.vertices[i][j] for i in range(3) for j in range(2)])
 
 class CurveComponent(object):
 	def __init__(self, canvas, source_point, options, multiplicity=1, counted=False):
 		self.options = options
-		self.default_colour = self.options.default_curve_colour
+		self.default_colour = DEFAULT_CURVE_COLOUR
 		self.colour = self.default_colour
-		self.vertices = [source_point]
+		self.vertices = [source_point, source_point]
 		self.canvas = canvas
-		self.drawn_segments = []
+		self.drawn = self.canvas.create_line([v[c] for v in self.vertices for c in [0, 1]], width=self.options.line_size, fill=self.colour, tag='curve')
 		self.multiplicity = multiplicity
 		self.counted = counted
 	
 	def append_point(self, point):
 		self.vertices.append(point)
-		self.drawn_segments.append(self.canvas.create_line(self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1], width=self.options.line_size, fill=self.colour, tag='curve'))
+		self.update()
 		return self
 	
 	def pop_point(self):
-		if len(self.vertices) > 1:
+		if len(self.vertices) > 2:
 			self.vertices.pop()
-			self.canvas.delete(self.drawn_segments[-1])
-			self.drawn_segments.pop()
+			self.update()
 	
-	def destroy(self):
-		for _ in range(len(self.vertices)):
-			self.pop_point()
+	def move_point(self, index, x, y):
+		self.vertices[index] = (x, y)
+		self.update()
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
 		self.colour = colour
-		for segment in self.drawn_segments:
-			self.canvas.itemconfig(segment, fill=colour)
+		self.canvas.itemconfig(self.drawn, fill=colour)
 	
-	def set_default_colour(self, colour):
+	def set_default_colour(self, colour=None):
+		if colour is None: colour = DEFAULT_CURVE_COLOUR
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
 	def move_last_point(self, new_point):
 		if len(self.vertices) > 1:
 			self.vertices[-1] = new_point
-			self.canvas.coords(self.drawn_segments[-1], self.vertices[-2][0], self.vertices[-2][1], self.vertices[-1][0], self.vertices[-1][1])
+			self.canvas.coords(self.drawn, *[v[c] for v in self.vertices for c in [0, 1]])
 	
 	def update(self):
-		for i in range(len(self.drawn_segments)):
-			self.canvas.coords(self.drawn_segments[i], self.vertices[i][0], self.vertices[i][1], self.vertices[i+1][0], self.vertices[i+1][1])
+		self.canvas.coords(self.drawn, *[v[c] for v in self.vertices for c in [0, 1]])
 
 class TrainTrackBlock(object):
 	def __init__(self, canvas, vertices, options, multiplicity=1, counted=False):
 		self.options = options
-		self.default_colour = self.options.default_curve_colour
+		self.default_colour = DEFAULT_TRAIN_TRACK_BLOCK_COLOUR
 		self.colour = self.default_colour
 		self.vertices = vertices
 		self.canvas = canvas
-		self.drawn_self = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
+		self.drawn = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
 		self.multiplicity = multiplicity
 		self.counted = counted
-	
-	def destroy(self):
-		self.canvas.delete(self.drawn_self)
 	
 	def set_colour(self, colour=None):
 		if colour is None: colour = self.default_colour
 		self.colour = colour
-		self.canvas.itemconfig(self.drawn_self, fill=colour)
+		self.canvas.itemconfig(self.drawn, fill=colour)
 	
-	def set_default_colour(self, colour):
+	def set_default_colour(self, colour=None):
+		if colour is None: colour = DEFAULT_TRAIN_TRACK_BLOCK_COLOUR
 		self.default_colour = colour
 		self.set_colour(self.default_colour)
 	
 	def update(self):
-		self.canvas.coords(self.drawn_self, *[v[j] for v in self.vertices for j in range(2)])
+		self.canvas.coords(self.drawn, *[v[j] for v in self.vertices for j in range(2)])

@@ -185,16 +185,16 @@ class FlipperApp(object):
 		exportmenu.add_command(label='Export image', command=self.export_image)
 		filemenu.add_cascade(label='Export', menu=exportmenu)
 		filemenu.add_separator()
-		filemenu.add_command(label='Exit', command=self.parent.quit, accelerator='%s+W' % COMMAND_MODIFIER)
+		filemenu.add_command(label='Exit', command=self.quit, accelerator='%s+W' % COMMAND_MODIFIER)
 		
 		settingsmenu = TK.Menu(menubar, tearoff=0)
-
+		
 		sizemenu = TK.Menu(menubar, tearoff=0)
 		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=SIZE_SMALL)
 		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=SIZE_MEDIUM)
 		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=SIZE_LARGE)
 		# sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=SIZE_XLARGE)
-
+		
 		edgelabelmenu = TK.Menu(menubar, tearoff=0)
 		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var)
 		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var)
@@ -205,7 +205,7 @@ class FlipperApp(object):
 		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var)
 		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var)
 		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var)
-
+		
 		settingsmenu.add_cascade(label='Sizes', menu=sizemenu)
 		settingsmenu.add_cascade(label='Edge label', menu=edgelabelmenu)
 		settingsmenu.add_cascade(label='Draw lamination', menu=laminationdrawmenu)
@@ -251,12 +251,16 @@ class FlipperApp(object):
 		self.colour_picker = Flipper.application.pieces.ColourPalette()
 	
 	def initialise(self):
-		self.select_object(None)
-		self.destroy_all_vertices()
-		self.colour_picker.reset()
-		
-		self.entry_command.focus()
-		self.unsaved_work = False
+		if not self.unsaved_work or tkMessageBox.showwarning('Unsaved work', 'You will lose all unsaved work if you continue.', type='okcancel') == 'ok':
+			self.select_object(None)
+			self.destroy_all_vertices()
+			self.colour_picker.reset()
+			
+			self.entry_command.focus()
+			self.unsaved_work = False
+			return True
+		else:
+			return False
 	
 	def add_lamination(self, name, lamination, add_below='laminations'):
 		if name in self.laminations:
@@ -270,6 +274,8 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
 		self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
 		self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
+		
+		self.unsaved_work = True
 	
 	def add_mapping_class(self, name, mapping_class, mapping_class_inverse):
 		name_inverse = name.swapcase()
@@ -287,6 +293,8 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
 		self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
 		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
+		
+		self.unsaved_work = True
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -309,35 +317,37 @@ class FlipperApp(object):
 				self.unsaved_work = False
 	
 	def load(self, path=''):
-		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-		if path != '':
-			try:
-				spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes) = pickle.load(open(path, 'rb'))
-				
-				self.initialise()
-				for vertex in vertices:
-					self.create_vertex(vertex)
-				
-				for edge in edges:
-					start_index, end_index, glued_to_index = edge
-					self.create_edge(self.vertices[start_index], self.vertices[end_index])
-				
-				for index, edge in enumerate(edges):
-					start_index, end_index, glued_to_index = edge
-					if glued_to_index > index:
-						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
-				
-				self.abstract_triangulation = abstract_triangulation
-				
-				for name in lamination_names:
-					self.add_lamination(name, laminations[name])
-				
-				for name in mapping_class_names:
-					self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
-			except IOError:
-				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
-			except ValueError:
-				tkMessageBox.showerror('Load Error', '%s is not a Flipper file.' % path)
+		if self.initialise():
+			if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+			if path != '':
+				try:
+					spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes) = pickle.load(open(path, 'rb'))
+					
+					for vertex in vertices:
+						self.create_vertex(vertex)
+					
+					for edge in edges:
+						start_index, end_index, glued_to_index = edge
+						self.create_edge(self.vertices[start_index], self.vertices[end_index])
+					
+					for index, edge in enumerate(edges):
+						start_index, end_index, glued_to_index = edge
+						if glued_to_index > index:
+							self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
+					
+					self.abstract_triangulation = abstract_triangulation
+					
+					for name in lamination_names:
+						self.add_lamination(name, laminations[name])
+					
+					for name in mapping_class_names:
+						self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
+					
+					self.unsaved_work = False
+				except IOError:
+					tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
+				except ValueError:
+					tkMessageBox.showerror('Load Error', '%s is not a Flipper file.' % path)
 	
 	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -385,7 +395,8 @@ class FlipperApp(object):
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
 	
 	def quit(self):
-		self.parent.quit()
+		if self.initialise():
+			self.parent.quit()
 	
 	def show_help(self):
 		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
@@ -470,8 +481,8 @@ class FlipperApp(object):
 				'exit': self.quit,
 				'information': self.show_surface_information,
 				'zoom': self.auto_zoom,
-				'tighten': self.tighten_lamination,
-				'vectorise': self.vectorise}
+				'tighten': self.tighten_lamination
+				}
 				
 				option_tasks = {
 				'save': self.save,
@@ -480,7 +491,6 @@ class FlipperApp(object):
 				'export_script': self.export_script,
 				'ngon': self.initialise_circular_n_gon,
 				'rngon': self.initialise_radial_n_gon,
-				'render': self.show_render,
 				'lamination': self.store_lamination,
 				'twist': self.store_twist,
 				'half': self.store_halftwist,
@@ -540,55 +550,59 @@ class FlipperApp(object):
 	
 	
 	def initialise_radial_n_gon(self, specification):
-		self.initialise()
-		if specification.isdigit():
-			n, gluing = int(specification), ''
-		else:
-			n, gluing = len(specification), specification
-		
-		w = int(self.canvas.winfo_width())
-		h = int(self.canvas.winfo_height())
-		r = min(w, h) * (1 + self.options.zoom_fraction) / 4
-		
-		self.create_vertex((w / 2, h / 2))
-		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
-		for i in range(1, n):
-			self.create_edge(self.vertices[i], self.vertices[i+1])
-		self.create_edge(self.vertices[n], self.vertices[1])
-		for i in range(n):
-			self.create_edge(self.vertices[0], self.vertices[i+1])
-		if gluing != '':
-			for i, j in combinations(range(n), r=2):
-				if gluing[i] == gluing[j].swapcase():
-					self.create_edge_identification(self.edges[i], self.edges[j])
+		if self.initialise():
+			if specification.isdigit():
+				n, gluing = int(specification), ''
+			else:
+				n, gluing = len(specification), specification
+			
+			w = int(self.canvas.winfo_width())
+			h = int(self.canvas.winfo_height())
+			r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+			
+			self.create_vertex((w / 2, h / 2))
+			for i in range(n):
+				self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
+			for i in range(1, n):
+				self.create_edge(self.vertices[i], self.vertices[i+1])
+			self.create_edge(self.vertices[n], self.vertices[1])
+			for i in range(n):
+				self.create_edge(self.vertices[0], self.vertices[i+1])
+			if gluing != '':
+				for i, j in combinations(range(n), r=2):
+					if gluing[i] == gluing[j].swapcase():
+						self.create_edge_identification(self.edges[i], self.edges[j])
+			
+			self.unsaved_work = True
 	
 	def initialise_circular_n_gon(self, specification):
-		self.initialise()
-		if specification.isdigit():
-			n, gluing = int(specification), ''
-		else:
-			n, gluing = len(specification), specification
-		
-		w = int(self.canvas.winfo_width())
-		h = int(self.canvas.winfo_height())
-		r = min(w, h) * (1 + self.options.zoom_fraction) / 4
-		
-		for i in range(n):
-			self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
-		for i in range(n):
-			self.create_edge(self.vertices[i], self.vertices[i-1])
-		
-		all_vertices = list(range(n))
-		while len(all_vertices) > 3:
-			for i in range(0, len(all_vertices)-1, 2):
-				self.create_edge(self.vertices[all_vertices[i]], self.vertices[all_vertices[(i+2) % len(all_vertices)]])
-			all_vertices = all_vertices[::2]
-		
-		if gluing != '':
-			for i, j in combinations(range(n), r=2):
-				if gluing[i] == gluing[j].swapcase():  # !?! Get rid of the swapcase()?
-					self.create_edge_identification(self.edges[i], self.edges[j])
+		if self.initialise():
+			if specification.isdigit():
+				n, gluing = int(specification), ''
+			else:
+				n, gluing = len(specification), specification
+			
+			w = int(self.canvas.winfo_width())
+			h = int(self.canvas.winfo_height())
+			r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+			
+			for i in range(n):
+				self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
+			for i in range(n):
+				self.create_edge(self.vertices[i], self.vertices[i-1])
+			
+			all_vertices = list(range(n))
+			while len(all_vertices) > 3:
+				for i in range(0, len(all_vertices)-1, 2):
+					self.create_edge(self.vertices[all_vertices[i]], self.vertices[all_vertices[(i+2) % len(all_vertices)]])
+				all_vertices = all_vertices[::2]
+			
+			if gluing != '':
+				for i, j in combinations(range(n), r=2):
+					if gluing[i] == gluing[j].swapcase():  # !?! Get rid of the swapcase()?
+						self.create_edge_identification(self.edges[i], self.edges[j])
+			
+			self.unsaved_work = True
 	
 	def show_surface_information(self):
 		if self.is_complete():
@@ -897,7 +911,7 @@ class FlipperApp(object):
 						
 						vertices = [start_point, end_point, end_point2, start_point2]
 						self.create_train_track_block(vertices, multiplicity=dual_weights[i], counted=True)
-				elif render == RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
+				elif render == RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve, also it is VERY slow (O(n) not O(log(n))).
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
@@ -1007,17 +1021,6 @@ class FlipperApp(object):
 				self.lamination_to_canvas(self.laminations[name])
 			except KeyError:
 				tkMessageBox.showwarning('Curve', 'No lamination named %s known.' % name)
-	
-	def show_render(self, composition):
-		if self.is_complete():
-			self.lamination_to_canvas(self.abstract_triangulation.lamination([int(i) for i in composition.split('.')]))
-	
-	def vectorise(self):
-		if self.is_complete():
-			try:
-				tkMessageBox.showinfo('Curve', 'Current lamination is: %s' % self.canvas_to_lamination())
-			except Flipper.AssumptionError:
-				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
 	def show_apply(self, composition):
 		if self.is_complete():
@@ -1338,7 +1341,7 @@ class FlipperApp(object):
 			except ImportError:
 				tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 		else:
-			pass  # !?! To do.
+			pass
 
 
 def main(load_path=None):

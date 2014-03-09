@@ -123,3 +123,10 @@ def Example_36(word=None):
 	p = T.all_isometries(T)[1] # This is a 1/36 click.
 	
 	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
+
+# We also provide a dictionary to allow quick lookup of an example by name.
+SURFACES = {'S_1_1':Example_S_1_1, 
+			'S_1_2':Example_S_1_2,
+			'S_2_1':Example_S_2_1,
+			'S_3_1':Example_S_3_1
+			}

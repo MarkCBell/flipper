@@ -16,16 +16,18 @@ except ImportError: # Python 3
 
 import Flipper
 
+CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
+
 def _worker_thread(function, args, answer, indeterminant):
 	# What if an error occurs?
 	try:
-		if not indeterminant:
-			result = function(*args, progression=lambda v: answer.put((False, v)))
-		else:
+		if indeterminant:
 			result = function(*args)
-		answer.put((True, result))
+		else:
+			result = function(*args, progression=lambda v: answer.put((CATEGORY_PROGRESS, v)))
+		answer.put((CATEGORY_RESULT, result))
 	except Exception as e:
-		answer.put((None, e))
+		answer.put((CATEGORY_ERROR, e))
 
 class ProgressApp(object):
 	def __init__(self, host_app, indeterminant=False):
@@ -64,37 +66,25 @@ class ProgressApp(object):
 		self.worker.deamon = True
 		self.worker.start()
 		
-		if self.indeterminant:
-			while True:
-				try:
-					complete, value = answer.get(True, 0.05)
-					if complete:
-						result = value
-						break
-					elif complete is None:
-						self.cancel()
-						raise value
-				except Empty:
-					# Increase the bar by 1%.
-					self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
-		else:
-			while True:
-				complete, value = answer.get()
-				if complete:
-					result = value
-					break
-				elif complete is None:
+		while self.running:  # So long as the calculation hasn't been aborted.
+			try:
+				category, value = answer.get(True, 0.05)  # Try and get some more information
+				if category == CATEGORY_RESULT:  # We got the answer.
+					self.cancel()
+					return value
+				elif category == CATEGORY_PROGRESS:  # We're not done yet but we got an update.
+					self.update_bar(value)
+				elif category == CATEGORY_ERROR:  # An error occurred.
 					self.cancel()
 					raise value
-				self.update_bar(value)
+			except Empty:
+				# Increase the bar by 1%.
+				if self.indeterminant: self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
 		
-		self.cancel()
-		return result
+		# If we reach this point then the calculation was aborted.
+		raise Flipper.AbortError
 	
 	def update_bar(self, value, text=None):
-		if not self.running: raise Flipper.AbortError()
-		# self.parent.deiconify()
-		
 		#self.progress['value'] = int(value * 100)
 		self.progress.set(value, text)
 		self.host_app.parent.update()

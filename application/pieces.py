@@ -31,6 +31,9 @@ class ColourPalette(object):
 		saturation = (90 + random() * 10)/100.
 		r, g, b = hls_to_rgb(hue, lightness, saturation)
 		return '#%02x%02x%02x' % (int(r * 255), int(g * 255), int(b * 255))
+	
+	def reset(self):
+		self.state = 0
 
 class Vertex(object):
 	def __init__(self, canvas, p, options):

@@ -136,6 +136,7 @@ class FlipperApp(object):
 		self.treeview_objects.configure(yscroll=self.scrollbar_treeview.set)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
+		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
 		
 		self.treeview_objects.grid(row=0, column=0, sticky='nesw')
 		self.scrollbar_treeview.grid(row=0, column=1, sticky='nws')
@@ -162,6 +163,7 @@ class FlipperApp(object):
 		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.custom_font)
 		self.entry_command.pack(side='left', fill='x', expand=True, padx=10, pady=2)
 		self.entry_command.bind('<Return>', self.command_return)
+		self.entry_command.focus()
 		###
 		
 		self.panels.add(self.frame_interface)
@@ -227,34 +229,34 @@ class FlipperApp(object):
 		
 		self.command_history = ['']
 		self.history_position = 0
-		self.initialise()
-	
-	def initialise(self):
+		
+		self.unsaved_work = False
+		
 		self.vertices = []
 		self.edges = []
 		self.triangles = []
 		self.curve_components = []
 		self.train_track_blocks = []
+		
+		self.zeta = 0
 		self.abstract_triangulation = None
 		self.current_lamination = None
-		self.drawn_something = False
 		self.laminations = {}
 		self.lamination_names = {}
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
-		self.selected_object = None
-		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
-		for child in self.treeview_objects.get_children(''):
-			self.treeview_objects.delete(child)
 		
-		self.build_abstract_triangulation()
+		self.selected_object = None
 		
 		self.colour_picker = Flipper.application.pieces.ColourPalette()
-		
-		self.canvas.delete('all')
-		self.entry_command.delete(0, TK.END)
+	
+	def initialise(self):
+		self.select_object(None)
+		self.destroy_all_vertices()
+		self.colour_picker.reset()
 		
 		self.entry_command.focus()
+		self.unsaved_work = False
 	
 	def add_lamination(self, name, lamination, add_below='laminations'):
 		if name in self.laminations:
@@ -298,19 +300,19 @@ class FlipperApp(object):
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
 				laminations = self.laminations
 				mapping_classes = self.mapping_classes
-
-				pickle.dump([spec, vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes], open(path, 'wb'))
+				data = (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes)
+				
+				pickle.dump((spec, data), open(path, 'wb'))
 			except IOError:
 				tkMessageBox.showwarning('Save Error', 'Could not open: %s' % path)
+			else:
+				self.unsaved_work = False
 	
 	def load(self, path=''):
 		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
 		if path != '':
 			try:
-				spec, vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes = pickle.load(open(path, 'rb'))
-				# Might throw value error.
-				# !?! Add more error checking.
-				assert(spec == 'A Flipper file.')
+				spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes) = pickle.load(open(path, 'rb'))
 				
 				self.initialise()
 				for vertex in vertices:
@@ -332,9 +334,10 @@ class FlipperApp(object):
 				
 				for name in mapping_class_names:
 					self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
-				
 			except IOError:
 				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
+			except ValueError:
+				tkMessageBox.showerror('Load Error', '%s is not a Flipper file.' % path)
 	
 	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -461,7 +464,7 @@ class FlipperApp(object):
 			try:
 				optionless_tasks = {
 				'new': self.initialise,
-				'erase': self.destory_lamination,
+				'erase': self.destroy_lamination,
 				'help': self.show_help,
 				'about': self.show_about,
 				'exit': self.quit,
@@ -606,7 +609,8 @@ class FlipperApp(object):
 		self.build_abstract_triangulation()
 		return self.vertices[-1]
 	
-	def destroy_vertex(self, vertex):
+	def destroy_vertex(self, vertex=None):
+		if vertex is None: vertex = self.vertices[-1]
 		while True:
 			for edge in self.edges:
 				if edge.source_vertex == vertex or edge.target_vertex == vertex:
@@ -617,6 +621,11 @@ class FlipperApp(object):
 		self.canvas.delete(vertex.drawn_self)
 		self.vertices.remove(vertex)
 		self.redraw()
+		self.build_abstract_triangulation()
+	
+	def destroy_all_vertices(self):
+		while self.vertices:
+			self.destroy_vertex()
 		self.build_abstract_triangulation()
 	
 	def create_edge(self, v1, v2):
@@ -639,7 +648,8 @@ class FlipperApp(object):
 		self.build_abstract_triangulation()
 		return self.edges[-1]
 	
-	def destroy_edge(self, edge):
+	def destroy_edge(self, edge=None):
+		if edge is None: edge = self.edges[-1]
 		self.canvas.delete(edge.drawn_self)
 		for triangle in edge.in_triangles:
 			self.destroy_triangle(triangle)
@@ -666,7 +676,8 @@ class FlipperApp(object):
 		self.build_abstract_triangulation()
 		return self.triangles[-1]
 	
-	def destroy_triangle(self, triangle):
+	def destroy_triangle(self, triangle=None):
+		if triangle is None: triangle = self.triangles[-1]
 		self.canvas.delete(triangle.drawn_self)
 		for edge in self.edges:
 			if triangle in edge.in_triangles:
@@ -716,7 +727,7 @@ class FlipperApp(object):
 		curve_component.destroy()
 		self.train_track_blocks.remove(curve_component)
 	
-	def destory_lamination(self):
+	def destroy_lamination(self):
 		while self.curve_components != []:
 			self.destory_curve_component(self.curve_components[-1])
 		
@@ -724,7 +735,6 @@ class FlipperApp(object):
 			self.destroy_train_track_block(self.train_track_blocks[-1])
 		
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
-		self.drawn_something = False
 		self.select_object(None)
 		self.redraw()
 	
@@ -779,7 +789,6 @@ class FlipperApp(object):
 		self.set_edge_indices()
 		self.abstract_triangulation = Flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
-		self.drawn_something = False
 		self.laminations = {}
 		self.lamination_names = {}
 		self.mapping_classes = {}
@@ -791,10 +800,9 @@ class FlipperApp(object):
 	def destroy_abstract_triangulation(self):
 		self.clear_edge_indices()
 		self.destroy_edge_labels()
-		self.destory_lamination()
+		self.destroy_lamination()
 		self.abstract_triangulation = None
 		self.current_lamination = None
-		self.drawn_something = False
 		self.laminations = {}
 		self.lamination_names = {}
 		self.mapping_classes = {}
@@ -843,7 +851,7 @@ class FlipperApp(object):
 		return self.current_lamination
 	
 	def lamination_to_canvas(self, lamination):
-		self.destory_lamination()
+		self.destroy_lamination()
 		
 		# Choose the right way to render this lamination.
 		if lamination.is_multicurve(): 
@@ -920,7 +928,7 @@ class FlipperApp(object):
 				try:
 					lamination = self.canvas_to_lamination()
 					self.add_lamination(name, lamination)
-					self.destory_lamination()
+					self.destroy_lamination()
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
@@ -932,7 +940,7 @@ class FlipperApp(object):
 					if lamination.is_good_curve():
 						self.add_lamination(name, lamination)
 						self.add_mapping_class(name, lamination.encode_twist(), lamination.encode_twist(k=-1))
-						self.destory_lamination()
+						self.destroy_lamination()
 					else:
 						tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
 				except Flipper.AssumptionError:
@@ -946,7 +954,7 @@ class FlipperApp(object):
 					if lamination.is_pants_boundary():
 						self.add_lamination(name, lamination)
 						self.add_mapping_class(name, lamination.encode_halftwist(), lamination.encode_halftwist(k=-1))
-						self.destory_lamination()
+						self.destroy_lamination()
 					else:
 						tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
 				except Flipper.AssumptionError:
@@ -1233,7 +1241,6 @@ class FlipperApp(object):
 		if self.selected_object is not None:
 			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.pop_point()
-				self.drawn_something = True
 			
 			self.select_object(None)
 	
@@ -1268,7 +1275,7 @@ class FlipperApp(object):
 		elif key == 'F1':
 			self.show_help()
 		elif key == 'F5':
-			self.destory_lamination()
+			self.destroy_lamination()
 		elif key == 'Prior':
 			self.zoom_centre(1.05)
 		elif key == 'Next':

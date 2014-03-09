@@ -8,7 +8,7 @@ class SplittingSequence(object):
 		self.laminations = laminations
 		self.flips = flips
 		self.encodings = encodings
-		self.closing_isometries = self.laminations[-1].all_projective_isometries(self.laminations[0])  # !?! Check this. and in fact all indices!
+		self.closing_isometries = self.laminations[-1].all_projective_isometries(self.laminations[0])
 		self.prefered_isometry = prefered_isometry
 	
 	def dilatation(self):

@@ -10,6 +10,7 @@ compute algebraic intersection number
 create / use InputBox
 update all documentation
 more documentation
+doc strings everywhere
 
 do approximations manually
 only use sage / sympy to factor a polynomial

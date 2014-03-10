@@ -191,11 +191,6 @@ class EncodingSequence(object):
 		for indices in product(*[range(len(E)) for E in self]):
 			yield indices, self.expand_indices(indices[::-1])
 	
-	def yield_feasible_expansions(self):
-		for indices, (As, Cs) in self.yield_expand():
-			if Cs.nontrivial_polytope()[0]:
-				yield indices
-	
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)

@@ -124,7 +124,7 @@ class Lamination(object):
 		# This is based off of self.encode_twist(). See the documentation there as to why this works.
 		if not self.is_multicurve(): return False
 		
-		conjugation, conjugation_inverse = self.conjugate_short()
+		conjugation, _ = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		return short_lamination.weight() == 2
@@ -133,7 +133,7 @@ class Lamination(object):
 		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
 		if not self.is_good_curve(): return False
 		
-		conjugation, conjugation_inverse = self.conjugate_short()
+		conjugation, _ = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
@@ -324,12 +324,11 @@ class Lamination(object):
 		if k < 0: e1, e2 = e2, e1
 		
 		# Finally we can encode the twist.
-		forwards, backwards = short_lamination.abstract_triangulation.encode_flip(e1, both=True)
+		forwards = short_lamination.abstract_triangulation.encode_flip(e1)
 		short_lamination = forwards * short_lamination
-		new_triangulation = short_lamination.abstract_triangulation
 		
 		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode_isometry()
+		map_back = [isom for isom in short_lamination.abstract_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode_isometry()
 		T = map_back * forwards
 		
 		return conjugation_inverse * T**abs(k) * conjugation
@@ -360,16 +359,15 @@ class Lamination(object):
 		for triangle in triangulation:
 			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 				bottom = x if x in triangle else y
-				other = triangle[0] if triangle[0] != bottom else triangle[1]
 		
 		# Finally we can encode the twist.
-		forwards, backwards = short_lamination.abstract_triangulation.encode_flip(bottom, both=True)
+		forwards = short_lamination.abstract_triangulation.encode_flip(bottom)
 		short_lamination = forwards * short_lamination
 		
-		forwards2, backwards2 = short_lamination.abstract_triangulation.encode_flip(e1, both=True)
+		forwards2 = short_lamination.abstract_triangulation.encode_flip(e1)
 		short_lamination = forwards2 * short_lamination
 		
-		forwards3, backwards3 = short_lamination.abstract_triangulation.encode_flip(e2, both=True)
+		forwards3 = short_lamination.abstract_triangulation.encode_flip(e2)
 		short_lamination = forwards3 * short_lamination
 		
 		new_triangulation = short_lamination.abstract_triangulation

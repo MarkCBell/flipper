@@ -79,7 +79,7 @@ class Tetrahedron(object):
 		a, b = min(a, b), max(a, b)
 		self.edge_labels[(a, b)] = value
 	
-	def SnapPy_string(self):
+	def snappy_string(self):
 		s = ''
 		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
 		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])

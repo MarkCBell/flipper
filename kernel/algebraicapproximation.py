@@ -87,13 +87,13 @@ class AlgebraicApproximation(object):
 			return AlgebraicApproximation(self.interval * other, self.degree, self.log_height + log_height_int(other))
 		else:
 			return NotImplemented
-	def __pow__(self, other):
-		if other == 0:
+	def __pow__(self, power):
+		if power == 0:
 			return algebraic_approximation_from_int(1, self.interval.accuracy, self.degree, 0)
-		if other > 0:
-			sqrt = self**(other//2)
+		if power > 0:
+			sqrt = self**(power//2)
 			square = sqrt * sqrt
-			if other % 2 == 1:
+			if power % 2 == 1:
 				return self * square
 			else:
 				return square

@@ -33,7 +33,7 @@ def main():
 		# except IndexError:
 			# print('Invalid index.')
 		# else:
-		Ma = snappy.Manifold(M.SnapPy_string())
+		Ma = snappy.Manifold(M.snappy_string())
 		Mb = snappy.Manifold(target_manifold)
 		if not Ma.is_isometric_to(Mb):
 			print(word, isometry_number, target_manifold)

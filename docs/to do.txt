@@ -1,7 +1,7 @@
 
 undo and redo
 handle commands better
-have weighted brush for painting laminations
+have weighted brush for painting laminations (in a given field?)
 
 compute algebraic intersection number
 create / use InputBox

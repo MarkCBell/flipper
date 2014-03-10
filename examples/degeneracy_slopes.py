@@ -7,14 +7,14 @@ import snappy, Flipper
 def bundles(surface_name, word):
 	splitting = Flipper.examples.abstracttriangulation.SURFACES[surface_name](word).splitting_sequence()
 	closed_bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
-	manifolds = [snappy.Manifold(bundle.SnapPy_string()) for bundle in closed_bundles]
+	manifolds = [snappy.Manifold(bundle.snappy_string()) for bundle in closed_bundles]
 	for bundle, manifold in zip(closed_bundles, manifolds):
 		for index, (cusp_type, fibre_slope) in enumerate(zip(bundle.cusp_types, bundle.fibre_slopes)):
 			if cusp_type == 1: manifold.dehn_fill(fibre_slope, index)
 	
 	return manifolds
 
-def with_bundle_structure(manifold_name, surface_name, word, *args):
+def with_bundle_structure(manifold_name, surface_name, word):
 	# M = snappy.Manifold(manifold_name)
 	# This should be the same as:
 	M = snappy.twister.Surface(surface_name).bundle(word)
@@ -45,7 +45,8 @@ def check_bundle_specs(surface_name=None):
 	for datum in bundle_specs(surface_name):
 		start_time = time()
 		print(datum[0], datum[2])
-		with_bundle_structure(*datum)
+		manifold_name, surface_name, word = datum[:3]
+		with_bundle_structure(manifold_name, surface_name, word)
 		print('Computed in %f' % (time() - start_time))
 
 if __name__ == '__main__':

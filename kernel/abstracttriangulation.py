@@ -100,11 +100,6 @@ class AbstractTriangulation(object):
 			self._marking_matrices = [Flipper.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
 		return self._marking_matrices
 	
-	def geometric_to_algebraic(self, vector):
-		# Converts a vector of geometric intersection numbers to a vector of algebraic intersection numbers.
-		# !?! TO DO.
-		return vector
-	
 	def find_edge(self, edge_index):
 		# Return the list of (triangle, side) which have label edge_index.
 		return self.edge_contained_in[edge_index]
@@ -133,9 +128,8 @@ class AbstractTriangulation(object):
 		
 		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
 		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [u, v, s]]
-		new_triangulation = AbstractTriangulation(new_edge_indices, new_corner_labels)
 		
-		return new_triangulation
+		return AbstractTriangulation(new_edge_indices, new_corner_labels)
 	
 	def find_triangle(self, edge_indices):
 		# There can be more than one match in the case of S_1_1.

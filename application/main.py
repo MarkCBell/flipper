@@ -331,6 +331,9 @@ class FlipperApp(object):
 			try:
 				spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes, cache) = pickle.load(open(path, 'rb'))
 				if self.initialise():
+					if spec != 'A Flipper file.':
+						raise ValueError('Not a valid specification.')
+					
 					for vertex in vertices:
 						self.create_vertex(vertex)
 					
@@ -661,7 +664,7 @@ class FlipperApp(object):
 		if any(Flipper.application.pieces.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = Flipper.application.pieces.Edge(self.canvas, v1, v2, self.options)
+		e0 = Flipper.application.pieces.Edge(self.canvas, [v1, v2], self.options)
 		self.edges.append(e0)
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
@@ -688,7 +691,7 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.application.pieces.Triangle(self.canvas, e1, e2, e3, self.options)
+		new_triangle = Flipper.application.pieces.Triangle(self.canvas, [e1, e2, e3], self.options)
 		self.triangles.append(new_triangle)
 		
 		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
@@ -1151,7 +1154,7 @@ class FlipperApp(object):
 							else:
 								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 								M = splitting.bundle(0, composition)
-								disk_file.write(M.SnapPy_string())
+								disk_file.write(M.snappy_string())
 								description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
 								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
 								'Cusp types: %s\n' % M.cusp_types + \

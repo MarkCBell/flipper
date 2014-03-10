@@ -98,8 +98,8 @@ class Vertex(DrawableObject):
 		self.canvas.coords(self.drawn, *[p + scale*self.options.dot_size for scale in [-1, 1] for p in self])
 
 class Edge(DrawableObject):
-	def __init__(self, canvas, source_vertex, target_vertex, options):
-		super(Edge, self).__init__(canvas, [source_vertex, target_vertex], options)
+	def __init__(self, canvas, vertices, options):
+		super(Edge, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_EDGE_COLOUR
 		self.drawn = self.canvas.create_line([c for v in self for c in v], width=self.options.line_size, fill=self.default_colour, tag='line')
 		self.equivalent_edge = None
@@ -139,10 +139,10 @@ class Edge(DrawableObject):
 		self.vertices = self.vertices[::-1]
 
 class Triangle(DrawableObject):
-	def __init__(self, canvas, e1, e2, e3, options):
-		super(Triangle, self).__init__(canvas, list(set([v for e in [e1, e2, e3] for v in e])), options)
+	def __init__(self, canvas, edges, options):
+		super(Triangle, self).__init__(canvas, list(set([v for e in edges for v in e])), options)
 		self.default_colour = self.colour = DEFAULT_TRIANGLE_COLOUR
-		self.edges = (e1, e2, e3)
+		self.edges = edges
 		
 		# We reorder the vertices to guarantee that the vertices are cyclically ordered anticlockwise in the plane. 
 		d10, d20 = self[1] - self[0], self[2] - self[0]

@@ -9,9 +9,9 @@ import Flipper
 #	compute splitting sequences.
 #
 # This module selects and imports the appropriate library for manipulating algebraic numbers.
-# Currently there are three to choose from based on: sage, sympy and None, the last of which is
-# a dummy library which can't do anything but makes sure that the imports never fail.
-# Currently Sage is the best by a _large_ margin and so this is our first choice.
+# Currently there is only an interface to sage though more can easily be added. We used to 
+# have an interface to SymPy but this turned out to be extremely unreliable, there were 9x9 
+# invertible matrices for which it could only find 1 eigenvalue!
 #
 # Each library provides two functions:
 #	PF_eigen(matrix):
@@ -81,20 +81,3 @@ def Perron_Frobenius_eigen(matrix):
 	
 	N = Flipper.kernel.numberfield.NumberField(eigenvalue_polynomial)
 	return [N.element(v) for v in eigenvector]
-
-#############################################################################
-# We also build some helper functions using these.
-
-def compute_powers(a, b):
-	# Given (real > 1) algebraic numbers a == c^m and b == c^n where c is another algebraic number and m & n are coprime 
-	# integers returns m, n. This uses a variant of the Euclidean algorithm and can probably be done smarter.
-	
-	if a == b:
-		return (1, 1)
-	elif a > b:
-		m2, n2 = compute_powers(a / b, b)
-		return (m2 + n2, n2)
-	else:
-		m2, n2 = compute_powers(a, b / a)
-		return (m2, n2 + m2)
-

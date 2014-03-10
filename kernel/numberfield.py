@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 from math import log10 as log
 
 import Flipper
@@ -28,7 +27,6 @@ class NumberField(object):
 		self.sum_log_height_powers = self.degree * self.degree * self.log_height
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
-		self.verbose = False
 		self.current_accuracy = -1
 		self.algebraic_approximations = [None] * self.degree  # A list of approximations of \lambda^0, ..., \lambda^(d-1).
 		self.increase_accuracy(100)
@@ -40,7 +38,6 @@ class NumberField(object):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
-			if self.verbose: print('Recomputing number system to %d places.' % self.current_accuracy)
 			self.algebraic_approximations = [self.polynomial.algebraic_approximate_leading_root(self.current_accuracy, power=index) for index in range(self.degree)]
 	
 	def element(self, linear_combination):
@@ -190,6 +187,20 @@ class NumberFieldElement(object):
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
+
+def NumberFieldVector(object):
+	def __init__(self, number_field, linear_combinations):
+		self.number_field = number_field
+		self.elements = [self.number_field.element(linear_combination) for linear_combination in self.linear_combinations]
+	
+	def __iter__(self):
+		return iter(self.elements)
+	
+	def __getitem__(self, index):
+		return self.elements[index]
+	
+	def __setitem__(self, index, other):
+		self.elements[index] = other
 
 def number_field_from_integers(integers):
 	N = NumberField()

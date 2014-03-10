@@ -14,25 +14,20 @@ def main():
 	a = interval_from_string('-1.200000')
 	b = interval_from_string('1.4142135623')
 	
-	if not (2 in (b * b)):
-		return False
-	
 	# Check:
 	#	acc(I + J) >= min(acc(I), acc(J)) - 1,
 	#	acc(I * J) >= min(acc(I), acc(J)) - log(I.lower + J.lower + 1)
 	#	acc(I / J) >= min(acc(I), acc(J)) - log+(J)  # If J > I.
 	#	acc(x * I) >= acc(I) - log+(x)
 	
-	for I, J in product([w, x, y, z, a, b], repeat=2):
-		m = min(I.accuracy, J.accuracy)
-		if not ((I + J).accuracy >= m - 1):
-			return False
-		if not ((I * J).accuracy >= m - log(max(I.lower + J.lower + 1, 1))):
-			return False
-		
-		# Should only do this test when J > I.
-		# if not ((I / J).accuracy >= m - J.log_plus):
-			# return False
+	try:
+		for I, J in product([w, x, y, z, a, b], repeat=2):
+			m = min(I.accuracy, J.accuracy)
+			assert((I + J).accuracy >= m - 1)
+			assert((I * J).accuracy >= m - log(max(I.lower + J.lower + 1, 1)))
+			# assert((I / J).accuracy >= m - J.log_plus)  # Should only do this test when J > I.
+	except AssertionError:
+		return False
 	
 	return True
 

@@ -1,5 +1,5 @@
 
-from sage.all import Matrix, lcm, NumberField, QQbar
+from sage.all import Matrix, lcm, NumberField, QQbar, QQ
 from math import log10 as log
 
 import Flipper
@@ -28,7 +28,9 @@ def PF_eigen(matrix):
 	eigenvalue = max(M.eigenvalues(), key=abs)
 	
 	# We could just return None as the eigenvector but this is much faster.
-	K = NumberField(eigenvalue.minpoly(), 'L')
+	# We need to be a little careful, for some reason sage needs a variable name if eigenvalue is a rational.
+	polynomial = eigenvalue.minpoly() if eigenvalue not in QQ else eigenvalue.minpoly('x')
+	K = NumberField(polynomial, 'L')
 	[lam] = K.gens()
 	
 	try:

@@ -3,42 +3,32 @@ from __future__ import print_function
 
 import Flipper
 
-UNKNOWN, PERIODIC, REDUCIBLE, PSEUDO_ANOSOV = 0, 1, 2, 3
-
-def determine_type(mapping_class):
-	if mapping_class.is_periodic():
-		return PERIODIC
-	else:
-		try:
-			mapping_class.splitting_sequence()
-			return PSEUDO_ANOSOV
-		except Flipper.ComputationError:
-			return UNKNOWN
-		except Flipper.AssumptionError:
-			return REDUCIBLE
+NT_TYPE_PERIODIC = Flipper.kernel.encoding.NT_TYPE_PERIODIC
+NT_TYPE_REDUCIBLE = Flipper.kernel.encoding.NT_TYPE_REDUCIBLE
+NT_TYPE_PSEUDO_ANOSOV = Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main():
 	example = Flipper.examples.abstracttriangulation.Example_S_1_2
 	
 	# Add more tests here.
 	tests = [
-		('c', REDUCIBLE),
-		('aB', REDUCIBLE), 
-		('bbaCBAaBabcABB', REDUCIBLE),
-		('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', PSEUDO_ANOSOV)
+		('a', NT_TYPE_REDUCIBLE),
+		('b', NT_TYPE_REDUCIBLE),
+		('c', NT_TYPE_REDUCIBLE),
+		('aB', NT_TYPE_REDUCIBLE), 
+		('bbaCBAaBabcABB', NT_TYPE_REDUCIBLE),
+		('aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV)
 		]
 	
-	for word, mapping_class_type in tests:
-		mapping_class = example(word)
-		try:
-			determined_type = determine_type(mapping_class)
-			if determined_type != mapping_class_type:
-				print(mapping_class.name)
-				print(mapping_class_type)
-				print(determined_type)
-				return False
-		except ImportError:
-			print('Symbolic computation library required but unavailable, test skipped.')
+	try:
+		for word, mapping_class_type in tests:
+			mapping_class = example(word)
+			# assert(mapping_class.NT_type() == mapping_class_type)
+			assert(mapping_class.NT_type_alternate() == mapping_class_type)
+	except ImportError:
+		print('Symbolic computation library required but unavailable, test skipped.')
+	except AssertionError:
+		return False
 	
 	return True
 

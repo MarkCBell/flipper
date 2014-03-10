@@ -308,7 +308,7 @@ class FlipperApp(object):
 			try:
 				spec = 'A Flipper file.'
 				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
-				edges = [(self.vertices.index(edge.source_vertex), self.vertices.index(edge.target_vertex), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
+				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
@@ -534,7 +534,7 @@ class FlipperApp(object):
 		self.build_edge_labels()
 		
 		for vertex in self.vertices:
-			self.canvas.coords(vertex.drawn, vertex.x-self.options.dot_size, vertex.y-self.options.dot_size, vertex.x+self.options.dot_size, vertex.y+self.options.dot_size)
+			vertex.update()
 		self.canvas.itemconfig('line', width=self.options.line_size)
 		self.canvas.itemconfig('curve', width=self.options.line_size)
 		
@@ -551,9 +551,9 @@ class FlipperApp(object):
 	def select_object(self, selected_object):
 		self.selected_object = selected_object
 		for x in self.vertices + self.edges + self.curve_components + self.train_track_blocks:
-			x.set_colour()
+			x.set_current_colour()
 		if self.selected_object is not None:
-			self.selected_object.set_colour(DEFAULT_SELECTED_COLOUR)
+			self.selected_object.set_current_colour(DEFAULT_SELECTED_COLOUR)
 	
 	
 	######################################################################
@@ -637,7 +637,7 @@ class FlipperApp(object):
 		if vertex is None: vertex = self.vertices[-1]
 		while True:
 			for edge in self.edges:
-				if edge.source_vertex == vertex or edge.target_vertex == vertex:
+				if edge[0] == vertex or edge[1] == vertex:
 					self.destroy_edge(edge)
 					break
 			else:
@@ -654,19 +654,19 @@ class FlipperApp(object):
 	
 	def create_edge(self, v1, v2):
 		# Don't create a new edge if one already exists.
-		if any(set([edge.source_vertex, edge.target_vertex]) == set([v1, v2]) for edge in self.edges):
+		if any(set([edge[0], edge[1]]) == set([v1, v2]) for edge in self.edges):
 			return None
 		
 		# Don't create a new edge if it would intersect one that already exists.
-		if any(Flipper.application.pieces.lines_intersect(edge.source_vertex, edge.target_vertex, v1, v2, self.options.float_error, True)[1] for edge in self.edges):
+		if any(Flipper.application.pieces.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = Flipper.application.pieces.Edge(v1, v2, self.options)
+		e0 = Flipper.application.pieces.Edge(self.canvas, v1, v2, self.options)
 		self.edges.append(e0)
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
 				if e1.free_sides() > 0 and e2.free_sides() > 0:
-					if len(set([e.source_vertex for e in [e0, e1, e2]] + [e.target_vertex for e in [e0, e1, e2]])) == 3:
+					if len(set([e[0] for e in [e0, e1, e2]] + [e[1] for e in [e0, e1, e2]])) == 3:
 						self.create_triangle(e0, e1, e2)
 		self.redraw()
 		self.build_abstract_triangulation()
@@ -688,10 +688,10 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.application.pieces.Triangle(e1, e2, e3, self.options)
+		new_triangle = Flipper.application.pieces.Triangle(self.canvas, e1, e2, e3, self.options)
 		self.triangles.append(new_triangle)
 		
-		corner_vertices = [e.source_vertex for e in [e1, e2, e3]] + [e.target_vertex for e in [e1, e2, e3]]
+		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
 		if any(vertex in new_triangle and vertex not in corner_vertices for vertex in self.vertices):
 			self.destroy_triangle(new_triangle)
 			return None
@@ -719,15 +719,15 @@ class FlipperApp(object):
 		
 		# Change colour.
 		new_colour = self.colour_picker.get_colour()
-		e1.set_default_colour(new_colour)
-		e2.set_default_colour(new_colour)
+		e1.set_colour(new_colour)
+		e2.set_colour(new_colour)
 		self.build_abstract_triangulation()
 	
 	def destroy_edge_identification(self, edge):
 		if edge.equivalent_edge is not None:
 			other_edge = edge.equivalent_edge
-			other_edge.set_default_colour()
-			edge.set_default_colour()
+			other_edge.set_colour()
+			edge.set_colour()
 			self.canvas.itemconfig(other_edge.drawn, fill=other_edge.default_colour)
 			self.canvas.itemconfig(edge.drawn, fill=edge.default_colour)
 			
@@ -735,8 +735,8 @@ class FlipperApp(object):
 			edge.equivalent_edge = None
 		self.build_abstract_triangulation()
 	
-	def create_curve_component(self, point, multiplicity=1, counted=False):
-		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, point, self.options, multiplicity, counted))
+	def create_curve_component(self, start_point, end_point, multiplicity=1, counted=False):
+		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, start_point, end_point, self.options, multiplicity, counted))
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
@@ -787,11 +787,11 @@ class FlipperApp(object):
 		self.destroy_edge_labels()
 		if self.options.label_edges == 'Index':
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
+				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Geometric':
 			lamination = self.canvas_to_lamination()
 			for edge in self.edges:
-				self.canvas.create_text((edge.source_vertex[0] + edge.target_vertex[0]) / 2, (edge.source_vertex[1] + edge.target_vertex[1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
+				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -849,7 +849,7 @@ class FlipperApp(object):
 			if not curve.counted:
 				meets = []  # We store (index of edge intersection, should we double count).
 				for i in range(len(curve.vertices)-1):
-					this_segment_meets = [(Flipper.application.pieces.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge.source_vertex, edge.target_vertex, self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
+					this_segment_meets = [(Flipper.application.pieces.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge[0], edge[1], self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
 					for (d, double), index in sorted(this_segment_meets):
 						if d >= -self.options.float_error:
 							if len(meets) > 0 and meets[-1][0] == index:
@@ -890,31 +890,31 @@ class FlipperApp(object):
 			master_scale = max(approximate_weights) if any(lamination[edge.index] > 0 for edge in self.edges) else float(1)
 		
 		for triangle in self.triangles:
-			weights = [lamination[edge.index] for edge in triangle]
+			weights = [lamination[edge.index] for edge in triangle.edges]
 			dual_weights = [(weights[1] + weights[2] - weights[0]) / 2, (weights[2] + weights[0] - weights[1]) / 2, (weights[0] + weights[1] - weights[2]) / 2]
 			approximate_dual_weights = [float(w) for w in dual_weights]
 			for i in range(3):
-				a = triangle.vertices[i-1] - triangle.vertices[i]
-				b = triangle.vertices[i-2] - triangle.vertices[i]
+				a = triangle[i-1] - triangle[i]
+				b = triangle[i-2] - triangle[i]
 				
 				if render == RENDER_LAMINATION_W_TRAIN_TRACK:  # !?! To Do.
 					if dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
-						s_a = approximate_weights[triangle[i-2].index] / master_scale
+						s_a = approximate_weights[triangle.edges[i-2].index] / master_scale
 						# The fractions of the distance of the two points on this edge.
 						scale_a = vb * s_a + (1 - s_a) / 2
 						scale_a2 = scale_a + (1 - 2*vb) * s_a * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-1])
 						# The actual points of intersection.
-						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
-						start_point2 = triangle.vertices[i][0] + a[0] * scale_a2, triangle.vertices[i][1] + a[1] * scale_a2
+						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
+						start_point2 = triangle[i][0] + a[0] * scale_a2, triangle[i][1] + a[1] * scale_a2
 						
 						# Now repeat for the other edge of the triangle.
-						s_b = approximate_weights[triangle[i-1].index] / master_scale
+						s_b = approximate_weights[triangle.edges[i-1].index] / master_scale
 						scale_b = vb * s_b + (1 - s_b) / 2
 						scale_b2 = scale_b + (1 - 2*vb) * s_b * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-2])
-						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
-						end_point2 = triangle.vertices[i][0] + b[0] * scale_b2, triangle.vertices[i][1] + b[1] * scale_b2
+						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
+						end_point2 = triangle[i][0] + b[0] * scale_b2, triangle[i][1] + b[1] * scale_b2
 						
 						vertices = [start_point, end_point, end_point2, start_point2]
 						self.create_train_track_block(vertices, multiplicity=dual_weights[i], counted=True)
@@ -922,15 +922,15 @@ class FlipperApp(object):
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
-						start_point = triangle.vertices[i][0] + a[0] * scale_a, triangle.vertices[i][1] + a[1] * scale_a
-						end_point = triangle.vertices[i][0] + b[0] * scale_b, triangle.vertices[i][1] + b[1] * scale_b
-						self.create_curve_component(start_point, counted=True).append_point(end_point)
+						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
+						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
+						self.create_curve_component(start_point, end_point, counted=True)
 				elif render == RENDER_LAMINATION_C_TRAIN_TRACK:
 					if dual_weights[i] > 0:
 						scale = float(1) / 2
-						start_point = triangle.vertices[i][0] + a[0] * scale, triangle.vertices[i][1] + a[1] * scale
-						end_point = triangle.vertices[i][0] + b[0] * scale, triangle.vertices[i][1] + b[1] * scale
-						self.create_curve_component(start_point, multiplicity=dual_weights[i], counted=True).append_point(end_point)
+						start_point = triangle[i][0] + a[0] * scale, triangle[i][1] + a[1] * scale
+						end_point = triangle[i][0] + b[0] * scale, triangle[i][1] + b[1] * scale
+						self.create_curve_component(start_point, end_point, multiplicity=dual_weights[i], counted=True)
 		
 		self.current_lamination = lamination
 		self.create_edge_labels()
@@ -1172,7 +1172,6 @@ class FlipperApp(object):
 	
 	
 	def canvas_left_click(self, event):
-		
 		shift_pressed = (event.state & BIT_SHIFT) == BIT_SHIFT
 		
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
@@ -1180,8 +1179,7 @@ class FlipperApp(object):
 		
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
-				self.select_object(self.create_curve_component((x, y)))
-				# self.selected_object.append_point((x, y))  # !?!
+				self.select_object(self.create_curve_component((x, y), (x, y)))
 			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.append_point((x, y))
 		else:
@@ -1212,13 +1210,13 @@ class FlipperApp(object):
 					self.select_object(None)
 				elif possible_object is None:
 					new_vertex = self.create_vertex((x, y))
-					self.create_edge(self.selected_object.source_vertex, new_vertex)
-					self.create_edge(self.selected_object.target_vertex, new_vertex)
+					self.create_edge(self.selected_object[0], new_vertex)
+					self.create_edge(self.selected_object[1], new_vertex)
 					self.select_object(None)
 				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
-					if possible_object != self.selected_object.source_vertex and possible_object != self.selected_object.target_vertex:
-						self.create_edge(self.selected_object.source_vertex, possible_object)
-						self.create_edge(self.selected_object.target_vertex, possible_object)
+					if possible_object != self.selected_object[0] and possible_object != self.selected_object[1]:
+						self.create_edge(self.selected_object[0], possible_object)
+						self.create_edge(self.selected_object[1], possible_object)
 						self.select_object(None)
 					else:
 						self.select_object(possible_object)
@@ -1254,7 +1252,7 @@ class FlipperApp(object):
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
 		if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
-			self.selected_object.move_last_point((x, y))
+			self.selected_object.move_point(-1, x, y)
 	
 	def parent_key_press(self, event):
 		key = event.keysym

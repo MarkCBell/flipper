@@ -16,12 +16,14 @@ class AbstractTriangle(object):
 		self.edge_indices = list(edge_indices) if edge_indices is not None else [-1, -1, -1]
 		self.corner_labels = list(corner_labels) if corner_labels is not None else [None, None, None]
 	
-	def __iter__(self):
-		return iter(self.edge_indices)
-	
 	def __repr__(self):
 		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
 		# return '(%s, %s)' % (self.index, self.edge_indices)
+	
+	# Note that this is NOT the same convention as used in pieces.
+	# There iterating and index accesses return edges.
+	def __iter__(self):
+		return iter(self.edge_indices)
 	
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]

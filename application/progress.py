@@ -60,7 +60,8 @@ class ProgressApp(object):
 		self.worker.terminate()
 		self.parent.destroy()
 	
-	def process(self, function, args=[]):
+	def process(self, function, args=None):
+		if args is None: args = []
 		answer = Queue()
 		self.worker = Process(target=_worker_thread, args=(function, args, answer, self.indeterminant))
 		self.worker.deamon = True

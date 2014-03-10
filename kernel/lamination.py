@@ -78,17 +78,34 @@ class Lamination(object):
 		
 		return True
 	
-	def is_good_curve(self):
-		# This is based off of Source.Encoding.encode_twist(). See the documentation there as to why this works.
-		if not self.is_multicurve(): return False
+	def conjugate_short(self):
+		# Repeatedly flip to reduce the weight of this lamination as much as 
+		# possible. Assumes that self is a multicurve.
+		#
+		# We'll keep track of what we have conjugated by as well as it's inverse.
+		# We could compute this at the end by doing:
+		#   conjugation_inverse = conjugation.inverse()
+		# but this is much faster as we don't need to invert a load of matrices.
+		
+		if not self.is_multicurve():
+			raise Flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
+		conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
+		conjugation_inverse = lamination.abstract_triangulation.Id_EncodingSequence()
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
 		while lamination.weight() > 2:
+			# Find the edge which decreases our weight the most.
+			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
+			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
-			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
+			
+			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
+			conjugation = forwards * conjugation
+			conjugation_inverse = conjugation_inverse * backwards
+			lamination = forwards * lamination
 			new_weight = lamination.weight()
 			
 			if new_weight < old_weight:
@@ -97,31 +114,38 @@ class Lamination(object):
 			else:
 				time_since_last_weight_loss += 1
 			
-			# If we ever fail to make progress more than once it is because our curve was really a multicurve.
+			# If we ever fail to make progress more than once then the curve is as short as it's going to get
 			if time_since_last_weight_loss > 1:
-				return False
+				break
 		
-		return True
+		return conjugation, conjugation_inverse
+	
+	def is_good_curve(self):
+		# This is based off of self.encode_twist(). See the documentation there as to why this works.
+		if not self.is_multicurve(): return False
+		
+		conjugation, conjugation_inverse = self.conjugate_short()
+		short_lamination = conjugation * self
+		
+		return short_lamination.weight() == 2
 	
 	def is_pants_boundary(self):
-		# This is based off of Source.Encoding.encode_halftwist(). See the documentation there as to why this works.
+		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
 		if not self.is_good_curve(): return False
 		
-		lamination = self.copy()
+		conjugation, conjugation_inverse = self.conjugate_short()
+		short_lamination = conjugation * self
 		
-		while lamination.weight() > 2:
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0], key=lamination.weight_difference_flip_edge)
-			lamination = lamination.abstract_triangulation.encode_flip(edge_index) * lamination
-		
-		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
-		x, y = [edge_indices for edge_indices in lamination.abstract_triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
-		for triangle in lamination.abstract_triangulation:
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+		x, y = [edge_indices for edge_indices in short_lamination.abstract_triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
+		for triangle in short_lamination.abstract_triangulation:
 			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 				return True
 		
 		return False
 	
 	def weight_difference_flip_edge(self, edge_index):
+		# Returns how much the weight would change by if this flip was done.
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
 	
@@ -287,29 +311,12 @@ class Lamination(object):
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
-		lamination = self.copy()
+		conjugation, conjugation_inverse = self.conjugate_short()
+		short_lamination = conjugation * self
 		
-		# We'll keep track of what we have conjugated by as well as it's inverse
-		# we could compute this at the end by doing:
-		#   conjugation_inverse = conjugation.inverse()
-		# but this is much faster as we don't need to invert a load of matrices.
-		conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
-		conjugation_inverse = lamination.abstract_triangulation.Id_EncodingSequence()
-		
-		while lamination.weight() > 2:
-			# Find the edge which decreases our weight the most.
-			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
-			
-			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
-			conjugation = forwards * conjugation
-			conjugation_inverse = conjugation_inverse * backwards
-			lamination = forwards * lamination
-		
-		triangulation = lamination.abstract_triangulation
+		triangulation = short_lamination.abstract_triangulation
 		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
 		containing_triangles = triangulation.find_edge(e1)
 		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
@@ -317,9 +324,9 @@ class Lamination(object):
 		if k < 0: e1, e2 = e2, e1
 		
 		# Finally we can encode the twist.
-		forwards, backwards = lamination.abstract_triangulation.encode_flip(e1, both=True)
-		lamination = forwards * lamination
-		new_triangulation = lamination.abstract_triangulation
+		forwards, backwards = short_lamination.abstract_triangulation.encode_flip(e1, both=True)
+		short_lamination = forwards * short_lamination
+		new_triangulation = short_lamination.abstract_triangulation
 		
 		# Find the correct isometry to take us back.
 		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode_isometry()
@@ -337,29 +344,12 @@ class Lamination(object):
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
-		lamination = self.copy()
+		conjugation, conjugation_inverse = self.conjugate_short()
+		short_lamination = conjugation * self
 		
-		# We'll keep track of what we have conjugated by as well as it's inverse
-		# we could compute this at the end by doing:
-		#   conjugation_inverse = conjugation.inverse()
-		# but this is much faster as we don't need to invert a load of matrices.
-		conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
-		conjugation_inverse = lamination.abstract_triangulation.Id_EncodingSequence()
-		
-		while lamination.weight() > 2:
-			# Find the edge which decreases our weight the most.
-			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
-			
-			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
-			conjugation = forwards * conjugation
-			conjugation_inverse = conjugation_inverse * backwards
-			lamination = forwards * lamination
-		
-		triangulation = lamination.abstract_triangulation
+		triangulation = short_lamination.abstract_triangulation
 		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(lamination.zeta) if lamination[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
 		containing_triangles = triangulation.find_edge(e1)
 		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
@@ -373,16 +363,16 @@ class Lamination(object):
 				other = triangle[0] if triangle[0] != bottom else triangle[1]
 		
 		# Finally we can encode the twist.
-		forwards, backwards = lamination.abstract_triangulation.encode_flip(bottom, both=True)
-		lamination = forwards * lamination
+		forwards, backwards = short_lamination.abstract_triangulation.encode_flip(bottom, both=True)
+		short_lamination = forwards * short_lamination
 		
-		forwards2, backwards2 = lamination.abstract_triangulation.encode_flip(e1, both=True)
-		lamination = forwards2 * lamination
+		forwards2, backwards2 = short_lamination.abstract_triangulation.encode_flip(e1, both=True)
+		short_lamination = forwards2 * short_lamination
 		
-		forwards3, backwards3 = lamination.abstract_triangulation.encode_flip(e2, both=True)
-		lamination = forwards3 * lamination
+		forwards3, backwards3 = short_lamination.abstract_triangulation.encode_flip(e2, both=True)
+		short_lamination = forwards3 * short_lamination
 		
-		new_triangulation = lamination.abstract_triangulation
+		new_triangulation = short_lamination.abstract_triangulation
 		
 		# Find the correct isometry to take us back.
 		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode_isometry()

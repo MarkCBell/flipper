@@ -20,9 +20,9 @@ def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.
 	return all([v[i] == -w[i] for i in range(len(v))])
 
-def find_antipodal(R, width):
-	X = sorted(R, key=lambda x: [abs(i) for i in x])
-	for k, g in groupby(X, key=lambda x: [abs(i) for i in x]):
+def find_antipodal(R):
+	abs_row = lambda x: [abs(i) for i in x]
+	for _, g in groupby(sorted(R, key=abs_row), key=abs_row):
 		for R1, R2 in combinations(g, 2):
 			if antipodal(R1, R2):
 				yield (R1, R2)
@@ -43,15 +43,11 @@ def rescale(v):
 def nonnegative(v):
 	return all(x >= 0 for x in v)
 
-# def nonnegative_image(M, v):
-	# return all(dot(row, v) >= 0 for row in M)
-
 def nontrivial(v):
 	return any(v)
 
 def dot(a, b):
 	return sum([a[i] * b[i] for i in range(len(a))])
-	# return sum(x * y for x, y in zip(a,b))
 
 class Matrix(object):
 	def __init__(self, data, width):
@@ -85,14 +81,19 @@ class Matrix(object):
 		return self * other
 	def __pow__(self, power):
 		assert(self.width == self.height)
-		M = Id_Matrix(self.width)
-		for i in range(power):
-			M = self * M
-		return M
+		if power == 0:
+			return Id_Matrix(self.width)
+		if power > 0:
+			sqrt = self**(power//2)
+			square = sqrt * sqrt
+			if power % 2 == 1:
+				return self * square
+			else:
+				return square
 	def powers(self, max_power):
 		assert(self.width == self.height)
 		Ms = [Id_Matrix(self.width)]
-		for i in range(max_power):
+		for _ in range(max_power):
 			Ms.append(self * Ms[-1])
 		return Ms
 	def __add__(self, other):
@@ -161,7 +162,7 @@ class Matrix(object):
 		R_width = self.width
 		A = Id_Matrix(self.width)
 		while R_width > 1:
-			for R1, R2 in find_antipodal(R, R_width):
+			for R1, R2 in find_antipodal(R):
 				index = find_one(R1)
 				if index != -1:
 					if R1[index] == -1: R1 = R2  # Swap to R2 to ensure R1[index] > 0

@@ -1,33 +1,26 @@
 
+from __future__ import print_function
+
 import os
 from time import time
 
-import snappy, Flipper
+import Flipper
 
-def bundles(surface_name, word):
-	splitting = Flipper.examples.abstracttriangulation.SURFACES[surface_name](word).splitting_sequence()
-	closed_bundles = [splitting.bundle(i, word) for i in range(len(splitting.closing_isometries))]
-	manifolds = [snappy.Manifold(bundle.snappy_string()) for bundle in closed_bundles]
-	for bundle, manifold in zip(closed_bundles, manifolds):
-		for index, (cusp_type, fibre_slope) in enumerate(zip(bundle.cusp_types, bundle.fibre_slopes)):
-			if cusp_type == 1: manifold.dehn_fill(fibre_slope, index)
-	
-	return manifolds
+import snappy
 
 def with_bundle_structure(manifold_name, surface_name, word):
 	# M = snappy.Manifold(manifold_name)
 	# This should be the same as:
 	M = snappy.twister.Surface(surface_name).bundle(word)
-	
-	buns = bundles(surface_name, word)
-	for B in buns:
+	Bs = Flipper.examples.abstracttriangulation.SURFACES[surface_name](word).splitting_sequence().snappy_manifolds()
+	for B in Bs:
 		if B.is_isometric_to(M):
 			return B
 	
 	print('Could not match %s on %s' % (manifold_name, surface_name))
 	print(M.volume(), M.homology(), M.chern_simons())
 	print('with any of:')
-	for B in buns:
+	for B in Bs:
 		print(B.volume(), B.homology(), B.chern_simons())
 		print(B.identify())
 	return None

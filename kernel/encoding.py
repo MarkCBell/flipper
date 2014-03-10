@@ -275,16 +275,6 @@ class EncodingSequence(object):
 		
 		return (False, None) if certify else False
 	
-	def is_reducible2(self, is_multicurve, certify=False):
-		''' This is insane. Never run this. In fact most of the time Python wont let you as you hit the CInt limit. '''
-		assert(self.source_triangulation == self.target_triangulation)
-		
-		K = (self.zeta ** self.zeta) * (3 ** (self.zeta * self.size))
-		for vector in product(range(K), repeat=self.zeta):
-			if is_multicurve(vector) and self * vector == vector:
-				return (True, vector) if certify else True
-		return (False, None) if certify else False
-	
 	def check_fixedpoint(self, certificate):
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
@@ -296,6 +286,18 @@ class EncodingSequence(object):
 			return NT_TYPE_REDUCIBLE
 		else:
 			return NT_TYPE_PSEUDO_ANOSOV
+	
+	def NT_type_alternate(self):
+		if self.is_periodic():
+			return NT_TYPE_PERIODIC
+		else:
+			# This can also fail with a Flipper.ComputationError if self.invariant_lamination()
+			# fails to find an invariant lamination.
+			try:
+				self.splitting_sequence()
+				return NT_TYPE_PSEUDO_ANOSOV
+			except Flipper.AssumptionError:
+				return NT_TYPE_REDUCIBLE
 	
 	def invariant_lamination(self):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
@@ -334,14 +336,11 @@ class EncodingSequence(object):
 							return self.source_triangulation.lamination(Flipper.kernel.numberfield.number_field_from_integers(curve))
 						else:
 							action_matrix, condition_matrix = self.applied_matrix(curve)
-							try:
-								eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
-								# Check that we actually found the invariant lamination.
-								if not condition_matrix.nonnegative_image(eigenvector):
-									raise Flipper.AssumptionError('Could not estimate invariant lamination.')
-								return self.source_triangulation.lamination(eigenvector)
-							except Flipper.AssumptionError:  # action_matrix was not Perron-Frobenius.
-								pass  # Keep going.
+							eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
+							# Check that we actually found the invariant lamination.
+							if not condition_matrix.nonnegative_image(eigenvector):
+								raise Flipper.AssumptionError('Could not estimate invariant lamination.')
+							return self.source_triangulation.lamination(eigenvector)
 		
 		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	
@@ -359,6 +358,6 @@ class EncodingSequence(object):
 		lamination = self.invariant_lamination()
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
-		splitting = lamination.splitting_sequence(target_dilatation=dilatation)
+		splitting = lamination.splitting_sequence(target_dilatation=dilatation, name=self.name)
 		# new_dilatation = splitting.dilatation()
 		return splitting

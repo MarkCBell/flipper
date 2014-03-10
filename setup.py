@@ -27,7 +27,7 @@ class TestCommand(Command):
 				if not test_name.startswith('_') and test_name != 'Flipper':
 					test = importlib.import_module('Flipper.tests.%s' % test_name)
 					print('Running %s test...' % test_name)
-					print('\tPassed' if test.main() else '\tFailed')
+					print('\tPassed' if test.main() else '\tFAILED')
 
 setup(
 	name='Flipper',

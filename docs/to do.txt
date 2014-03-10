@@ -16,4 +16,6 @@ add unit tests
 
 add set accuracy to AlgebraicApproximation
 
+Lamination should have an associated number field
+
 be able to (half) twist along all curves

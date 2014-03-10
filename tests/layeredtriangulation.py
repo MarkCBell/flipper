@@ -3,11 +3,7 @@ from __future__ import print_function
 
 import Flipper
 
-def build_bundle(word, isometry_number):
-	mapping_class = Flipper.examples.abstracttriangulation.Example_S_1_1(word)
-	# !?! Could throw an ImportError if no SymbolicComputation library is present.
-	splitting = mapping_class.splitting_sequence()
-	return splitting.bundle(isometry_number, word)
+RANDOM_WORD_LENGTH = 10
 
 def main():
 	try:
@@ -17,44 +13,37 @@ def main():
 		return True
 	
 	tests = [
-		('aB', 0, 'm003'),
-		('aB', 1, 'm004'),
-		('Ba', 0, 'm003'),
-		('Ba', 1, 'm004'),
-		('Ab', 0, 'm003'),
-		('Ab', 1, 'm004'),
-		('bA', 0, 'm003'),
-		('bA', 1, 'm004')
+		('aB', 'm003'),
+		('aB', 'm004'),
+		('Ba', 'm003'),
+		('Ba', 'm004'),
+		('Ab', 'm003'),
+		('Ab', 'm004'),
+		('bA', 'm003'),
+		('bA', 'm004')
 		]
 	
-	for word, isometry_number, target_manifold in tests:
-		# try:
-		M = build_bundle(word, isometry_number)
-		# except IndexError:
-			# print('Invalid index.')
-		# else:
-		Ma = snappy.Manifold(M.snappy_string())
-		Mb = snappy.Manifold(target_manifold)
-		if not Ma.is_isometric_to(Mb):
-			print(word, isometry_number, target_manifold)
-			print(Ma.volume(), Mb.volume())
-			print(Ma.homology(), Mb.homology())
-			return False
-	
-	# for _ in range(50):
-		# mapping_class = Example(10)
-		# word = mapping_class.name
-		# print(word)
-		# try:
-			# M = snappy.twister.Surface('S_1_1').bundle(word)
-			# N0 = snappy.Manifold(build_bundle(word, 0))
-			# N1 = snappy.Manifold(build_bundle(word, 1))
-			# if not M.is_isometric_to(N0) and not M.is_isometric_to(N1):
-				# print(M.volume())
-				# print(word)
-				# return False
-		# except (Flipper.AssumptionError, Flipper.ComputationError):
-			# print('Not pA.')
+	try:
+		for word, target_manifold in tests:
+			Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(word).splitting_sequence().snappy_manifolds()
+			N = snappy.Manifold(target_manifold)
+			assert(any(M.is_isometric_to(N) for M in Ms))
+		
+		for _ in range(50):
+			try:
+				Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(RANDOM_WORD_LENGTH).splitting_sequence().snappy_manifolds()
+				N = snappy.twister.Surface('S_1_1').bundle(Ms[0].name())
+				assert(any(M.is_isometric_to(N) for M in Ms))
+			except Flipper.AssumptionError:
+				pass  # Word we chose was not pA.
+			except Flipper.ComputationError:
+				pass  # Mapping class is probably reducible.
+	except ImportError:
+		print('Symbolic computation library required but unavailable, test skipped.')
+	except Flipper.ComputationError:
+		return False  # Mapping class is probably reducible.
+	except AssertionError:
+		return False
 	
 	return True
 

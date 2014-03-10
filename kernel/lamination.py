@@ -249,11 +249,11 @@ class Lamination(object):
 		
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, target_dilatation=None):
-		# Computes the splitting sequence of this lamination where each of the entries an AlgebraicType.
-		#
-		# Assumes that self is a filling lamination. If not, it will discover this along the way and throw an AssumptionFlipper.kernel.error.
-		# We assume that self is given as a list of algebraic numbers or as elements of a NumberField.
+	def splitting_sequence(self, target_dilatation=None, name=''):
+		# Computes the splitting sequence of this lamination until we reach a periodic sequence (with the
+		# required dilatation if given).
+		# We assume that each entry is a NumberFieldElement and that this is a filling lamination. 
+		# If not, it will discover this along the way and throw an AssumptionFlipper.
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
@@ -288,7 +288,7 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+							return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings, name=name)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

@@ -320,7 +320,7 @@ class Triangulation(object):
 		
 		return (meridian_copies, longitude_copies)
 	
-	def SnapPy_string(self):
+	def snappy_string(self):
 		if not self.is_closed(): raise Flipper.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
@@ -336,7 +336,7 @@ class Triangulation(object):
 		s += '\n'
 		s += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:
-			s += tetrahedra.SnapPy_string() + '\n'
+			s += tetrahedra.snappy_string() + '\n'
 		
 		return s
 
@@ -521,7 +521,7 @@ class LayeredTriangulation(object):
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
-			triangle, side = [(triangle, side) for triangle, side in product(self.upper_triangulation, range(3)) if fibre_immersion[triangle][0].cusp_indices[fibre_immersion[triangle][1][side]] == index][0]
+			triangle, side = [(t, s) for t, s in product(self.upper_triangulation, range(3)) if fibre_immersion[t][0].cusp_indices[fibre_immersion[t][1][s]] == index][0]
 			fibre_path = [(fibre_immersion[T][0], fibre_immersion[T][1][s], fibre_immersion[T][1][3]) for T, s in self.upper_triangulation.find_corner_class(triangle, side)]
 			fibre_slopes[index] = closed_triangulation.slope(fibre_path)
 		

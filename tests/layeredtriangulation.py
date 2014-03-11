@@ -13,14 +13,10 @@ def main():
 		return True
 	
 	tests = [
-		('aB', 'm003'),
-		('aB', 'm004'),
-		('Ba', 'm003'),
-		('Ba', 'm004'),
-		('Ab', 'm003'),
-		('Ab', 'm004'),
-		('bA', 'm003'),
-		('bA', 'm004')
+		('aB', 'm003'), ('aB', 'm004'),
+		('Ba', 'm003'), ('Ba', 'm004'),
+		('Ab', 'm003'), ('Ab', 'm004'),
+		('bA', 'm003'), ('bA', 'm004')
 		]
 	
 	try:
@@ -28,7 +24,14 @@ def main():
 			Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(word).splitting_sequence().snappy_manifolds()
 			N = snappy.Manifold(target_manifold)
 			assert(any(M.is_isometric_to(N) for M in Ms))
-		
+	except ImportError:
+		print('Symbolic computation library required but unavailable, test skipped.')
+	except Flipper.ComputationError:
+		return False  # Mapping class is probably reducible.
+	except AssertionError:
+		return False
+	
+	try:
 		for _ in range(50):
 			try:
 				Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(RANDOM_WORD_LENGTH).splitting_sequence().snappy_manifolds()
@@ -40,8 +43,6 @@ def main():
 				pass  # Mapping class is probably reducible.
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
-	except Flipper.ComputationError:
-		return False  # Mapping class is probably reducible.
 	except AssertionError:
 		return False
 	

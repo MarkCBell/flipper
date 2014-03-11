@@ -78,7 +78,7 @@ class Vertex(DrawableObject):
 	def __init__(self, canvas, vertex, options):
 		super(Vertex, self).__init__(canvas, [vertex], options)
 		self.default_colour = self.colour = DEFAULT_VERTEX_COLOUR
-		self.vertex = vertex
+		self.vertex = list(vertex)
 		self.drawn = self.canvas.create_oval([p + scale*self.options.dot_size for scale in [-1, 1] for p in self], outline=self.default_colour, fill=self.default_colour, tag='oval')
 	
 	def __sub__(self, other):
@@ -90,6 +90,9 @@ class Vertex(DrawableObject):
 	
 	def __getitem__(self, key):
 		return self.vertex[key]
+	
+	def __setitem__(self, key, value):
+		self.vertex[key] = value
 	
 	def __contains__(self, point):
 		return all(abs(c - v) < self.options.epsilon for c, v in zip(point, self))

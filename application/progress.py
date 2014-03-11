@@ -54,6 +54,11 @@ class ProgressApp(object):
 		self.parent.lift()
 		self.button_cancel.focus()
 		self.parent.deiconify()
+		self.parent.transient(self.host_app.parent)  # Lock this window on top.
+		# print(self.parent.geometry())  # and start it in the center.
+		x = self.host_app.parent.winfo_rootx() + self.host_app.parent.winfo_width() // 2 - self.parent.winfo_width() // 2
+		y = self.host_app.parent.winfo_rooty() + self.host_app.parent.winfo_height() // 2 - self.parent.winfo_height() // 2
+		self.parent.geometry('+%d+%d' % (x, y))
 	
 	def cancel(self):
 		self.running = False

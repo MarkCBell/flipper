@@ -305,15 +305,22 @@ class EncodingSequence(object):
 		#
 		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that 
 		# the mapping class is not periodic. If not an AssumptionError is thrown.
+		# If the mapping class is:
+		#	periodic then an AssumptionError will be thrown,
+		#	reducible then an AssumptionError or ComputationError might be thrown or an invariant lamination will be returned, or
+		#	pseudo-Anosov then a ComputationError might be thrown or an invariant lamination will be returned.
 		#
 		# The process starts with several curves on the surface and repeatedly applies the map until 
 		# they appear to projectively converge. Finally Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
-		# is used to find the nearby projective fixed point.
+		# is used to find the nearby projective fixed point. Technically if we are in the reducible case we
+		# might need to solve some LP problem over QQbar, but we don't know how to do this (quickly) so we
+		# raise an AssumptionError - signifying that our mapping class is not pseudo-Anosov.
 		#
 		# If these curves do not appear to converge, this is detected and a ComputationError thrown. 
 		#
-		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to
-		# converge after 1000 iterations it's actually extremely likely that the map was not pseudo-Anosov.
+		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
+		# 1000 iterations and a ComputationError is thrown then it's actually extremely likely that the 
+		# map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():

@@ -307,7 +307,7 @@ class FlipperApp(object):
 		if path != '':
 			try:
 				spec = 'A Flipper file.'
-				vertices = [(vertex.x, vertex.y) for vertex in self.vertices]
+				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
@@ -427,8 +427,8 @@ class FlipperApp(object):
 	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:
-			vertex.x += dx
-			vertex.y += dy
+			vertex[0] = vertex[0] + dx
+			vertex[1] = vertex[1] + dy
 		
 		for curve_component in self.curve_components + self.train_track_blocks:
 			for i in range(len(curve_component.vertices)):
@@ -438,7 +438,7 @@ class FlipperApp(object):
 	
 	def zoom(self, scale):
 		for vertex in self.vertices:
-			vertex.x, vertex.y = scale * vertex.x, scale * vertex.y
+			vertex[0], vertex[1] = scale * vertex[0], scale * vertex[1]
 			vertex.update()
 		for edge in self.edges:
 			edge.update()

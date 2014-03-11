@@ -126,7 +126,7 @@ class FlipperApp(object):
 		
 		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
 		
-		self.frame_interface = TK.Frame(self.parent, width=50)
+		self.frame_interface = TK.Frame(self.parent)
 		###
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
 		self.treeview_objects.heading('#0', text='Objects:', anchor='w')
@@ -164,7 +164,7 @@ class FlipperApp(object):
 		self.entry_command.focus()
 		###
 		
-		self.panels.add(self.frame_interface)
+		self.panels.add(self.frame_interface, width=250)  # Make sure to set an inital width.
 		self.panels.add(self.frame_draw)
 		self.panels.pack(fill='both', expand=True)
 		self.frame_command.pack(fill='x', expand=False)

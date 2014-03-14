@@ -4,9 +4,9 @@ from itertools import product, permutations
 
 import Flipper
 
-def main():
+def main(n=4):
 	# Get some example permutations.
-	all_perms = Flipper.kernel.permutation.all_permutations(4)
+	all_perms = Flipper.kernel.permutation.all_permutations(n)
 	
 	try:
 		# Check that there are the same number of odd and even permutations.

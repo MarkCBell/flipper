@@ -255,7 +255,7 @@ class Triangulation3(object):
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Flipper.AbstractTriangulation3([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()

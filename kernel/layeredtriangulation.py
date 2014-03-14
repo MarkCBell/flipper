@@ -2,7 +2,7 @@
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 
-# Warning: LayeredTriangulation modifies itself in place!
+# Warning: LayeredTriangulation3 modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
 from itertools import permutations, combinations, product
@@ -91,7 +91,7 @@ class Tetrahedron(object):
 		s += ' 0.000000000000 0.000000000000\n'
 		return s
 
-class Triangulation(object):
+class Triangulation3(object):
 	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
@@ -103,7 +103,7 @@ class Triangulation(object):
 	
 	def copy(self):
 		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
-		new_triangulation = Triangulation(self.num_tetrahedra, self.name)
+		new_triangulation = Triangulation3(self.num_tetrahedra, self.name)
 		forwards = dict(zip(self, new_triangulation))
 		
 		for tetrahedron in self:
@@ -255,7 +255,7 @@ class Triangulation(object):
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.AbstractTriangulation3([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -312,7 +312,7 @@ class Triangulation(object):
 		# Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes. 
 		# Assumes that the meridian and longitude on this cusp have been set.
 		
-		# See Triangulation.slope(path).
+		# See Triangulation3.slope(path).
 		longitude_intersection = self.intersection_number(LONGITUDES, TEMPS)
 		meridian_intersection = self.intersection_number(MERIDIANS, TEMPS)
 		longitude_copies = -meridian_intersection
@@ -325,7 +325,7 @@ class Triangulation(object):
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		s = ''
-		s += '% Triangulation\n'
+		s += '% Triangulation3\n'
 		s += '%s\n' % self.name
 		s += 'not_attempted 0.0\n'
 		s += 'oriented_manifold\n'
@@ -340,22 +340,22 @@ class Triangulation(object):
 		
 		return s
 
-# A class to represent a layered triangulation over a surface specified by an Flipper.kernel.abstracttriangulation.
+# A class to represent a layered triangulation over a surface specified by a Flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
 	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
-		self.core_triangulation = Triangulation(2 * abstract_triangulation.num_triangles, name)
+		self.core_triangulation = Triangulation3(2 * abstract_triangulation.num_triangles, name)
 		
 		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
 		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
-			lower.glue(3, upper, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
+			lower.glue(3, upper, Flipper.kernel.Permutation((0, 2, 1, 3)))
 		
 		# We store two maps, one from the lower triangulation and one from the upper.
 		# Each is a dictionary sending each AbstractTriangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, Flipper.kernel.permutation.Permutation((0, 1, 2, 3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		self.lower_map = dict((lower, (lower_tetra, Flipper.kernel.Permutation((0, 1, 2, 3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
+		self.upper_map = dict((upper, (upper_tetra, Flipper.kernel.Permutation((0, 2, 1, 3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -367,7 +367,7 @@ class LayeredTriangulation(object):
 		return s
 	
 	def flip(self, edge_index):
-		# MEGA WARNINNG: This is reliant on knowing how Flipper.kernel.abstracttriangulation.flip() relabels things!
+		# MEGA WARNINNG: This is reliant on knowing how Flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
 		assert(self.upper_triangulation.edge_is_flippable(edge_index))
 		
 		# Get a new tetrahedra.
@@ -394,8 +394,8 @@ class LayeredTriangulation(object):
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		
-		new_tetrahedron.glue(1, object_A, Flipper.kernel.permutation.Permutation((2, 3, 1, 0)))
-		new_tetrahedron.glue(3, object_B, Flipper.kernel.permutation.Permutation((1, 0, 2, 3)))
+		new_tetrahedron.glue(1, object_A, Flipper.kernel.Permutation((2, 3, 1, 0)))
+		new_tetrahedron.glue(3, object_B, Flipper.kernel.Permutation((1, 0, 2, 3)))
 		
 		# Get the new upper triangulation
 		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
@@ -410,8 +410,8 @@ class LayeredTriangulation(object):
 			new_upper_map[new_triangle] = self.upper_map[old_triangle]
 		
 		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		new_upper_map[new_A] = (object_A, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
-		new_upper_map[new_B] = (object_B, Flipper.kernel.permutation.Permutation((0, 2, 1, 3)))
+		new_upper_map[new_A] = (object_A, Flipper.kernel.Permutation((0, 2, 1, 3)))
+		new_upper_map[new_B] = (object_B, Flipper.kernel.Permutation((0, 2, 1, 3)))
 		
 		# Finally, install the new objects.
 		self.upper_triangulation = new_upper_triangulation

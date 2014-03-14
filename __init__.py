@@ -29,6 +29,7 @@ Flipper.kernel.SplittingSequence = Flipper.kernel.splittingsequence.SplittingSeq
 Flipper.kernel.Empty_Matrix = Flipper.kernel.matrix.Empty_Matrix
 Flipper.kernel.Id_Matrix = Flipper.kernel.matrix.Id_Matrix
 Flipper.kernel.Zero_Matrix = Flipper.kernel.matrix.Zero_Matrix
+Flipper.kernel.Integer_Type = Flipper.kernel.types.Integer_Type
 
 
 # And really short names for the most commonly used classes and functions by users.
@@ -36,11 +37,8 @@ Flipper.AbortError = Flipper.kernel.AbortError
 Flipper.ApproximationError = Flipper.kernel.ApproximationError
 Flipper.AssumptionError = Flipper.kernel.AssumptionError
 Flipper.ComputationError = Flipper.kernel.ComputationError
-Flipper.Lamination = Flipper.kernel.Lamination
 Flipper.AbstractTriangulation = Flipper.kernel.AbstractTriangulation
-Flipper.Isometry = Flipper.kernel.Isometry
-Flipper.Matrix = Flipper.kernel.Matrix
-Flipper.Polynomial = Flipper.kernel.Polynomial
+Flipper.Lamination = Flipper.kernel.Lamination
 
 Flipper.isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
-Flipper.Integer_Type = Flipper.kernel.types.Integer_Type
+Flipper.Integer_Type = Flipper.kernel.Integer_Type

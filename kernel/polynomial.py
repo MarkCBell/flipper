@@ -49,4 +49,4 @@ class Polynomial(object):
 			raise Flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
 		
 		scale = -1 if self[-1] == 1 else 1
-		return Flipper.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)

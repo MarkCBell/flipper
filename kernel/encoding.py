@@ -8,6 +8,24 @@ NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
+class PartialFunction(object):
+	def __init__(self, source_triangulation, target_triangulation, action, condition=None):
+		if condition is None: condition = Flipper.kernel.Empty_Matrix(source_triangulation.zeta)
+		self.action = action
+		self.condition = condition
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
+	
+	def __call__(self, other):
+		return self * other
+	
+	def __mul__(self, other):
+		if isinstance(other, Flipper.kernel.Lamination) and other.abstract_triangulation == self.source_triangulation:
+			if self.condition.nonnegative_image(other.vector):
+				return self.target_triangulation.lamination(self.action * other.vector)
+		
+		raise TypeError('Object is not in domain.')
+
 # These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
 
 class Encoding(object):
@@ -26,7 +44,6 @@ class Encoding(object):
 		self.condition_matrices = conditions
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
-		self.zeta = zeta
 		self.name = name
 	
 	def __str__(self):
@@ -34,8 +51,6 @@ class Encoding(object):
 	def __len__(self):
 		return self.size
 	def __eq__(self, other):
-		if self.size != other.size: return False
-		if self.zeta != other.zeta: return False
 		for i in range(self.size):
 			if all(self.action_matrices[i] != other.action_matrices[j] or not self.condition_matrices[i].equivalent(other.condition_matrices[j]) for j in range(other.size)):
 				return False
@@ -44,24 +59,17 @@ class Encoding(object):
 		return self * other
 	def __mul__(self, other):
 		# Should have some more asserts here to check we're going between matching triangulations.
-		if isinstance(other, EncodingSequence):
-			return EncodingSequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, Encoding):
+		if isinstance(other, Encoding):
 			return EncodingSequence([self, other], other.source_triangulation, self.target_triangulation)
-		elif isinstance(other, Flipper.kernel.lamination.Lamination):
+		elif isinstance(other, EncodingSequence):
+			return EncodingSequence([self] + other.sequence, other.source_triangulation, self.target_triangulation)
+		elif isinstance(other, Flipper.kernel.Lamination):
 			return self.target_triangulation.lamination(self * other.vector)
 		elif isinstance(other, list):
 			for i in range(self.size):
 				if self.condition_matrices[i].nonnegative_image(other):
 					return self.action_matrices[i] * other
 			raise IndexError
-		elif other is None:
-			return EncodingSequence([self], self.source_triangulation, self.target_triangulation)
-		else:
-			return NotImplemented
-	def __rmul__(self, other):
-		if other is None:
-			return EncodingSequence([self], self.source_triangulation, self.target_triangulation)
 		else:
 			return NotImplemented
 	def __pow__(self, n):
@@ -81,7 +89,6 @@ class Encoding(object):
 		return Encoding([matrix.copy() for matrix in self.action_matrices], [matrix.copy() for matrix in self.condition_matrices], self.source_triangulation, self.target_triangulation)
 	def inverse(self):
 		# Assumes that the matrices are invertible square.
-		assert(self.source_triangulation.zeta == self.target_triangulation.zeta)
 		X = [self.action_matrices[i].inverse() for i in range(self.size)]  # This is the very slow bit.
 		Y = [self.condition_matrices[i] * X[i] for i in range(self.size)]
 		return Encoding(X, Y, self.target_triangulation, self.source_triangulation)
@@ -179,8 +186,8 @@ class EncodingSequence(object):
 		''' Given indices = [a_0, ..., a_k] this returns the action and condition matrix of
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
-		As = Flipper.kernel.matrix.Id_Matrix(self.zeta)
-		Cs = Flipper.kernel.matrix.Empty_Matrix(self.zeta)
+		As = Flipper.kernel.Id_Matrix(self.zeta)
+		Cs = Flipper.kernel.Empty_Matrix(self.zeta)
 		for E, i in zip(reversed(self), indices):
 			Cs = Cs.join(E.condition_matrices[i] * As)
 			As = E.action_matrices[i] * As
@@ -245,7 +252,7 @@ class EncodingSequence(object):
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
-		M6 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
+		M6 = Flipper.kernel.Id_Matrix(self.zeta)
 		buckets = {}
 		indices = [0]
 		while indices != []:
@@ -259,12 +266,12 @@ class EncodingSequence(object):
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
-					M2 = As - M6  # As - Flipper.kernel.matrix.Id_Flipper.kernel.matrix.
-					M3 = M6 - As  # Flipper.kernel.matrix.Id_Matrix - As.
+					M2 = As - M6  # As - Flipper.kernel.Id_Matrix.
+					M3 = M6 - As  # Flipper.kernel.Id_Matrix - As.
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M6 = Flipper.kernel.matrix.Id_Matrix(self.zeta)
+					# M6 = Flipper.kernel.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					S, certificate = P.nontrivial_polytope()
 					if S:

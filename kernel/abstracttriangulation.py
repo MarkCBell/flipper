@@ -267,7 +267,7 @@ class AbstractTriangulation(object):
 	
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector):
-		return Flipper.kernel.lamination.Lamination(self, vector)
+		return Flipper.Lamination(self, vector)
 	
 	def empty_lamination(self):
 		return self.lamination([0] * self.zeta)
@@ -286,10 +286,10 @@ class AbstractTriangulation(object):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def Id_Encoding(self):
-		return Flipper.kernel.encoding.Encoding([Flipper.kernel.matrix.Id_Matrix(self.zeta)], [Flipper.kernel.matrix.Empty_Matrix(self.zeta)], self, self)
+		return Flipper.kernel.Encoding([Flipper.kernel.matrix.Id_Matrix(self.zeta)], [Flipper.kernel.matrix.Empty_Matrix(self.zeta)], self, self)
 	
 	def Id_EncodingSequence(self):
-		return Flipper.kernel.encoding.EncodingSequence([], self, self)
+		return Flipper.kernel.EncodingSequence([], self, self)
 	
 	def encode_flip(self, edge_index, both=False):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
@@ -306,7 +306,7 @@ class AbstractTriangulation(object):
 		Flipper.kernel.matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
 		C2 = Flipper.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
 		
-		forwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], self, new_triangulation)
-		backwards = Flipper.kernel.encoding.Encoding([A1, A2], [C1, C2], new_triangulation, self)
+		forwards = Flipper.kernel.Encoding([A1, A2], [C1, C2], self, new_triangulation)
+		backwards = Flipper.kernel.Encoding([A1, A2], [C1, C2], new_triangulation, self)
 		
 		return (forwards, backwards) if both else forwards

@@ -14,7 +14,7 @@ import Flipper
 
 class NumberField(object):
 	def __init__(self, polynomial=None):
-		if polynomial is None: polynomial = Flipper.Polynomial([-1, 1])
+		if polynomial is None: polynomial = Flipper.kernel.Polynomial([-1, 1])
 		
 		self.polynomial = polynomial
 		self.polynomial_coefficients = self.polynomial.coefficients
@@ -99,7 +99,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
 			
-			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.matrix.Zero_Matrix(self.number_field.degree))
+			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.Zero_Matrix(self.number_field.degree))
 			return NumberFieldElement(self.number_field, M * other.linear_combination)
 		elif isinstance(other, Flipper.Integer_Type):
 			w = [a * other for a in self]

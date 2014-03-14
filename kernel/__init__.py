@@ -14,4 +14,3 @@ import Flipper.kernel.polynomial
 import Flipper.kernel.splittingsequence
 import Flipper.kernel.symboliccomputation
 import Flipper.kernel.types
-

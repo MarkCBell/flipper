@@ -15,7 +15,7 @@ import Flipper
 #
 # Each library provides two functions:
 #	PF_eigen(matrix):
-#		Given a Perron-Frobenius matrix (of type Flipper.kernel.matrix.Matrix) with PF eigenvalue / vector L, v 
+#		Given a Perron-Frobenius matrix (of type Flipper.kernel.Matrix) with PF eigenvalue / vector L, v 
 #		(i.e. the unique eigenvalue with largest absolute value) this must return a pair (c, l) where:
 #			c is a list of the coefficients of the minimal polynomial of L, and 
 #			v is either: 
@@ -56,7 +56,7 @@ def algebraic_approximation_largest_root(polynomial, accuracy):
 def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector = symbolic_computation_library.PF_eigen(matrix)
-	eigenvalue_polynomial = Flipper.Polynomial(eigenvalue_coefficients)
+	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
 	if eigenvector is None:
 		# We will calculate the eigenvector ourselves.
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
@@ -69,15 +69,15 @@ def Perron_Frobenius_eigen(matrix):
 		d = eigenvalue_polynomial.degree
 		n = matrix.width
 		
-		Id_d = Flipper.kernel.matrix.Id_Matrix(d)
+		Id_d = Flipper.kernel.Id_Matrix(d)
 		eigen_companion = eigenvalue_polynomial.companion_matrix()
 		
 		M2 = matrix.substitute_row(0, [1] * n)
-		M3 = Flipper.kernel.matrix.Id_Matrix(n).substitute_row(0, [0] * n)
+		M3 = Flipper.kernel.Id_Matrix(n).substitute_row(0, [0] * n)
 		M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
 		
 		solution = M4.solve([1] + [0] * (len(M4)-1))
 		eigenvector = [solution[i:i+d] for i in range(0, len(solution), d)]
 	
-	N = Flipper.kernel.numberfield.NumberField(eigenvalue_polynomial)
+	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
 	return [N.element(v) for v in eigenvector]

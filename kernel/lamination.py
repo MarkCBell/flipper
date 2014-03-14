@@ -153,7 +153,7 @@ class Lamination(object):
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
 		
 		zeta1 = self.abstract_triangulation.zeta
-		M = Flipper.kernel.matrix.Id_Matrix(zeta1) * 2
+		M = Flipper.kernel.Id_Matrix(zeta1) * 2
 		
 		new_labels = []
 		new_corner_labels = []
@@ -169,7 +169,7 @@ class Lamination(object):
 				new_corner_labels.append([1, 0, 0])
 				new_corner_labels.append([1, 0, 0])
 				
-				M = M.join(Flipper.kernel.matrix.tweak_matrix(Flipper.kernel.matrix.Zero_Matrix(zeta1, 3), [(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)]))
+				M = M.join(Flipper.kernel.matrix.tweak_matrix(Flipper.kernel.Zero_Matrix(zeta1, 3), [(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)]))
 				
 				zeta = zeta + 3
 			else:
@@ -177,7 +177,7 @@ class Lamination(object):
 				new_corner_labels.append([0, 0, 0])
 		
 		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return Flipper.kernel.encoding.Encoding([M], [Flipper.kernel.matrix.Empty_Matrix(zeta1)], self.abstract_triangulation, T)
+		return Flipper.kernel.Encoding([M], [Flipper.kernel.Empty_Matrix(zeta1)], self.abstract_triangulation, T)
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -288,7 +288,7 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							return Flipper.kernel.splittingsequence.SplittingSequence(self, None, laminations[index:], flips[index:], encodings, name=name)
+							return Flipper.kernel.SplittingSequence(self, None, laminations[index:], flips[index:], encodings, name=name)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

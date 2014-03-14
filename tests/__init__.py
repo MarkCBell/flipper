@@ -7,8 +7,11 @@
 
 import Flipper.tests.abstracttriangulation
 import Flipper.tests.algebraicapproximation
+import Flipper.tests.encoding
 import Flipper.tests.interval
 import Flipper.tests.lamination
 import Flipper.tests.layeredtriangulation
 import Flipper.tests.matrix
+import Flipper.tests.numberfield
+import Flipper.tests.permutation
 import Flipper.tests.polynomial

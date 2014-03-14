@@ -40,17 +40,16 @@ class NumberField(object):
 			self.current_accuracy = 2 * accuracy  # We'll actually work to double what is requested.
 			self.algebraic_approximations = [self.polynomial.algebraic_approximate_leading_root(self.current_accuracy, power=index) for index in range(self.degree)]
 	
+	def __repr__(self):
+		return 'QQ[%s]' % str(self.polynomial)
+	def __eq__(self, other):
+		return self.polynomial == other.polynomial
+	
 	def element(self, linear_combination):
 		return NumberFieldElement(self, linear_combination)
 	
 	def is_QQ(self):
 		return self.degree == 1
-	
-	def __iter__(self):
-		return iter(self.generator_d)
-	
-	def __repr__(self):
-		return 'QQ[%s]' % str(self.polynomial)
 
 class NumberFieldElement(object):
 	def __init__(self, number_field, linear_combination):
@@ -77,7 +76,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a+b for a, b in zip(self, other)])
-		elif isinstance(other, Flipper.Integer_Type):
+		elif isinstance(other, Flipper.kernel.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] + other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -88,7 +87,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot subtract elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a-b for a, b in zip(self, other)])
-		elif isinstance(other, Flipper.Integer_Type):
+		elif isinstance(other, Flipper.kernel.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] - other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -100,10 +99,9 @@ class NumberFieldElement(object):
 				raise TypeError('Cannot add elements of different number fields.')
 			
 			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.Zero_Matrix(self.number_field.degree))
-			return NumberFieldElement(self.number_field, M * other.linear_combination)
-		elif isinstance(other, Flipper.Integer_Type):
-			w = [a * other for a in self]
-			return NumberFieldElement(self.number_field, w)
+			return self.number_field.element(M * other.linear_combination)
+		elif isinstance(other, Flipper.kernel.Integer_Type):
+			return self.number_field.element([a * other for a in self])
 		else:
 			return NotImplemented
 	def __rmul__(self, other):
@@ -187,20 +185,6 @@ class NumberFieldElement(object):
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
-
-def NumberFieldVector(object):
-	def __init__(self, number_field, linear_combinations):
-		self.number_field = number_field
-		self.elements = [self.number_field.element(linear_combination) for linear_combination in self.linear_combinations]
-	
-	def __iter__(self):
-		return iter(self.elements)
-	
-	def __getitem__(self, index):
-		return self.elements[index]
-	
-	def __setitem__(self, index, other):
-		self.elements[index] = other
 
 def number_field_from_integers(integers):
 	N = NumberField()

@@ -31,7 +31,7 @@ class Isometry(object):
 			assert(other.target_triangulation == self.source_triangulation)
 			new_triangle_map = dict((triangle, self.apply(*other[triangle])) for triangle in other.source_triangulation)
 			return Isometry(other.source_triangulation, self.target_triangulation, new_triangle_map)
-		elif isinstance(other, Flipper.Lamination) and self.source_triangulation == other.abstract_triangulation:
+		elif isinstance(other, Flipper.kernel.Lamination) and self.source_triangulation == other.abstract_triangulation:
 			return self.target_triangulation.lamination([other[j] for i in range(self.zeta) for j in range(self.zeta) if i == self.edge_map[j]])
 		else:
 			return NotImplemented

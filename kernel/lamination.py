@@ -102,7 +102,8 @@ class Lamination(object):
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
-			forwards, backwards = lamination.abstract_triangulation.encode_flip(edge_index, both=True)
+			forwards = lamination.abstract_triangulation.encode_flip(edge_index)
+			backwards = forwards.inverse()
 			conjugation = forwards * conjugation
 			conjugation_inverse = conjugation_inverse * backwards
 			lamination = forwards * lamination
@@ -177,7 +178,7 @@ class Lamination(object):
 				new_corner_labels.append([0, 0, 0])
 		
 		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return Flipper.kernel.Encoding([M], [Flipper.kernel.Empty_Matrix(zeta1)], self.abstract_triangulation, T)
+		return Flipper.kernel.Encoding([Flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 

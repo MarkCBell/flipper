@@ -41,13 +41,14 @@ class Isometry(object):
 	def inverse(self):
 		Id_Perm = Flipper.kernel.Permutation([0, 1, 2])
 		possible_inverses = self.target_triangulation.all_isometries(self.source_triangulation)
-		return [isom for isom in possible_inverses if all((isom*self)[triangle] == (triangle, Id_Perm) for triangle in self.source_triangulation)][0]
+		return [isom for isom in possible_inverses if all((isom * self)[triangle] == (triangle, Id_Perm) for triangle in self.source_triangulation)][0]
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
+	def permutation_matrix(self):
+		return Flipper.kernel.matrix.Permutation_Matrix(self.edge_map)
 	def encode_isometry(self):
-		return Flipper.kernel.Encoding([Flipper.kernel.matrix.Permutation_Matrix(self.edge_map)], [Flipper.kernel.Empty_Matrix(self.source_triangulation.zeta)], self.source_triangulation, self.target_triangulation)
-
+		return Flipper.kernel.Encoding([Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation_matrix())])
 
 #### Some special Isometries we know how to build.
 

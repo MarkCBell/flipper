@@ -14,6 +14,8 @@ class Permutation(object):
 		return self.permutation[index]
 	def __len__(self):
 		return len(self.permutation)
+	def __hash__(self):
+		return hash(self.permutation)
 	def __mul__(self, other):
 		assert(len(self) == len(other))
 		return Permutation([self[other[i]] for i in range(len(self))])
@@ -24,13 +26,11 @@ class Permutation(object):
 	def inverse(self):
 		return Permutation([j for i in range(len(self)) for j in range(len(self)) if self[j] == i])
 	def is_even(self):
-		even = True
-		for j, i in combinations(range(len(self)), 2):
-			if self[j] > self[i]: even = not even
-		return even
+		return len([(i, j) for j, i in combinations(range(len(self)), 2) if self[j] > self[i]]) % 2 == 0
 	def embed(self, n):
 		# Returns the permutation given by including this permutation into Sym(n). Assumes n >= len(self).
-		assert(n >= len(self))
+		if n < len(self):
+			raise Flipper.AssumptionError('Cannot embed permutation into smaller symmetric group.')
 		return Permutation(list(self.permutation) + list(range(len(self), n)))
 
 #### Some special Permutations we know how to build.
@@ -41,28 +41,12 @@ def Id_Permutation(n):
 def cyclic_permutation(cycle, n):
 	return Permutation([(cycle + i) % n for i in range(n)])
 
+def all_permutations(n):
+	return [Permutation(perm) for perm in permutations(range(n), n)]
+
 def permutation_from_mapping(n, mapping, even):
-	# v = [None] * (len(mapping) + 2)
-	# for (source, target) in mapping:
-		# v[source] = target
-	
-	# sources, targets = zip(*mapping)
-	# a, b = list(set(range(len(v))).difference(set(sources)))
-	# p, q = list(set(range(len(v))).difference(set(targets)))
-	# v1, v2 = list(v), list(v)
-	# v1[a] = p
-	# v1[b] = q
-	# P1 = Permutation(v1)
-	# if P1.is_even() == even: return P1
-	
-	# v2[a] = q
-	# v2[b] = p
-	# P2 = Permutation(v2)
-	# if P2.is_even() == even: return P2
-	
-	for perm in permutations(range(n), n):
-		P = Permutation(perm)
+	for P in all_permutations(n):
 		if P.is_even() == even and all(P[source] == target for (source, target) in mapping):
 			return P
 	
-	raise TypeError('Not a valid permutation.')  # !?! To Do.
+	raise TypeError('Not a valid permutation.')

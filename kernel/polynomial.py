@@ -15,7 +15,8 @@ class Polynomial(object):
 		self.algebraic_approximation = self.degree * self.height
 		self.accuracy = 0
 		r = max(self.degree, 1) * self.height
-		self.interval = Flipper.kernel.Interval(-r, r, 0)
+		# self.interval = Flipper.kernel.Interval(-r, r, 0)
+		self.interval = Flipper.kernel.Interval(0, r, 0)
 	
 	def copy(self):
 		return Polynomial(self.coefficients)
@@ -35,6 +36,23 @@ class Polynomial(object):
 	def __getitem__(self, item):
 		return self.coefficients[item]
 	
+	def __add__(self, other):
+		if isinstance(other, Polynomial):
+			m = max(self.degree, other.degree)
+			return Polynomial([a + b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
+	
+	def __sub__(self, other):
+		if isinstance(other, Polynomial):
+			m = max(self.degree, other.degree)
+			return Polynomial([a - b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
+	
+	def __mul__(self, other):
+		if isinstance(other, Flipper.kernel.Integer_Type):
+			return Polynomial([a * other for a in self])
+	
+	def shift(self, power):
+		return Polynomial([0] * power + self.coefficients)
+	
 	def __call__(self, other):
 		return sum(a * other**index for index, a in enumerate(self))
 	def __mod__(self, other):
@@ -46,7 +64,8 @@ class Polynomial(object):
 			D = other.copy()
 			while N.degree >= D.degree:
 				# N = D[-1] * N - N[-1] * D.shift(N.degree - D.degree)
-				N = Polynomial([D[-1] * coeffN - coeffd * N[-1] for coeffN, coeffd in zip(N, [0]*(N.degree - D.degree) + D.coefficients)])
+				N = N * D[-1] - D.shift(N.degree - D.degree) * N[-1]
+				N = Polynomial([coeffN * D[-1] - coeffd * N[-1] for coeffN, coeffd in zip(N, [0]*(N.degree - D.degree) + D.coefficients)])
 			return N
 		else:
 			return NotImplemented
@@ -68,16 +87,18 @@ class Polynomial(object):
 		
 		return sturm_chain
 	
-	def num_roots(self, interval):
-		lower_signs, upper_signs = zip(*[f.signs_at_interval_endpoints(interval) for f in self.sturm_chain()])
+	def num_roots(self, interval, chain=None):
+		if chain is None: chain = self.sturm_chain()
+		lower_signs, upper_signs = zip(*[f.signs_at_interval_endpoints(interval) for f in chain])
 		lower_non_zero_signs = [x for x in lower_signs if x != 0]
 		upper_non_zero_signs = [x for x in upper_signs if x != 0]
 		lower_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]))
 		upper_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]))
 		return lower_sign_changes - upper_sign_changes
 
-	def subdivide_iterate(self, interval):
-		return [I for I in interval.subdivide() if self.num_roots(I) > 0][-1]
+	def subdivide_iterate(self, interval, chain=None):
+		if chain is None: chain = self.sturm_chain()
+		return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -94,6 +115,16 @@ class Polynomial(object):
 		K = J - self(J) / self.derivative()(interval)
 		L = K.change_denominator(K.accuracy * 2)
 		return L.intersect(interval)
+	
+	def converge_iterate(self, interval, accuracy):
+		chain = self.sturm_chain()
+		while interval.accuracy < accuracy:
+			try:
+				interval = self.NR_iterate(interval)
+			except:
+				interval = self.subdivide_iterate(interval, chain)
+		
+		return interval
 	
 	def increase_accuracy(self, accuracy):
 		# Eventually we will find the interval ourselves, however at the minute sage is much faster so

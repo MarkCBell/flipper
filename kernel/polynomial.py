@@ -64,8 +64,9 @@ class Polynomial(object):
 			D = other.copy()
 			while N.degree >= D.degree:
 				# N = D[-1] * N - N[-1] * D.shift(N.degree - D.degree)
-				N = N * D[-1] - D.shift(N.degree - D.degree) * N[-1]
-				N = Polynomial([coeffN * D[-1] - coeffd * N[-1] for coeffN, coeffd in zip(N, [0]*(N.degree - D.degree) + D.coefficients)])
+				sign = -1 if D[-1] < 0 else 1  # We can never have the leading coefficient 0.
+				N = N * sign * D[-1] - D.shift(N.degree - D.degree) * sign * N[-1]
+				# N = Polynomial([coeffN * D[-1] - coeffd * N[-1] for coeffN, coeffd in zip(N, [0]*(N.degree - D.degree) + D.coefficients)])
 			return N
 		else:
 			return NotImplemented
@@ -95,7 +96,7 @@ class Polynomial(object):
 		lower_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]))
 		upper_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]))
 		return lower_sign_changes - upper_sign_changes
-
+	
 	def subdivide_iterate(self, interval, chain=None):
 		if chain is None: chain = self.sturm_chain()
 		return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
@@ -130,8 +131,11 @@ class Polynomial(object):
 		# Eventually we will find the interval ourselves, however at the minute sage is much faster so
 		# we'll just use that.
 		if self.accuracy < accuracy:
-			self.algebraic_approximation = Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy)
-			self.accuracy = accuracy
+			#self.algebraic_approximation = Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy)
+			#self.accuracy = accuracy
+			self.interval = self.converge_iterate(self.interval, accuracy)
+			self.algebraic_approximation = Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
+			self.accuracy = self.interval.accuracy
 	
 	def algebraic_approximate_leading_root(self, accuracy, power=1):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power

@@ -46,13 +46,9 @@ class Interval(object):
 	
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
-		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
-		return '%s.%s?' % (s[:len(s)-self.precision], s[len(s)-self.precision:len(s)-self.precision+accuracy])
-	def interval_string(self):
-		# Remember to take into account that the '-' sign uses a character.
-		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
-		t = str(self.upper).zfill(self.precision + (1 if self.upper >= 0 else 2))
-		return '(%s.%s, %s.%s)' % (s[:len(s)-self.precision], s[len(s)-self.precision:], t[:len(t)-self.precision], t[len(t)-self.precision:])
+		m = self.lower // 10**(self.precision - accuracy)
+		s = str(m).zfill(self.precision + (1 if self.lower >= 0 else 2))
+		return '%s.%s?' % (s[:-accuracy], s[accuracy:])
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
 	def change_denominator(self, new_denominator):

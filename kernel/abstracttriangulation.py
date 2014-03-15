@@ -58,7 +58,7 @@ class AbstractTriangulation(object):
 		
 		self.num_vertices = len(self.corner_classes)
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
-		self.max_order = 6 - 6 * self.Euler_characteristic  # The maximum order of a periodic mapping class. # !?! CHECK THIS IN THE PRIMER.
+		self.max_order = 6 - 2 * self.Euler_characteristic  # The maximum order of a periodic mapping class. # !?! CHECK THIS IN THE PRIMER.
 		self._face_matrix = None
 		self._marking_matrices = None
 		

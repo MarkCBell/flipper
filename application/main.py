@@ -481,47 +481,61 @@ class FlipperApp(object):
 			sections = command.split(' ')
 			task, arguements = sections[0], sections[1:]
 			combined = ' '.join(arguements)
-			try:
-				optionless_tasks = {
-				'new': self.initialise,
-				'erase': self.destroy_lamination,
-				'help': self.show_help,
-				'about': self.show_about,
-				'exit': self.quit,
-				'information': self.show_surface_information,
-				'zoom': self.auto_zoom,
-				'tighten': self.tighten_lamination
+			num_arguements = {
+				'new': [0],
+				'erase': [0],
+				'help': [0],
+				'about': [0],
+				'exit': [0],
+				'information': [0],
+				'zoom': [0],
+				'tighten': [0], 
+				'ngon': [1],
+				'rngon': [1],
+				'lamination': [1],
+				'twist': [1],
+				'half': [1],
+				'isometry': [4],
+				'compose': [2],
+				'apply': [1],
+				'order': [1],
+				'type': [1],
+				'invariant_lamination': [1],
+				'bundle': [1] 
 				}
+			if task not in num_arguements:
+				tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
+			elif len(arguements) not in num_arguements[task]:
+				tkMessageBox.showwarning('Command', 'Command requires %s arguments but %d were provided.' % (num_arguements[task], len(arguements)))
+			else:
+				tasks = {
+					'new': self.initialise,
+					'erase': self.destroy_lamination,
+					'help': self.show_help,
+					'about': self.show_about,
+					'exit': self.quit,
+					'information': self.show_surface_information,
+					'zoom': self.auto_zoom,
+					'tighten': self.tighten_lamination,
+					'ngon': self.initialise_circular_n_gon,
+					'rngon': self.initialise_radial_n_gon,
+					'lamination': self.store_lamination,
+					'twist': self.store_twist,
+					'half': self.store_halftwist,
+					'isometry': self.store_isometry,
+					'compose': self.store_composition,
+					'apply': self.show_apply,
+					'order': self.order,
+					'type': self.NT_type,
+					'invariant_lamination': self.invariant_lamination,
+					'bundle': self.build_bundle
+					}
 				
-				option_tasks = {
-				'save': self.save,
-				'open': self.load,
-				'export_image': self.export_image,
-				'export_script': self.export_script,
-				'ngon': self.initialise_circular_n_gon,
-				'rngon': self.initialise_radial_n_gon,
-				'lamination': self.store_lamination,
-				'twist': self.store_twist,
-				'half': self.store_halftwist,
-				'isometry': self.store_isometry,
-				'compose': self.store_composition,
-				'apply': self.show_apply,
-				'order': self.order,
-				'type': self.NT_type,
-				'invariant_lamination': self.invariant_lamination,
-				'split': self.splitting_sequence,
-				'bundle': self.build_bundle
-				}
-				
-				if task in optionless_tasks:
-					optionless_tasks[task]()
-				elif task in option_tasks:
-					option_tasks[task](combined)
-				else:
-					tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
-				self.entry_command.delete(0, TK.END)
-			except IndexError:
-				tkMessageBox.showwarning('Command', 'Command requires more arguments.')
+				if num_arguements[task] == 0:
+					tasks[task]()
+				elif num_arguements[task] > 0:
+					tasks[task](combined)
+			self.entry_command.delete(0, TK.END)
 	
 	def object_here(self, p):
 		for piece in self.vertices + self.edges + self.triangles:
@@ -982,10 +996,9 @@ class FlipperApp(object):
 	
 	def store_isometry(self, specification):
 		if self.is_complete():
-			name, from_edges, to_edges = specification.split(' ')[:3]
+			name, a, b, c = specification.split(' ')
 			if valid_name(name):
-				from_edges = [int(x) for x in from_edges.split('.')]
-				to_edges = [int(x) for x in to_edges.split('.')]
+				from_edges, to_edges = zip([int(x) for x in a.split(':')], [int(x) for x in b.split(':')], [int(x) for x in c.split(':')])
 				try:
 					possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
 					isometry = possible_isometry[0]
@@ -1100,29 +1113,6 @@ class FlipperApp(object):
 					self.lamination_to_canvas(lamination)
 					# tkMessageBox.showinfo('Lamination', '%s has projectively invariant lamination: %s \nwith dilatation: %s' % (composition, lamination, dilatation))
 	
-	def splitting_sequence(self, composition):
-		if self.is_complete():
-			try:
-				mapping_class = self.create_composition(composition)
-			except Flipper.AssumptionError:
-				pass
-			else:
-				try:
-					lamination = mapping_class.invariant_lamination()
-				except Flipper.AssumptionError:
-					tkMessageBox.showinfo('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
-				except Flipper.ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
-				except ImportError:
-					tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
-				else:
-					try:
-						splitting = lamination.splitting_sequence()
-					except Flipper.AssumptionError:
-						tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
-					else:
-						tkMessageBox.showinfo('Splitting sequence', 'Periodic splits: %s' % (len(splitting.flips)))
-	
 	def build_bundle(self, composition):
 		if self.is_complete():
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
@@ -1135,32 +1125,27 @@ class FlipperApp(object):
 						pass
 					else:
 						try:
-							lamination = mapping_class.invariant_lamination()
+							splitting = mapping_class.splitting_sequence()
 						except Flipper.AssumptionError:
-							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
 						except Flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						except ImportError:
 							tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 						else:
-							try:
-								splitting = lamination.splitting_sequence()
-							except Flipper.AssumptionError:
-								tkMessageBox.showwarning('Lamination', '%s is reducible.' % composition)
-							else:
-								# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-								M = splitting.bundle(0, composition)
-								disk_file.write(M.snappy_string())
-								description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
-								'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
-								'Cusp types: %s\n' % M.cusp_types + \
-								'Fibre slopes: %s\n' % M.fibre_slopes + \
-								'Degeneracy slopes: %s\n' % M.degeneracy_slopes + \
-								'To build this bundle I had to create some artificial punctures,\n' + \
-								'these are the ones with puncture type 1.\n' + \
-								'You should fill them with their fibre slope to get\n' + \
-								'the manifold you were expecting.'
-								tkMessageBox.showinfo('Bundle', description)
+							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
+							M = splitting.bundle(0, composition)
+							disk_file.write(M.snappy_string())
+							description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
+							'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
+							'Cusp types: %s\n' % M.cusp_types + \
+							'Fibre slopes: %s\n' % M.fibre_slopes + \
+							'Degeneracy slopes: %s\n' % M.degeneracy_slopes + \
+							'To build this bundle I had to create some artificial punctures,\n' + \
+							'these are the ones with puncture type 1.\n' + \
+							'You should fill them with their fibre slope to get\n' + \
+							'the manifold you were expecting.'
+							tkMessageBox.showinfo('Bundle', description)
 				except IOError:
 					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
 				finally:

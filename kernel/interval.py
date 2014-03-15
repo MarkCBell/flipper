@@ -41,6 +41,9 @@ class Interval(object):
 	def __float__(self):
 		return float(self.approximate_string(30)[:-1])
 	
+	def copy(self):
+		return Interval(self.lower, self.upper, self.precision)
+	
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		s = str(self.lower).zfill(self.precision + (1 if self.lower >= 0 else 2))
@@ -57,7 +60,7 @@ class Interval(object):
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
 		elif d == 0:
-			return self
+			return self.copy()
 		elif d < 0:
 			return Interval(self.lower // 10**(-d), 1 + self.upper // 10**(-d), new_denominator)
 	def __contains__(self, other):
@@ -111,6 +114,17 @@ class Interval(object):
 			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
+	def __pow__(self, power):
+		if power == 0:
+			return 1
+		if power > 0:
+			sqrt = self**(power//2)
+			square = sqrt * sqrt
+			if power % 2 == 1:
+				return self * square
+			else:
+				return square
+	
 	def __div__(self, other):
 		if isinstance(other, Interval):
 			if 0 in other:
@@ -135,6 +149,10 @@ class Interval(object):
 			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
+	def intersect(self, other):
+		common_precision = max(self.precision, other.precision)
+		P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
+		return Interval(max(P.lower, Q.lower), min(P.upper, Q.upper), common_precision)
 	def subdivide(self):
 		if self.upper - self.lower == 1:
 			lower = self.lower * 10

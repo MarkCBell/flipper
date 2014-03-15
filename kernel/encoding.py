@@ -84,9 +84,9 @@ class Encoding(object):
 		elif n == 0:
 			return self.source_triangulation.Id_Encoding()
 		elif n < 0:
-			return EncodingSequence([self.inverse()] * n)
+			return self.inverse()**abs(n)
 	def copy(self):
-		return Encoding([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions])
+		return Encoding([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions], self.name)
 	def inverse(self):
 		if not self.inverse_partial_functions:
 			raise TypeError('Function is not invertible.')
@@ -152,7 +152,7 @@ class EncodingSequence(object):
 		elif k > 0:
 			return EncodingSequence(self.sequence * k)
 		else:
-			return EncodingSequence([A.inverse() for A in reversed(self.sequence)] * abs(k))
+			return self.inverse()**abs(k)
 	
 	def inverse(self):
 		return EncodingSequence([A.inverse() for A in reversed(self)])

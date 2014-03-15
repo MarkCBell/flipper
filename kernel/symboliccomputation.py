@@ -57,6 +57,7 @@ def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
+	print(eigenvalue_polynomial.coefficients)
 	if eigenvector is None:
 		# We will calculate the eigenvector ourselves.
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda

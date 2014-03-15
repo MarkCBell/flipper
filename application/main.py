@@ -1002,6 +1002,8 @@ class FlipperApp(object):
 			for twist in composition.split('.'):
 				if twist in self.mapping_classes:
 					mapping_class = mapping_class * self.mapping_classes[twist]
+				elif twist.swapcase() in self.mapping_classes:
+					mapping_class = mapping_class * self.mapping_classes[twist].inverse()
 				else:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 					raise Flipper.AssumptionError()
@@ -1293,7 +1295,7 @@ class FlipperApp(object):
 		elif 'apply_mapping_class' in tags:
 			self.show_apply(self.mapping_class_names[parent])
 		elif 'apply_mapping_class_inverse' in tags:
-			self.show_apply(self.mapping_class_names[parent].inverse())
+			self.show_apply(self.mapping_class_names[parent].swapcase())
 		else:
 			pass  # !?! To do.
 	

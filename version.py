@@ -1,2 +1,3 @@
 
-Flipper_version = '0.2.2'
+Flipper_version = '0.2.3'
+

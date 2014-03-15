@@ -51,7 +51,9 @@ class Isometry(object):
 	def encode_isometry(self):
 		f = [Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation_matrix())]
 		b = [Flipper.kernel.PartialFunction(self.target_triangulation, self.source_triangulation, self.inverse().permutation_matrix())]
-		return Flipper.kernel.Encoding(f, b) 
+		E = Flipper.kernel.Encoding(f, b)
+		
+		return Flipper.kernel.EncodingSequence([E]) 
 
 #### Some special Isometries we know how to build.
 

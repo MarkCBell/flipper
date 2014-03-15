@@ -56,6 +56,7 @@ class Encoding(object):
 	def __getitem__(self, index):
 		return self.partial_functions[index]
 	def __eq__(self, other):
+		all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
 			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
@@ -187,9 +188,9 @@ class EncodingSequence(object):
 		curves = self.source_triangulation.key_curves()
 		max_order = self.source_triangulation.max_order
 		id_map = self.source_triangulation.Id_EncodingSequence()
-		for i in range(1, max_order+1):
-			if self**i == id_map:
-				return i
+		for i in range(self.source_triangulation.max_order):
+			if self**(i+1) == id_map:
+				return i+1
 		
 		return 0
 	

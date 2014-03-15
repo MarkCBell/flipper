@@ -19,17 +19,19 @@ class Polynomial(object):
 	
 	def copy(self):
 		return Polynomial(self.coefficients)
-
+	
+	def __str__(self):
+		' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
 	def __eq__(self, other):
 		return self.coefficients == other.coefficients
 	def __ne__(self, other):
 		return self.coefficients != other.coefficients
 	def __neg__(self):
 		return Polynomial([-x for x in self])
-
+	
 	def __iter__(self):
 		return iter(self.coefficients)
-
+	
 	def __getitem__(self, item):
 		return self.coefficients[item]
 	

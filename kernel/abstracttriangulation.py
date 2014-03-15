@@ -288,7 +288,8 @@ class AbstractTriangulation(object):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def Id_Encoding(self):
-		return Flipper.kernel.Encoding([Flipper.kernel.PartialFunction(self, self, Flipper.kernel.Id_Matrix(self.zeta))])
+		f = b = [Flipper.kernel.PartialFunction(self, self, Flipper.kernel.Id_Matrix(self.zeta))]
+		return Flipper.kernel.Encoding(f, b)
 	
 	def Id_EncodingSequence(self):
 		return Flipper.kernel.EncodingSequence([self.Id_Encoding()])

@@ -35,6 +35,7 @@ class Isometry(object):
 			return self.target_triangulation.lamination([other[j] for i in range(self.zeta) for j in range(self.zeta) if i == self.edge_map[j]])
 		else:
 			return NotImplemented
+	# !?! Add in __pow__.
 	def apply(self, triangle, permutation):
 		new_triangle, perm = self[triangle]
 		return (new_triangle, perm * permutation)
@@ -48,7 +49,9 @@ class Isometry(object):
 	def permutation_matrix(self):
 		return Flipper.kernel.matrix.Permutation_Matrix(self.edge_map)
 	def encode_isometry(self):
-		return Flipper.kernel.Encoding([Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation_matrix())])
+		f = [Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation_matrix())]
+		b = [Flipper.kernel.PartialFunction(self.target_triangulation, self.source_triangulation, self.inverse().permutation_matrix())]
+		return Flipper.kernel.Encoding(f, b) 
 
 #### Some special Isometries we know how to build.
 

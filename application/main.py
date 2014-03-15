@@ -59,7 +59,6 @@ SIZE_SMALL = 10
 SIZE_MEDIUM = 12
 SIZE_LARGE = 14
 # SIZE_XLARGE = 16
-INVERSE_MAPPING_CLASS_ID_SUFFIX = 'foobar'
 
 DEFAULT_EDGE_LABEL_COLOUR = 'red'
 DEFAULT_SELECTED_COLOUR = 'red'
@@ -280,17 +279,15 @@ class FlipperApp(object):
 		
 		self.unsaved_work = True
 	
-	def add_mapping_class(self, name, mapping_class, mapping_class_inverse):
+	def add_mapping_class(self, name, mapping_class):
 		name_inverse = name.swapcase()
 		if name in self.mapping_classes:
 			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] in [name, name_inverse]])
 		
 		iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
-		iid_inverse = iid + INVERSE_MAPPING_CLASS_ID_SUFFIX
 		self.mapping_classes[name] = mapping_class
-		self.mapping_classes[name_inverse] = mapping_class_inverse
+		self.mapping_classes[name_inverse] = mapping_class.inverse()
 		self.mapping_class_names[iid] = name
-		self.mapping_class_names[iid_inverse] = name_inverse
 		self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
 		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
 		self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
@@ -298,7 +295,6 @@ class FlipperApp(object):
 		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
 		
 		self.cache[mapping_class] = {}
-		self.cache[mapping_class_inverse] = {}
 		
 		self.unsaved_work = True
 	
@@ -352,7 +348,7 @@ class FlipperApp(object):
 						self.add_lamination(name, laminations[name])
 					
 					for name in mapping_class_names:
-						self.add_mapping_class(name, mapping_classes[name], mapping_classes[name.swapcase()])
+						self.add_mapping_class(name, mapping_classes[name])
 					
 					self.cache = cache
 					
@@ -963,7 +959,7 @@ class FlipperApp(object):
 					lamination = self.canvas_to_lamination()
 					if lamination.is_good_curve():
 						self.add_lamination(name, lamination)
-						self.add_mapping_class(name, lamination.encode_twist(), lamination.encode_twist(k=-1))
+						self.add_mapping_class(name, lamination.encode_twist())
 						self.destroy_lamination()
 					else:
 						tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
@@ -977,7 +973,7 @@ class FlipperApp(object):
 					lamination = self.canvas_to_lamination()
 					if lamination.is_pants_boundary():
 						self.add_lamination(name, lamination)
-						self.add_mapping_class(name, lamination.encode_halftwist(), lamination.encode_halftwist(k=-1))
+						self.add_mapping_class(name, lamination.encode_halftwist())
 						self.destroy_lamination()
 					else:
 						tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
@@ -996,7 +992,7 @@ class FlipperApp(object):
 				except IndexError:
 					tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 				else:
-					self.add_mapping_class(name, isometry.encode_isometry(), isometry.inverse().encode_isometry())
+					self.add_mapping_class(name, isometry.encode_isometry())
 	
 	def create_composition(self, composition):
 		# Assumes that each of the named mapping classes exist. If not an
@@ -1019,11 +1015,9 @@ class FlipperApp(object):
 				inverse_composition = '.'.join(twists.swapcase().split('.')[::-1])
 				try:
 					mapping_class = self.create_composition(twists)
-					mapping_class_inverse = self.create_composition(inverse_composition)
+					self.add_mapping_class(name, mapping_class)
 				except Flipper.AssumptionError:
 					pass
-				else:
-					self.add_mapping_class(name, mapping_class, mapping_class_inverse)
 	
 	def show_lamination(self, name):
 		if self.is_complete():
@@ -1299,7 +1293,7 @@ class FlipperApp(object):
 		elif 'apply_mapping_class' in tags:
 			self.show_apply(self.mapping_class_names[parent])
 		elif 'apply_mapping_class_inverse' in tags:
-			self.show_apply(self.mapping_class_names[parent+INVERSE_MAPPING_CLASS_ID_SUFFIX])
+			self.show_apply(self.mapping_class_names[parent].inverse())
 		else:
 			pass  # !?! To do.
 	

@@ -978,7 +978,7 @@ class FlipperApp(object):
 			if valid_name(name):
 				try:
 					lamination = self.canvas_to_lamination()
-					if lamination.is_good_curve():
+					if lamination.is_twistable():
 						self.add_lamination(name, lamination)
 						self.add_mapping_class(name, lamination.encode_twist())
 						self.destroy_lamination()
@@ -992,7 +992,7 @@ class FlipperApp(object):
 			if valid_name(name):
 				try:
 					lamination = self.canvas_to_lamination()
-					if lamination.is_pants_boundary():
+					if lamination.is_halftwistable():
 						self.add_lamination(name, lamination)
 						self.add_mapping_class(name, lamination.encode_halftwist())
 						self.destroy_lamination()
@@ -1292,6 +1292,7 @@ class FlipperApp(object):
 			pass  # !?! To do.
 	
 	def treeview_objects_double_left_click(self, event):
+		progress = Flipper.application.progress.ProgressApp  # If we need to show a progress bar.
 		self.treeview_objects_left_click(event)
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
@@ -1302,15 +1303,15 @@ class FlipperApp(object):
 			self.treeview_objects.item(iid, text='Multicurve: %s' % lamination.is_multicurve())
 		elif 'twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Twistable: %s' % lamination.is_good_curve())
+			self.treeview_objects.item(iid, text='Twistable: %s' % lamination.is_twistable())
 		elif 'half_twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_pants_boundary())
+			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_halftwistable())
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[parent]]
 				if 'filling' not in self.cache[lamination]:
-					self.cache[lamination]['filling'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(lamination.is_filling)
+					self.cache[lamination]['filling'] = progress(self, indeterminant=True).process(lamination.is_filling)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
 			except Flipper.AbortError:
@@ -1323,7 +1324,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['NT_type'] = Flipper.application.progress.ProgressApp(self).process(mapping_class.NT_type)
+					self.cache[mapping_class]['NT_type'] = progress(self).process(mapping_class.NT_type)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except Flipper.AbortError:
@@ -1331,9 +1332,8 @@ class FlipperApp(object):
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
-				# mapping_class.invariant_lamination()  # !?!
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(mapping_class.invariant_lamination)
+					self.cache[mapping_class]['invariant_lamination'] = progress(self, indeterminant=True).process(mapping_class.invariant_lamination)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])

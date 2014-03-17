@@ -6,15 +6,6 @@ import Flipper
 
 symbolic_libaray_name = 'sage'
 
-def largest_root_string(polynomial, accuracy, ):
-	K = QQbar['x']
-	[x] = K.gens()
-	
-	f = K(list(polynomial))
-	x = max(f.roots())[0]
-	precision = accuracy + int(log(max(x.n(digits=1), 1))) + 1
-	return x.n(digits=precision).str(no_sci=2)
-
 def minimal_polynomial_coefficients(value):
 	X = tuple(value.minpoly().coeffs())
 	scale = abs(lcm([x.denominator() for x in X]))
@@ -41,3 +32,4 @@ def PF_eigen(matrix):
 	scale = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
 	
 	return minimal_polynomial_coefficients(eigenvalue), [[int(scale * x) for x in v.polynomial().coeffs()] for v in eigenvector]
+

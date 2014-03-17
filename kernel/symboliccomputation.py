@@ -13,7 +13,7 @@ import Flipper
 # have an interface to SymPy but this turned out to be extremely unreliable, there were 9x9 
 # invertible matrices for which it could only find 1 eigenvalue!
 #
-# Each library provides two functions:
+# Each library provides one function:
 #	PF_eigen(matrix):
 #		Given a Perron-Frobenius matrix (of type Flipper.kernel.Matrix) with PF eigenvalue / vector L, v 
 #		(i.e. the unique eigenvalue with largest absolute value) this must return a pair (c, l) where:
@@ -21,11 +21,7 @@ import Flipper
 #			v is either: 
 #				A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
 #				None.
-#	
-#	largest_root_string(polynomial, accuracy, power=1):
-#		Given a polynomial f (of type Flipper.kernel.polynomial.Polynomial) returns a string containing 
-#		the largest real root of f as a decimal raised to the required power and correct to the required accuracy.
-#
+# 
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
@@ -42,16 +38,6 @@ def load_library(library_name=None):
 			pass
 	
 	raise ImportError('No symbolic computation library available.')
-
-
-def algebraic_approximation_largest_root(polynomial, accuracy):
-	symbolic_computation_library = load_library()
-	
-	accuracy_needed = int(log(polynomial.degree)) + (int(polynomial.log_height) + 1) + 1
-	accuracy = max(accuracy, accuracy_needed)
-	
-	s = symbolic_computation_library.largest_root_string(polynomial, accuracy)
-	return Flipper.kernel.algebraicapproximation.algebraic_approximation_from_string(s, polynomial.degree, polynomial.log_height)
 
 def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
@@ -81,3 +67,4 @@ def Perron_Frobenius_eigen(matrix):
 	
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
 	return [N.element(v) for v in eigenvector]
+

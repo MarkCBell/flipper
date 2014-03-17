@@ -1327,7 +1327,7 @@ class FlipperApp(object):
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
-				mapping_class.invariant_lamination()
+				# mapping_class.invariant_lamination()  # !?!
 				if 'invariant_lamination' not in self.cache[mapping_class]:
 					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(mapping_class.invariant_lamination)
 					self.unsaved_work = True

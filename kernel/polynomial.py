@@ -109,12 +109,10 @@ class Polynomial(object):
 	
 	def NR_iterate(self, interval):
 		# For why this works see: http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html
-		m = (interval.lower + interval.upper) // 2
-		k = 10
-		m2 = m * 10**k
-		J = Flipper.kernel.Interval(m2 - 1, m2 + 1, interval.precision + k)
-		K = J - self(J) / self.derivative()(interval)
-		L = K.change_denominator(K.accuracy * 2)
+		# Start by building a really tiny interval containing the midpoint of this one.
+		J = interval.midpoint(10)
+		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step.
+		L = K.change_denominator(K.accuracy * 2)  # Stop the precision from blowing up too much.
 		return L.intersect(interval)
 	
 	def converge_iterate(self, interval, accuracy):
@@ -132,20 +130,15 @@ class Polynomial(object):
 		# we'll just use that.
 		if self.accuracy < accuracy:
 			#self.algebraic_approximation = Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy)
-			#self.accuracy = accuracy
 			self.interval = self.converge_iterate(self.interval, accuracy)
-			self.algebraic_approximation = Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
 			self.accuracy = self.interval.accuracy
 	
-	def algebraic_approximate_leading_root(self, accuracy, power=1):
+	def algebraic_approximate_leading_root(self, accuracy):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
 		# which is correct to at least accuracy decimal places.
-		min_accuracy = int(log(self.degree)) + int(self.log_height) + 2 
-		accuracy_needed = max(accuracy, min_accuracy)
-		accuracy_requested = accuracy_needed + power * int(log(float(self.algebraic_approximation)) + 1)
-		
-		self.increase_accuracy(accuracy_requested)
-		AA = self.algebraic_approximation**power
+		accuracy = max(int(accuracy), int(log(self.degree)) + int(self.log_height) + 2, 1)
+		self.increase_accuracy(accuracy)
+		AA = Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height).change_denominator(accuracy)
 		assert(AA.interval.accuracy >= accuracy)  # Let's just make sure.
 		return AA
 	
@@ -156,3 +149,4 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+

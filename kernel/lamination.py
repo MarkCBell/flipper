@@ -53,8 +53,8 @@ class Lamination(object):
 		for vertex in self.abstract_triangulation.corner_classes:
 			for triangle, side in vertex:
 				weights = [self.vector[index] for index in triangle]
-				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
-				if dual_weights_doubled[side] == 0:
+				# dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
+				if weights[(side+1)%3] + weights[(side+2)%3] - weights[(side+0)%3] == 0:
 					break
 			else:
 				return False

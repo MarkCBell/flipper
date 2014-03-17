@@ -47,7 +47,7 @@ class Interval(object):
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		I = self.change_denominator(accuracy)
-		s = str((I.lower + I.upper) // 2).zfill(accuracy)
+		s = str((I.lower + I.upper) // 2).zfill(accuracy + 2)
 		return '%s.%s?' % (s[:-I.precision], s[-I.precision:])
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
@@ -58,7 +58,7 @@ class Interval(object):
 		elif d == 0:
 			return self.copy()
 		elif d < 0:
-			return Interval(self.lower // 10**(-d), 1 + self.upper // 10**(-d), new_denominator)
+			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
@@ -145,6 +145,9 @@ class Interval(object):
 			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
+	def midpoint(self, magnitude):
+		m = (10**magnitude) * (self.lower + self.upper) // 2
+		return Interval(m-1, m+1, self.precision+magnitude)
 	def intersect(self, other):
 		common_precision = max(self.precision, other.precision)
 		P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)

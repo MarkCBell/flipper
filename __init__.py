@@ -30,6 +30,7 @@ Flipper.kernel.Empty_Matrix = Flipper.kernel.matrix.Empty_Matrix
 Flipper.kernel.Id_Matrix = Flipper.kernel.matrix.Id_Matrix
 Flipper.kernel.Zero_Matrix = Flipper.kernel.matrix.Zero_Matrix
 Flipper.kernel.Integer_Type = Flipper.kernel.types.Integer_Type
+Flipper.kernel.log_height_int = Flipper.kernel.algebraicapproximation.log_height_int
 
 
 # And really short names for the most commonly used classes and functions by users.

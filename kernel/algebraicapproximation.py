@@ -44,6 +44,7 @@ class AlgebraicApproximation(object):
 		# This is a bit of a hack and eventually I might find a better way to do this 
 		# but at least for now it works.
 		self.log_height = round(log_height, 5) + 0.00001
+		self.log_plus = int(log_height_int(float(self))) + 1
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		# An algebraic approximation is good if it is known to more interval places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
@@ -55,6 +56,9 @@ class AlgebraicApproximation(object):
 	
 	def __float__(self):
 		return float(self.interval)
+	
+	def change_denominator(self, new_denominator):
+		return AlgebraicApproximation(self.interval.change_denominator(new_denominator), self.degree, self.log_height)
 	
 	def __neg__(self):
 		return AlgebraicApproximation(-self.interval, self.degree, self.log_height)

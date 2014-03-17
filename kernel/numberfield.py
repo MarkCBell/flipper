@@ -21,7 +21,7 @@ class NumberField(object):
 		self.degree = self.polynomial.degree
 		
 		self.log_height = self.polynomial.log_height
-		self.sum_log_height_powers = self.degree * self.degree * self.log_height // 2
+		self.sum_log_height_powers = self.degree * self.degree * self.log_height / 2
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.current_accuracy = -1
@@ -65,7 +65,11 @@ class NumberFieldElement(object):
 		elif len(linear_combination) > self.number_field.degree:
 			raise TypeError('Linear combination: %s has more terms than the degree of the field in which it lives' % linear_combination)
 		self.linear_combination = linear_combination
-		self.log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + 2*self.number_field.degree
+		# Let N = QQ(\lambda) and d := N.degree.
+		# Let [a_i] := self.linear_combination, [\alpha_i] := N.algebraic_approximations[i].
+		# Let \alpha := sum(a_i * \alpha_i).
+		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
+		self.log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
 		self._algebraic_approximation = None
 		self.current_accuracy = -1
 	
@@ -148,26 +152,24 @@ class NumberFieldElement(object):
 		# If no accuracy is given, calculate how much accuracy is needed to ensure that
 		# the AlgebraicApproximation produced is well defined.
 		
-		# Let N = QQ(\lambda) and d := N.degree.
 		N = self.number_field
 		d = N.degree
-		# Let [a_i] := self.linear_combination, [\alpha_i] := \lambda^i.algebraic_approximations and [I_i] := [\alpha_i.interval].
-		# Let \alpha := sum(a_i * \alpha_i) and I := \alpha.interval = sum(a_i * I_i)
+		# Let [I_i] := [\alpha_i.interval] and I := \alpha.interval = sum(a_i * I_i).
 		# As \alpha also lies in K = QQ(\lambda) it also has degree at most d.
 		#
-		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) [Interval.py L:13].
-		# Additionally, 
-		#	log(height(\alpha)) <= sum(log(height(a_i \alpha_i))) + d log(2) <= sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2) [AlgebraicApproximation.py L:9].
-		# Hence for \alpha to determine a unique algebraic number we need that:
-		#	acc(I) >= log(d) + log(height(\alpha)).
-		# That is:
-		#	k - (d-1) >= log(d) + sum(log(a_i)) + sum(log(height(\alpha_i))) + d log(2).
+		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) - sum(h(a_i)) [Interval.py L:13].
+		# As 
+		#	h(\alpha) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9]
+		# for \alpha to determine a unique algebraic number we need that:
+		#	acc(I) >= log(d) + h(\alpha).
+		# This is achieved if:
+		#	k - (d-1) - sum(h(a_i) >= log(d) + sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2).
 		# or equivalently that:
-		#	k >= sum(log(a_i)) + N.sum_log_height_powers + log(d) + (d-1) + d log(2).
+		#	k >= 2 * sum(h(a_i)) + sum(h(\alpha_i)) + log(d) + (d-1) + (d-1) log(2).
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
-		#	int(sum(log(a_i)) + N.sum_log_height_powers + log(N.degree) + 2*d).
-		if accuracy is None: accuracy = int(self.log_height + log(d))
+		#	2*self.log_height + d.
+		if accuracy is None: accuracy = int(2 * self.log_height + d) + 1
 		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:

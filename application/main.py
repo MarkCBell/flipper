@@ -62,6 +62,7 @@ SIZE_LARGE = 14
 
 DEFAULT_EDGE_LABEL_COLOUR = 'red'
 DEFAULT_SELECTED_COLOUR = 'red'
+MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
 # A name is valid if it consists of letters, numbers, underscores and at least one letter.
 def valid_name(name):
@@ -888,19 +889,20 @@ class FlipperApp(object):
 		self.destroy_lamination()
 		
 		# Choose the right way to render this lamination.
-		if lamination.is_multicurve(): 
-			render = self.options.render_lamination
-		else:
+		if not lamination.is_multicurve() or lamination.weight() > MAX_DRAWABLE: 
 			if self.options.render_lamination == RENDER_LAMINATION_FULL:
 				render = RENDER_LAMINATION_W_TRAIN_TRACK
 			else:
 				render = self.options.render_lamination
+		else:
+			render = self.options.render_lamination
 		
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb = self.options.vertex_buffer  # We are going to use this a lot.
 		a_weights = [float(x) for x in lamination]
 		if render == RENDER_LAMINATION_W_TRAIN_TRACK:
-			master_scale = max(max(a_weights), float(1))
+			master_scale = max(a_weights)
+			if master_scale == 0: master_scale = float(1)
 		
 		for triangle in self.triangles:
 			a_tri_weights = [a_weights[edge.index] for edge in triangle.edges]

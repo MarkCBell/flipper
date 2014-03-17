@@ -189,8 +189,8 @@ class Triangle(DrawableObject):
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
 
 class CurveComponent(DrawableObject):
-	def __init__(self, canvas, source_point, target_point, options, multiplicity=1, counted=False):
-		super(CurveComponent, self).__init__(canvas, [source_point, target_point], options)
+	def __init__(self, canvas, vertices, options, multiplicity=1, counted=False):
+		super(CurveComponent, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_CURVE_COLOUR
 		self.drawn = self.canvas.create_line([c for v in self.vertices for c in v], width=self.options.line_size, fill=self.colour, tag='curve')
 		self.multiplicity = multiplicity

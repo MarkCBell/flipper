@@ -748,8 +748,8 @@ class FlipperApp(object):
 			edge.equivalent_edge = None
 		self.build_abstract_triangulation()
 	
-	def create_curve_component(self, start_point, end_point, multiplicity=1, counted=False):
-		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, start_point, end_point, self.options, multiplicity, counted))
+	def create_curve_component(self, vertices, multiplicity=1, counted=False):
+		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
@@ -898,33 +898,33 @@ class FlipperApp(object):
 		
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb = self.options.vertex_buffer  # We are going to use this a lot.
-		approximate_weights = [float(x) for x in lamination]
+		a_weights = [float(x) for x in lamination]
 		if render == RENDER_LAMINATION_W_TRAIN_TRACK:
-			master_scale = max(max(approximate_weights), float(1))
+			master_scale = max(max(a_weights), float(1))
 		
 		for triangle in self.triangles:
-			t_weights = [approximate_weights[edge.index] for edge in triangle.edges]
-			approximate_dual_weights = [(t_weights[(i+1)%3] + t_weights[(i+2)%3] - t_weights[(i+0)%3]) / 2 for i in range(3)]
+			a_tri_weights = [a_weights[edge.index] for edge in triangle.edges]
+			a_dual_weights = [(a_tri__weights[(j+1)%3] + a_tri_weights[(j+2)%3] - a_tri_weights[(j+0)%3]) / 2 for j in range(3)]
 			for i in range(3):
 				a = triangle[i-1] - triangle[i]
 				b = triangle[i-2] - triangle[i]
 				
 				if render == RENDER_LAMINATION_W_TRAIN_TRACK:  # !?! To Do.
-					if approximate_dual_weights[i] > 0:
+					if a_dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
-						s_a = approximate_weights[triangle.edges[i-2].index] / master_scale
+						s_a = a_weights[triangle.edges[i-2].index] / master_scale
 						# The fractions of the distance of the two points on this edge.
 						scale_a = vb * s_a + (1 - s_a) / 2
-						scale_a2 = scale_a + (1 - 2*vb) * s_a * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-1])
+						scale_a2 = scale_a + (1 - 2*vb) * s_a * a_dual_weights[i] / (a_dual_weights[i] + a_dual_weights[i-1])
 						# The actual points of intersection.
 						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
 						start_point2 = triangle[i][0] + a[0] * scale_a2, triangle[i][1] + a[1] * scale_a2
 						
 						# Now repeat for the other edge of the triangle.
-						s_b = approximate_weights[triangle.edges[i-1].index] / master_scale
+						s_b = a_weights[triangle.edges[i-1].index] / master_scale
 						scale_b = vb * s_b + (1 - s_b) / 2
-						scale_b2 = scale_b + (1 - 2*vb) * s_b * approximate_dual_weights[i] / (approximate_dual_weights[i] + approximate_dual_weights[i-2])
+						scale_b2 = scale_b + (1 - 2*vb) * s_b * a_dual_weights[i] / (a_dual_weights[i] + a_dual_weights[i-2])
 						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
 						end_point2 = triangle[i][0] + b[0] * scale_b2, triangle[i][1] + b[1] * scale_b2
 						
@@ -934,19 +934,21 @@ class FlipperApp(object):
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
 					weights = [lamination[edge.index] for edge in triangle.edges]
-					dual_weights = [(weights[(i+1)%3] + weights[(i+2)%3] - weights[(i+0)%3]) / 2 for i in range(3)]
+					dual_weights = [(weights[(j+1)%3] + weights[(j+2)%3] - weights[(j+0)%3]) // 2 for j in range(3)]
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
 						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
 						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
-						self.create_curve_component(start_point, end_point, counted=True)  # We've counted this so don't set the multiplicity.
+						vertices = [start_point, end_point]
+						self.create_curve_component(vertices, counted=True)  # We've counted this so don't set the multiplicity.
 				elif render == RENDER_LAMINATION_C_TRAIN_TRACK:
-					if approximate_dual_weights[i] > 0:
+					if a_dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle[i][0] + a[0] * scale, triangle[i][1] + a[1] * scale
 						end_point = triangle[i][0] + b[0] * scale, triangle[i][1] + b[1] * scale
-						self.create_curve_component(start_point, end_point, counted=True)  # We've counted this so don't set the multiplicity.
+						vertices = [start_point, end_point]
+						self.create_curve_component(vertices, counted=True)  # We've counted this so don't set the multiplicity.
 		
 		self.current_lamination = lamination
 		self.create_edge_labels()

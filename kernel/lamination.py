@@ -14,7 +14,7 @@ class Lamination(object):
 		return Lamination(self.abstract_triangulation, list(self.vector))
 	
 	def __repr__(self):
-		return '[' + ', '.join(self.labels) + ']'
+		return str(self.labels)
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -53,7 +53,6 @@ class Lamination(object):
 		for vertex in self.abstract_triangulation.corner_classes:
 			for triangle, side in vertex:
 				weights = [self.vector[index] for index in triangle]
-				# dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
 				if weights[(side+1)%3] + weights[(side+2)%3] - weights[(side+0)%3] == 0:
 					break
 			else:
@@ -63,7 +62,7 @@ class Lamination(object):
 	
 	def is_multicurve(self):
 		if not self.is_lamination(): return False
-		if not Flipper.kernel.matrix.nontrivial(self.vector): return False
+		if self == self.abstract_triangulation.empty_lamination(): return False
 		
 		for vertex in self.abstract_triangulation.corner_classes:
 			for triangle, side in vertex:
@@ -82,30 +81,30 @@ class Lamination(object):
 		# Repeatedly flip to reduce the weight of this lamination as much as 
 		# possible. Assumes that self is a multicurve.
 		#
-		# We'll keep track of what we have conjugated by as well as it's inverse.
-		# We could compute this at the end by doing:
-		#   conjugation_inverse = conjugation.inverse()
-		# but this is much faster as we don't need to invert a load of matrices.
+		# If this lamination is a curve then this will conjugate it to
+		# a curve which meets each edge either:
+		#	once (in which case it meets exactly 2 of them), or
+		#	0 or 2 times.
+		# The latter case happens iff a component of S - \gamma has no punctures.
 		
 		if not self.is_multicurve():
 			raise Flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
 		conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
-		conjugation_inverse = lamination.abstract_triangulation.Id_EncodingSequence()
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
-		while lamination.weight() > 2:
+		# If we ever fail to make progress more than once then the curve is as short as it's going to get.
+		while time_since_last_weight_loss < 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this and eventually we will reach weight 2.
+			# By Lee Mosher's work there is a complexity that we will reduce to by doing this. 
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.abstract_triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
 			forwards = lamination.abstract_triangulation.encode_flip(edge_index)
 			backwards = forwards.inverse()
 			conjugation = forwards * conjugation
-			conjugation_inverse = conjugation_inverse * backwards
 			lamination = forwards * lamination
 			new_weight = lamination.weight()
 			
@@ -114,27 +113,57 @@ class Lamination(object):
 				old_weight = new_weight
 			else:
 				time_since_last_weight_loss += 1
-			
-			# If we ever fail to make progress more than once then the curve is as short as it's going to get
-			if time_since_last_weight_loss > 1:
-				break
 		
-		return conjugation, conjugation_inverse
+		return conjugation
 	
-	def is_good_curve(self):
-		# This is based off of self.encode_twist(). See the documentation there as to why this works.
+	def is_curve(self):
 		if not self.is_multicurve(): return False
 		
-		conjugation, _ = self.conjugate_short()
+		conjugation = self.conjugate_short()
+		short_lamination = conjugation * self
+		
+		if short_lamination.weight() == 2: return True
+		
+		# See the conditions on conjugate_short as to why this works.
+		if any(weight not in [0, 2] for weight in short_lamination): return False
+		
+		# If we have a longer curve then all vertices must be on one side of it.
+		# So if we collapse the edges with weight 0 we must end up with a
+		# one vertex triangulation.
+		triangulation = short_lamination.abstract_triangulation
+		corner_class_numbers = dict(zip(list(triangulation.corner_classes), range(len(triangulation.corner_classes))))
+		for edge_index in range(triangulation.zeta):
+			if self[edge_index] == 0:
+				c1, c2 = triangulation.find_edge_corner_classes(edge_index)
+				a, b = corner_class_numbers[c1], corner_class_numbers[c2]
+				if a != b:
+					x, y = max(a, b), min(a, b)
+					for c in corner_class_numbers:
+						if corner_class_numbers[c] == x: corner_class_numbers[c] = y
+		
+		# If any corner class is numbered > 0 then we don't have a one vertex triangulation.
+		if any(corner_class_numbers.values()): return False
+		
+		# So either we have a single curve or we have a multicurve with two parallel components.
+		if triangulation.lamination([v // 2 for v in short_lamination]).is_multicurve():
+			return False
+		
+		return True
+	
+	def is_twistable(self):
+		# This is based off of self.encode_twist(). See the documentation there as to why this works.
+		if not self.is_curve(): return False
+		
+		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		return short_lamination.weight() == 2
 	
-	def is_pants_boundary(self):
+	def is_halftwistable(self):
 		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
-		if not self.is_good_curve(): return False
+		if not self.is_twistable(): return False
 		
-		conjugation, _ = self.conjugate_short()
+		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
@@ -307,12 +336,12 @@ class Lamination(object):
 		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-		if not self.is_good_curve():
+		if not self.is_twistable():
 			raise Flipper.AssumptionError('Not a good curve.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
-		conjugation, conjugation_inverse = self.conjugate_short()
+		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		triangulation = short_lamination.abstract_triangulation
@@ -332,19 +361,19 @@ class Lamination(object):
 		map_back = [isom for isom in short_lamination.abstract_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode_isometry()
 		T = map_back * forwards
 		
-		return conjugation_inverse * T**abs(k) * conjugation
+		return conjugation.inverse() * T**abs(k) * conjugation
 	
 	def encode_halftwist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
 		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
-		if not self.is_pants_boundary():
+		if not self.is_halftwistable():
 			raise Flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
-		conjugation, conjugation_inverse = self.conjugate_short()
+		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
 		
 		triangulation = short_lamination.abstract_triangulation
@@ -377,4 +406,4 @@ class Lamination(object):
 		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode_isometry()
 		T = map_back * forwards3 * forwards2 * forwards
 		
-		return conjugation_inverse * T**abs(k) * conjugation
+		return conjugation.inverse() * T**abs(k) * conjugation

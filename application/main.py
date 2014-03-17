@@ -904,7 +904,7 @@ class FlipperApp(object):
 		
 		for triangle in self.triangles:
 			a_tri_weights = [a_weights[edge.index] for edge in triangle.edges]
-			a_dual_weights = [(a_tri__weights[(j+1)%3] + a_tri_weights[(j+2)%3] - a_tri_weights[(j+0)%3]) / 2 for j in range(3)]
+			a_dual_weights = [(a_tri_weights[(j+1)%3] + a_tri_weights[(j+2)%3] - a_tri_weights[(j+0)%3]) / 2 for j in range(3)]
 			for i in range(3):
 				a = triangle[i-1] - triangle[i]
 				b = triangle[i-2] - triangle[i]
@@ -1168,7 +1168,7 @@ class FlipperApp(object):
 		
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
-				self.select_object(self.create_curve_component((x, y), (x, y)))
+				self.select_object(self.create_curve_component([(x, y), (x, y)]))
 			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
 				self.selected_object.append_point((x, y))
 		else:
@@ -1329,7 +1329,7 @@ class FlipperApp(object):
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
-				# mapping_class.invariant_lamination()  # !?!
+				mapping_class.invariant_lamination()  # !?!
 				if 'invariant_lamination' not in self.cache[mapping_class]:
 					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.progress.ProgressApp(self, indeterminant=True).process(mapping_class.invariant_lamination)
 					self.unsaved_work = True

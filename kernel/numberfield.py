@@ -25,20 +25,21 @@ class NumberField(object):
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.current_accuracy = -1
-		self.algebraic_approximations = [None] * self.degree  # A list of approximations of \lambda^0, ..., \lambda^(d-1).
-		self.increase_accuracy(100)
+		# A list of approximations of \lambda^0, ..., \lambda^(d-1).
+		# Note if this is QQ then we add in one more to make the increase accuracy code nicer. 
+		self.algebraic_approximations = [None] * (self.degree+1 if self.is_QQ() else self.degree)
+		self.increase_accuracy(10)
 		
 		self.one = self.element([1])
 		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])
 	
 	def increase_accuracy(self, accuracy):
-		if self.algebraic_approximations[1] is None:
-			self.algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
-		
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
-			# self.algebraic_approximations = [self.polynomial.algebraic_approximate_leading_root(2 * accuracy, power=index) for index in range(self.degree)]
 			new_accuracy = 2 * accuracy
+			if self.algebraic_approximations[1] is None:
+				self.algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
+			
 			accuracy_needed = new_accuracy + self.degree * self.algebraic_approximations[1].log_plus
 			AA = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
 			self.algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree)]

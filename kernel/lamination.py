@@ -145,6 +145,7 @@ class Lamination(object):
 		if any(corner_class_numbers.values()): return False
 		
 		# So either we have a single curve or we have a multicurve with two parallel components.
+		# We can test for the latter by seeing if the halved curve is still a multicurve.
 		if triangulation.lamination([v // 2 for v in short_lamination]).is_multicurve():
 			return False
 		

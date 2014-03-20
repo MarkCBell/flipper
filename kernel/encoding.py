@@ -238,11 +238,8 @@ class EncodingSequence(object):
 		
 		M4 = face_matrix
 		M6 = Flipper.kernel.Id_Matrix(self.zeta)
-		buckets = {}
 		indices = [0]
 		while indices != []:
-			if len(indices) not in buckets: buckets[len(indices)] = 0
-			buckets[len(indices)] += 1
 			partial_function = self.expand_indices(indices)
 			As, Cs = partial_function.action, partial_function.condition
 			if progression is not None: progression(progress(indices))

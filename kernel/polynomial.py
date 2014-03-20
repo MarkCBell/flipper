@@ -14,15 +14,17 @@ class Polynomial(object):
 		self.degree = len(self.coefficients) - 1
 		self.algebraic_approximation = self.degree * self.height
 		self.accuracy = 0
-		r = max(self.degree, 1) * self.height
-		# self.interval = Flipper.kernel.Interval(-r, r, 0)
-		self.interval = Flipper.kernel.Interval(0, r, 0)
+		self.root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
+		self.interval = Flipper.kernel.Interval(-self.root_range, self.root_range, 0)
+		# self.interval = Flipper.kernel.Interval(0, r, 0)
 	
 	def copy(self):
 		return Polynomial(self.coefficients)
 	
-	def __str__(self):
-		' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
+	def __repr__(self):
+		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
+	def __bool__(self):
+		return any(self)
 	def __eq__(self, other):
 		return self.coefficients == other.coefficients
 	def __ne__(self, other):
@@ -38,41 +40,71 @@ class Polynomial(object):
 	
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
-			m = max(self.degree, other.degree)
+			m = max(self.degree, other.degree) + 1
 			return Polynomial([a + b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
 	
 	def __sub__(self, other):
 		if isinstance(other, Polynomial):
-			m = max(self.degree, other.degree)
+			m = max(self.degree, other.degree) + 1
 			return Polynomial([a - b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
 	
 	def __mul__(self, other):
 		if isinstance(other, Flipper.kernel.Integer_Type):
 			return Polynomial([a * other for a in self])
+	def __rmull__(self, other):
+		return self * other
 	
 	def shift(self, power):
-		return Polynomial([0] * power + self.coefficients)
+		if power > 0:
+			return Polynomial([0] * power + self.coefficients)
+		elif power == 0:
+			return self
+		elif power < 0:
+			return Polynomial(self.coefficients[power:])
 	
 	def __call__(self, other):
 		return sum(a * other**index for index, a in enumerate(self))
-	def __mod__(self, other):
+	def divmod(self, other):
+		# Returns polynomials Q & R such that self = Q * other + R / k for some integer k.
+		# Note that Q is only guaranteed to be correct if R == 0.
+		# Don't forget Gauss' lemma: if two integral polynomials divide then their division is integral.
 		if isinstance(other, Polynomial):
 			if other.degree < 0: 
 				raise ZeroDivisionError
 			
 			N = self.copy()
 			D = other.copy()
+			Q = Polynomial([0])
 			while N.degree >= D.degree:
-				# N = D[-1] * N - N[-1] * D.shift(N.degree - D.degree)
+				Q = Q + (Polynomial([1]).shift(N.degree - D.degree) * (N[-1] // D[-1]))
 				sign = -1 if D[-1] < 0 else 1  # We can never have the leading coefficient 0.
 				N = N * sign * D[-1] - D.shift(N.degree - D.degree) * sign * N[-1]
-				# N = Polynomial([coeffN * D[-1] - coeffd * N[-1] for coeffN, coeffd in zip(N, [0]*(N.degree - D.degree) + D.coefficients)])
-			return N
+			return Q, N
 		else:
 			return NotImplemented
 	
-	def _call_fraction(self, numerator, denominator):
-		return sum(coefficient * numerator**index * denominator**(self.degree - index) for index, coefficient in enumerate(self)), denominator**self.degree
+	def __mod__(self, other):
+		Q, R = self.divmod(other)
+		return R
+	
+	def __div__(self, other):
+		# Assumes that the division is perfect.
+		Q, R = self.divmod(other)
+		if R != Polynomial([0]):
+			raise Flipper.AssumptionError('Polynomials do not divide.')
+		return Q
+	def __truediv__(self, other):
+		return self.__div__(other)
+	def __floordiv__(self, other):
+		return self.__div__(other)
+	
+	def remove_linear_factors(self):
+		# Returns self // (x - k_1) ... (x - k_n) where
+		if self != Polynomial([0]):
+			for i in range(-self.root_range, self.root_range+1):
+				if self(i) == 0:
+					return (self // Polynomial([-i, 1])).remove_linear_factors()
+		return self
 	
 	def signs_at_interval_endpoints(self, interval):
 		s1 = sum(coefficient * interval.lower**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))

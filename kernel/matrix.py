@@ -139,7 +139,7 @@ class Matrix(object):
 			ci = -A.trace() // i
 			p.append(ci)
 			A = self * (A + Id_Matrix(self.width) * ci)
-		return p[::-1]
+		return Flipper.kernel.Polynomial(p[::-1])
 	def solve(self, target):
 		sign = +1 if self.determinant() > 0 else -1
 		A = self.transpose()
@@ -194,9 +194,9 @@ class Matrix(object):
 		scale = 1
 		A = [list(row) for row in self]
 		for i in range(self.width-1):
-			if A[i][i] == 0:
+			if not A[i][i]:  # == 0.
 				for j in range(i+1, self.height):
-					if A[j][i] != 0:
+					if A[j][i]:  # != 0.
 						A[i], A[j] = A[j], A[i]
 						scale = -scale
 						break

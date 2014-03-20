@@ -43,7 +43,10 @@ def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
-	if eigenvector is None:
+	print(eigenvalue_polynomial)
+	print(matrix.char_poly())
+	#if eigenvector is None:
+	if True
 		# We will calculate the eigenvector ourselves.
 		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
 		
@@ -52,6 +55,7 @@ def Perron_Frobenius_eigen(matrix):
 		# to finding a vector in ken(M ^ id_d - C ^ id_n) with entries in QQ, where ^ denotes the tensor
 		# product of matrices. We can now do this just by using linear algebra.
 		
+		print(matrix)
 		d = eigenvalue_polynomial.degree
 		n = matrix.width
 		
@@ -61,8 +65,10 @@ def Perron_Frobenius_eigen(matrix):
 		M2 = matrix.substitute_row(0, [1] * n)
 		M3 = Flipper.kernel.Id_Matrix(n).substitute_row(0, [0] * n)
 		M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
+		print(M4)
 		
 		solution = M4.solve([1] + [0] * (len(M4)-1))
+		print(solution)
 		eigenvector = [solution[i:i+d] for i in range(0, len(solution), d)]
 	
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)

@@ -91,7 +91,7 @@ class Lamination(object):
 			raise Flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
-		conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
+		best_conjugation = conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
@@ -111,10 +111,11 @@ class Lamination(object):
 			if new_weight < old_weight:
 				time_since_last_weight_loss = 0
 				old_weight = new_weight
+				best_conjugation = conjugation
 			else:
 				time_since_last_weight_loss += 1
 		
-		return conjugation
+		return best_conjugation
 	
 	def is_curve(self):
 		if not self.is_multicurve(): return False

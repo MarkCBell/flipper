@@ -1083,6 +1083,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition)
+				mapping_class.NT_type()
 				NT_type = Flipper.application.progress.ProgressApp(self).process(mapping_class.NT_type)
 				
 				if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:

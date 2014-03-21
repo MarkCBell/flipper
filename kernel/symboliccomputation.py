@@ -40,16 +40,17 @@ def load_library(library_name=None):
 	raise ImportError('No symbolic computation library available.')
 
 def Perron_Frobenius_eigen(matrix):
+	#print(matrix)
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
 	# Eventually we could just use the simplified characteristic polynomial.
 	# eigenvalue_polynomial = matrix.char_poly().simplify()
-	if eigenvector_coefficients is None:
-	#if True:
+	#if eigenvector_coefficients is None:
+	if False:
 		# We will calculate the eigenvector ourselves.
-		M = matrix - (N.lmbda *  Flipper.kernel.Id_Matrix(matrix.width))
+		M = matrix - N.lmbda
 		try:
 			[eigenvector] = M.kernel()  # Sage is much better at this than us for large matrices.
 		except ValueError:

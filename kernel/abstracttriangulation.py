@@ -89,13 +89,13 @@ class AbstractTriangulation(object):
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
-			self._face_matrix = Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)], self.zeta)
+			self._face_matrix = Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[i], triangle[i+1]], [triangle[i+2]]) for triangle in self.triangles for i in range(3)])
 		return self._face_matrix
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
-			self._marking_matrices = [Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P], self.zeta) for P in corner_choices]
+			self._marking_matrices = [Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [triangle[side]], [triangle[side+1], triangle[side+2]]) for (triangle, side) in P]) for P in corner_choices]
 		return self._marking_matrices
 	
 	def find_edge(self, edge_index):
@@ -301,11 +301,11 @@ class AbstractTriangulation(object):
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
 		A1 = Flipper.kernel.Id_Matrix(self.zeta)
 		Flipper.kernel.matrix.tweak_vector(A1[edge_index], [a, c], [edge_index, edge_index])  # The double -f here forces A1[f][f] = -1.
-		C1 = Flipper.kernel.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [a, c], [b, d]), self.zeta)
+		C1 = Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [a, c], [b, d])])
 		
 		A2 = Flipper.kernel.Id_Matrix(self.zeta)
 		Flipper.kernel.matrix.tweak_vector(A2[edge_index], [b, d], [edge_index, edge_index])  # The double -f here forces A2[f][f] = -1.
-		C2 = Flipper.kernel.Matrix(Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c]), self.zeta)
+		C2 = Flipper.kernel.Matrix([Flipper.kernel.matrix.tweak_vector([0] * self.zeta, [b, d], [a, c])])
 		
 		f = Flipper.kernel.PartialFunction(self, new_triangulation, A1, C1)
 		g = Flipper.kernel.PartialFunction(self, new_triangulation, A2, C2)

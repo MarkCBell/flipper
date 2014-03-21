@@ -119,7 +119,7 @@ class Polynomial(object):
 				Q, R = p, Polynomial([0]), 
 				while R.is_zero():
 					p = Q
-					Q, R = p.divmod(q)
+					Q, R, k = p.divmod(q)
 		return p
 	def simplify(self):
 		return self.remove_factors(cyclotomic_polynomials(self.degree))
@@ -198,7 +198,7 @@ class Polynomial(object):
 			raise Flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
 		
 		scale = -1 if self[-1] == 1 else 1
-		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
 
 
 def cyclotomic_polynomials(n):

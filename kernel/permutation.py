@@ -1,6 +1,8 @@
 
 from itertools import permutations, combinations
 
+import Flipper
+
 # Represents a permutation on N elements.
 class Permutation(object):
 	def __init__(self, permutation):
@@ -32,6 +34,10 @@ class Permutation(object):
 		if n < len(self):
 			raise Flipper.AssumptionError('Cannot embed permutation into smaller symmetric group.')
 		return Permutation(list(self.permutation) + list(range(len(self), n)))
+	def matrix(self):
+		# Returns a matrix M such that M*e_i == e_{self[i]}.
+		dim = len(self)
+		return Flipper.kernel.Matrix([[1 if i == self[j] else 0 for j in range(dim)] for i in range(dim)])
 
 #### Some special Permutations we know how to build.
 

@@ -46,11 +46,11 @@ class Isometry(object):
 	def adapt_isometry(self, new_source_triangulation, new_target_triangulation):
 		# Assumes some stuff.
 		return isometry_from_edge_map(new_source_triangulation, new_target_triangulation, self.edge_map)
-	def permutation_matrix(self):
-		return Flipper.kernel.matrix.Permutation_Matrix(self.edge_map)
+	def permutation(self):
+		return Flipper.kernel.Permutation([self.edge_map[i] for i in range(self.zeta)])
 	def encode_isometry(self):
-		f = [Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation_matrix())]
-		b = [Flipper.kernel.PartialFunction(self.target_triangulation, self.source_triangulation, self.inverse().permutation_matrix())]
+		f = [Flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation().matrix())]
+		b = [Flipper.kernel.PartialFunction(self.target_triangulation, self.source_triangulation, self.permutation().inverse().matrix())]
 		E = Flipper.kernel.Encoding(f, b)
 		
 		return Flipper.kernel.EncodingSequence([E]) 

@@ -108,13 +108,14 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
+	def multiplicative_matrix(self):
+		return sum(a * matrix for a, matrix in zip(self, self.number_field.companion_matrices))
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
 			
-			M = sum([a * matrix for a, matrix in zip(self, self.number_field.companion_matrices)], Flipper.kernel.Zero_Matrix(self.number_field.degree))
-			return self.number_field.element(M * other.linear_combination)
+			return self.number_field.element(self.multiplicative_matrix() * other.linear_combination)
 		elif isinstance(other, Flipper.kernel.Integer_Type):
 			return self.number_field.element([a * other for a in self])
 		else:
@@ -133,6 +134,13 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
+	def __floordiv__(self, other):
+		if isinstance(other, NumberFieldElement):
+			if self.number_field != other.number_field:
+				raise TypeError('Cannot add elements of different number fields.')
+			
+			M = other.multiplicative_matrix()
+			return self.number_field.element(M.solve(self.linear_combination))
 	
 	def __lt__(self, other):
 		return (self - other).is_negative()

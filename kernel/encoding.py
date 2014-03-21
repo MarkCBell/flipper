@@ -15,7 +15,7 @@ class PartialFunction(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.action = action
-		if condition is None: condition = Flipper.kernel.Empty_Matrix(self.source_triangulation.zeta)
+		if condition is None: condition = Flipper.kernel.Empty_Matrix()
 		self.condition = condition
 	
 	def __str__(self):
@@ -171,7 +171,7 @@ class EncodingSequence(object):
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
 		As = Flipper.kernel.Id_Matrix(self.zeta)
-		Cs = Flipper.kernel.Empty_Matrix(self.zeta)
+		Cs = Flipper.kernel.Empty_Matrix()
 		source_triangulation = self.source_triangulation
 		target_triangulation = self.source_triangulation
 		for E, i in zip(reversed(self), indices):
@@ -244,7 +244,7 @@ class EncodingSequence(object):
 			As, Cs = partial_function.action, partial_function.condition
 			if progression is not None: progression(progress(indices))
 			if len(indices) < len(self):
-				S, certificate = Cs.nontrivial_polytope()
+				S, certificate = Cs.join(M6).nontrivial_polytope()
 				indices = next(indices) if S else jump(indices)
 			else:
 				for i in range(len(marking_matrices)):

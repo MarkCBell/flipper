@@ -8,10 +8,11 @@ import Flipper
 # See symboliccomputation.py for more information.
 class Polynomial(object):
 	def __init__(self, coefficients):
-		self.coefficients = coefficients[:min(i for i in range(len(coefficients)+1) if not any(coefficients[i:]))]
-		self.height = max(abs(x) for x in self.coefficients) if self.coefficients else 1
+		if coefficients == []: coefficients = [0]
+		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
+		self.height = max(max(abs(x) for x in self.coefficients), 1)
 		self.log_height = log(self.height)
-		self.degree = len(self.coefficients) - 1
+		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
 		self.algebraic_approximation = self.degree * self.height
 		self.accuracy = 0
 		self.root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
@@ -24,11 +25,13 @@ class Polynomial(object):
 	def __repr__(self):
 		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
 	def __bool__(self):
-		return any(self)
+		return not self.is_zero()
+	def __nonzero__(self):
+		return self.__bool__()
 	def __eq__(self, other):
-		return self.coefficients == other.coefficients
+		return (self - other).is_zero()
 	def __ne__(self, other):
-		return self.coefficients != other.coefficients
+		return not (self - other).is_zero()
 	def __neg__(self):
 		return Polynomial([-x for x in self])
 	
@@ -38,15 +41,22 @@ class Polynomial(object):
 	def __getitem__(self, item):
 		return self.coefficients[item]
 	
+	def is_zero(self):
+		return all(coefficient == 0 for coefficient in self)
+	
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
 			m = max(self.degree, other.degree) + 1
 			return Polynomial([a + b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
+		else:
+			return Polynomial([self[0] + other] + self.coefficients[1:])
 	
 	def __sub__(self, other):
 		if isinstance(other, Polynomial):
 			m = max(self.degree, other.degree) + 1
 			return Polynomial([a - b for a, b in zip(self.coefficients + [0] * m, other.coefficients + [0] * m)])
+		else:
+			return Polynomial([self[0] - other] + self.coefficients[1:])
 	
 	def __mul__(self, other):
 		if isinstance(other, Flipper.kernel.Integer_Type):
@@ -64,47 +74,55 @@ class Polynomial(object):
 	
 	def __call__(self, other):
 		return sum(a * other**index for index, a in enumerate(self))
+	
 	def divmod(self, other):
-		# Returns polynomials Q & R such that self = Q * other + R / k for some integer k.
-		# Note that Q is only guaranteed to be correct if R == 0.
-		# Don't forget Gauss' lemma: if two integral polynomials divide then their division is integral.
+		# Returns polynomials Q, R and an integer k such that k*self == Q * other + R.
+		# If self and other are integral, by Gauss' lemma if other | self then k == 1.
 		if isinstance(other, Polynomial):
-			if other.degree < 0: 
+			if other.is_zero(): 
 				raise ZeroDivisionError
 			
-			N = self.copy()
-			D = other.copy()
 			Q = Polynomial([0])
-			while N.degree >= D.degree:
-				Q = Q + (Polynomial([1]).shift(N.degree - D.degree) * (N[-1] // D[-1]))
-				sign = -1 if D[-1] < 0 else 1  # We can never have the leading coefficient 0.
-				N = N * sign * D[-1] - D.shift(N.degree - D.degree) * sign * N[-1]
-			return Q, N
+			R = self.copy()
+			k = 1
+			while R.degree >= other.degree:
+				# Now if other | self then Gauss' lemma says this condition will always fail.
+				if R[-1] % other[-1] != 0: 
+					R = R * other[-1]
+					Q = Q * other[-1]
+					k = k * other[-1]
+				scale = R[-1] // other[-1]  
+				Q = Q + (Polynomial([1]).shift(R.degree - other.degree) * scale)
+				R = R - (other.shift(R.degree - other.degree) * scale)
+			return Q, R, k
 		else:
 			return NotImplemented
-	
 	def __mod__(self, other):
-		Q, R = self.divmod(other)
+		Q, R, k = self.divmod(other)
 		return R
-	
 	def __div__(self, other):
 		# Assumes that the division is perfect.
-		Q, R = self.divmod(other)
-		if R != Polynomial([0]):
-			raise Flipper.AssumptionError('Polynomials do not divide.')
+		Q, R, k = self.divmod(other)
+		if not R.is_zero():
+			raise ValueError('Polynomials do not divide.')
 		return Q
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __floordiv__(self, other):
 		return self.__div__(other)
 	
-	def remove_linear_factors(self):
-		# Returns self // (x - k_1) ... (x - k_n) where
-		if self != Polynomial([0]):
-			for i in range(-self.root_range, self.root_range+1):
-				if self(i) == 0:
-					return (self // Polynomial([-i, 1])).remove_linear_factors()
-		return self
+	def remove_factors(self, possible_factors):
+		# Returns self with all factors in possible_factors removed.
+		p = self.copy()
+		if not self.is_zero():
+			for q in possible_factors:
+				Q, R = p, Polynomial([0]), 
+				while R.is_zero():
+					p = Q
+					Q, R = p.divmod(q)
+		return p
+	def simplify(self):
+		return self.remove_factors(cyclotomic_polynomials(self.degree))
 	
 	def signs_at_interval_endpoints(self, interval):
 		s1 = sum(coefficient * interval.lower**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))
@@ -115,7 +133,7 @@ class Polynomial(object):
 		f1 = self
 		f2 = self.derivative()
 		sturm_chain = [f1, f2]
-		while sturm_chain[-1] != Polynomial([]):
+		while not sturm_chain[-1].is_zero():
 			sturm_chain.append(-(sturm_chain[-2] % sturm_chain[-1]))
 		
 		return sturm_chain
@@ -181,4 +199,23 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)], self.degree)
+
+
+def cyclotomic_polynomials(n):
+	# Returns a list containing the first n cyclotomic polynomials.
+	
+	small_cyclotomic_polynomials = [Polynomial([0]),
+		Polynomial([-1, 1]), Polynomial([1, 1]), Polynomial([1, 1, 1]), Polynomial([1, 0, 1]),
+		Polynomial([1, 1, 1, 1, 1]), Polynomial([1, -1, 1]), Polynomial([1, 1, 1, 1, 1, 1, 1]),
+		Polynomial([1, 0, 0, 0, 1]), Polynomial([1, 0, 0, 1, 0, 0, 1]), Polynomial([1, -1, 1, -1, 1])
+		]
+	
+	for i in range(11, n+1):
+		p = Polynomial([-1] + [0]*(i-1) + [1])
+		for j in range(1, i):
+			if i % j == 0:
+				p = p // small_cyclotomic_polynomials[j]
+		small_cyclotomic_polynomials.append(p)
+	
+	return small_cyclotomic_polynomials[1:n+1]
 

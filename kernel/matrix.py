@@ -2,6 +2,7 @@
 from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce
+from time import time
 
 import Flipper
 
@@ -37,7 +38,7 @@ def find_one(v):
 	return -1
 
 def rescale(v):
-	c = abs(reduce(gcd, v))
+	c = max(abs(reduce(gcd, v)), 1)  # Avoid a possible division by 0.
 	return [x // c for x in v]
 
 def nonnegative(v):
@@ -63,7 +64,7 @@ class Matrix(object):
 		return Matrix([list(row) for row in self], self.width)
 	def __getitem__(self, index):
 		return self.rows[index]
-	def __str__(self):
+	def __repr__(self):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
@@ -73,10 +74,8 @@ class Matrix(object):
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == len(other))
 			return [dot(row, other) for row in self]
-		elif isinstance(other, Flipper.kernel.Integer_Type):
-			return Matrix([[entry * other for entry in row] for row in self], self.width)
 		else:
-			return NotImplemented
+			return Matrix([[entry * other for entry in row] for row in self], self.width)
 	def __rmul__(self, other):
 		return self * other
 	def __pow__(self, power):
@@ -112,6 +111,8 @@ class Matrix(object):
 	def equivalent(self, other):
 		return sorted(self.rows) == sorted(other.rows)
 	def inverse(self):
+		# This is very slow, you should never call this.
+		assert(False)
 		assert(self.width == self.height)
 		I = self.determinant()
 		assert(abs(I) == 1)
@@ -133,17 +134,59 @@ class Matrix(object):
 	def nonnegative_image(self, v):
 		return all(dot(row, v) >= 0 for row in self)
 	def char_poly(self):
+		assert(self.width == self.height)
+		# We will actually compute det(\lambdaI - self). Then at the
+		# end we correct this by multiplying by the required +/-1.
 		A = self.copy()
-		p = [1]
+		p = [1] * (self.width+1)
 		for i in range(1, self.width+1):
-			ci = -A.trace() // i
-			p.append(ci)
-			A = self * (A + Id_Matrix(self.width) * ci)
-		return Flipper.kernel.Polynomial(p[::-1])
+			p[i] = -A.trace() // i
+			# If we were smarter we would skip this on the final iteration.
+			A = self * (A + Id_Matrix(self.width) * p[i])
+		# Actually now A / pi == A^{-1}. 
+		sign = +1 if self.width % 2 == 0 else -1
+		return Flipper.kernel.Polynomial(p[::-1]) * sign
+	def row_reduce(self, zeroing_width=None):
+		# Returns this matrix after applying elementary row operations
+		# so that in each row each non-zero entry either:
+		#	1) has a non-zero entry to the left of it,
+		#	2) has no non-zero entries below it, or
+		#	3) is in a column > zeroing_width.
+		if zeroing_width is None: zeroing_width = self.width
+		i, j = 0, 0
+		A = [list(row) for row in self]
+		while j <= zeroing_width:
+			for b, a in product(range(i, zeroing_width), range(j, self.height)):
+				if A[a][b] != 0:
+					A[i], A[a] = A[a], A[i]
+					j = b
+					break
+			else:
+				break
+			
+			rlead = A[i][j]
+			for k in range(i+1, self.height):
+				r2lead = A[k][j]
+				if r2lead != 0:
+					A[k] = [A[k][x] * rlead - A[i][x] * r2lead for x in range(self.width)]
+			
+			i += 1
+			j += 1
+		return Matrix(A, self.width)
+	def kernel(self):
+		A = self.join(Id_Matrix(self.width))
+		B = A.transpose()
+		C = B.row_reduce(zeroing_width=self.height)
+		return Matrix([row[self.height:] for row in C if any(row) and not any(row[:self.height])], self.width)
+	
 	def solve(self, target):
-		sign = +1 if self.determinant() > 0 else -1
+		# Returns an x such that self*x == target*k for some k \in ZZ. 
+		assert(self.width == self.height)
 		A = self.transpose()
-		return [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
+		d = A.determinant()
+		sign = +1 if d > 0 else -1
+		sol = [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
+		return rescale(sol)
 	def substitute_row(self, index, new_row):
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)], self.width)
 	def discard_column(self, column):

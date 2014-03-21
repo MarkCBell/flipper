@@ -79,6 +79,10 @@ class NumberFieldElement(object):
 		return iter(self.linear_combination)
 	def __float__(self):
 		return float(self.algebraic_approximation())
+	def __bool__(self):
+		return not self.is_zero()
+	def __nonzero__(self):  # For Python2.
+		return self.__bool__()
 	
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])

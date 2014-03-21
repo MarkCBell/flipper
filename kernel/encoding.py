@@ -309,7 +309,7 @@ class EncodingSequence(object):
 		# If these curves do not appear to converge, this is detected and a ComputationError thrown. 
 		#
 		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
-		# 1000 iterations and a ComputationError is thrown then it's actually extremely likely that the 
+		# 100 iterations and a ComputationError is thrown then it's actually extremely likely that the 
 		# map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
@@ -324,7 +324,7 @@ class EncodingSequence(object):
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 		
 		new_curves = [self * curve for curve in curves]
-		for i in range(1000):
+		for i in range(100):
 			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
 			if i > 3:  # Make sure to do at least 4 iterations.
 				for new_curve, curve in zip(new_curves, curves):
@@ -334,10 +334,13 @@ class EncodingSequence(object):
 						else:
 							partial_function = self.applied_function(curve)
 							action_matrix, condition_matrix = partial_function.action, partial_function.condition
-							eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
-							# If we actually found an invariant lamination then return it.
-							if condition_matrix.nonnegative_image(eigenvector):
-								return self.source_triangulation.lamination(eigenvector)
+							try:
+								eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
+								# If we actually found an invariant lamination then return it.
+								if condition_matrix.nonnegative_image(eigenvector):
+									return self.source_triangulation.lamination(eigenvector)
+							except Flipper.AssumptionError:
+								pass  # Didn't go far enough.
 		
 		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	

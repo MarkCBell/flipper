@@ -41,36 +41,22 @@ def load_library(library_name=None):
 
 def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
-	eigenvalue_coefficients, eigenvector = symbolic_computation_library.PF_eigen(matrix)
+	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
-	print(eigenvalue_polynomial)
-	print(matrix.char_poly())
-	#if eigenvector is None:
-	if True
-		# We will calculate the eigenvector ourselves.
-		# Suppose that M is an nxn matrix and deg(\lambda) = d. Let C be the companion matrix of \lambda
-		
-		# We now consider QQ(\lambda) as a vector space over QQ with basis 1, \lambda, ..., \lambda^{d-1}. 
-		# Therefore finding a vector in ker(matrix - \lambda id) with entries in QQ(\lambda) is equivalent 
-		# to finding a vector in ken(M ^ id_d - C ^ id_n) with entries in QQ, where ^ denotes the tensor
-		# product of matrices. We can now do this just by using linear algebra.
-		
-		print(matrix)
-		d = eigenvalue_polynomial.degree
-		n = matrix.width
-		
-		Id_d = Flipper.kernel.Id_Matrix(d)
-		eigen_companion = eigenvalue_polynomial.companion_matrix()
-		
-		M2 = matrix.substitute_row(0, [1] * n)
-		M3 = Flipper.kernel.Id_Matrix(n).substitute_row(0, [0] * n)
-		M4 = (M2 ^ Id_d) - (M3 ^ eigen_companion)
-		print(M4)
-		
-		solution = M4.solve([1] + [0] * (len(M4)-1))
-		print(solution)
-		eigenvector = [solution[i:i+d] for i in range(0, len(solution), d)]
-	
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
-	return [N.element(v) for v in eigenvector]
+	# Eventually we could just use the simplified characteristic polynomial.
+	# eigenvalue_polynomial = matrix.char_poly().simplify()
+	if eigenvector_coefficients is None:
+	#if True:
+		# We will calculate the eigenvector ourselves.
+		M = matrix - (N.lmbda *  Flipper.kernel.Id_Matrix(matrix.width))
+		try:
+			[eigenvector] = M.kernel()  # Sage is much better at this than us for large matrices.
+		except ValueError:
+			raise Flipper.AssumptionError('Largest real eigenvalue is repeated.')
+		return eigenvector
+	else:
+		eigenvector = [N.element(v) for v in eigenvector_coefficients]
+	
+	return eigenvector
 

@@ -1,5 +1,6 @@
 
 from sage.all import Matrix, lcm, NumberField, QQbar, QQ
+from sage.rings.number_field.number_field import NumberField_generic
 from math import log10 as log
 
 import Flipper
@@ -25,6 +26,7 @@ def PF_eigen(matrix):
 	[lam] = K.gens()
 	
 	try:
+		D = M - lam
 		[eigenvector] = (M - lam).right_kernel().basis()
 	except ValueError:
 		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')

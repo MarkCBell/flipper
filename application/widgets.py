@@ -48,7 +48,7 @@ class SplitButton(TK.Frame):
 		self.rowconfigure(0, weight=1)
 
 class Meter(TK.Frame):
-	def __init__(self, master, width=300, height=20, bg='white', fillcolour='orchid1', value=0.0, text=None, font=None, textcolour='black', *args, **kw):
+	def __init__(self, master, width=300, height=20, bg='white', fillcolour='midnight blue', value=0.0, text=None, font=None, textcolour='black', *args, **kw):
 		''' A simple progress bar widget for TK.
 		
 		INITIALIZATION OPTIONS:
@@ -101,7 +101,10 @@ class Meter(TK.Frame):
 		value = min(max(value, 0.0), 1.0)
 		if self._canv.winfo_width() * abs(self._value - value) > 1 or text is not None:  # Only bother updating if there has been a noticeable change.
 			self._value = value
-			if text is None: text = '%0.1f %%' % (100 * value)  # If no text is specified use the default percentage string.
+			if text is None: 
+				text = '%0.1f%%' % (100 * value)  # If no text is specified use the default percentage string.
+				textcolour = 'black' if value < 0.5 else 'white'
 			self._canv.coords(self._rect, self._canv.winfo_width() * lower_value, 0, self._canv.winfo_width() * value, self._canv.winfo_height())
-			self._canv.itemconfigure(self._text, text=text)
+			self._canv.itemconfigure(self._text, text=text, fill=textcolour)
 			self._canv.update_idletasks()
+

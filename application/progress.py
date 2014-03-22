@@ -34,10 +34,8 @@ class ProgressApp(object):
 		self.host_app = host_app
 		self.indeterminant = indeterminant
 		self.parent = TK.Toplevel(self.host_app.parent)
+		self.parent.title('Flipper: Computing...')
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
-		
-		self.label = TK.Label(self.parent, text='Computing:', anchor='w')
-		self.label.pack(fill='x', expand=True)
 		
 		#self.progress = TTK.Progressbar(self.parent, mode='determinate', length=300)  # We could use ttk's progress bar.
 		self.progress = Flipper.application.widgets.Meter(self.parent)

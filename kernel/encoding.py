@@ -254,7 +254,8 @@ class EncodingSequence(object):
 					# M6 = Flipper.kernel.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					if P.nontrivial_polytope():
-						# We're repeating some work here.
+						# We could just return True here but we'll repeat some work
+						# just to make sure everything went ok.
 						certificate = self.source_triangulation.lamination([2*i for i in P.find_edge_vector()])
 						assert(self.check_fixedpoint(certificate))
 						return True

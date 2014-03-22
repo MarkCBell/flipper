@@ -256,6 +256,9 @@ class FlipperApp(object):
 		self.lamination_names = {}
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
+		# We will cache properties of laminations and mapping classes.
+		# The rule is that we will cache anything that we cannot compute in
+		# polynomial time.
 		self.cache = {}
 		
 		self.selected_object = None
@@ -284,9 +287,9 @@ class FlipperApp(object):
 			self.laminations[name] = lamination
 			self.lamination_names[iid] = name
 			self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
-			self.treeview_objects.insert(iid, 'end', text='Multicurve: ?', tags=['txt', 'multicurve_lamination'])
-			self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
-			self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Multicurve: %s' % lamination.is_multicurve(), tags=['txt', 'multicurve_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Twistable: %s' % lamination.is_twistable(), tags=['txt', 'twist_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Half twistable: %s' % lamination.is_halftwistable(), tags=['txt', 'half_twist_lamination'])
 			self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
 			
 			self.cache[lamination] = {}
@@ -1310,18 +1313,15 @@ class FlipperApp(object):
 		
 		parent = self.treeview_objects.parent(iid)
 		if 'multicurve_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Multicurve: %s' % lamination.is_multicurve())
+			pass
 		elif 'twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Twistable: %s' % lamination.is_twistable())
 			if lamination.is_twistable():
 				self.add_mapping_class(lamination.encode_twist())
 		elif 'half_twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
-			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_halftwistable())
 			if lamination.is_halftwistable():
-				self.store_halftwist(None, lamination)
+				self.add_mapping_class(lamination.encode_halftwist())
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[parent]]

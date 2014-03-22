@@ -103,7 +103,7 @@ class Meter(TK.Frame):
 			self._value = value
 			if text is None: 
 				text = '%0.1f%%' % (100 * value)  # If no text is specified use the default percentage string.
-				textcolour = 'black' if value < 0.5 else 'white'
+			textcolour = 'black' if value < 0.5 else 'white'
 			self._canv.coords(self._rect, self._canv.winfo_width() * lower_value, 0, self._canv.winfo_width() * value, self._canv.winfo_height())
 			self._canv.itemconfigure(self._text, text=text, fill=textcolour)
 			self._canv.update_idletasks()

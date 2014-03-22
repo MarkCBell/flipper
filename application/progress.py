@@ -53,6 +53,7 @@ class ProgressApp(object):
 		self.button_cancel.focus()
 		self.parent.deiconify()
 		self.parent.transient(self.host_app.parent)  # Lock this window on top.
+		self.parent.grab_set()  # Make sure this window always has focus.
 		x = self.host_app.parent.winfo_rootx() + self.host_app.parent.winfo_width() // 2 - self.parent.winfo_width() // 2
 		y = self.host_app.parent.winfo_rooty() + self.host_app.parent.winfo_height() // 2 - self.parent.winfo_height() // 2
 		self.parent.geometry('+%d+%d' % (x, y))
@@ -60,6 +61,7 @@ class ProgressApp(object):
 	def cancel(self):
 		self.running = False
 		self.worker.terminate()
+		self.host_app.parent.focus_set()
 		self.parent.destroy()
 	
 	def process(self, function, args=None):
@@ -71,7 +73,7 @@ class ProgressApp(object):
 		
 		while self.running:  # So long as the calculation hasn't been aborted.
 			try:
-				category, value = answer.get(True, 0.05)  # Try and get some more information
+				category, value = answer.get(True, 0.05)  # Try and get some more information.
 				if category == CATEGORY_RESULT:  # We got the answer.
 					self.cancel()
 					return value
@@ -91,3 +93,4 @@ class ProgressApp(object):
 		#self.progress['value'] = int(value * 100)
 		self.progress.set(value, text)
 		self.host_app.parent.update()
+

@@ -3,6 +3,7 @@ import re
 import os
 import sys
 import pickle
+import string
 from math import sin, cos, pi
 from itertools import combinations
 try:
@@ -10,14 +11,14 @@ try:
 	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
-	# import tkSimpleDialog
+	import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.font as TK_FONT
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
-		# import tkinter.simpledialog as tkSimpleDialog
+		import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 
@@ -64,13 +65,23 @@ DEFAULT_EDGE_LABEL_COLOUR = 'red'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
-# A name is valid if it consists of letters, numbers, underscores and at least one letter.
+# A name is valid if it consists of letters, numbers, underscores and starts with a letter.
 def valid_name(name):
-	if re.match(r'\w+', name) is not None and re.match(r'\w+', name).group() == name and re.search('[a-zA-Z]+', name) is not None:
-		return True
-	else:
-		tkMessageBox.showwarning('Name', '%s is not a valid name.' % name)
-		return False
+	if not name: return False  # Not empty / None.
+	if name[0] not in string.ascii_letters: return False  # Starts with a letter.
+	if any(x not in (string.ascii_letters + string.digits + '_') for x in name): return False  # Only contains letters, numbers and underscores.
+	return True
+
+def get_valid_name(name=None, message=None):
+	if message is None: message = 'Name to use:'
+	if name is None:
+		name = tkSimpleDialog.askstring('Name', message) 
+		if name is None: return None
+	while not valid_name(name):
+		tkMessageBox.showerror('Name', 'Not a valid name. A valid name must start with a letter and contain only letters, numbers and underscores.')
+		name = tkSimpleDialog.askstring('Name', message) 
+		if name is None: return None
+	return name
 
 class Options(object):
 	def __init__(self, parent):
@@ -263,41 +274,45 @@ class FlipperApp(object):
 		self.unsaved_work = False
 		return True
 	
-	def add_lamination(self, name, lamination, add_below='laminations'):
-		if name in self.laminations:
-			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name])
-		
-		iid = self.treeview_objects.insert(add_below, 'end', text=name, tags=['txt', 'lamination'])
-		self.laminations[name] = lamination
-		self.lamination_names[iid] = name
-		self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Multicurve: ?', tags=['txt', 'multicurve_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
-		
-		self.cache[lamination] = {}
-		
-		self.unsaved_work = True
+	def add_lamination(self, lamination, name=None):
+		name = get_valid_name(name, 'New lamination name:')
+		if name is not None:
+			if name in self.laminations:
+				self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name])
+			
+			iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
+			self.laminations[name] = lamination
+			self.lamination_names[iid] = name
+			self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Multicurve: ?', tags=['txt', 'multicurve_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Twistable: ?', tags=['txt', 'twist_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Half twistable: ?', tags=['txt', 'half_twist_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
+			
+			self.cache[lamination] = {}
+			
+			self.unsaved_work = True
 	
-	def add_mapping_class(self, name, mapping_class):
-		name_inverse = name.swapcase()
-		if name in self.mapping_classes:
-			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] in [name, name_inverse]])
-		
-		iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
-		self.mapping_classes[name] = mapping_class
-		self.mapping_classes[name_inverse] = mapping_class.inverse()
-		self.mapping_class_names[iid] = name
-		self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
-		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
-		self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
-		self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
-		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
-		
-		self.cache[mapping_class] = {}
-		
-		self.unsaved_work = True
+	def add_mapping_class(self, mapping_class, name=None):
+		name = get_valid_name(name)
+		if name is not None:
+			name_inverse = name.swapcase()
+			if name in self.mapping_classes:
+				self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] in [name, name_inverse]])
+			
+			iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
+			self.mapping_classes[name] = mapping_class
+			self.mapping_classes[name_inverse] = mapping_class.inverse()
+			self.mapping_class_names[iid] = name
+			self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
+			self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
+			self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
+			self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
+			self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
+			
+			self.cache[mapping_class] = {}
+			
+			self.unsaved_work = True
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -346,10 +361,10 @@ class FlipperApp(object):
 					self.abstract_triangulation = abstract_triangulation
 					
 					for name in lamination_names:
-						self.add_lamination(name, laminations[name])
+						self.add_lamination(laminations[name], name)
 					
 					for name in mapping_class_names:
-						self.add_mapping_class(name, mapping_classes[name])
+						self.add_mapping_class(mapping_classes[name], name)
 					
 					self.cache = cache
 					
@@ -492,11 +507,11 @@ class FlipperApp(object):
 				'tighten': [0], 
 				'ngon': [1],
 				'rngon': [1],
-				'lamination': [1],
-				'twist': [1],
-				'half': [1],
-				'isometry': [4],
-				'compose': [2],
+				'lamination': [0, 1],
+				'twist': [0, 1],
+				'half': [0, 1],
+				'isometry': [3, 4],
+				'compose': [1, 2],
 				'apply': [1],
 				'order': [1],
 				'type': [1],
@@ -504,9 +519,9 @@ class FlipperApp(object):
 				'bundle': [1] 
 				}
 			if task not in num_arguements:
-				tkMessageBox.showwarning('Command', 'Unknown command: %s' % command)
+				tkMessageBox.showerror('Command', 'Unknown command: %s' % command)
 			elif len(arguements) not in num_arguements[task]:
-				tkMessageBox.showwarning('Command', 'Command requires %s arguments but %d were provided.' % (num_arguements[task], len(arguements)))
+				tkMessageBox.showerror('Command', '%s requires %s argument(s) but %d were provided.' % (task, '/'.join(str(x) for x in num_arguements[task]), len(arguements)))
 			else:
 				tasks = {
 					'new': self.initialise,
@@ -959,55 +974,58 @@ class FlipperApp(object):
 			except Flipper.AssumptionError:
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
-	def store_lamination(self, name):
+	def store_lamination(self, name=None):
 		if self.is_complete():
-			if valid_name(name):
-				try:
-					lamination = self.canvas_to_lamination()
-					self.add_lamination(name, lamination)
-					self.destroy_lamination()
-				except Flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
+			try:
+				lamination = self.canvas_to_lamination()
+			except Flipper.AssumptionError:
+				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
+			else:
+				self.add_lamination(lamination, name)
+				self.destroy_lamination()
 	
-	def store_twist(self, name):
+	def store_twist(self, name=None):
 		if self.is_complete():
-			if valid_name(name):
-				try:
-					lamination = self.canvas_to_lamination()
-					if lamination.is_twistable():
-						self.add_lamination(name, lamination)
-						self.add_mapping_class(name, lamination.encode_twist())
+			try:
+				lamination = self.canvas_to_lamination()
+			except Flipper.AssumptionError:
+				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
+			else:
+				if lamination.is_twistable():
+					name = get_valid_name(name)
+					if name is not None:
+						self.add_mapping_class(lamination.encode_twist(), name)
+						self.add_lamination(lamination, name)
 						self.destroy_lamination()
-					else:
-						tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is either a multicurve or a complementary region of it has no punctures.')
-				except Flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-	
-	def store_halftwist(self, name):
-		if self.is_complete():
-			if valid_name(name):
-				try:
-					lamination = self.canvas_to_lamination()
-					if lamination.is_halftwistable():
-						self.add_lamination(name, lamination)
-						self.add_mapping_class(name, lamination.encode_halftwist())
-						self.destroy_lamination()
-					else:
-						tkMessageBox.showwarning('Curve', 'Not an essential curve bounding a pair of pants.')
-				except Flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-	
-	def store_isometry(self, name, a, b, c):
-		if self.is_complete():
-			if valid_name(name):
-				from_edges, to_edges = zip([int(x) for x in a.split(':')], [int(x) for x in b.split(':')], [int(x) for x in c.split(':')])
-				try:
-					possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
-					isometry = possible_isometry[0]
-				except IndexError:
-					tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 				else:
-					self.add_mapping_class(name, isometry.encode_isometry())
+					tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is not a curve with punctured complementary regions.')
+	
+	def store_halftwist(self, name=None):
+		if self.is_complete():
+			try:
+				lamination = self.canvas_to_lamination()
+			except Flipper.AssumptionError:
+				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
+			else:
+				if lamination.is_halftwistable():
+					name = get_valid_name(name)
+					if name is not None:
+						self.add_mapping_class(lamination.encode_halftwist(), name)
+						self.add_lamination(lamination, name)
+						self.destroy_lamination()
+				else:
+					tkMessageBox.showwarning('Curve', 'Cannot half-twist about this, it is not an essential curve bounding a pair of pants with a punctured complement.')
+	
+	def store_isometry(self, a, b, c, name=None):
+		if self.is_complete():
+			from_edges, to_edges = zip([int(x) for x in a.split(':')], [int(x) for x in b.split(':')], [int(x) for x in c.split(':')])
+			try:
+				possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
+				isometry = possible_isometry[0]
+			except IndexError:
+				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
+			else:
+				self.add_mapping_class(isometry.encode_isometry())
 	
 	def create_composition(self, composition):
 		# Assumes that each of the named mapping classes exist. If not an
@@ -1022,18 +1040,17 @@ class FlipperApp(object):
 				else:
 					tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 					raise Flipper.AssumptionError()
-		
+			
 			return mapping_class
 	
-	def store_composition(self, name, composition):
+	def store_composition(self, composition, name=None):
 		if self.is_complete():
-			if valid_name(name):
-				try:
-					mapping_class = self.create_composition(composition)
-				except Flipper.AssumptionError:
-					pass
-				else:
-					self.add_mapping_class(name, mapping_class)
+			try:
+				mapping_class = self.create_composition(composition)
+			except Flipper.AssumptionError:
+				pass
+			else:
+				self.add_mapping_class(mapping_class, name)
 	
 	def show_lamination(self, name):
 		if self.is_complete():
@@ -1298,9 +1315,13 @@ class FlipperApp(object):
 		elif 'twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
 			self.treeview_objects.item(iid, text='Twistable: %s' % lamination.is_twistable())
+			if lamination.is_twistable():
+				self.add_mapping_class(lamination.encode_twist())
 		elif 'half_twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[parent]]
 			self.treeview_objects.item(iid, text='Half twistable: %s' % lamination.is_halftwistable())
+			if lamination.is_halftwistable():
+				self.store_halftwist(None, lamination)
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[parent]]

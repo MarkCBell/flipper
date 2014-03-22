@@ -481,7 +481,6 @@ class FlipperApp(object):
 			
 			sections = command.split(' ')
 			task, arguements = sections[0], sections[1:]
-			combined = ' '.join(arguements)
 			num_arguements = {
 				'new': [0],
 				'erase': [0],
@@ -532,10 +531,7 @@ class FlipperApp(object):
 					'bundle': self.build_bundle
 					}
 				
-				if len(arguements) == 0:
-					tasks[task]()
-				elif len(arguements) > 0:
-					tasks[task](combined)
+				tasks[task](*arguements)
 			self.entry_command.delete(0, TK.END)
 	
 	def object_here(self, p):
@@ -1001,9 +997,8 @@ class FlipperApp(object):
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
-	def store_isometry(self, specification):
+	def store_isometry(self, name, a, b, c):
 		if self.is_complete():
-			name, a, b, c = specification.split(' ')
 			if valid_name(name):
 				from_edges, to_edges = zip([int(x) for x in a.split(':')], [int(x) for x in b.split(':')], [int(x) for x in c.split(':')])
 				try:
@@ -1030,16 +1025,15 @@ class FlipperApp(object):
 		
 			return mapping_class
 	
-	def store_composition(self, composition):
+	def store_composition(self, name, composition):
 		if self.is_complete():
-			name, twists = composition.split(' ')
 			if valid_name(name):
-				inverse_composition = '.'.join(twists.swapcase().split('.')[::-1])
 				try:
-					mapping_class = self.create_composition(twists)
-					self.add_mapping_class(name, mapping_class)
+					mapping_class = self.create_composition(composition)
 				except Flipper.AssumptionError:
 					pass
+				else:
+					self.add_mapping_class(name, mapping_class)
 	
 	def show_lamination(self, name):
 		if self.is_complete():

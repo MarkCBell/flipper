@@ -64,6 +64,8 @@ class Matrix(object):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
 	def __float__(self):
 		return Matrix([[float(x) for x in row] for row in self])
+	def is_empty(self):
+		return self.width == 0
 	
 	def __add__(self, other):
 		if isinstance(other, Matrix):
@@ -256,7 +258,12 @@ class Matrix(object):
 		return Matrix(R), A
 	
 	def find_edge_vector(self):
-		''' Returns a non-trivial vector in the polytope or None if none exists. '''
+		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or None if none exists. 
+		Note: if self is empty then considers self as a map from RR^0 --> RR^0 and so returns None. '''
+
+		if self.is_empty():
+			return None
+		
 		R, B = self.simplify()  # Reduce to a simpler problem.
 		
 		if R.width == 0:
@@ -275,15 +282,21 @@ class Matrix(object):
 					if not nonnegative(v): v = [-x for x in v]  # Might need to flip v.
 					if nonnegative(v) and R.nonnegative_image(v):
 						return B*v
-		return
-	
-	def nontrivial_polytope(self):
-		''' Determines if the polytope Ax >= 0, x >= 0 is non-trivial, i.e. not just {0}. '''
-		certificate = self.find_edge_vector()
-		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))
-		return (certificate is not None), certificate
+		
+		# Polytope is trivial.
+		return None
 	def check_nontrivial_polytope(self, certificate):
 		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
+	
+	def nontrivial_polytope(self):
+		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial, i.e. not just {0}. '''
+		# We need to handle the empty case separately.
+		if self.is_empty():
+			return True
+		
+		certificate = self.find_edge_vector()
+		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))
+		return (certificate is not None)
 
 #### Some special Matrices we know how to build.
 

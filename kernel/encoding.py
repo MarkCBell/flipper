@@ -199,11 +199,9 @@ class EncodingSequence(object):
 	def is_periodic(self):
 		return self.order() > 0
 	
-	def is_reducible(self, certify=False, progression=None):
+	def is_reducible(self, progression=None):
 		''' This determines if the induced action of self on V has a fixed point satisfying:
-		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices.
-		
-		If certify is True then this returns (True, example) is there is such fixed point and (False, None) otherwise. '''
+		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices. '''
 		# We now use Ben's branch and bound approach. It's much better.
 		assert(self.source_triangulation == self.target_triangulation)
 		
@@ -244,8 +242,7 @@ class EncodingSequence(object):
 			As, Cs = partial_function.action, partial_function.condition
 			if progression is not None: progression(progress(indices))
 			if len(indices) < len(self):
-				S, certificate = Cs.join(M6).nontrivial_polytope()
-				indices = next(indices) if S else jump(indices)
+				indices = next(indices) if Cs.nontrivial_polytope() else jump(indices)
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
@@ -256,14 +253,14 @@ class EncodingSequence(object):
 					# M4 = face_matrix  # These have been precomputed.
 					# M6 = Flipper.kernel.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
-					S, certificate = P.nontrivial_polytope()
-					if S:
-						certificate = self.source_triangulation.lamination([2*i for i in certificate])
+					if P.nontrivial_polytope():
+						# We're repeating some work here.
+						certificate = self.source_triangulation.lamination([2*i for i in P.find_edge_vector()])
 						assert(self.check_fixedpoint(certificate))
-						return (True, certificate) if certify else True
+						return True
 				indices = jump(indices)
 		
-		return (False, None) if certify else False
+		return False
 	
 	def check_fixedpoint(self, certificate):
 		assert(self.source_triangulation == self.target_triangulation)

@@ -1,6 +1,7 @@
 
 from multiprocessing import Process
 from multiprocessing import JoinableQueue as Queue
+import inspect
 
 try:
 	from Queue import Empty
@@ -19,56 +20,65 @@ import Flipper
 CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
 
 def _worker_thread(function, args, answer, indeterminant):
-	# What if an error occurs?
 	try:
 		if indeterminant:
 			result = function(*args)
 		else:
-			result = function(*args, progression=lambda v: answer.put((CATEGORY_PROGRESS, v)))
+			answer.put((CATEGORY_PROGRESS, 0))
+			result = function(*args, log_progress=lambda v: answer.put((CATEGORY_PROGRESS, v)))
 		answer.put((CATEGORY_RESULT, result))
 	except Exception as e:
-		answer.put((CATEGORY_ERROR, e))
+		answer.put((CATEGORY_ERROR, e))  # Return any errors that occur.
 
 class ProgressApp(object):
-	def __init__(self, host_app, indeterminant=False):
-		self.host_app = host_app
-		self.indeterminant = indeterminant
-		self.parent = TK.Toplevel(self.host_app.parent)
+	def __init__(self, host_app_parent=None):
+		if host_app_parent is None: host_app_parent = TK._default_root
+		self.host_app_parent = host_app_parent
+		self.parent = TK.Toplevel(self.host_app_parent)
 		self.parent.title('Flipper: Computing...')
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
 		
-		#self.progress = TTK.Progressbar(self.parent, mode='determinate', length=300)  # We could use ttk's progress bar.
-		self.progress = Flipper.application.widgets.Meter(self.parent)
+		self.progress = Flipper.application.Meter(self.parent)
 		self.progress.pack(padx=2, pady=2)
 		
 		self.button_cancel = TK.Button(self.parent, text='Cancel', command=self.cancel)
 		self.button_cancel.pack(padx=2, pady=2, side='right')
 		
-		self.running = True
+		self.running = False
 		self.worker = None
 		
 		self.parent.resizable(0, 0)
 		self.parent.withdraw()
 		self.parent.lift()
 		self.button_cancel.focus()
-		self.parent.deiconify()
-		self.parent.transient(self.host_app.parent)  # Lock this window on top.
-		self.parent.grab_set()  # Make sure this window always has focus.
-		x = self.host_app.parent.winfo_rootx() + self.host_app.parent.winfo_width() // 2 - self.parent.winfo_width() // 2
-		y = self.host_app.parent.winfo_rooty() + self.host_app.parent.winfo_height() // 2 - self.parent.winfo_height() // 2
+		self.parent.withdraw()  # Hide self while we set up the geometry.
+		self.parent.update_idletasks()
+		x = self.host_app_parent.winfo_rootx() + self.host_app_parent.winfo_width() // 2 - self.parent.winfo_width() // 2
+		y = self.host_app_parent.winfo_rooty() + self.host_app_parent.winfo_height() // 2 - self.parent.winfo_height() // 2
+		self.parent.update_idletasks()
 		self.parent.geometry('+%d+%d' % (x, y))
+		self.parent.deiconify()
+		self.parent.transient(self.host_app_parent)  # Lock this window on top.
+		self.parent.grab_set()  # Make sure this window always has focus.
+		self.parent.update_idletasks()
 	
 	def cancel(self):
-		self.running = False
-		self.worker.terminate()
-		self.host_app.parent.focus_set()
-		self.parent.destroy()
+		if self.running:
+			self.running = False
+			self.worker.terminate()
+			self.host_app_parent.focus_set()
+			self.parent.destroy()
 	
-	def process(self, function, args=None):
+	def apply(self, function, args=None, indeterminant=True):
+		# If we are expecting the function to report its progress then check it has a 'progression' arguement.
+		if not indeterminant and not 'log_progress' in inspect.getargspec(function).args:
+			indeterminant = True
+		
 		if args is None: args = []
 		answer = Queue()
-		self.worker = Process(target=_worker_thread, args=(function, args, answer, self.indeterminant))
+		self.worker = Process(target=_worker_thread, args=(function, args, answer, indeterminant))
 		self.worker.deamon = True
+		self.running = True
 		self.worker.start()
 		
 		while self.running:  # So long as the calculation hasn't been aborted.
@@ -84,13 +94,15 @@ class ProgressApp(object):
 					raise value
 			except Empty:
 				# Increase the bar by 1%.
-				if self.indeterminant: self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
+				if indeterminant: self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
 		
 		# If we reach this point then the calculation was aborted.
 		raise Flipper.AbortError
 	
 	def update_bar(self, value, text=None):
-		#self.progress['value'] = int(value * 100)
 		self.progress.set(value, text)
-		self.host_app.parent.update()
+		self.host_app_parent.update()
+
+def apply_progression(function, args=None, indeterminant=True, host_app_parent=None):
+	return ProgressApp(host_app_parent).apply(function, args, indeterminant)
 

@@ -5,13 +5,14 @@
 #	>>> python setup.py test
 # automatically runs all tests listed here.
 
-import Flipper.tests.abstracttriangulation
-import Flipper.tests.algebraicapproximation
-import Flipper.tests.encoding
-import Flipper.tests.interval
-import Flipper.tests.lamination
-import Flipper.tests.layeredtriangulation
-import Flipper.tests.matrix
-import Flipper.tests.numberfield
-import Flipper.tests.permutation
-import Flipper.tests.polynomial
+import abstracttriangulation
+import algebraicapproximation
+import encoding
+import interval
+import lamination
+import layeredtriangulation
+import matrix
+import numberfield
+import permutation
+import polynomial
+

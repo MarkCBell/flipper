@@ -217,3 +217,4 @@ class TrainTrackBlock(DrawableObject):
 		self.drawn = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
 		self.multiplicity = multiplicity
 		self.counted = counted
+

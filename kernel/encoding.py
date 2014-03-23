@@ -184,14 +184,27 @@ class EncodingSequence(object):
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.source_triangulation == self.target_triangulation)
-		curves = self.source_triangulation.key_curves()
-		max_order = self.source_triangulation.max_order
-		id_map = self.source_triangulation.Id_EncodingSequence()
-		for i in range(self.source_triangulation.max_order):
-			if self**(i+1) == id_map:
-				return i+1
+		curve_images = curves = self.source_triangulation.key_curves()
+		# We could do:
+		# id_map = self.source_triangulation.Id_EncodingSequence()
+		# for i in range(self.source_triangulation.max_order):
+		#	if self**(i+1) == id_map:
+		#		return i+1
+		# But this is quadratic in the order so instead we do:
+		possible_orders = set(range(1, self.source_triangulation.max_order+1))
+		for curve in curves:
+			curve_image = curve
+			for i in range(1, max(possible_orders)+1):
+				curve_image = self * curve_image
+				if curve_image != curve:
+					possible_orders.discard(i)
+					if not possible_orders: return 0  # No finite orders remain so we are infinite order.
 		
-		return 0
+		return min(possible_orders)
+	
+	def order_string(self):
+		order = self.order()
+		return 'Infinite' if order == 0 else str(order)
 	
 	def is_identity(self):
 		return self == self.source_triangulation.Id_EncodingSequence()
@@ -199,7 +212,7 @@ class EncodingSequence(object):
 	def is_periodic(self):
 		return self.order() > 0
 	
-	def is_reducible(self, progression=None):
+	def is_reducible(self, log_progress=None):
 		''' This determines if the induced action of self on V has a fixed point satisfying:
 		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices. '''
 		# We now use Ben's branch and bound approach. It's much better.
@@ -230,7 +243,7 @@ class EncodingSequence(object):
 				raise IndexError
 		
 		def progress(indices):
-			return float(sum(index * scale for index, scale in zip(indices, sizes_mul))) / total
+			return 
 		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
@@ -240,7 +253,11 @@ class EncodingSequence(object):
 		while indices != []:
 			partial_function = self.expand_indices(indices)
 			As, Cs = partial_function.action, partial_function.condition
-			if progression is not None: progression(progress(indices))
+			if log_progress is not None:
+				# Log how far we've gotten.
+				progression = float(sum(index * scale for index, scale in zip(indices, sizes_mul))) / total
+				log_progress(progression)
+			
 			if len(indices) < len(self):
 				indices = next(indices) if Cs.nontrivial_polytope() else jump(indices)
 			else:
@@ -267,10 +284,10 @@ class EncodingSequence(object):
 		assert(self.source_triangulation == self.target_triangulation)
 		return certificate.is_multicurve() and self * certificate == certificate
 	
-	def NT_type(self, progression=None):
+	def NT_type(self, log_progress=None):
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
-		elif self.is_reducible(progression=progression):
+		elif self.is_reducible(log_progress=log_progress):
 			return NT_TYPE_REDUCIBLE
 		else:
 			return NT_TYPE_PSEUDO_ANOSOV

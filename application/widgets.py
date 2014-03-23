@@ -1,6 +1,7 @@
 
-# Provides a progress bar call Meter and a SplitButton
-# widget for Tkinter.
+# Provides several Tkinter widgets:
+#	1) Meter - a progress bar, and
+#	2) SplitButton - a button with additional menu of actions.
 
 try:
 	import Tkinter as TK

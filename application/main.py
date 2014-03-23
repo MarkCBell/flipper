@@ -11,14 +11,14 @@ try:
 	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
-	import tkSimpleDialog
+	# import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.font as TK_FONT
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
-		import tkinter.simpledialog as tkSimpleDialog
+		# import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 
@@ -31,6 +31,7 @@ except ImportError:  # Python 3.
 		raise ImportError('Ttk not available.')
 
 import Flipper
+import Flipper.application
 
 # Some constants.
 COMMAND_MODIFIERS = {'darwin':'Command', 'win32':'Ctrl', 'linux2':'Ctrl', 'linux3':'Ctrl'}
@@ -56,10 +57,8 @@ LABEL_EDGES_NONE = 'None'
 LABEL_EDGES_INDEX = 'Index'
 LABEL_EDGES_GEOMETRIC = 'Geometric'
 LABEL_EDGES_ALGEBRAIC = 'Algebraic'
-SIZE_SMALL = 10
-SIZE_MEDIUM = 12
-SIZE_LARGE = 14
-# SIZE_XLARGE = 16
+SIZE_SMALL, SIZE_MEDIUM, SIZE_LARGE = 0, 1, 2
+# SIZE_XLARGE = 3
 
 DEFAULT_EDGE_LABEL_COLOUR = 'red'
 DEFAULT_SELECTED_COLOUR = 'red'
@@ -67,26 +66,24 @@ MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
 # A name is valid if it consists of letters, numbers, underscores and starts with a letter.
 def valid_name(name):
-	if not name: return False  # Not empty / None.
-	if name[0] not in string.ascii_letters: return False  # Starts with a letter.
-	if any(x not in (string.ascii_letters + string.digits + '_') for x in name): return False  # Only contains letters, numbers and underscores.
+	if not name or name[0] not in string.ascii_letters or any(x not in (string.ascii_letters + string.digits + '_') for x in name):
+		tkMessageBox.showerror('Name', 'Not a valid name. A valid name must start with a letter and contain only letters, numbers and underscores.')
+		return False
+	
 	return True
 
 def get_valid_name(name=None, message=None):
 	if message is None: message = 'Name to use:'
-	if name is None:
-		name = tkSimpleDialog.askstring('Name', message) 
-		if name is None: return None
-	while not valid_name(name):
-		tkMessageBox.showerror('Name', 'Not a valid name. A valid name must start with a letter and contain only letters, numbers and underscores.')
-		name = tkSimpleDialog.askstring('Name', message) 
+	while name is None or not valid_name(name):
+		name = Flipper.application.get_input('Name', message, validate=valid_name)  
 		if name is None: return None
 	return name
 
 class Options(object):
 	def __init__(self, parent):
 		self.parent = parent
-		self.custom_font = TK_FONT.Font(family='TkDefaultFont', size=10)
+		self.application_font = TK_FONT.Font(family='TkDefaultFont', size=10)
+		self.canvas_font = TK_FONT.Font(family='TkDefaultFont', size=10)
 		
 		self.render_lamination_var = TK.StringVar(value=RENDER_LAMINATION_FULL)
 		self.show_internals_var = TK.BooleanVar(value=False)
@@ -113,19 +110,29 @@ class Options(object):
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
 		self.zoom_fraction = 0.9 # Must be in (0, 1)
 		
-		
-		
 		self.version = Flipper.version.Flipper_version
 	
 	def update(self, *args):
 		self.render_lamination = str(self.render_lamination_var.get())
 		self.show_internals = bool(self.show_internals_var.get())
 		self.label_edges = str(self.label_edges_var.get())
-		self.line_size = int(self.size_var.get()) - 8
-		self.dot_size = int(self.size_var.get()) - 7
-		self.custom_font.configure(size=int(self.size_var.get()))
-		self.parent.treeview_objects.tag_configure('txt', font=self.custom_font)
+		if self.size_var.get() == SIZE_SMALL:
+			self.line_size = 2
+			self.dot_size = 3
+			self.application_font.configure(size=10)
+			self.canvas_font.configure(size=10)
+		elif self.size_var.get() == SIZE_MEDIUM:
+			self.line_size = 4
+			self.dot_size = 5
+			self.application_font.configure(size=11)
+			self.canvas_font.configure(size=12)
+		elif self.size_var.get() == SIZE_LARGE:
+			self.line_size = 6
+			self.dot_size = 7
+			self.application_font.configure(size=12)
+			self.canvas_font.configure(size=14)
 		
+		self.parent.treeview_objects.tag_configure('txt', font=self.application_font)
 		self.parent.redraw()
 
 
@@ -133,7 +140,7 @@ class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
 		self.options = Options(self)
-		self.colour_picker = Flipper.application.pieces.ColourPalette()
+		self.colour_picker = Flipper.application.ColourPalette()
 		
 		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
 		
@@ -145,7 +152,7 @@ class FlipperApp(object):
 		self.treeview_objects.configure(yscroll=self.scrollbar_treeview.set)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
-		self.treeview_objects.tag_configure('txt', font=self.options.custom_font)
+		self.treeview_objects.tag_configure('txt', font=self.options.application_font)
 		
 		self.treeview_objects.grid(row=0, column=0, sticky='nesw')
 		self.scrollbar_treeview.grid(row=0, column=1, sticky='nws')
@@ -166,10 +173,10 @@ class FlipperApp(object):
 		
 		self.frame_command = TK.Frame(self.parent)
 		###
-		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.custom_font)
+		self.label_command = TK.Label(self.frame_command, text='Command:', font=self.options.application_font)
 		self.label_command.pack(side='left')
 		
-		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.custom_font)
+		self.entry_command = TK.Entry(self.frame_command, text='', font=self.options.application_font)
 		self.entry_command.pack(side='left', fill='x', expand=True, padx=10, pady=2)
 		self.entry_command.bind('<Return>', self.command_return)
 		self.entry_command.focus()
@@ -290,14 +297,17 @@ class FlipperApp(object):
 			self.treeview_objects.insert(iid, 'end', text='Multicurve: %s' % lamination.is_multicurve(), tags=['txt', 'multicurve_lamination'])
 			self.treeview_objects.insert(iid, 'end', text='Twistable: %s' % lamination.is_twistable(), tags=['txt', 'twist_lamination'])
 			self.treeview_objects.insert(iid, 'end', text='Half twistable: %s' % lamination.is_halftwistable(), tags=['txt', 'half_twist_lamination'])
-			self.treeview_objects.insert(iid, 'end', text='Filling: ???', tags=['txt', 'filling_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Filling: ??', tags=['txt', 'filling_lamination'])
 			
 			self.cache[lamination] = {}
 			
 			self.unsaved_work = True
+			return True
+		
+		return False
 	
 	def add_mapping_class(self, mapping_class, name=None):
-		name = get_valid_name(name)
+		name = get_valid_name(name, 'New mapping class name:')
 		if name is not None:
 			name_inverse = name.swapcase()
 			if name in self.mapping_classes:
@@ -309,13 +319,16 @@ class FlipperApp(object):
 			self.mapping_class_names[iid] = name
 			self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
 			self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
-			self.treeview_objects.insert(iid, 'end', text='Order: ?', tags=['txt', 'mapping_class_order'])
-			self.treeview_objects.insert(iid, 'end', text='Type: ??', tags=['txt', 'mapping_class_type'])
-			self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ???', tags=['txt', 'mapping_class_invariant_lamination'])
+			self.treeview_objects.insert(iid, 'end', text='Order: %s' % mapping_class.order_string(), tags=['txt', 'mapping_class_order'])
+			self.treeview_objects.insert(iid, 'end', text='Type: ?', tags=['txt', 'mapping_class_type'])
+			self.treeview_objects.insert(iid, 'end', text='Invariant lamination: ??', tags=['txt', 'mapping_class_invariant_lamination'])
 			
 			self.cache[mapping_class] = {}
 			
 			self.unsaved_work = True
+			return True
+		
+		return False
 	
 	def save(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -656,7 +669,7 @@ class FlipperApp(object):
 	
 	
 	def create_vertex(self, point):
-		self.vertices.append(Flipper.application.pieces.Vertex(self.canvas, point, self.options))
+		self.vertices.append(Flipper.application.Vertex(self.canvas, point, self.options))
 		self.redraw()
 		self.build_abstract_triangulation()
 		return self.vertices[-1]
@@ -686,10 +699,10 @@ class FlipperApp(object):
 			return None
 		
 		# Don't create a new edge if it would intersect one that already exists.
-		if any(Flipper.application.pieces.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
+		if any(Flipper.application.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = Flipper.application.pieces.Edge(self.canvas, [v1, v2], self.options)
+		e0 = Flipper.application.Edge(self.canvas, [v1, v2], self.options)
 		self.edges.append(e0)
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
@@ -716,7 +729,7 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.application.pieces.Triangle(self.canvas, [e1, e2, e3], self.options)
+		new_triangle = Flipper.application.Triangle(self.canvas, [e1, e2, e3], self.options)
 		self.triangles.append(new_triangle)
 		
 		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
@@ -764,7 +777,7 @@ class FlipperApp(object):
 		self.build_abstract_triangulation()
 	
 	def create_curve_component(self, vertices, multiplicity=1, counted=False):
-		self.curve_components.append(Flipper.application.pieces.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
+		self.curve_components.append(Flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
@@ -772,7 +785,7 @@ class FlipperApp(object):
 		self.curve_components.remove(curve_component)
 	
 	def create_train_track_block(self, vertices, multiplicity=1, counted=False):
-		self.train_track_blocks.append(Flipper.application.pieces.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity, counted))
+		self.train_track_blocks.append(Flipper.application.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity, counted))
 		return self.train_track_blocks[-1]
 	
 	def destroy_train_track_block(self, curve_component):
@@ -815,11 +828,11 @@ class FlipperApp(object):
 		self.destroy_edge_labels()
 		if self.options.label_edges == 'Index':
 			for edge in self.edges:
-				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
+				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text=str(edge.index), tag='edge_label', font=self.options.canvas_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Geometric':
 			lamination = self.canvas_to_lamination()
 			for edge in self.edges:
-				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.custom_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
+				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.canvas_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -877,7 +890,7 @@ class FlipperApp(object):
 			if not curve.counted:
 				meets = []  # We store (index of edge intersection, should we double count).
 				for i in range(len(curve.vertices)-1):
-					this_segment_meets = [(Flipper.application.pieces.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge[0], edge[1], self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
+					this_segment_meets = [(Flipper.application.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge[0], edge[1], self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
 					for (d, double), index in sorted(this_segment_meets):
 						if d >= -self.options.float_error:
 							if len(meets) > 0 and meets[-1][0] == index:
@@ -888,7 +901,7 @@ class FlipperApp(object):
 				for index, double in meets:
 					vector[index] += (2 if double else 1) * curve.multiplicity
 		
-		if all(isinstance(x, Flipper.kernel.types.Integer_Type) and x % 2 == 0 for x in vector):
+		if all(isinstance(x, Flipper.kernel.Integer_Type) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]
 		else:
 			vector = [i / 2 for i in vector]
@@ -925,7 +938,7 @@ class FlipperApp(object):
 				a = triangle[i-1] - triangle[i]
 				b = triangle[i-2] - triangle[i]
 				
-				if render == RENDER_LAMINATION_W_TRAIN_TRACK:  # !?! To Do.
+				if render == RENDER_LAMINATION_W_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
@@ -984,8 +997,8 @@ class FlipperApp(object):
 			except Flipper.AssumptionError:
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 			else:
-				self.add_lamination(lamination, name)
-				self.destroy_lamination()
+				if self.add_lamination(lamination, name):
+					self.destroy_lamination()
 	
 	def store_twist(self, name=None):
 		if self.is_complete():
@@ -995,7 +1008,7 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 			else:
 				if lamination.is_twistable():
-					name = get_valid_name(name)
+					name = get_valid_name(name, 'New twist name:')
 					if name is not None:
 						self.add_mapping_class(lamination.encode_twist(), name)
 						self.add_lamination(lamination, name)
@@ -1011,7 +1024,7 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 			else:
 				if lamination.is_halftwistable():
-					name = get_valid_name(name)
+					name = get_valid_name(name, 'New half twist name:')
 					if name is not None:
 						self.add_mapping_class(lamination.encode_halftwist(), name)
 						self.add_lamination(lamination, name)
@@ -1028,7 +1041,9 @@ class FlipperApp(object):
 			except IndexError:
 				tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 			else:
-				self.add_mapping_class(isometry.encode_isometry())
+				name = get_valid_name(name, 'New isometry name:')
+				if name is not None:
+					self.add_mapping_class(isometry.encode_isometry(), name)
 	
 	def create_composition(self, composition):
 		# Assumes that each of the named mapping classes exist. If not an
@@ -1097,7 +1112,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			try:
 				mapping_class = self.create_composition(composition)
-				NT_type = Flipper.application.progress.ProgressApp(self).process(mapping_class.NT_type)
+				NT_type = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
 				
 				if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:
 					tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
@@ -1122,7 +1137,7 @@ class FlipperApp(object):
 				pass
 			else:
 				try:
-					lamination = mapping_class.invariant_lamination()
+					lamination = Flipper.application.apply_progression(mapping_class.invariant_lamination)
 					# dilatation = mapping_class.dilatation(lamination)
 				except Flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
@@ -1185,32 +1200,32 @@ class FlipperApp(object):
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
 				self.select_object(self.create_curve_component([(x, y), (x, y)]))
-			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+			elif isinstance(self.selected_object, Flipper.application.CurveComponent):
 				self.selected_object.append_point((x, y))
 		else:
 			if self.selected_object is None:
 				if possible_object is None:
 					self.select_object(self.create_vertex((x, y)))
-				elif isinstance(possible_object, Flipper.application.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.Edge):
 					self.destroy_edge_identification(possible_object)
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.Vertex):
 					self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.application.pieces.Vertex):
+			elif isinstance(self.selected_object, Flipper.application.Vertex):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
 					new_vertex = self.create_vertex((x, y))
 					self.create_edge(self.selected_object, new_vertex)
 					self.select_object(new_vertex)
-				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.Vertex):
 					self.create_edge(self.selected_object, possible_object)
 					self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.Edge):
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.application.pieces.Edge):
+			elif isinstance(self.selected_object, Flipper.application.Edge):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
@@ -1218,14 +1233,14 @@ class FlipperApp(object):
 					self.create_edge(self.selected_object[0], new_vertex)
 					self.create_edge(self.selected_object[1], new_vertex)
 					self.select_object(None)
-				elif isinstance(possible_object, Flipper.application.pieces.Vertex):
+				elif isinstance(possible_object, Flipper.application.Vertex):
 					if possible_object != self.selected_object[0] and possible_object != self.selected_object[1]:
 						self.create_edge(self.selected_object[0], possible_object)
 						self.create_edge(self.selected_object[1], possible_object)
 						self.select_object(None)
 					else:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.pieces.Edge):
+				elif isinstance(possible_object, Flipper.application.Edge):
 					if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
 						self.destroy_edge_identification(self.selected_object)
 						self.destroy_edge_identification(possible_object)
@@ -1236,7 +1251,7 @@ class FlipperApp(object):
 	
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+			if isinstance(self.selected_object, Flipper.application.CurveComponent):
 				if len(self.selected_object.vertices) > 2:
 					(x, y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
@@ -1249,27 +1264,29 @@ class FlipperApp(object):
 	
 	def canvas_double_left_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+			if isinstance(self.selected_object, Flipper.application.CurveComponent):
 				self.selected_object.pop_point()
 			
 			self.select_object(None)
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+		if isinstance(self.selected_object, Flipper.application.CurveComponent):
 			self.selected_object.move_point(-1, x, y)
 	
 	def parent_key_press(self, event):
 		key = event.keysym
 		if key in ('Delete', 'BackSpace'):
-			if isinstance(self.selected_object, Flipper.application.pieces.Vertex):
+			if isinstance(self.selected_object, Flipper.application.Vertex):
 				self.destroy_vertex(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.application.pieces.Edge):
+			elif isinstance(self.selected_object, Flipper.application.Edge):
 				self.destroy_edge(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.application.pieces.CurveComponent):
+			elif isinstance(self.selected_object, Flipper.application.CurveComponent):
 				self.canvas_right_click(event)
+		elif key == 'Return':
+			self.command_return(event)
 		elif key == 'Escape':
 			self.canvas_right_click(event)
 		elif key == 'Up':
@@ -1306,7 +1323,6 @@ class FlipperApp(object):
 			pass  # !?! To do.
 	
 	def treeview_objects_double_left_click(self, event):
-		progress = Flipper.application.progress.ProgressApp  # If we need to show a progress bar.
 		self.treeview_objects_left_click(event)
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
@@ -1326,12 +1342,13 @@ class FlipperApp(object):
 			try:
 				lamination = self.laminations[self.lamination_names[parent]]
 				if 'filling' not in self.cache[lamination]:
-					self.cache[lamination]['filling'] = progress(self, indeterminant=True).process(lamination.is_filling)
+					self.cache[lamination]['filling'] = Flipper.application.apply_progression(lamination.is_filling)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
 			except Flipper.AbortError:
 				pass
 		elif 'mapping_class_order' in tags:
+			pass
 			mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 			order = mapping_class.order()
 			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
@@ -1339,7 +1356,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['NT_type'] = progress(self).process(mapping_class.NT_type)
+					self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except Flipper.AbortError:
@@ -1348,7 +1365,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['invariant_lamination'] = progress(self, indeterminant=True).process(mapping_class.invariant_lamination)
+					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.apply_progression(mapping_class.invariant_lamination)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])

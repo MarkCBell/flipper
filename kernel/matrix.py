@@ -260,7 +260,7 @@ class Matrix(object):
 	def find_edge_vector(self):
 		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or None if none exists. 
 		Note: if self is empty then considers self as a map from RR^0 --> RR^0 and so returns None. '''
-
+		
 		if self.is_empty():
 			return None
 		
@@ -276,6 +276,7 @@ class Matrix(object):
 			R = R.join(Id_Matrix(R.width))
 			
 			for rc in combinations(range(R.height), R.width-1):
+				# Should use A.solve() here.
 				A = Matrix([R.rows[i] for i in rc]).transpose()
 				v = [(-1 if i % 2 else 1) * Matrix([A.rows[j] for j in range(A.height) if i != j]).determinant() for i in range(A.height)]
 				if nontrivial(v):

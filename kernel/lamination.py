@@ -24,6 +24,8 @@ class Lamination(object):
 	
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
+	def __ne__(self, other):
+		return not self == other
 	
 	def __hash__(self):
 		# This should be done better.

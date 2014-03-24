@@ -309,8 +309,8 @@ class EncodingSequence(object):
 		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
 		#
 		# This is designed to be called only with pseudo-Anosov mapping classes and so assumes that 
-		# the mapping class is not periodic. If not an AssumptionError is thrown.
-		# If the mapping class is:
+		# the mapping class is not periodic.
+		# In summary, if the mapping class is:
 		#	periodic then an AssumptionError will be thrown,
 		#	reducible then an AssumptionError or ComputationError might be thrown or an invariant lamination will be returned, or
 		#	pseudo-Anosov then a ComputationError might be thrown or an invariant lamination will be returned.

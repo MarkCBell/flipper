@@ -1046,8 +1046,7 @@ class FlipperApp(object):
 					self.add_mapping_class(isometry.encode_isometry(), name)
 	
 	def create_composition(self, composition):
-		# Assumes that each of the named mapping classes exist. If not an
-		# AssumptionError is thrown.
+		# Assumes that each of the named mapping classes exist.
 		if self.is_complete():
 			mapping_class = self.abstract_triangulation.Id_EncodingSequence()
 			for twist in composition.split('.'):
@@ -1102,11 +1101,7 @@ class FlipperApp(object):
 			except Flipper.AssumptionError:
 				pass
 			else:
-				order = mapping_class.order()
-				if order == 0:
-					tkMessageBox.showinfo('Order', '%s has infinite order.' % composition)
-				else:
-					tkMessageBox.showinfo('Order', '%s has order %s.' % (composition, order))
+				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, mapping_class.order_string()))
 	
 	def NT_type(self, composition):
 		if self.is_complete():

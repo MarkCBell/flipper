@@ -513,11 +513,7 @@ class FlipperApp(object):
 			sections = command.split(' ')
 			task, arguements = sections[0], sections[1:]
 			num_arguements = {
-				'new': [0],
 				'erase': [0],
-				'help': [0],
-				'about': [0],
-				'exit': [0],
 				'information': [0],
 				'zoom': [0],
 				'tighten': [0], 
@@ -540,11 +536,7 @@ class FlipperApp(object):
 				tkMessageBox.showerror('Command', '%s requires %s argument(s) but %d were provided.' % (task, '/'.join(str(x) for x in num_arguements[task]), len(arguements)))
 			else:
 				tasks = {
-					'new': self.initialise,
 					'erase': self.destroy_lamination,
-					'help': self.show_help,
-					'about': self.show_about,
-					'exit': self.quit,
 					'information': self.show_surface_information,
 					'zoom': self.auto_zoom,
 					'tighten': self.tighten_lamination,

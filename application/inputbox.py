@@ -13,6 +13,7 @@ class GetStringApp(object):
 		self.validate = validate
 		self.result = None
 		self.parent = TK.Toplevel(self.host_app_parent)
+		self.parent.withdraw()  # Hide self while we set up the geometry.
 		self.parent.title(title)
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
 		
@@ -38,7 +39,6 @@ class GetStringApp(object):
 		self.parent.withdraw()
 		self.parent.lift()
 		self.text_entry.focus()
-		self.parent.withdraw()  # Hide self while we set up the geometry.
 		self.parent.update_idletasks()
 		x = self.host_app_parent.winfo_rootx() + self.host_app_parent.winfo_width() // 2 - self.parent.winfo_width() // 2
 		y = self.host_app_parent.winfo_rooty() + self.host_app_parent.winfo_height() // 2 - self.parent.winfo_height() // 2

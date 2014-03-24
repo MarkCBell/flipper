@@ -35,6 +35,8 @@ class ProgressApp(object):
 		if host_app_parent is None: host_app_parent = TK._default_root
 		self.host_app_parent = host_app_parent
 		self.parent = TK.Toplevel(self.host_app_parent)
+		self.parent.withdraw()  # Hide self while we set up the geometry.
+		
 		self.parent.title('Flipper: Computing...')
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
 		
@@ -51,7 +53,6 @@ class ProgressApp(object):
 		self.parent.withdraw()
 		self.parent.lift()
 		self.button_cancel.focus()
-		self.parent.withdraw()  # Hide self while we set up the geometry.
 		self.parent.update_idletasks()
 		x = self.host_app_parent.winfo_rootx() + self.host_app_parent.winfo_width() // 2 - self.parent.winfo_width() // 2
 		y = self.host_app_parent.winfo_rooty() + self.host_app_parent.winfo_height() // 2 - self.parent.winfo_height() // 2

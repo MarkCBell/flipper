@@ -1,19 +1,19 @@
 
-import abstracttriangulation
-import algebraicapproximation
-import encoding
-import error
-import interval
-import isometry
-import lamination
-import layeredtriangulation
-import matrix
-import numberfield
-import permutation
-import polynomial
-import splittingsequence
-import symboliccomputation
-import types
+from . import abstracttriangulation
+from . import algebraicapproximation
+from . import encoding
+from . import error
+from . import interval
+from . import isometry
+from . import lamination
+from . import layeredtriangulation
+from . import matrix
+from . import numberfield
+from . import permutation
+from . import polynomial
+from . import splittingsequence
+from . import symboliccomputation
+from . import types
 
 # Set up shorter names for all of the different classes and some common constructors.
 AbstractTriangle = abstracttriangulation.AbstractTriangle
@@ -41,4 +41,3 @@ Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
 log_height_int = algebraicapproximation.log_height_int
-

@@ -5,14 +5,13 @@
 #	>>> python setup.py test
 # automatically runs all tests listed here.
 
-import abstracttriangulation
-import algebraicapproximation
-import encoding
-import interval
-import lamination
-import layeredtriangulation
-import matrix
-import numberfield
-import permutation
-import polynomial
-
+from . import abstracttriangulation
+from . import algebraicapproximation
+from . import encoding
+from . import interval
+from . import lamination
+from . import layeredtriangulation
+from . import matrix
+from . import numberfield
+from . import permutation
+from . import polynomial

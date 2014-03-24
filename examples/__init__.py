@@ -1,5 +1,4 @@
 
-import abstracttriangulation
-import lamination
-import layeredtriangulation
-
+from . import abstracttriangulation
+from . import lamination
+from . import layeredtriangulation

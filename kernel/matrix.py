@@ -2,7 +2,6 @@
 from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce
-from time import time
 
 import Flipper
 
@@ -265,6 +264,7 @@ class Matrix(object):
 	def find_edge_vector(self):
 		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or None if none exists. 
 		Note: if self is empty then considers self as a map from RR^0 --> RR^0 and so returns None. '''
+		# !?! To do: Redo this using the simplex method / ellipsoid method and presolving.
 		
 		if self.is_empty():
 			return None

@@ -1,9 +1,9 @@
 
-import main
-import pieces
-import inputbox
-import progress
-import widgets
+from . import main
+from . import pieces
+from . import inputbox
+from . import progress
+from . import widgets
 
 # Set up shorter names for all of the different classes and some common constructors.
 Options = main.Options
@@ -22,4 +22,3 @@ lines_intersect = pieces.lines_intersect
 
 apply_progression = progress.apply_progression
 get_input = inputbox.get_input
-

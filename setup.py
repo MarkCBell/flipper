@@ -6,7 +6,7 @@ import importlib
 # Get the correct version.
 from version import Flipper_version
 
-# So we can access all of the test suite just by doing "python setup.py test"
+# So we can access all of the test suite just by doing 'python setup.py test'
 class TestCommand(Command):
 	user_options = []
 	
@@ -28,6 +28,7 @@ class TestCommand(Command):
 					test = importlib.import_module('Flipper.tests.%s' % test_name)
 					print('Running %s test...' % test_name)
 					print('\tPassed' if test.main() else '\tFAILED')
+			print('Tests complete.')
 
 setup(
 	name='Flipper',

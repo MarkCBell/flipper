@@ -203,7 +203,8 @@ class Lamination(object):
 				new_corner_labels.append([1, 0, 0])
 				new_corner_labels.append([1, 0, 0])
 				
-				M = M.join(Flipper.kernel.matrix.tweak_matrix(Flipper.kernel.Zero_Matrix(zeta1, 3), [(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)]))
+				X = Flipper.kernel.Zero_Matrix(zeta1, 3).tweak([(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
+				M = M.join(X)
 				
 				zeta = zeta + 3
 			else:
@@ -217,7 +218,6 @@ class Lamination(object):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
 		# edge does not connect between two real vertices, that is vertices with 
 		# label 0. Assumes that edge_index is the only edge of weight 0.
-		# If any of these assumptions are not met an AssumptionError is thrown.
 		
 		assert(self[edge_index] == 0)
 		
@@ -337,9 +337,9 @@ class Lamination(object):
 	
 	def encode_twist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
+		If k is zero this will return the identity encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
+		Assumes that this lamination is a twistable curve. '''
 		if not self.is_twistable():
 			raise Flipper.AssumptionError('Not a good curve.')
 		
@@ -369,9 +369,9 @@ class Lamination(object):
 	
 	def encode_halftwist(self, k=1):
 		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return None, which can be used as the identity Encoding. If k is negative this 
+		If k is zero this will return the identity encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-		Assumes that this lamination is a curve, if not an AssumptionError is thrown. '''
+		Assumes that this lamination is a half twistable curve. '''
 		if not self.is_halftwistable():
 			raise Flipper.AssumptionError('Not a boundary of a pair of pants.')
 		

@@ -6,17 +6,6 @@ from time import time
 
 import Flipper
 
-# !?! This is not pure.
-def tweak_vector(v, add, subtract):
-	for i in add:
-		v[i] += 1
-	for i in subtract:
-		v[i] -= 1
-	return v
-
-def tweak_matrix(M, one, minus_one):
-	return Matrix([[1 if (i, j) in one else -1 if (i, j) in minus_one else M[i][j] for j in range(M.width)] for i in range(M.height)])
-
 def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.
 	return all([v[i] == -w[i] for i in range(len(v))])
@@ -66,7 +55,15 @@ class Matrix(object):
 		return Matrix([[float(x) for x in row] for row in self])
 	def is_empty(self):
 		return self.width == 0
+	def __len__(self):
+		return self.height
+	def __iter__(self):
+		return iter(self.rows)
+	def __eq__(self, other):
+		return self.width == other.width and self.height == other.height and all(row1 == row2 for row1, row2 in zip(self.rows, other.rows))
 	
+	def __neg__(self):
+		return Matrix([[-x for x in row] for row in self])
 	def __add__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == other.width and self.height == other.height)
@@ -75,8 +72,6 @@ class Matrix(object):
 			return self + (Id_Matrix(self.width) * other)
 	def __radd__(self, other):
 		return self + other
-	def __neg__(self):
-		return Matrix([[-x for x in row] for row in self])
 	def __sub__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == other.width and self.height == other.height)
@@ -110,19 +105,15 @@ class Matrix(object):
 			else:
 				return square
 	def powers(self, max_power):
+		# Returns the list [self**0, ..., self**max_power].
 		assert(self.width == self.height)
 		Ms = [Id_Matrix(self.width)]
 		for _ in range(max_power):
 			Ms.append(self * Ms[-1])
 		return Ms
-	def __len__(self):
-		return self.height
-	def __iter__(self):
-		return iter(self.rows)
-	def __eq__(self, other):
-		return self.width == other.width and self.height == other.height and all(row1 == row2 for row1, row2 in zip(self.rows, other.rows))
 	def inverse(self):
-		# See self.char_poly().
+		# Returns M^{-1}.
+		# For why this works see self.char_poly().
 		assert(self.width == self.height)
 		A = self.copy()
 		for i in range(1, self.width-1):
@@ -131,7 +122,20 @@ class Matrix(object):
 	def transpose(self):
 		return Matrix(list(zip(*self.rows)))
 	def join(self, other):
+		# Returns the matrix:
+		# (self )
+		# (-----)
+		# (other)
 		return Matrix(self.rows + other.rows)
+	def tweak(self, increment, decrement):
+		# Returns a copy of this matrix where each increment entry has been
+		# increased by 1 and each decrement entry has been decreased by 1.
+		A = self.copy()
+		for (i, j) in increment:
+			A[i][j] += 1
+		for (i, j) in decrement:
+			A[i][j] -= 1
+		return A
 	
 	def trace(self):
 		return sum(self[i][i] for i in range(self.width))
@@ -161,7 +165,8 @@ class Matrix(object):
 		
 		return scale * A[self.width-1][self.width-1]
 	def char_poly(self):
-		# Based off of the Faddeev-Leverrier method. See: http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html
+		# Based off of the Faddeev-Leverrier method. 
+		# See: http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html
 		assert(self.width == self.height)
 		# We will actually compute det(\lambdaI - self). Then at the
 		# end we correct this by multiplying by the required +/-1.
@@ -219,10 +224,10 @@ class Matrix(object):
 	def nonnegative_image(self, v):
 		return all(dot(row, v) >= 0 for row in self)
 	def substitute_row(self, index, new_row):
+		# Returns a matrix in which the row with given index has been replaced by the given vector.
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)])
 	def discard_column(self, column):
-		self.rows = [[row[i] for i in range(self.width) if i != column] for row in self]
-		self.width -= 1
+		return Matrix([[row[i] for i in range(self.width) if i != column] for row in self])
 	def basic_simplify(self):
 		return Matrix(list(set(tuple(rescale(row)) for row in self if nontrivial(row))))
 	def simplify(self):
@@ -240,7 +245,7 @@ class Matrix(object):
 					for i in range(A.height):
 						for j in range(A.width):
 							if j != index: A[i][j] = A[i][j] - (R1[j] * A[i][index])
-					A.discard_column(index)
+					A = A.discard_column(index)
 					R.add(tuple([-R1[i] for i in range(R_width) if i != index]))
 					
 					R_width -= 1
@@ -272,17 +277,16 @@ class Matrix(object):
 			if R.nonnegative_image([1]):
 				return B * [1]
 		elif R.width > 1:
-			if any(all(x < 0 for x in row) for row in R): return
-			R = R.join(Id_Matrix(R.width))
-			
-			for rc in combinations(range(R.height), R.width-1):
-				# Should use A.solve() here.
-				A = Matrix([R.rows[i] for i in rc]).transpose()
-				v = [(-1 if i % 2 else 1) * Matrix([A.rows[j] for j in range(A.height) if i != j]).determinant() for i in range(A.height)]
-				if nontrivial(v):
-					if not nonnegative(v): v = [-x for x in v]  # Might need to flip v.
-					if nonnegative(v) and R.nonnegative_image(v):
-						return B*v
+			if not any(all(x < 0 for x in row) for row in R):
+				R = R.join(Id_Matrix(R.width))  # !?!
+				
+				for rc in combinations(range(R.height), R.width-1):
+					A = Matrix([[1] * R.width] + [R[i] for i in rc])
+					v = A.solve([1] + [0]*(R.width-1))
+					if nontrivial(v):
+						if not nonnegative(v): v = [-x for x in v]  # Might need to flip v.
+						if nonnegative(v) and R.nonnegative_image(v):
+							return B*v
 		
 		# Polytope is trivial.
 		return None

@@ -262,8 +262,9 @@ class Matrix(object):
 		return Matrix(R), A
 	
 	def find_edge_vector(self):
-		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or None if none exists. 
-		Note: if self is empty then considers self as a map from RR^0 --> RR^0 and so returns None. '''
+		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or 
+		None if none exists. Note: if self is empty then considers self as a map 
+		from RR^0 --> RR^0 and so returns None. '''
 		# !?! To do: Redo this using the simplex method / ellipsoid method and presolving.
 		
 		if self.is_empty():
@@ -294,10 +295,9 @@ class Matrix(object):
 		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
 	
 	def nontrivial_polytope(self):
-		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial, i.e. not just {0}. '''
-		# We need to handle the empty case separately.
-		if self.is_empty():
-			return True
+		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial,
+		i.e. not just {0}. Note: As with self.find_edge_vector() we consider the 
+		empty matrix as a map RR^0 --> RR^0 and so return False. '''
 		
 		certificate = self.find_edge_vector()
 		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))

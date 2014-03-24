@@ -113,7 +113,7 @@ class NumberFieldElement(object):
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number fields.')
+				raise TypeError('Cannot multiply elements of different number fields.')
 			
 			return self.number_field.element(self.multiplicative_matrix() * other.linear_combination)
 		elif isinstance(other, Flipper.kernel.Integer_Type):
@@ -125,7 +125,7 @@ class NumberFieldElement(object):
 	def __div__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number fields.')
+				raise TypeError('Cannot divide elements of different number fields.')
 			
 			return self.algebraic_approximation(additive_error=3) / other.algebraic_approximation(additive_error=3) 
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
@@ -137,10 +137,9 @@ class NumberFieldElement(object):
 	def __floordiv__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
-				raise TypeError('Cannot add elements of different number fields.')
+				raise TypeError('Cannot divide elements of different number fields.')
 			
-			M = other.multiplicative_matrix()
-			return self.number_field.element(M.solve(self.linear_combination))
+			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
 	
 	def __lt__(self, other):
 		return (self - other).is_negative()

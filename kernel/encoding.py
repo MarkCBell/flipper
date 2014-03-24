@@ -259,7 +259,9 @@ class EncodingSequence(object):
 				log_progress(progression)
 			
 			if len(indices) < len(self):
-				indices = next(indices) if Cs.nontrivial_polytope() else jump(indices)
+				# Remember to always add the Id matrix as empty matrices always
+				# define trivial polytopes.
+				indices = next(indices) if Cs.join(M6).nontrivial_polytope() else jump(indices)
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs

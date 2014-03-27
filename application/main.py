@@ -662,6 +662,7 @@ class FlipperApp(object):
 	
 	def create_vertex(self, point):
 		self.vertices.append(Flipper.application.Vertex(self.canvas, point, self.options))
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 		return self.vertices[-1]
@@ -677,6 +678,7 @@ class FlipperApp(object):
 				break
 		self.canvas.delete(vertex.drawn)
 		self.vertices.remove(vertex)
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 	
@@ -696,11 +698,13 @@ class FlipperApp(object):
 		
 		e0 = Flipper.application.Edge(self.canvas, [v1, v2], self.options)
 		self.edges.append(e0)
+		# Add in any needed triangles.
 		for e1, e2 in combinations(self.edges, r=2):
 			if e1 != e0 and e2 != e0:
 				if e1.free_sides() > 0 and e2.free_sides() > 0:
 					if len(set([e[0] for e in [e0, e1, e2]] + [e[1] for e in [e0, e1, e2]])) == 3:
 						self.create_triangle(e0, e1, e2)
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 		return self.edges[-1]
@@ -712,6 +716,7 @@ class FlipperApp(object):
 			self.destroy_triangle(triangle)
 		self.destroy_edge_identification(edge)
 		self.edges.remove(edge)
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 	
@@ -729,6 +734,7 @@ class FlipperApp(object):
 			self.destroy_triangle(new_triangle)
 			return None
 		
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 		return self.triangles[-1]
@@ -741,6 +747,7 @@ class FlipperApp(object):
 				edge.in_triangles.remove(triangle)
 				self.destroy_edge_identification(edge)
 		self.triangles.remove(triangle)
+		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
 	
@@ -754,6 +761,7 @@ class FlipperApp(object):
 		new_colour = self.colour_picker.get_colour()
 		e1.set_colour(new_colour)
 		e2.set_colour(new_colour)
+		self.unsaved_work = True
 		self.build_abstract_triangulation()
 	
 	def destroy_edge_identification(self, edge):
@@ -766,6 +774,7 @@ class FlipperApp(object):
 			
 			edge.equivalent_edge.equivalent_edge = None
 			edge.equivalent_edge = None
+			self.unsaved_work = True
 		self.build_abstract_triangulation()
 	
 	def create_curve_component(self, vertices, multiplicity=1, counted=False):

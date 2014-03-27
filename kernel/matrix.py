@@ -1,6 +1,6 @@
 
 from itertools import combinations, groupby, product
-from fractions import gcd
+from fractions import Fraction, gcd
 from functools import reduce
 
 import Flipper
@@ -60,6 +60,8 @@ class Matrix(object):
 		return iter(self.rows)
 	def __eq__(self, other):
 		return self.width == other.width and self.height == other.height and all(row1 == row2 for row1, row2 in zip(self.rows, other.rows))
+	def __ne__(self, other):
+		return not (self == other)
 	
 	def __neg__(self):
 		return Matrix([[-x for x in row] for row in self])
@@ -174,7 +176,7 @@ class Matrix(object):
 		for i in range(1, self.width+1):
 			p[i] = -A.trace() // i
 			# If we were smarter we would skip this on the final iteration.
-			A = self * (A + Id_Matrix(self.width) * p[i])
+			A = self * (A + p[i])
 		# Actually now A / pi == A^{-1}. 
 		sign = +1 if self.width % 2 == 0 else -1
 		return Flipper.kernel.Polynomial(p[::-1]) * sign
@@ -188,8 +190,9 @@ class Matrix(object):
 		if zeroing_width is None: zeroing_width = self.width
 		i, j = 0, 0
 		A = [list(row) for row in self]
-		while j <= zeroing_width:
-			for b, a in product(range(i, zeroing_width), range(j, self.height)):
+		# A = [[float(x) for x in row] for row in self]
+		while j < zeroing_width:
+			for b, a in product(range(j, zeroing_width), range(i, self.height)):
 				if A[a][b] != 0:
 					A[i], A[a] = A[a], A[i]
 					j = b
@@ -198,11 +201,21 @@ class Matrix(object):
 				break
 			
 			rlead = A[i][j]
-			for k in range(i+1, self.height):
+			div = 1 // rlead
+			print(float(div * rlead))
+			for x in range(j, self.width):
+				A[i][x] = A[i][x] * div
+			# for k in range(i+1, self.height):
+			for k in range(self.height):
+				if k == i: continue
 				r2lead = A[k][j]
 				if r2lead != 0:
-					A[k] = [A[k][x] * rlead - A[i][x] * r2lead for x in range(self.width)]
+					for x in range(j, self.width):
+						A[k][x] = A[k][x] - (A[i][x] * r2lead)
+						# A[k][x] = A[k][x] * rlead - A[i][x] * r2lead
+					# A[k] = [A[k][x] * rlead - A[i][x] * r2lead for x in range(self.width)]
 			
+			# print(i, j, [['%0.3f' % float(x) for x in row] for row in A])
 			i += 1
 			j += 1
 		return Matrix(A)
@@ -210,6 +223,7 @@ class Matrix(object):
 		A = self.join(Id_Matrix(self.width))
 		B = A.transpose()
 		C = B.row_reduce(zeroing_width=self.height)
+		print([['%0.3f' % float(x) for x in row] for row in C])
 		return Matrix([row[self.height:] for row in C if any(row) and not any(row[:self.height])])
 	
 	def solve(self, target):
@@ -218,6 +232,7 @@ class Matrix(object):
 		A = self.transpose()
 		d = A.determinant()
 		sign = +1 if d > 0 else -1
+		# return [Fraction(A.substitute_row(i, target).determinant(), d) for i in range(A.height)]
 		sol = [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
 		return rescale(sol)
 	def nonnegative_image(self, v):

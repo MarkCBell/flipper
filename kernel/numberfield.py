@@ -27,24 +27,26 @@ class NumberField(object):
 		self.current_accuracy = -1
 		# A list of approximations of \lambda^0, ..., \lambda^(d-1).
 		# Note if this is QQ then we add in one more to make the increase accuracy code nicer. 
-		self.algebraic_approximations = [None] * (self.degree+1 if self.is_QQ() else self.degree)
-		self.increase_accuracy(10)
+		self._algebraic_approximations = [None] * (self.degree+1 if self.is_QQ() else self.degree)
+		self._algebraic_approximations = self.lmbda_approximations(10)
 		
 		self.one = self.element([1])
 		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])
 	
-	def increase_accuracy(self, accuracy):
+	def lmbda_approximations(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			new_accuracy = 2 * accuracy
-			if self.algebraic_approximations[1] is None:
-				self.algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
+			if self._algebraic_approximations[1] is None:
+				self._algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
 			
-			accuracy_needed = new_accuracy + self.degree * self.algebraic_approximations[1].log_plus
+			accuracy_needed = new_accuracy + self.degree * self._algebraic_approximations[1].log_plus
 			AA = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
-			self.algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree)]
-			self.current_accuracy = min(approx.interval.accuracy for approx in self.algebraic_approximations)
+			self._algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree)]
+			self.current_accuracy = min(approx.interval.accuracy for approx in self._algebraic_approximations)
 			assert(self.current_accuracy >= new_accuracy)
+		
+		return self._algebraic_approximations
 	
 	def __repr__(self):
 		return 'QQ[%s]' % str(self.polynomial)
@@ -66,7 +68,7 @@ class NumberFieldElement(object):
 			raise TypeError('Linear combination: %s has more terms than the degree of the field in which it lives' % linear_combination)
 		self.linear_combination = linear_combination
 		# Let N = QQ(\lambda) and d := N.degree.
-		# Let [a_i] := self.linear_combination, [\alpha_i] := N.algebraic_approximations[i].
+		# Let [a_i] := self.linear_combination, [\alpha_i] := N._algebraic_approximations[i].
 		# Let \alpha := sum(a_i * \alpha_i).
 		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
 		self.log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
@@ -123,28 +125,38 @@ class NumberFieldElement(object):
 	def __rmul__(self, other):
 		return self * other
 	def __div__(self, other):
+		assert(False)
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot divide elements of different number fields.')
 			
-			return self.algebraic_approximation(additive_error=3) / other.algebraic_approximation(additive_error=3) 
+			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
+			# return self.algebraic_approximation(additive_error=3) / other.algebraic_approximation(additive_error=3) 
 		elif isinstance(other, Flipper.kernel.types.Integer_Type):
 			return self.algebraic_approximation(additive_error=3) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
+	def __rtruediv__(self, other):
+		if isinstance(other, Flipper.Integer_Type):
+			return self.number_field.element([other]) // self
 	def __floordiv__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot divide elements of different number fields.')
 			
 			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
+	def __rfloordiv__(self, other):
+		if isinstance(other, Flipper.Integer_Type):
+			return self.number_field.element([other]) // self
 	
 	def __lt__(self, other):
 		return (self - other).is_negative()
 	def __eq__(self, other):
 		return (self - other).is_zero()
+	def __ne__(self, other):
+		return not (self - other).is_zero()
 	def __gt__(self, other):
 		return (self - other).is_positive()
 	def __le__(self, other):
@@ -184,14 +196,11 @@ class NumberFieldElement(object):
 		accuracy = accuracy * multiplicative_error + additive_error
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
-			N.increase_accuracy(accuracy)  # Increase the accuracy so the calculation will work.
-			# Actually this will probably be too precise.
-			
 			# Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
 			if all(a == 0 for a in self):
 				self._algebraic_approximation = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(0, 2*accuracy, self.number_field.degree, 1)
 			else:
-				self._algebraic_approximation = sum(a * generator_approximation for a, generator_approximation in zip(self, N.algebraic_approximations))
+				self._algebraic_approximation = sum(a * generator_approximation for a, generator_approximation in zip(self, N.lmbda_approximations(accuracy)))
 			
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
 			# Now if accuracy was not None then self.current_accuracy >= accuracy.

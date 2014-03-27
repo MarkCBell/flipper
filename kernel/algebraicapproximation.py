@@ -41,7 +41,8 @@ class AlgebraicApproximation(object):
 		# We need to make sure that 10^self.log_height >= height(algebraic number) in order to maintain an upper bound.
 		# This is a bit of a hack and eventually I might find a better way to do this but at least for now it works.
 		self.log_height = round(log_height, 5) + 0.00001
-		self.log_plus = int(log_height_int(float(self))) + 1
+		#self.log_plus = int(log_height_int(float(self))) + 1
+		self.log_plus = self.interval.log_plus
 		self.accuracy_needed = int(log(self.degree)) + int(self.log_height) + 2
 		# An algebraic approximation is good if it is known to more places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.

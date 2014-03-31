@@ -19,7 +19,9 @@ import Flipper
 #	acc(x * I) >= acc(I) - log+(x)
 
 class Interval(object):
+	''' This represents an open interval. '''
 	def __init__(self, lower, upper, precision):
+		''' This is the open interval (lower*10**-precision, upper*10**-precision. '''
 		if lower == upper: 
 			lower, upper = lower-1, upper+1
 			raise Flipper.ApproximationError
@@ -174,3 +176,4 @@ def interval_from_int(integer, accuracy):
 
 def interval_from_fraction(numerator, accuracy):
 	return Interval(numerator-1, numerator+1, accuracy)
+

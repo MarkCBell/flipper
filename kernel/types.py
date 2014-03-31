@@ -9,3 +9,4 @@ if sys.version_info >= (3, 0):
 	Integer_Type = (int,)
 else:
 	Integer_Type = (int, long)
+

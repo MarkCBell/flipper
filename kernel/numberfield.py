@@ -13,6 +13,7 @@ import Flipper
 # 1, \lambda, ..., \lambda^{d-1}. Currently only Sage can do this.
 
 class NumberField(object):
+	''' This represents a number field. '''
 	def __init__(self, polynomial=None):
 		if polynomial is None: polynomial = Flipper.kernel.Polynomial([-1, 1])
 		
@@ -60,6 +61,8 @@ class NumberField(object):
 		return self.degree == 1
 
 class NumberFieldElement(object):
+	''' This represents an element of a number field. You shouldn't create NumberFieldElements directly but instead
+	should use NumberField.element() which creates an element in that number field. '''
 	def __init__(self, number_field, linear_combination):
 		self.number_field = number_field
 		if len(linear_combination) < self.number_field.degree:
@@ -218,3 +221,4 @@ class NumberFieldElement(object):
 def number_field_from_integers(integers):
 	N = NumberField()
 	return [N.element([integer]) for integer in integers]
+

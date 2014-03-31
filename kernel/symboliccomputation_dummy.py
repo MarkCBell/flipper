@@ -14,5 +14,7 @@ def PF_eigen(matrix):
 		[eigenvector] = M.kernel()  # Sage is much better at this than us for large matrices.
 	except ValueError:
 		raise Flipper.AssumptionError('Largest real eigenvalue is repeated.')
-	return eigenvalue_coefficients, [x.linear_combination for x in eigenvector]
+	eigenvector_coefficients = [x.linear_combination for x in eigenvector]
+	
+	return eigenvalue_coefficients, eigenvector_coefficients
 

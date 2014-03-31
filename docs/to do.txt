@@ -16,6 +16,7 @@ lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
 be able to (half) twist along all curves
 add set accuracy to AlgebraicApproximation
+add support for Fractions to the number classes
 
 ### Tests ###
 add more tests

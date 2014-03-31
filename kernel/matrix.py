@@ -39,6 +39,7 @@ def dot(a, b):
 	return sum(a[i] * b[i] for i in range(len(a)))
 
 class Matrix(object):
+	''' This represents a matrix. '''
 	def __init__(self, data):
 		self.rows = [list(row) for row in data]
 		self.height = len(self.rows)
@@ -121,12 +122,14 @@ class Matrix(object):
 			A = self * (A - (A.trace() // i))
 		return A - (A.trace() // (self.width-1)) 
 	def transpose(self):
+		# Returns self^{T}.
 		return Matrix(list(zip(*self.rows)))
 	def join(self, other):
 		# Returns the matrix:
 		# (self )
 		# (-----)
 		# (other)
+		# This is the same as sages Matrix.stack() function.
 		return Matrix(self.rows + other.rows)
 	def tweak(self, increment, decrement):
 		# Returns a copy of this matrix where each increment entry has been
@@ -190,7 +193,6 @@ class Matrix(object):
 		if zeroing_width is None: zeroing_width = self.width
 		i, j = 0, 0
 		A = [list(row) for row in self]
-		# A = [[float(x) for x in row] for row in self]
 		while j < zeroing_width:
 			for b, a in product(range(j, zeroing_width), range(i, self.height)):
 				if A[a][b] != 0:
@@ -202,20 +204,15 @@ class Matrix(object):
 			
 			rlead = A[i][j]
 			div = 1 // rlead
-			print(float(div * rlead))
 			for x in range(j, self.width):
 				A[i][x] = A[i][x] * div
-			# for k in range(i+1, self.height):
 			for k in range(self.height):
 				if k == i: continue
 				r2lead = A[k][j]
 				if r2lead != 0:
 					for x in range(j, self.width):
 						A[k][x] = A[k][x] - (A[i][x] * r2lead)
-						# A[k][x] = A[k][x] * rlead - A[i][x] * r2lead
-					# A[k] = [A[k][x] * rlead - A[i][x] * r2lead for x in range(self.width)]
 			
-			# print(i, j, [['%0.3f' % float(x) for x in row] for row in A])
 			i += 1
 			j += 1
 		return Matrix(A)
@@ -223,9 +220,11 @@ class Matrix(object):
 		A = self.join(Id_Matrix(self.width))
 		B = A.transpose()
 		C = B.row_reduce(zeroing_width=self.height)
-		print([['%0.3f' % float(x) for x in row] for row in C])
 		return Matrix([row[self.height:] for row in C if any(row) and not any(row[:self.height])])
 	
+	def substitute_row(self, index, new_row):
+		# Returns a matrix in which the row with given index has been replaced by the given vector.
+		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)])
 	def solve(self, target):
 		# Returns an x such that self*x == target*k for some k \in ZZ. 
 		assert(self.width == self.height)
@@ -235,19 +234,22 @@ class Matrix(object):
 		# return [Fraction(A.substitute_row(i, target).determinant(), d) for i in range(A.height)]
 		sol = [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
 		return rescale(sol)
+	
 	def nonnegative_image(self, v):
 		return all(dot(row, v) >= 0 for row in self)
-	def substitute_row(self, index, new_row):
-		# Returns a matrix in which the row with given index has been replaced by the given vector.
-		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)])
+	
+	# Methods for making Ax >= 0 into a simpler problem.
 	def discard_column(self, column):
 		return Matrix([[row[i] for i in range(self.width) if i != column] for row in self])
 	def basic_simplify(self):
 		return Matrix(list(set(tuple(rescale(row)) for row in self if nontrivial(row))))
 	def simplify(self):
+		# Remove all trivial rows.
 		R = set(tuple(rescale(row)) for row in self if nontrivial(row))
 		R_width = self.width
 		A = Id_Matrix(self.width)
+		# We repeatedly search for a pair of antipodal rows in self and use them to eliminate 
+		# one variable. This frequently occurs in the reducibility problem.
 		while R_width > 1:
 			for R1, R2 in find_antipodal(R):
 				index = find_one(R1)
@@ -266,6 +268,7 @@ class Matrix(object):
 					break
 			else:
 				break
+		# Remove any dominated rows.
 		while True:
 			for R1, R2 in combinations(R, 2):
 				if all(r1 < r2 for r1, r2 in zip(R1, R2)):
@@ -273,6 +276,7 @@ class Matrix(object):
 					break
 			else:
 				break
+		# Remove any all positive rows - these are always satisfied.
 		R = [row for row in R if not all(r >= 0 for r in row)]
 		return Matrix(R), A
 	
@@ -286,6 +290,7 @@ class Matrix(object):
 			return None
 		
 		R, B = self.simplify()  # Reduce to a simpler problem.
+		print(R, B)
 		
 		if R.width == 0:
 			return B * ([1]*B.width)

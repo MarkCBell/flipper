@@ -7,6 +7,7 @@ import Flipper
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
 # See symboliccomputation.py for more information.
 class Polynomial(object):
+	''' This represents a polynomial in one variable. '''
 	def __init__(self, coefficients):
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])

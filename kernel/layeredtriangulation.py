@@ -23,11 +23,12 @@ SOURCE = -1
 PERIPHERAL_TYPES = list(range(3))
 LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
-vertices_meeting = {0:(1, 2, 3), 1:(0, 3, 2), 2:(0, 1, 3), 3:(0, 2, 1)} # This order was chosen so they appear ordered anti-clockwise from the cusp.
-exit_cusp_left = {(0, 1):3, (0, 2):1, (0, 3):2, (1, 0):2, (1, 2):3, (1, 3):0, (2, 0):3, (2, 1):0, (2, 3):1, (3, 0):1, (3, 1):2, (3, 2):0}
-exit_cusp_right = {(0, 1):2, (0, 2):3, (0, 3):1, (1, 0):3, (1, 2):0, (1, 3):2, (2, 0):1, (2, 1):3, (2, 3):0, (3, 0):2, (3, 1):0, (3, 2):1}
+VERTICES_MEETING = {0:(1, 2, 3), 1:(0, 3, 2), 2:(0, 1, 3), 3:(0, 2, 1)} # This order was chosen so they appear ordered anti-clockwise from the cusp.
+EXIT_CUSP_LEFT = {(0, 1):3, (0, 2):1, (0, 3):2, (1, 0):2, (1, 2):3, (1, 3):0, (2, 0):3, (2, 1):0, (2, 3):1, (3, 0):1, (3, 1):2, (3, 2):0}
+EXIT_CUSP_RIGHT = {(0, 1):2, (0, 2):3, (0, 3):1, (1, 0):3, (1, 2):0, (1, 3):2, (2, 0):1, (2, 1):3, (2, 3):0, (3, 0):2, (3, 1):0, (3, 2):1}
 
 class Tetrahedron(object):
+	''' This represents a tetrahedron. '''
 	def __init__(self, label=None):
 		self.label = label
 		self.glued_to = [None] * 4 # None or (Tetrahedron, permutation).
@@ -52,7 +53,7 @@ class Tetrahedron(object):
 			target.glued_to[permutation[side]] = (self, permutation.inverse())
 			
 			# Move across the edge veerings too.
-			for a, b in combinations(vertices_meeting[side], 2):
+			for a, b in combinations(VERTICES_MEETING[side], 2):
 				x, y = permutation[a], permutation[b]
 				my_edge_veering = self.get_edge_label(a, b)
 				his_edge_veering = target.get_edge_label(x, y)
@@ -92,6 +93,7 @@ class Tetrahedron(object):
 		return s
 
 class Triangulation3(object):
+	''' This represents triangulation, that is a collection of tetrahedra. '''
 	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
@@ -163,7 +165,7 @@ class Triangulation3(object):
 				current_vertex = to_explore.get()
 				new_vertex_class.append(current_vertex)
 				current_tetrahedron, current_side = current_vertex
-				for side in vertices_meeting[current_side]:
+				for side in VERTICES_MEETING[current_side]:
 					if current_tetrahedron.glued_to[side] is not None:
 						neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
 						neighbour_side = permutation[current_side]
@@ -187,7 +189,7 @@ class Triangulation3(object):
 		cusp_pairing = dict()
 		for tetrahedron in self.tetrahedra:
 			for side in range(4):
-				for other in vertices_meeting[side]:
+				for other in VERTICES_MEETING[side]:
 					neighbour_tetrahedron, permutation = tetrahedron.glued_to[other]
 					neighbour_side, neighbour_other = permutation[side], permutation[other]
 					cusp_pairing[(tetrahedron, side, other)] = (neighbour_tetrahedron, neighbour_side, neighbour_other)
@@ -215,16 +217,16 @@ class Triangulation3(object):
 		intersection_number = 0
 		# Count intersection numbers along edges.
 		for tetrahedron, side in cusp:
-			for other in vertices_meeting[side]:
+			for other in VERTICES_MEETING[side]:
 				intersection_number -= tetrahedron.peripheral_curves[peripheral_type_a][side][other] * tetrahedron.peripheral_curves[peripheral_type_b][side][other]
 		
 		intersection_number = intersection_number // 2
 		
 		# and then within each face.
 		for tetrahedron, side in cusp:
-			for other in vertices_meeting[side]:
-				left = exit_cusp_left[(side, other)]
-				right = exit_cusp_right[(side, other)]
+			for other in VERTICES_MEETING[side]:
+				left = EXIT_CUSP_LEFT[(side, other)]
+				right = EXIT_CUSP_RIGHT[(side, other)]
 				intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][left]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
 				intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][right]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
 		
@@ -248,14 +250,14 @@ class Triangulation3(object):
 			label = 0
 			edge_label_map = dict()
 			for tetrahedron, side in cusp:
-				for other in vertices_meeting[side]:
+				for other in VERTICES_MEETING[side]:
 					key = (tetrahedron, side, other)
 					if key not in edge_label_map:
 						edge_label_map[key] = label
 						edge_label_map[cusp_pairing[key]] = label
 						label += 1
 			
-			T = Flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in vertices_meeting[side]] for tetrahedron, side in cusp])
+			T = Flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp])
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -265,12 +267,12 @@ class Triangulation3(object):
 				first, last = homology_basis_paths[peripheral_type][0], homology_basis_paths[peripheral_type][-1]
 				# Find a starting point.
 				for tetrahedron, side in cusp:
-					for a, b in permutations(vertices_meeting[side], 2):
+					for a, b in permutations(VERTICES_MEETING[side], 2):
 						if edge_label_map[(tetrahedron, side, a)] == first and edge_label_map[(tetrahedron, side, b)] == last:
 							current_tetrahedron, current_side, arrive = tetrahedron, side, b
 				
 				for other in homology_basis_paths[peripheral_type]:
-					for a in vertices_meeting[current_side]:
+					for a in VERTICES_MEETING[current_side]:
 						if edge_label_map[(current_tetrahedron, current_side, a)] == other:
 							leave = a
 							current_tetrahedron.peripheral_curves[peripheral_type][current_side][arrive] += 1
@@ -289,7 +291,7 @@ class Triangulation3(object):
 			# If the it is -1 then we need to reverse the direction of one of them (we choose the meridian).
 			if intersection_number < 0:
 				for tetrahedron, side in cusp:
-					for other in vertices_meeting[side]:
+					for other in VERTICES_MEETING[side]:
 						tetrahedron.peripheral_curves[MERIDIANS][side][other] = -tetrahedron.peripheral_curves[MERIDIANS][side][other]
 		
 		return cusps
@@ -342,6 +344,7 @@ class Triangulation3(object):
 
 # A class to represent a layered triangulation over a surface specified by a Flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
+	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. ''' 
 	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
@@ -530,13 +533,13 @@ class LayeredTriangulation(object):
 			
 			# Set the degeneracy curve into the TEMPS peripheral structure.
 			start_tetrahedron, start_side = cusp[0]
-			NV = vertices_meeting[start_side]
+			NV = VERTICES_MEETING[start_side]
 			start_other = NV[min(i for i in range(3) if start_tetrahedron.get_edge_label(start_side, NV[(i+1) % 3]) == VEERING_RIGHT and start_tetrahedron.get_edge_label(start_side, NV[(i+2) % 3]) == VEERING_LEFT)]
 			
 			current_tetrahedron, current_side, current_other = start_tetrahedron, start_side, start_other
 			while True:
 				current_tetrahedron.peripheral_curves[TEMPS][current_side][current_other] += 1
-				leave = (exit_cusp_left if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT else exit_cusp_right)[(current_side, current_other)]
+				leave = (EXIT_CUSP_LEFT if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT else EXIT_CUSP_RIGHT)[(current_side, current_other)]
 				current_tetrahedron.peripheral_curves[TEMPS][current_side][leave] -= 1
 				current_tetrahedron, current_side, current_other = cusp_pairing[(current_tetrahedron, current_side, leave)]
 				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):
@@ -549,3 +552,4 @@ class LayeredTriangulation(object):
 		closed_triangulation.degeneracy_slopes = degeneracy_slopes
 		
 		return closed_triangulation
+

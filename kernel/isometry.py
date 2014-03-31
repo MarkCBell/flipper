@@ -4,10 +4,10 @@ from itertools import combinations
 import Flipper
 
 class Isometry(object):
+	''' This represents an isometry from one AbstractTriangulation to another. '''
 	def __init__(self, source_triangulation, target_triangulation, triangle_map):
-		# source_triangulation and target_triangulation are two AbstractTriangulations
-		# triangle_map is a dictionary sending each AbstractTriangle of source_triangulation to a pair
-		# (AbstractTriangle, Permutation).
+		''' This represents an isometry from source_triangulation to target_triangulation. It is given
+		by a map taking each triangle to a triangle and a permutation (on 3 elements). '''
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
@@ -60,3 +60,4 @@ class Isometry(object):
 def isometry_from_edge_map(source_triangulation, target_triangulation, edge_map):
 	# There is more than one solution iff S = S_1_1.
 	return [isom for isom in source_triangulation.all_isometries(target_triangulation) if isom.edge_map == edge_map][0]
+

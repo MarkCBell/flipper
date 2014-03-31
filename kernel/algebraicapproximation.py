@@ -31,11 +31,13 @@ import Flipper
 def log_height_int(number):
 	return log(max(abs(number), 1))
 
-# This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-# by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
-# upper bound on the log height of this number.
 class AlgebraicApproximation(object):
+	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 
+	on the degree and height of the number to uniquely determine it. ''' 
 	def __init__(self, interval, degree, log_height):
+		''' This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
+		by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
+		upper bound on the log height of this number. '''
 		self.interval = interval
 		self.degree = degree
 		# We need to make sure that 10^self.log_height >= height(algebraic number) in order to maintain an upper bound.
@@ -60,7 +62,6 @@ class AlgebraicApproximation(object):
 	
 	def __neg__(self):
 		return AlgebraicApproximation(-self.interval, self.degree, self.log_height)
-	
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, AlgebraicApproximation):

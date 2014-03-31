@@ -182,7 +182,7 @@ class FlipperApp(object):
 		self.entry_command.focus()
 		###
 		
-		self.panels.add(self.frame_interface, width=250)  # Make sure to set an inital width.
+		self.panels.add(self.frame_interface, width=260)  # Make sure to set an inital width.
 		self.panels.add(self.frame_draw)
 		self.panels.pack(fill='both', expand=True)
 		self.frame_command.pack(fill='x', expand=False)
@@ -1395,3 +1395,4 @@ def main(load_path=None):
 
 if __name__ == '__main__':
 	main()
+

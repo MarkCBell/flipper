@@ -2,6 +2,8 @@
 import Flipper
 
 class Lamination(object):
+	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
+	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation. '''
 	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
 		self.zeta = self.abstract_triangulation.zeta
@@ -411,3 +413,4 @@ class Lamination(object):
 		T = map_back * forwards3 * forwards2 * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
+

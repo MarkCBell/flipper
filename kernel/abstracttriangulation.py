@@ -8,7 +8,9 @@ except ImportError: # Python 3
 import Flipper
 
 class AbstractTriangle(object):
+	''' This represents a triangle in a trianglulation of a punctured surface. '''
 	def __init__(self, index=None, edge_indices=None, corner_labels=None):
+		''' A Triangle is specified by giving the labels on its edges, ordered anticlockwise. '''
 		# Edges are ordered anti-clockwise.
 		self.index = index
 		self.edge_indices = list(edge_indices) if edge_indices is not None else [-1, -1, -1]
@@ -16,18 +18,24 @@ class AbstractTriangle(object):
 	
 	def __repr__(self):
 		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
-		# return '(%s, %s)' % (self.index, self.edge_indices)
 	
 	# Note that this is NOT the same convention as used in pieces.
-	# There iterating and index accesses return edges.
+	# There iterating and index accesses return vertices.
 	def __iter__(self):
 		return iter(self.edge_indices)
 	
 	def __getitem__(self, index):
 		return self.edge_indices[index % 3]
 
+# Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
+# of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
+
 class AbstractTriangulation(object):
+	''' This represents a triangulation of a puctured surface, it is a collection of AbstractTriangles whose
+	edge labels satisfy certain criteria. '''
 	def __init__(self, all_edge_indices, all_corner_labels=None):
+		''' An abstract triangulation is a collection of abstract triangles and is given by a list of triples 
+		each of which specifies a triangle. '''
 		self.num_triangles = len(all_edge_indices)
 		self.zeta = self.num_triangles * 3 // 2
 		

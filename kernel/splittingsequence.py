@@ -2,6 +2,7 @@
 import Flipper
 
 class SplittingSequence(object):
+	''' This represents a sequence of flips of an AbstractTriangulation. '''
 	def __init__(self, initial_lamination, prepreiodic_encoding, laminations, flips, encodings, prefered_isometry=None, name=''):
 		self.initial_lamination = initial_lamination
 		self.prepreiodic_encoding = prepreiodic_encoding

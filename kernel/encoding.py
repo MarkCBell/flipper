@@ -7,11 +7,12 @@ NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
-# Represents a linear function defined on a piece of the space of laminations on source_triangulation.
-# If condition is not set the no condition is assumed, that is the function is defined on the 
-# entirety of the space.
 class PartialFunction(object):
+	''' This represents a linear function defined between the spaces of laminations on two AbstractTriangulations. '''
 	def __init__(self, source_triangulation, target_triangulation, action, condition=None):
+		''' This represents a partial linear function from L(source_triangulation) to L(target_triangulation).
+		The function is defined on the subset where condition*lamination >= 0, or everywhere if condition
+		is None. Attempting to apply the function to a point not in the domain will raise a TypeError. '''
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.action = action
@@ -31,9 +32,8 @@ class PartialFunction(object):
 		
 		raise TypeError('Object is not in domain.')
 
-# These represent the piecewise-linear maps between the coordinates systems of various abstract triangulations.
-
 class Encoding(object):
+	''' This represent the piecewise-linear map between the spaces of laminations on two AbstractTriangulations. '''
 	def __init__(self, partial_functions, inverse_partial_functions=None, name=None):
 		self.partial_functions = partial_functions
 		assert(len(self.partial_functions) > 0)
@@ -105,6 +105,7 @@ class Encoding(object):
 
 class EncodingSequence(object):
 	def __init__(self, sequence, name=None):
+		''' This represents the composition of several Encodings. '''
 		self.sequence = sequence
 		assert(all(isinstance(x, Encoding) for x in self.sequence))
 		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
@@ -378,3 +379,4 @@ class EncodingSequence(object):
 		splitting = lamination.splitting_sequence(target_dilatation=dilatation, name=self.name)
 		# new_dilatation = splitting.dilatation()
 		return splitting
+

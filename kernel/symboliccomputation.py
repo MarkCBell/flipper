@@ -46,7 +46,7 @@ def Perron_Frobenius_eigen(matrix):
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
 	# Eventually we could just use the simplified characteristic polynomial.
 	# eigenvalue_polynomial = matrix.char_poly().simplify()
-	#if eigenvector_coefficients is None:
+	# and if eigenvector_coefficients is None then we wil calculate the eigenvector ourselves.
 	if False:
 		# We will calculate the eigenvector ourselves.
 		M = matrix - N.lmbda

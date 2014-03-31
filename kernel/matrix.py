@@ -216,7 +216,6 @@ class Matrix(object):
 			
 			i += 1
 			j += 1
-		# print('\n'.join([' '.join(['%0.3f' % float(x) for x in row]) for row in A]))
 		return Matrix(A)
 	def kernel(self):
 		A = self.join(Id_Matrix(self.width))

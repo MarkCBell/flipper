@@ -1,19 +1,24 @@
 
+### Application ###
 undo and redo
 handle commands better
 have weighted brush for painting laminations (in a given field?)
+show algebraic intersection number
 
-compute algebraic intersection number
+### Documentation ###
 more / update all documentation
 doc strings everywhere
 
-do approximations manually
-make polynomials squarefree
-remove all dependence on sage / smypy
-add unit tests
-
+### Kernel ###
+make polynomials squarefree - polynomial gcd
+remove all dependence on sage - Faster Matrix.kernel
+lamination should have an associated number field
+laminations  / encodings should include / manipulate algebraic intersection number
+be able to (half) twist along all curves
 add set accuracy to AlgebraicApproximation
 
-Lamination should have an associated number field
+### Tests ###
+add more tests
+tests for every module
+switch to unit tests
 
-be able to (half) twist along all curves

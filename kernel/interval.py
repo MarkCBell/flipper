@@ -124,7 +124,7 @@ class Interval(object):
 	def __div__(self, other):
 		if isinstance(other, Interval):
 			if 0 in other:
-				raise Flipper.ApproximationError('Denominator contains 0.')
+				raise ZeroDivisionError  # Denominator contains 0.
 			# !?! RECHECK THIS!
 			common_precision = max(self.precision, other.precision) + other.log_plus
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)

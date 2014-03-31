@@ -5,16 +5,16 @@ import Flipper
 
 # This class represents an integral polynomial. In various places we will assume that it is 
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
-# See symboliccomputation.py for more information.
 class Polynomial(object):
-	''' This represents a polynomial in one variable. '''
+	''' This represents a polynomial in one variable. The most important method of this is 
+	self.algebraic_approximate_leading_root() which returns an AlgebraicApproximation of the largest real
+	root or raises an AssumptionError if there are none. '''
 	def __init__(self, coefficients):
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
 		self.height = max(max(abs(x) for x in self.coefficients), 1)
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
-		self.algebraic_approximation = self.degree * self.height
 		self.accuracy = 0
 		self.root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
 		self.interval = Flipper.kernel.Interval(-self.root_range, self.root_range, 0)
@@ -150,7 +150,10 @@ class Polynomial(object):
 	
 	def subdivide_iterate(self, interval, chain=None):
 		if chain is None: chain = self.sturm_chain()
-		return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
+		try:
+			return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
+		except IndexError:
+			raise Flipper.AssumptionError('Polynomial has no real roots.')
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -162,7 +165,7 @@ class Polynomial(object):
 		# For why this works see: http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html
 		# Start by building a really tiny interval containing the midpoint of this one.
 		J = interval.midpoint(10)
-		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step.
+		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step. Could throw division by zero.
 		L = K.change_denominator(K.accuracy * 2)  # Stop the precision from blowing up too much.
 		return L.intersect(interval)
 	
@@ -171,7 +174,7 @@ class Polynomial(object):
 		while interval.accuracy < accuracy:
 			try:
 				interval = self.NR_iterate(interval)
-			except:
+			except ZeroDivisionError:
 				interval = self.subdivide_iterate(interval, chain)
 		
 		return interval
@@ -180,7 +183,6 @@ class Polynomial(object):
 		# Eventually we will find the interval ourselves, however at the minute sage is much faster so
 		# we'll just use that.
 		if self.accuracy < accuracy:
-			#self.algebraic_approximation = Flipper.kernel.symboliccomputation.algebraic_approximation_largest_root(self, accuracy)
 			self.interval = self.converge_iterate(self.interval, accuracy)
 			self.accuracy = self.interval.accuracy
 	

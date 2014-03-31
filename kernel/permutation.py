@@ -5,7 +5,7 @@ import Flipper
 
 # Represents a permutation on N elements.
 class Permutation(object):
-''' This represents a permutation in Sym(n). '''
+	''' This represents a permutation in Sym(n). '''
 	def __init__(self, permutation):
 		assert(set(permutation) == set(range(len(permutation))))
 		self.permutation = tuple(permutation)

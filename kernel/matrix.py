@@ -206,15 +206,17 @@ class Matrix(object):
 			div = 1 // rlead
 			for x in range(j, self.width):
 				A[i][x] = A[i][x] * div
+			new_rlead = A[i][j]
 			for k in range(self.height):
-				if k == i: continue
-				r2lead = A[k][j]
-				if r2lead != 0:
-					for x in range(j, self.width):
-						A[k][x] = A[k][x] - (A[i][x] * r2lead)
+				if k != i:
+					r2lead = A[k][j]
+					if r2lead != 0:
+						for x in range(j, self.width):
+							A[k][x] = (A[k][x] * new_rlead) - (A[i][x] * r2lead)
 			
 			i += 1
 			j += 1
+		# print('\n'.join([' '.join(['%0.3f' % float(x) for x in row]) for row in A]))
 		return Matrix(A)
 	def kernel(self):
 		A = self.join(Id_Matrix(self.width))
@@ -290,7 +292,6 @@ class Matrix(object):
 			return None
 		
 		R, B = self.simplify()  # Reduce to a simpler problem.
-		print(R, B)
 		
 		if R.width == 0:
 			return B * ([1]*B.width)

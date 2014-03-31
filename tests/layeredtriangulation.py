@@ -9,7 +9,7 @@ def main():
 	try:
 		import snappy
 	except ImportError:
-		print('SnapPy unavailable, tests skipped.')
+		print('SnapPy required but unavailable, tests skipped.')
 		return True
 	
 	tests = [

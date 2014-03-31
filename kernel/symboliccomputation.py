@@ -27,8 +27,8 @@ import Flipper
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
 
 ### Add new libraries here ###
-load_order = ['sage']
-libraries = {'sage':'symboliccomputation_sage'}
+load_order = ['sage', 'dummy']
+libraries = {'sage':'symboliccomputation_sage', 'dummy':'symboliccomputation_dummy'}
 
 def load_library(library_name=None):
 	for library in ([library_name] + load_order) if library_name in libraries else load_order:
@@ -43,20 +43,9 @@ def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
+	
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
-	# Eventually we could just use the simplified characteristic polynomial.
-	# eigenvalue_polynomial = matrix.char_poly().simplify()
-	# and if eigenvector_coefficients is None then we wil calculate the eigenvector ourselves.
-	if False:
-		# We will calculate the eigenvector ourselves.
-		M = matrix - N.lmbda
-		try:
-			[eigenvector] = M.kernel()  # Sage is much better at this than us for large matrices.
-		except ValueError:
-			raise Flipper.AssumptionError('Largest real eigenvalue is repeated.')
-		return eigenvector
-	else:
-		eigenvector = [N.element(v) for v in eigenvector_coefficients]
+	eigenvector = [N.element(v) for v in eigenvector_coefficients]
 	
 	return eigenvector
 

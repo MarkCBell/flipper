@@ -164,7 +164,7 @@ class FlipperApp(object):
 		###
 		# Now for some reason which I can't explain, we need this height=1 to prevent the command
 		# bar below from collapsing when the application is small.
-		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff')
+		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff', takefocus=False)
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)

@@ -1,14 +1,16 @@
 
 from __future__ import print_function
+try:
+	import snappy
+except ImportError:
+	snappy = None
 
 import Flipper
 
 RANDOM_WORD_LENGTH = 10
 
 def main():
-	try:
-		import snappy
-	except ImportError:
+	if snappy is None:
 		print('SnapPy required but unavailable, tests skipped.')
 		return True
 	

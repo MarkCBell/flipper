@@ -575,55 +575,53 @@ class FlipperApp(object):
 	
 	
 	def initialise_radial_n_gon(self):
-		if self.initialise():
-			gluing = Flipper.application.get_input('Surface specification', 'New specification for radial ngon:', validate=self.valid_specification)
-			n = len(gluing)
-			
-			w = int(self.canvas.winfo_width())
-			h = int(self.canvas.winfo_height())
-			r = min(w, h) * (1 + self.options.zoom_fraction) / 4
-			
-			self.create_vertex((w / 2, h / 2))
-			for i in range(n):
-				self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
-			for i in range(1, n):
-				self.create_edge(self.vertices[i], self.vertices[i+1])
-			self.create_edge(self.vertices[n], self.vertices[1])
-			for i in range(n):
-				self.create_edge(self.vertices[0], self.vertices[i+1])
-			if gluing != '':
+		gluing = Flipper.application.get_input('Surface specification', 'New specification for radial ngon:', validate=self.valid_specification)
+		if gluing is not None:
+			if self.initialise():
+				n = len(gluing)
+				w = int(self.canvas.winfo_width())
+				h = int(self.canvas.winfo_height())
+				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+				
+				self.create_vertex((w / 2, h / 2))
+				for i in range(n):
+					self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
+				for i in range(1, n):
+					self.create_edge(self.vertices[i], self.vertices[i+1])
+				self.create_edge(self.vertices[n], self.vertices[1])
+				for i in range(n):
+					self.create_edge(self.vertices[0], self.vertices[i+1])
 				for i, j in combinations(range(n), r=2):
 					if gluing[i] == gluing[j].swapcase():
 						self.create_edge_identification(self.edges[i], self.edges[j])
-			
-			self.unsaved_work = True
+				
+				self.unsaved_work = True
 	
 	def initialise_circular_n_gon(self):
-		if self.initialise():
-			gluing = Flipper.application.get_input('Surface specification', 'New specification for ngon:', validate=self.valid_specification)
-			n = len(gluing)
-			
-			w = int(self.canvas.winfo_width())
-			h = int(self.canvas.winfo_height())
-			r = min(w, h) * (1 + self.options.zoom_fraction) / 4
-			
-			for i in range(n):
-				self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
-			for i in range(n):
-				self.create_edge(self.vertices[i], self.vertices[i-1])
-			
-			all_vertices = list(range(n))
-			while len(all_vertices) > 3:
-				for i in range(0, len(all_vertices)-1, 2):
-					self.create_edge(self.vertices[all_vertices[i]], self.vertices[all_vertices[(i+2) % len(all_vertices)]])
-				all_vertices = all_vertices[::2]
-			
-			if gluing != '':
+		gluing = Flipper.application.get_input('Surface specification', 'New specification for ngon:', validate=self.valid_specification)
+		if gluing is not None:
+			if self.initialise():
+				n = len(gluing)
+				w = int(self.canvas.winfo_width())
+				h = int(self.canvas.winfo_height())
+				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+				
+				for i in range(n):
+					self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
+				for i in range(n):
+					self.create_edge(self.vertices[i], self.vertices[i-1])
+				
+				all_vertices = list(range(n))
+				while len(all_vertices) > 3:
+					for i in range(0, len(all_vertices)-1, 2):
+						self.create_edge(self.vertices[all_vertices[i]], self.vertices[all_vertices[(i+2) % len(all_vertices)]])
+					all_vertices = all_vertices[::2]
+				
 				for i, j in combinations(range(n), r=2):
 					if gluing[i] == gluing[j].swapcase():  # !?! Get rid of the swapcase()?
 						self.create_edge_identification(self.edges[i], self.edges[j])
-			
-			self.unsaved_work = True
+				
+				self.unsaved_work = True
 	
 	def show_surface_information(self):
 		if self.is_complete():

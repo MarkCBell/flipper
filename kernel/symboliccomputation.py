@@ -43,6 +43,11 @@ def Perron_Frobenius_eigen(matrix):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
+	evp2 = matrix.char_poly().simplify()
+	if eigenvalue_polynomial != evp2 and eigenvalue_polynomial != -evp2:
+		print(eigenvalue_polynomial)
+		print(evp2)
+		assert(False)
 	
 	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
 	eigenvector = [N.element(v) for v in eigenvector_coefficients]

@@ -58,6 +58,8 @@ class GetStringApp(object):
 		if not self.validate or self.validate(text):
 			self.result = text
 			self.cancel()
+		else:
+			self.text_entry.selection_range(0, 'end')
 	
 	def cancel(self, event=None):
 		self.host_app_parent.focus_set()

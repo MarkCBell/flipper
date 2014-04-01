@@ -3,6 +3,8 @@ from math import sqrt, pi
 from random import random
 from colorsys import hls_to_rgb
 
+PHI = (1 + sqrt(5)) / 2
+
 DEFAULT_OBJECT_COLOUR = 'black'
 DEFAULT_VERTEX_COLOUR = 'black'
 DEFAULT_EDGE_COLOUR = 'black'
@@ -33,7 +35,7 @@ class ColourPalette(object):
 	
 	def get_colour(self):
 		self.state += 1
-		hue = (self.state * (pi * 20) / 360) % 1.
+		hue = (self.state / PHI) % 1.
 		lightness = (50 + random() * 10)/100.
 		saturation = (90 + random() * 10)/100.
 		r, g, b = hls_to_rgb(hue, lightness, saturation)

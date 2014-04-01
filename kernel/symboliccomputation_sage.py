@@ -29,7 +29,7 @@ def PF_eigen(matrix):
 		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	scale2 = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
-	eigenvector_coefficients = [[int(scale * x) for x in v.polynomial().coeffs()] for v in eigenvector]
+	eigenvector_coefficients = [[int(scale2 * x) for x in v.polynomial().coeffs()] for v in eigenvector]
 	
 	return eigenvalue_coefficients, eigenvector_coefficients 
 

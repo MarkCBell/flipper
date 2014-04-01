@@ -8,7 +8,8 @@ import Flipper
 symbolic_libaray_name = 'sage'
 
 def minimal_polynomial_coefficients(value):
-	X = tuple(value.minpoly().coeffs())
+	poly = value.minpoly() if value not in QQ else value.minpoly('x')
+	X = tuple(poly.coeffs())
 	scale = abs(lcm([x.denominator() for x in X]))
 	return tuple(int(scale * x) for x in X)
 

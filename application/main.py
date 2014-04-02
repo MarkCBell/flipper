@@ -194,9 +194,9 @@ class FlipperApp(object):
 		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=self.options.application_font)
 		
 		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
-		self.laminationmenu.add_command(label='Store lamination', command=self.store_lamination, font=self.options.application_font)
-		self.laminationmenu.add_command(label='Tighten lamination', command=self.tighten_lamination, font=self.options.application_font)
-		self.laminationmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator='F5', font=self.options.application_font)
+		self.laminationmenu.add_command(label='Store', command=self.store_lamination, font=self.options.application_font)
+		self.laminationmenu.add_command(label='Tighten', command=self.tighten_lamination, font=self.options.application_font)
+		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator='F5', font=self.options.application_font)
 		self.menubar.add_cascade(label='Lamination', menu=self.laminationmenu, state='disabled', font=self.options.application_font)
 		
 		self.mappingclassmenu = TK.Menu(self.menubar, tearoff=0)

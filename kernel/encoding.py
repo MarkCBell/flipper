@@ -379,4 +379,17 @@ class EncodingSequence(object):
 		splitting = lamination.splitting_sequence(target_dilatation=dilatation, name=self.name)
 		# new_dilatation = splitting.dilatation()
 		return splitting
+	
+	def decompose(self, other_encodings):
+		curves = self.source_triangluation.key_curves()
+		images = [self * curve for curve in curves]
+		score = lambda imgs: sum(curve.weight()**2 for curve in imgs)
+		
+		while score(images) > score(curves):
+			best_other = min(other_encodings, key=lambda x: score([other_encodings[x] * curve for curve in images])
+			images = [other_encodings[best_other] * curve for curve in images]
+			print(best_other, score(images))
+		
+		return True
+
 

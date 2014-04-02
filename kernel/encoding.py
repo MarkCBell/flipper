@@ -381,15 +381,29 @@ class EncodingSequence(object):
 		return splitting
 	
 	def decompose(self, other_encodings):
-		curves = self.source_triangluation.key_curves()
+		search_radius = 2
+		all_words = [''.join(x) for x in product(other_encodings.keys(), repeat=search_radius)]
+		
+		curves = self.source_triangulation.key_curves()
 		images = [self * curve for curve in curves]
-		score = lambda imgs: sum(curve.weight()**2 for curve in imgs)
+		score = lambda imgs: max(curve.weight()**2 for curve in imgs)
 		
 		while score(images) > score(curves):
-			best_other = min(other_encodings, key=lambda x: score([other_encodings[x] * curve for curve in images])
-			images = [other_encodings[best_other] * curve for curve in images]
-			print(best_other, score(images))
+			best_word, best_score = None, score(images)
+			for word in all_words:
+				imgs = list(curve.copy() for curve in images)
+				for letter in word:
+					imgs = [other_encodings[letter] * curve for curve in imgs]
+				if score(imgs) <= best_score:
+					best_word = word
+					best_score = score(imgs)
+			
+			images = [other_encodings[best_word[0]] * curve for curve in images]
+			print(best_word, score(images))
 		
+		print('Key curves and images:')
+		for i, j in zip(images, curves):
+			print(i, j)
+		print(images == curves)
 		return True
-
 

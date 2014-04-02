@@ -7,6 +7,9 @@ from string import ascii_lowercase
 
 import Flipper
 
+def random_word(dic, n):
+	return ''.join(choice(list(dic.keys())) for _ in range(n))
+
 def make_mapping_classes(twists, half_twists, isometries, names=None):
 	mapping_classes = [C.encode_twist(k=1) for C in twists] + [C.encode_halftwist(k=1) for C in half_twists] + [isom.encode_isometry() for isom in isometries]
 	mapping_classes_inverses = [C.encode_twist(k=-1) for C in twists] + [C.encode_halftwist(k=-1) for C in half_twists] + [isom.inverse().encode_isometry() for isom in isometries]
@@ -21,7 +24,7 @@ def build_mapping_class(T, dic, word):
 		return T, dic
 	
 	if isinstance(word, Flipper.kernel.Integer_Type):
-		word = ''.join(choice(list(dic.keys())) for _ in range(word))
+		word = random_word(dic, word)
 	
 	h = T.Id_EncodingSequence()
 	for letter in word:

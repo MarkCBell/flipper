@@ -401,9 +401,5 @@ class EncodingSequence(object):
 			images = [other_encodings[best_word[0]] * curve for curve in images]
 			print(best_word, score(images))
 		
-		print('Key curves and images:')
-		for i, j in zip(images, curves):
-			print(i, j)
-		print(images == curves)
 		return True
 

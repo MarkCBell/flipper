@@ -1127,8 +1127,6 @@ class FlipperApp(object):
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
 				except Flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
-				except ImportError:
-					tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 				else:
 					self.lamination_to_canvas(lamination)
 	
@@ -1146,8 +1144,6 @@ class FlipperApp(object):
 							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
 						except Flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
-						except ImportError:
-							tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 						else:
 							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 							M = splitting.bundle(0, composition)
@@ -1345,8 +1341,6 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is periodic.')
 			except Flipper.ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
-			except ImportError:
-				tkMessageBox.showerror('Lamination', 'Cannot compute projectively invariant laminations without a symbolic computation library.')
 			except Flipper.AbortError:
 				pass
 		else:

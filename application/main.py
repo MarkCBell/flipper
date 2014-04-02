@@ -171,80 +171,81 @@ class FlipperApp(object):
 		###
 		
 		# Create the menus.
-		menubar = TK.Menu(self.parent)
+		# Make sure to start the Lamination and Mapping class menus disabled.
+		self.menubar = TK.Menu(self.parent)
 		
-		filemenu = TK.Menu(menubar, tearoff=0)
-		filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER, font=self.options.application_font)
-		filemenu.add_command(label='Open', command=self.load, accelerator='%s+O' % COMMAND_MODIFIER, font=self.options.application_font)
-		filemenu.add_command(label='Save', command=self.save, accelerator='%s+S' % COMMAND_MODIFIER, font=self.options.application_font)
-		exportmenu = TK.Menu(menubar, tearoff=0)
-		exportmenu.add_command(label='Export script', command=self.export_script, font=self.options.application_font)
-		exportmenu.add_command(label='Export image', command=self.export_image, font=self.options.application_font)
-		filemenu.add_cascade(label='Export', menu=exportmenu, font=self.options.application_font)
-		filemenu.add_separator()
-		filemenu.add_command(label='Exit', command=self.quit, accelerator='%s+W' % COMMAND_MODIFIER, font=self.options.application_font)
+		self.filemenu = TK.Menu(self.menubar, tearoff=0)
+		self.filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER, font=self.options.application_font)
+		self.filemenu.add_command(label='Open', command=self.load, accelerator='%s+O' % COMMAND_MODIFIER, font=self.options.application_font)
+		self.filemenu.add_command(label='Save', command=self.save, accelerator='%s+S' % COMMAND_MODIFIER, font=self.options.application_font)
+		self.exportmenu = TK.Menu(self.menubar, tearoff=0)
+		self.exportmenu.add_command(label='Export script', command=self.export_script, font=self.options.application_font)
+		self.exportmenu.add_command(label='Export image', command=self.export_image, font=self.options.application_font)
+		self.filemenu.add_cascade(label='Export', menu=self.exportmenu, font=self.options.application_font)
+		self.filemenu.add_separator()
+		self.filemenu.add_command(label='Exit', command=self.quit, accelerator='%s+W' % COMMAND_MODIFIER, font=self.options.application_font)
+		self.menubar.add_cascade(label='File', menu=self.filemenu, font=self.options.application_font)
 		
-		surfacemenu = TK.Menu(menubar, tearoff=0)
-		surfacemenu.add_command(label='Create ngon', command=self.initialise_circular_n_gon, font=self.options.application_font)
-		surfacemenu.add_command(label='Create radial ngon', command=self.initialise_radial_n_gon, font=self.options.application_font)
-		surfacemenu.add_command(label='Surface information', command=self.show_surface_information, font=self.options.application_font)
-		surfacemenu.add_command(label='Zoom', command=self.auto_zoom, font=self.options.application_font)
+		self.surfacemenu = TK.Menu(self.menubar, tearoff=0)
+		self.surfacemenu.add_command(label='Create ngon', command=self.initialise_circular_n_gon, font=self.options.application_font)
+		self.surfacemenu.add_command(label='Create radial ngon', command=self.initialise_radial_n_gon, font=self.options.application_font)
+		self.surfacemenu.add_command(label='Information', command=self.show_surface_information, font=self.options.application_font)
+		self.surfacemenu.add_command(label='Zoom', command=self.auto_zoom, font=self.options.application_font)
+		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=self.options.application_font)
 		
-		laminationmenu = TK.Menu(menubar, tearoff=0)
-		laminationmenu.add_command(label='Store lamination', command=self.store_lamination, font=self.options.application_font)
-		laminationmenu.add_command(label='Tighten lamination', command=self.tighten_lamination, font=self.options.application_font)
-		laminationmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator='F5', font=self.options.application_font)
+		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
+		self.laminationmenu.add_command(label='Store lamination', command=self.store_lamination, font=self.options.application_font)
+		self.laminationmenu.add_command(label='Tighten lamination', command=self.tighten_lamination, font=self.options.application_font)
+		self.laminationmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator='F5', font=self.options.application_font)
+		self.menubar.add_cascade(label='Lamination', menu=self.laminationmenu, state='disabled', font=self.options.application_font)
 		
-		mappingclassmenu = TK.Menu(menubar, tearoff=0)
-		storemappingclassmenu = TK.Menu(menubar, tearoff=0)
-		storemappingclassmenu.add_command(label='Twist', command=self.store_twist, font=self.options.application_font)
-		storemappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, font=self.options.application_font)
-		storemappingclassmenu.add_command(label='Isometry', command=self.store_isometry, font=self.options.application_font)
-		storemappingclassmenu.add_command(label='Composition', command=self.store_composition, font=self.options.application_font)
-		mappingclassmenu.add_cascade(label='Store...', menu=storemappingclassmenu, font=self.options.application_font)
-		mappingclassmenu.add_command(label='Apply', command=self.show_apply, font=self.options.application_font)
-		mappingclassmenu.add_command(label='Order', command=self.order, font=self.options.application_font)
-		mappingclassmenu.add_command(label='Type', command=self.NT_type, font=self.options.application_font)
-		mappingclassmenu.add_command(label='Invariant lamination', command=self.invariant_lamination, font=self.options.application_font)
-		mappingclassmenu.add_command(label='Build bundle', command=self.build_bundle, font=self.options.application_font)
+		self.mappingclassmenu = TK.Menu(self.menubar, tearoff=0)
+		self.storemappingclassmenu = TK.Menu(self.menubar, tearoff=0)
+		self.storemappingclassmenu.add_command(label='Twist', command=self.store_twist, font=self.options.application_font)
+		self.storemappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, font=self.options.application_font)
+		self.storemappingclassmenu.add_command(label='Isometry', command=self.store_isometry, font=self.options.application_font)
+		self.storemappingclassmenu.add_command(label='Composition', command=self.store_composition, font=self.options.application_font)
+		self.mappingclassmenu.add_cascade(label='Store...', menu=self.storemappingclassmenu, font=self.options.application_font)
+		self.mappingclassmenu.add_command(label='Apply', command=self.show_apply, font=self.options.application_font)
+		self.mappingclassmenu.add_command(label='Order', command=self.order, font=self.options.application_font)
+		self.mappingclassmenu.add_command(label='Type', command=self.NT_type, font=self.options.application_font)
+		self.mappingclassmenu.add_command(label='Invariant lamination', command=self.invariant_lamination, font=self.options.application_font)
+		self.mappingclassmenu.add_command(label='Build bundle', command=self.build_bundle, font=self.options.application_font)
+		self.menubar.add_cascade(label='Mapping class', menu=self.mappingclassmenu, state='disabled', font=self.options.application_font)
 		
 		##########################################
-		settingsmenu = TK.Menu(menubar, tearoff=0)
+		self.settingsmenu = TK.Menu(self.menubar, tearoff=0)
 		
-		sizemenu = TK.Menu(menubar, tearoff=0)
-		sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=SIZE_SMALL, font=self.options.application_font)
-		sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=SIZE_MEDIUM, font=self.options.application_font)
-		sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=SIZE_LARGE, font=self.options.application_font)
-		# sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=SIZE_XLARGE, font=self.options.application_font)
+		self.sizemenu = TK.Menu(self.menubar, tearoff=0)
+		self.sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=SIZE_SMALL, font=self.options.application_font)
+		self.sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=SIZE_MEDIUM, font=self.options.application_font)
+		self.sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=SIZE_LARGE, font=self.options.application_font)
+		# self.sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=SIZE_XLARGE, font=self.options.application_font)
 		
-		edgelabelmenu = TK.Menu(menubar, tearoff=0)
-		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var, font=self.options.application_font)
-		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=self.options.application_font)
-		edgelabelmenu.add_radiobutton(label=LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=self.options.application_font)
-		# edgelabelmenu.add_radiobutton(label=LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=self.options.application_font)
+		self.edgelabelmenu = TK.Menu(self.menubar, tearoff=0)
+		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var, font=self.options.application_font)
+		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=self.options.application_font)
+		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=self.options.application_font)
+		# self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=self.options.application_font)
 		
-		laminationdrawmenu = TK.Menu(menubar, tearoff=0)
-		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=self.options.application_font)
-		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
-		laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu = TK.Menu(self.menubar, tearoff=0)
+		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
 		
-		settingsmenu.add_cascade(label='Sizes', menu=sizemenu, font=self.options.application_font)
-		settingsmenu.add_cascade(label='Edge label', menu=edgelabelmenu, font=self.options.application_font)
-		settingsmenu.add_cascade(label='Draw lamination', menu=laminationdrawmenu, font=self.options.application_font)
-		settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var, font=self.options.application_font)
+		self.settingsmenu.add_cascade(label='Sizes', menu=self.sizemenu, font=self.options.application_font)
+		self.settingsmenu.add_cascade(label='Edge label', menu=self.edgelabelmenu, font=self.options.application_font)
+		self.settingsmenu.add_cascade(label='Draw lamination', menu=self.laminationdrawmenu, font=self.options.application_font)
+		self.settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var, font=self.options.application_font)
+		self.menubar.add_cascade(label='Settings', menu=self.settingsmenu, font=self.options.application_font)
 		
-		helpmenu = TK.Menu(menubar, tearoff=0)
-		helpmenu.add_command(label='Help', command=self.show_help, accelerator='F1', font=self.options.application_font)
-		helpmenu.add_separator()
-		helpmenu.add_command(label='About', command=self.show_about, font=self.options.application_font)
+		self.helpmenu = TK.Menu(self.menubar, tearoff=0)
+		self.helpmenu.add_command(label='Help', command=self.show_help, accelerator='F1', font=self.options.application_font)
+		self.helpmenu.add_separator()
+		self.helpmenu.add_command(label='About', command=self.show_about, font=self.options.application_font)
 		
-		menubar.add_cascade(label='File', menu=filemenu, font=self.options.application_font)
-		menubar.add_cascade(label='Surface', menu=surfacemenu, font=self.options.application_font)
-		menubar.add_cascade(label='Lamination', menu=laminationmenu, font=self.options.application_font)
-		menubar.add_cascade(label='Mapping class', menu=mappingclassmenu, font=self.options.application_font)
-		menubar.add_cascade(label='Settings', menu=settingsmenu, font=self.options.application_font)
-		menubar.add_cascade(label='Help', menu=helpmenu, font=self.options.application_font)
-		self.parent.config(menu=menubar)
+		self.menubar.add_cascade(label='Help', menu=self.helpmenu, font=self.options.application_font)
+		self.parent.config(menu=self.menubar)
 		
 		self.parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
 		self.parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
@@ -365,8 +366,8 @@ class FlipperApp(object):
 		
 		self.unsaved_work = True
 	
-	def save(self, path=''):
-		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
+	def save(self):
+		path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
 		if path != '':
 			try:
 				spec = 'A Flipper file.'
@@ -388,8 +389,8 @@ class FlipperApp(object):
 		
 		return False
 	
-	def load(self, path=''):
-		if path == '': path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+	def load(self):
+		path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
 		if path != '':
 			try:
 				spec, (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes, cache) = pickle.load(open(path, 'rb'))
@@ -834,6 +835,8 @@ class FlipperApp(object):
 		self.create_edge_labels()
 		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
+		self.menubar.entryconfig('Lamination', state='normal')
+		self.menubar.entryconfig('Mapping class', state='normal')
 	
 	def destroy_abstract_triangulation(self):
 		self.clear_edge_indices()
@@ -848,6 +851,8 @@ class FlipperApp(object):
 		self.cache = {}
 		for child in self.treeview_objects.get_children(''):
 			self.treeview_objects.delete(child)
+		self.menubar.entryconfig('Lamination', state='disabled')
+		self.menubar.entryconfig('Mapping class', state='disabled')
 	
 	def build_abstract_triangulation(self):
 		if self.is_complete() and self.abstract_triangulation is None:

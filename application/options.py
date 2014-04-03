@@ -11,6 +11,14 @@ except ImportError:  # Python 3.
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 
+try:
+	import ttk as TTK
+except ImportError:  # Python 3.
+	try:
+		from tkinter import ttk as TTK
+	except ImportError:
+		raise ImportError('Ttk not available.')
+
 import Flipper
 
 RENDER_LAMINATION_FULL = 'Full'

@@ -4,10 +4,11 @@ undo and redo
 handle commands better
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
+add examples to application/examples/
 
 ### Documentation ###
-more / update all documentation
-doc strings everywhere
+more documentation
+documentation for kernel - sphinx
 
 ### Kernel ###
 make polynomials squarefree - polynomial gcd
@@ -17,9 +18,10 @@ laminations  / encodings should include / manipulate algebraic intersection numb
 be able to (half) twist along all curves
 add set accuracy to AlgebraicApproximation
 add support for Fractions to the number classes
+doc strings everywhere
 
 ### Tests ###
 add more tests
 tests for every module
-switch to unit tests
+switch to actual unit tests
 

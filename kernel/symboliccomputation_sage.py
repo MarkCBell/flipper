@@ -26,6 +26,7 @@ def PF_eigen(matrix):
 		D = M - lam
 		[eigenvector] = (M - lam).right_kernel().basis()
 	except ValueError:
+		# Currently we just drop this on the floor whenever the matrix is not PF.
 		raise Flipper.AssumptionError('Matrix is not Perron-Frobenius.')
 	
 	scale2 = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))

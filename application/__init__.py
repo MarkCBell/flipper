@@ -1,12 +1,13 @@
 
 from . import main
 from . import pieces
+from . import options
 from . import inputbox
 from . import progress
 from . import widgets
 
 # Set up shorter names for all of the different classes and some common constructors.
-Options = main.Options
+Options = options.Options
 FlipperApp = main.FlipperApp
 ColourPalette = pieces.ColourPalette
 Vertex = pieces.Vertex

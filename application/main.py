@@ -50,83 +50,14 @@ BIT_SHIFT = 0x001
 # BIT_MB_2 = 0x200
 # BIT_MB_3 = 0x400
 
-RENDER_LAMINATION_FULL = 'Full'
-RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'
-RENDER_LAMINATION_C_TRAIN_TRACK = 'Compressed train track'
-LABEL_EDGES_NONE = 'None'
-LABEL_EDGES_INDEX = 'Index'
-LABEL_EDGES_GEOMETRIC = 'Geometric'
-LABEL_EDGES_ALGEBRAIC = 'Algebraic'
-SIZE_SMALL, SIZE_MEDIUM, SIZE_LARGE = 0, 1, 2
-# SIZE_XLARGE = 3
-
 DEFAULT_EDGE_LABEL_COLOUR = 'red'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
-
-class Options(object):
-	def __init__(self, parent):
-		self.parent = parent
-		self.application_font = TK_FONT.Font(family='TkDefaultFont', size=10)
-		self.canvas_font = TK_FONT.Font(family='TkDefaultFont', size=10)
-		
-		self.render_lamination_var = TK.StringVar(value=RENDER_LAMINATION_FULL)
-		self.show_internals_var = TK.BooleanVar(value=False)
-		self.label_edges_var = TK.StringVar(value=LABEL_EDGES_NONE)
-		self.size_var = TK.IntVar(value=SIZE_SMALL)
-		
-		self.render_lamination = RENDER_LAMINATION_FULL
-		self.show_internals = False
-		self.label_edges = LABEL_EDGES_NONE
-		self.line_size = 2
-		self.dot_size = 3
-		
-		self.render_lamination_var.trace('w', self.update)
-		self.show_internals_var.trace('w', self.update)
-		self.label_edges_var.trace('w', self.update)
-		self.size_var.trace('w', self.update)
-		
-		# Drawing parameters.
-		self.epsilon = 10
-		self.float_error = 0.001
-		self.dilatation_error = 0.001
-		self.spacing = 10
-		
-		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
-		self.zoom_fraction = 0.9 # Must be in (0, 1)
-		
-		self.version = Flipper.version.Flipper_version
-	
-	def update(self, *args):
-		self.render_lamination = str(self.render_lamination_var.get())
-		self.show_internals = bool(self.show_internals_var.get())
-		self.label_edges = str(self.label_edges_var.get())
-		if self.size_var.get() == SIZE_SMALL:
-			self.line_size = 2
-			self.dot_size = 3
-			self.application_font.configure(size=10)
-			self.canvas_font.configure(size=10)
-		elif self.size_var.get() == SIZE_MEDIUM:
-			self.line_size = 4
-			self.dot_size = 5
-			self.application_font.configure(size=11)
-			self.canvas_font.configure(size=12)
-		elif self.size_var.get() == SIZE_LARGE:
-			self.line_size = 6
-			self.dot_size = 7
-			self.application_font.configure(size=12)
-			self.canvas_font.configure(size=14)
-		
-		self.parent.treeview_objects.tag_configure('txt', font=self.application_font)
-		TTK.Style().configure('Treeview', font=self.application_font)  # !?! This isn't quite right.
-		self.parent.redraw()
-
-
 class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
-		self.options = Options(self)
+		self.options = Flipper.application.Options(self)
 		self.colour_picker = Flipper.application.ColourPalette()
 		
 		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
@@ -136,7 +67,7 @@ class FlipperApp(object):
 		TTK.Style().configure('Treeview', font=self.options.application_font)
 		self.treeview_objects = TTK.Treeview(self.frame_interface, selectmode='browse')
 		self.treeview_objects.heading('#0', text='Objects:', anchor='w')
-		self.scrollbar_treeview = TK.Scrollbar(self.frame_interface, orient='vertical', command=self.treeview_objects.yview, takefocus=False)
+		self.scrollbar_treeview = TK.Scrollbar(self.frame_interface, orient='vertical', command=self.treeview_objects.yview)
 		self.treeview_objects.configure(yscroll=self.scrollbar_treeview.set)
 		self.treeview_objects.bind('<Button-1>', self.treeview_objects_left_click)
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
@@ -153,7 +84,7 @@ class FlipperApp(object):
 		###
 		# Now for some reason which I can't explain, we need this height=1 to prevent the command
 		# bar below from collapsing when the application is small.
-		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff', takefocus=False)
+		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff')
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
@@ -217,21 +148,21 @@ class FlipperApp(object):
 		self.settingsmenu = TK.Menu(self.menubar, tearoff=0)
 		
 		self.sizemenu = TK.Menu(self.menubar, tearoff=0)
-		self.sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=SIZE_SMALL, font=self.options.application_font)
-		self.sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=SIZE_MEDIUM, font=self.options.application_font)
-		self.sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=SIZE_LARGE, font=self.options.application_font)
-		# self.sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=SIZE_XLARGE, font=self.options.application_font)
+		self.sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=Flipper.application.options.SIZE_SMALL, font=self.options.application_font)
+		self.sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=Flipper.application.options.SIZE_MEDIUM, font=self.options.application_font)
+		self.sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=Flipper.application.options.SIZE_LARGE, font=self.options.application_font)
+		# self.sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=Flipper.application.options.SIZE_XLARGE, font=self.options.application_font)
 		
 		self.edgelabelmenu = TK.Menu(self.menubar, tearoff=0)
-		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_NONE, var=self.options.label_edges_var, font=self.options.application_font)
-		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=self.options.application_font)
-		self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=self.options.application_font)
-		# self.edgelabelmenu.add_radiobutton(label=LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=self.options.application_font)
+		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_NONE, var=self.options.label_edges_var, font=self.options.application_font)
+		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=self.options.application_font)
+		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=self.options.application_font)
+		# self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=self.options.application_font)
 		
 		self.laminationdrawmenu = TK.Menu(self.menubar, tearoff=0)
-		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=self.options.application_font)
-		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
-		self.laminationdrawmenu.add_radiobutton(label=RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
+		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=self.options.application_font)
 		
 		self.settingsmenu.add_cascade(label='Sizes', menu=self.sizemenu, font=self.options.application_font)
 		self.settingsmenu.add_cascade(label='Edge label', menu=self.edgelabelmenu, font=self.options.application_font)
@@ -899,8 +830,8 @@ class FlipperApp(object):
 		
 		# Choose the right way to render this lamination.
 		if not lamination.is_multicurve() or lamination.weight() > MAX_DRAWABLE: 
-			if self.options.render_lamination == RENDER_LAMINATION_FULL:
-				render = RENDER_LAMINATION_W_TRAIN_TRACK
+			if self.options.render_lamination == Flipper.application.options.RENDER_LAMINATION_FULL:
+				render = Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK
 			else:
 				render = self.options.render_lamination
 		else:
@@ -909,7 +840,7 @@ class FlipperApp(object):
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb = self.options.vertex_buffer  # We are going to use this a lot.
 		a_weights = [float(x) for x in lamination]
-		if render == RENDER_LAMINATION_W_TRAIN_TRACK:
+		if render == Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
 			master_scale = max(a_weights)
 			if master_scale == 0: master_scale = float(1)
 		
@@ -920,7 +851,7 @@ class FlipperApp(object):
 				a = triangle[i-1] - triangle[i]
 				b = triangle[i-2] - triangle[i]
 				
-				if render == RENDER_LAMINATION_W_TRAIN_TRACK:
+				if render == Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
@@ -941,7 +872,7 @@ class FlipperApp(object):
 						
 						vertices = [start_point, end_point, end_point2, start_point2]
 						self.create_train_track_block(vertices, counted=True)  # We've counted this so don't set the multiplicity.
-				elif render == RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
+				elif render == Flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
 					weights = [lamination[edge.index] for edge in triangle.edges]
@@ -953,7 +884,7 @@ class FlipperApp(object):
 						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
 						vertices = [start_point, end_point]
 						self.create_curve_component(vertices, counted=True)  # We've counted this so don't set the multiplicity.
-				elif render == RENDER_LAMINATION_C_TRAIN_TRACK:
+				elif render == Flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle[i][0] + a[0] * scale, triangle[i][1] + a[1] * scale

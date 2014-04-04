@@ -267,16 +267,21 @@ class FlipperApp(object):
 		
 		# Set up all the properties to appear under this label.
 		# We will also set up self.lamination_names to point each item under this to <name> too.
-		tagged_labels = [
+		tagged_actions = [
 			('Show', 'show_lamination'),
+			]
+		for label, tag in tagged_actions:
+			self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+		
+		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt'])
+		tagged_properties = [
 			('Multicurve: %s' %multicurve_string, 'multicurve_lamination'),
 			('Twistable: %s' % twistable_string, 'twist_lamination'),
 			('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
 			('Filling: %s' % filling_string, 'filling_lamination')
 			]
-		
-		for label, tag in tagged_labels:
-			self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+		for label, tag in tagged_properties:
+			self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 		
 		self.cache[lamination] = {}
 		
@@ -298,15 +303,21 @@ class FlipperApp(object):
 		
 		# Set up all the properties to appear under this label.
 		# We will also set up self.mapping_class_names to point each item under this to <name> too.
-		tagged_labels = [
+		tagged_actions = [
 			('Apply', 'apply_mapping_class'),
 			('Apply inverse', 'apply_mapping_class_inverse'),
+			]
+		for label, tag in tagged_actions:
+			self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+		
+		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt'])
+		tagged_properties = [
 			('Order: %s' % order_string, 'mapping_class_order'),
 			('Type: %s' % type_string, 'mapping_class_type'),
 			('Invariant lamination: %s' % invariant_string, 'mapping_class_invariant_lamination')
 			]
-		for label, tag in tagged_labels:
-			self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+		for label, tag in tagged_properties:
+			self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 		
 		self.cache[mapping_class] = {}
 		

@@ -264,11 +264,19 @@ class FlipperApp(object):
 		twistable_string = lamination.is_twistable()
 		halftwistable_string = lamination.is_halftwistable()
 		filling_string = '??' if not multicurve_string else 'False'
-		self.treeview_objects.insert(iid, 'end', text='Show', tags=['txt', 'show_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Multicurve: %s' % multicurve_string, tags=['txt', 'multicurve_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Twistable: %s' % twistable_string, tags=['txt', 'twist_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Half twistable: %s' % halftwistable_string, tags=['txt', 'half_twist_lamination'])
-		self.treeview_objects.insert(iid, 'end', text='Filling: %s' % filling_string, tags=['txt', 'filling_lamination'])
+		
+		# Set up all the properties to appear under this label.
+		# We will also set up self.lamination_names to point each item under this to <name> too.
+		tagged_labels = [
+			('Show', 'show_lamination'),
+			('Multicurve: %s' %multicurve_string, 'multicurve_lamination'),
+			('Twistable: %s' % twistable_string, 'twist_lamination'),
+			('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
+			('Filling: %s' % filling_string, 'filling_lamination')
+			]
+		
+		for label, tag in tagged_labels:
+			self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
 		
 		self.cache[lamination] = {}
 		
@@ -287,11 +295,18 @@ class FlipperApp(object):
 		order_string = 'Infinite' if order == 0 else str(order)
 		type_string = '?' if order == 0 else 'Periodic'
 		invariant_string = '??' if order == 0 else 'x'
-		self.treeview_objects.insert(iid, 'end', text='Apply', tags=['txt', 'apply_mapping_class'])
-		self.treeview_objects.insert(iid, 'end', text='Apply inverse', tags=['txt', 'apply_mapping_class_inverse'])
-		self.treeview_objects.insert(iid, 'end', text='Order: %s' % order_string, tags=['txt', 'mapping_class_order'])
-		self.treeview_objects.insert(iid, 'end', text='Type: %s' % type_string, tags=['txt', 'mapping_class_type'])
-		self.treeview_objects.insert(iid, 'end', text='Invariant lamination: %s' % invariant_string, tags=['txt', 'mapping_class_invariant_lamination'])
+		
+		# Set up all the properties to appear under this label.
+		# We will also set up self.mapping_class_names to point each item under this to <name> too.
+		tagged_labels = [
+			('Apply', 'apply_mapping_class'),
+			('Apply inverse', 'apply_mapping_class_inverse'),
+			('Order: %s' % order_string, 'mapping_class_order'),
+			('Type: %s' % type_string, 'mapping_class_type'),
+			('Invariant lamination: %s' % invariant_string, 'mapping_class_invariant_lamination')
+			]
+		for label, tag in tagged_labels:
+			self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
 		
 		self.cache[mapping_class] = {}
 		
@@ -1207,13 +1222,12 @@ class FlipperApp(object):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
 		
-		parent = self.treeview_objects.parent(iid)
 		if 'show_lamination' in tags:
-			self.lamination_to_canvas(self.laminations[self.lamination_names[parent]])
+			self.lamination_to_canvas(self.laminations[self.lamination_names[iid]])
 		elif 'apply_mapping_class' in tags:
-			self.show_apply(self.mapping_classes[self.mapping_class_names[parent]])
+			self.show_apply(self.mapping_classes[self.mapping_class_names[iid]])
 		elif 'apply_mapping_class_inverse' in tags:
-			self.show_apply(self.mapping_classes[self.mapping_class_names[parent].swapcase()])
+			self.show_apply(self.mapping_classes[self.mapping_class_names[iid].swapcase()])
 		else:
 			pass  # !?! To do.
 	
@@ -1222,24 +1236,23 @@ class FlipperApp(object):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
 		
-		parent = self.treeview_objects.parent(iid)
 		if 'multicurve_lamination' in tags:
 			pass
 		elif 'twist_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[parent]]
+			lamination = self.laminations[self.lamination_names[iid]]
 			if lamination.is_twistable():
 				name = Flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_twist(), name)
 		elif 'half_twist_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[parent]]
+			lamination = self.laminations[self.lamination_names[iid]]
 			if lamination.is_halftwistable():
 				name = Flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_halftwist(), name)
 		elif 'filling_lamination' in tags:
 			try:
-				lamination = self.laminations[self.lamination_names[parent]]
+				lamination = self.laminations[self.lamination_names[iid]]
 				if 'filling' not in self.cache[lamination]:
 					self.cache[lamination]['filling'] = Flipper.application.apply_progression(lamination.is_filling)
 					self.unsaved_work = True
@@ -1247,22 +1260,22 @@ class FlipperApp(object):
 			except Flipper.AbortError:
 				pass
 		elif 'mapping_class_order' in tags:
-			pass
-			mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
+			mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 			order = mapping_class.order()
 			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
 		elif 'mapping_class_type' in tags:
 			try:
-				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
+				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					# self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type_alternate)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except Flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
-				mapping_class = self.mapping_classes[self.mapping_class_names[parent]]
+				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
 					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.apply_progression(mapping_class.invariant_lamination)
 					self.unsaved_work = True

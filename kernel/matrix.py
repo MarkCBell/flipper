@@ -243,7 +243,12 @@ class Matrix(object):
 	def discard_column(self, column):
 		return Matrix([[row[i] for i in range(self.width) if i != column] for row in self])
 	def basic_simplify(self):
-		return Matrix(list(set(tuple(rescale(row)) for row in self if nontrivial(row))))
+		# Rescale rows and remove duplicates.
+		rows = list(set(tuple(rescale(row)) for row in self if nontrivial(row)))
+		# Remove any dominated rows.
+		undominated_indices = [i for i in range(len(rows)) if not any(all(y <= x for x, y in zip(rows[i], rows[j])) for j in range(len(rows)) if i != j)]
+		rows = [rows[i] for i in undominated_indices]
+		return Matrix(rows)
 	def simplify(self):
 		# Remove all trivial rows.
 		R = set(tuple(rescale(row)) for row in self if nontrivial(row))
@@ -280,6 +285,31 @@ class Matrix(object):
 		# Remove any all positive rows - these are always satisfied.
 		R = [row for row in R if not all(r >= 0 for r in row)]
 		return Matrix(R), A
+	
+	def FM_eliminate(self, index=0):
+		''' Returns the matrix obtained by using Fourier–Motzkin elimination
+		on this matrix. '''
+		
+		pos_rows = [row for row in self if row[index] > 0]
+		neg_rows = [row for row in self if row[index] < 0]
+		non_rows = [row for row in self if row[index] == 0]
+		if len(neg_rows) == 0:
+			# Problem is trivially solvable by (0 ... 0 1 0 ... 0) 
+			return Matrix([[1]])
+		elif len(pos_rows) == 0:
+			# Problem is independent of x_index.
+			return self.discard_column(index)
+		else:
+			new_rows = [[r1[index] * y - r2[index] * x for x, y in zip(r1, r2)] for r1, r2 in product(pos_rows, neg_rows)]
+			return Matrix(new_rows + non_rows + neg_rows).discard_column(index)
+	
+	def nontrivial_polytope2(self):
+		A = self.copy()
+		A = A.basic_simplify()
+		while A.height > 1:
+			A = A.FM_eliminate()
+			A = A.basic_simplify()
+		return any(x > 0 for x in A[0])
 	
 	def find_edge_vector(self):
 		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or 

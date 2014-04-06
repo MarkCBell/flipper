@@ -3,14 +3,23 @@ import Flipper
 
 class Lamination(object):
 	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
-	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation. '''
-	def __init__(self, abstract_triangulation, vector):
+	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation. 
+	If rescale is True then the Lamination is allowed to rescale its weights (by a factor of 2) in order to
+	remove any peripheral components. If not then there must not be any. '''
+	def __init__(self, abstract_triangulation, vector, rescale=False):
 		self.abstract_triangulation = abstract_triangulation
 		self.zeta = self.abstract_triangulation.zeta
+		assert(Flipper.kernel.matrix.nonnegative(vector))
+		# Compute how much peripheral component there is on each corner class.
+		peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
+		# If there is any...
+		if max(peripheral.values()) > 0:
+			if rescale:  # and we are allowed to rescale then remove it.
+				vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
+			else:  # Otherwise we have a problem.
+				assert(False)
 		self.vector = list(vector)
 		self.labels = [str(v) for v in self.vector]
-		if not self.is_lamination():
-			raise Flipper.AssumptionError('Not a lamination.')
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -24,6 +33,9 @@ class Lamination(object):
 	def __getitem__(self, index):
 		return self.vector[index]
 	
+	def __len__(self):
+		return self.zeta
+	
 	def __eq__(self, other):
 		return self.abstract_triangulation == other.abstract_triangulation and all(bool(v == w) for v, w in zip(self, other))
 	def __ne__(self, other):
@@ -32,6 +44,9 @@ class Lamination(object):
 	def __hash__(self):
 		# This should be done better.
 		return hash(tuple(self.vector))
+	
+	def is_empty(self):
+		return not any(self)
 	
 	def all_isometries(self, other):
 		return [isometry for isometry in self.abstract_triangulation.all_isometries(other.abstract_triangulation) if other == isometry * self]
@@ -52,20 +67,8 @@ class Lamination(object):
 	def weight(self):
 		return sum(self.vector)
 	
-	def is_lamination(self):
-		if not Flipper.kernel.matrix.nonnegative(self.vector): return False
-		for vertex in self.abstract_triangulation.corner_classes:
-			for triangle, side in vertex:
-				weights = [self.vector[index] for index in triangle]
-				if weights[(side+1)%3] + weights[(side+2)%3] - weights[(side+0)%3] == 0:
-					break
-			else:
-				return False
-		
-		return True
 	
 	def is_multicurve(self):
-		if not self.is_lamination(): return False
 		if self == self.abstract_triangulation.empty_lamination(): return False
 		
 		for vertex in self.abstract_triangulation.corner_classes:

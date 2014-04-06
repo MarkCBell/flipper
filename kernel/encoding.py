@@ -353,10 +353,12 @@ class EncodingSequence(object):
 							partial_function = self.applied_function(curve)
 							action_matrix, condition_matrix = partial_function.action, partial_function.condition
 							try:
-								eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
+								eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
 								# If we actually found an invariant lamination then return it.
 								if condition_matrix.nonnegative_image(eigenvector):
-									return self.source_triangulation.lamination(eigenvector)
+									invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
+									if not invariant_lamination.is_empty():
+										return invariant_lamination
 							except Flipper.AssumptionError:
 								pass  # Didn't go far enough.
 		

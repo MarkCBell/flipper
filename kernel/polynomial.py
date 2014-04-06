@@ -171,10 +171,14 @@ class Polynomial(object):
 	
 	def converge_iterate(self, interval, accuracy):
 		chain = self.sturm_chain()
-		while interval.accuracy < accuracy:
+		while interval.accuracy <= accuracy:
+			old_accuracy = interval.accuracy
 			try:
 				interval = self.NR_iterate(interval)
 			except ZeroDivisionError:
+				pass
+			
+			if interval.accuracy == old_accuracy:
 				interval = self.subdivide_iterate(interval, chain)
 		
 		return interval
@@ -189,7 +193,7 @@ class Polynomial(object):
 	def algebraic_approximate_leading_root(self, accuracy):
 		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
 		# which is correct to at least accuracy decimal places.
-		accuracy = max(int(accuracy), int(log(self.degree)) + int(self.log_height) + 2, 1)
+		accuracy = max(int(accuracy), int(log(self.degree)) + int(self.log_height) + 4, 1)  # !?! Check this.
 		self.increase_accuracy(accuracy)
 		AA = Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height).change_denominator(accuracy)
 		assert(AA.interval.accuracy >= accuracy)  # Let's just make sure.

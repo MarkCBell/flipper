@@ -1,3 +1,4 @@
+
 from functools import reduce
 from itertools import product
 
@@ -158,14 +159,18 @@ class EncodingSequence(object):
 	def inverse(self):
 		return EncodingSequence([A.inverse() for A in reversed(self)])
 	
-	def applied_function(self, lamination):
-		''' Returns the partial function that will be applied to the lamination. '''
+	def name_indices(self, lamination):
 		indices = []
 		for A in reversed(self):
 			indices.append(A.applied_index(lamination))
 			lamination = A * lamination
 		
-		return self.expand_indices(indices)
+		return indices
+	
+	def applied_function(self, lamination):
+		''' Returns the partial function that will be applied to the lamination. '''
+		
+		return self.expand_indices(self.name_indices(lamination))
 	
 	def expand_indices(self, indices):
 		''' Given indices = [a_0, ..., a_k] this returns the partial function of
@@ -342,55 +347,27 @@ class EncodingSequence(object):
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 		
 		new_curves = [self * curve for curve in curves]
-		for i in range(100):
+		for i in range(60):
 			new_curves, curves = [self**(2**i) * new_curve for new_curve in new_curves], new_curves
 			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
 			if i > 0:  # Make sure to do at least 4 iterations.
 				print(i)
+				print(curves[0])
+				print(int(''.join(str(x) for x in self.name_indices(curves[0])), base=2))
 				for new_curve, curve in zip(new_curves, curves):
 					if projective_difference(new_curve, curve, 1000):
-						if curve == new_curve:
+						if curve == new_curve:  # !?! Think about removing this.
 							return self.source_triangulation.lamination(Flipper.kernel.numberfield.number_field_from_integers(curve))
 						else:
-							print('TEST')
 							partial_function = self.applied_function(curve)
 							action_matrix, condition_matrix = partial_function.action, partial_function.condition
-							print(float(new_curve.weight()) / curve.weight())
-							try:
-								eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
-								s = sum(float(x) for x in curve)
-								s2 = sum(float(x) for x in eigenvector)
-								#print(['%0.4f' % (float(x) / s) for x in curve])
-								#print([x >= 0 for x in eigenvector])
-								#print(['%0.4f' % (float(x) / s2) for x in eigenvector])
-								# If we actually found an invariant lamination then return it.
-								if condition_matrix.nonnegative_image(eigenvector):
-									print('in cone')
-									invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
-									if not invariant_lamination.is_empty():
-										return invariant_lamination
-								else:
-									print('not in cone')
-									eigenvector = [float(x) for x in eigenvector]
-									if Flipper.kernel.matrix.nonnegative(eigenvector):
-										invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
-										partial_function = self.applied_function(invariant_lamination)
-										action_matrix, condition_matrix = partial_function.action, partial_function.condition
-										try:
-											eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix)
-											# If we actually found an invariant lamination then return it.
-											if condition_matrix.nonnegative_image(eigenvector):
-												print('in cone (2)')
-												invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
-												if not invariant_lamination.is_empty():
-													return invariant_lamination
-										except Flipper.AssumptionError:
-											pass  # Didn't go far enough.
-									else:
-										print(['%0.3f' % float(x) for x in eigenvector])
-										print('Not in +ve orthant')
-							except Flipper.AssumptionError:
-								pass  # Didn't go far enough.
+							#print(float(new_curve.weight()) / curve.weight())
+							eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
+							# If we actually found an invariant lamination then return it.
+							if condition_matrix.nonnegative_image(eigenvector):
+								invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
+								if not invariant_lamination.is_empty():
+									return invariant_lamination
 		
 		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	

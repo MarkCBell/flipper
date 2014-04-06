@@ -39,7 +39,7 @@ def load_library(library_name=None):
 	
 	raise ImportError('No symbolic computation library available.')
 
-def Perron_Frobenius_eigen(matrix, curve):
+def Perron_Frobenius_eigen(matrix, curve=None):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix, curve)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)

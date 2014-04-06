@@ -37,11 +37,11 @@ class NumberField(object):
 	def lmbda_approximations(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
-			new_accuracy = 2 * accuracy
+			new_accuracy = max(2 * accuracy, int(self.degree * self.log_height + 10))
 			if self._algebraic_approximations[1] is None:
 				self._algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
 			
-			accuracy_needed = new_accuracy + self.degree * self._algebraic_approximations[1].log_plus
+			accuracy_needed = new_accuracy + 2 * self.degree * self._algebraic_approximations[1].log_plus + 10  # Check this !?!
 			AA = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
 			self._algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree)]
 			self.current_accuracy = min(approx.interval.accuracy for approx in self._algebraic_approximations)

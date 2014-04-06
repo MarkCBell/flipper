@@ -24,7 +24,6 @@ class Interval(object):
 		''' This is the open interval (lower*10**-precision, upper*10**-precision. '''
 		if lower == upper: 
 			lower, upper = lower-1, upper+1
-			raise Flipper.ApproximationError
 		assert(lower < upper)
 		
 		self.lower = lower
@@ -52,6 +51,7 @@ class Interval(object):
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
 	def change_denominator(self, new_denominator):
+		assert(isinstance(new_denominator, Flipper.kernel.Integer_Type))
 		d = new_denominator - self.precision
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)

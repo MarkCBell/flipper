@@ -236,7 +236,7 @@ class Matrix(object):
 		sol = [sign * A.substitute_row(i, target).determinant() for i in range(A.height)]
 		return rescale(sol)
 	
-	def nonnegative_image(self, v, test=False, compare=None):
+	def nonnegative_image(self, v):
 		return all(dot(row, v) >= 0 for row in self)
 	
 	# Methods for making Ax >= 0 into a simpler problem.

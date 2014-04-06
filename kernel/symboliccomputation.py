@@ -14,13 +14,11 @@ import Flipper
 # invertible matrices for which it could only find 1 eigenvalue!
 #
 # Each library provides one function:
-#	PF_eigen(matrix):
-#		Given a Perron-Frobenius matrix (of type Flipper.kernel.Matrix) with PF eigenvalue / vector L, v 
-#		(i.e. the unique eigenvalue with largest absolute value) this must return a pair (c, l) where:
-#			c is a list of the coefficients of the minimal polynomial of L, and 
-#			v is either: 
-#				A list of integer coefficients [[v_ij]] such that v_i := sum(v_ij L^j) are the entries of the corresponding eigenvector, or
-#				None.
+#	PF_eigen(matrix, vector):
+#		Given a matrix (of type Flipper.kernel.Matrix) let L be its demoninant eigenvalue
+#		and v = (v_1 ... v_k) the orthogonal projection of vector to the eigenspace of L. 
+#		This returns the list of coefficients of a small (ideally minimal) integral polynomial 
+#		of L and a list of list of integers [[v_ij]] such that v_i = sum(v_ij L**j). 
 # 
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
@@ -39,7 +37,7 @@ def load_library(library_name=None):
 	
 	raise ImportError('No symbolic computation library available.')
 
-def Perron_Frobenius_eigen(matrix, curve=None):
+def Perron_Frobenius_eigen(matrix, curve):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix, curve)
 	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)

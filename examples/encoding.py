@@ -18,6 +18,7 @@ def main():
 		#word = 'EbbccbBcFcAbdcFCBFff'
 		#word = 'acCCceedDCFdABdbFAcE'
 		#word = 'aeedDCFdABdbFAcE'
+		word = 'BcEC'  # Is reducible but (unlike BC) mixes every edge just a little so growth is super slow.
 		print('###############')
 		print(i, word)
 		print('###############')

@@ -5,6 +5,8 @@ handle commands better
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 add examples to application/examples/
+add import / export without triangulation
+add version number compare in saves
 
 ### Documentation ###
 more documentation
@@ -19,6 +21,8 @@ be able to (half) twist along all curves
 add set accuracy to AlgebraicApproximation
 add support for Fractions to the number classes
 doc strings everywhere
+recheck ALL number theory bounds
+add import / export
 
 ### Tests ###
 add more tests

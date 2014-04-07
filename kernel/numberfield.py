@@ -27,8 +27,8 @@ class NumberField(object):
 		
 		self.current_accuracy = -1
 		# A list of approximations of \lambda^0, ..., \lambda^(d-1).
-		# Note if this is QQ then we add in one more to make the increase accuracy code nicer. 
-		self._algebraic_approximations = [None] * (self.degree+1 if self.is_QQ() else self.degree)
+		# Note we need one more power for if this is QQ to make the increase accuracy code nicer. 
+		self._algebraic_approximations = [None] * (self.degree+1)
 		self._algebraic_approximations = self.lmbda_approximations(10)
 		
 		self.one = self.element([1])
@@ -43,7 +43,8 @@ class NumberField(object):
 			
 			accuracy_needed = new_accuracy + 2 * self.degree * self._algebraic_approximations[1].log_plus + 10  # Check this !?!
 			AA = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
-			self._algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree)]
+			# !?! Hmmm, there is a bug in the line below. Change_denominator doesn't take an accuracy.
+			self._algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree+1)]
 			self.current_accuracy = min(approx.interval.accuracy for approx in self._algebraic_approximations)
 			assert(self.current_accuracy >= new_accuracy)
 		

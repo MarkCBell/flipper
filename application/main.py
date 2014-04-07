@@ -359,18 +359,17 @@ class FlipperApp(object):
 		try:
 			if load_objects is None:
 				if path is None:
-					path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+					path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], title='Open Flipper File')
 				if path == '':
 					return
 				try:
-					pickled_object = open(path, 'rb').read()
-					spec, version, data = pickle.loads(pickled_objects)
+					spec, version, data = pickle.load(open(path, 'rb'))
 					if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
 						raise ValueError('Wrong version of Flipper.')
 					if spec == 'A Flipper file.':
 						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data
-					elif spec != 'A Flipper kernel file.':
-						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data + [None, {}]
+					elif spec == 'A Flipper kernel file.':
+						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data + (None, {})
 					else:
 						raise ValueError('Not a valid specification.')
 				except IOError:
@@ -380,29 +379,43 @@ class FlipperApp(object):
 					tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
 					return
 			else:
-				[abstract_triangulation, laminations, mapping_classes] = load_objects
-				canvas_objects, cache = None, {}
+				[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = load_object + (None, {})
 			
-			if canvas_objects is not None:
-				# Install the triangulation we were given.
-				if not self.initialise():
-					return
-				
-				vertices, edges = canvas_objects
-				for vertex in vertices:
-					self.create_vertex(vertex)
-				
-				for edge in edges:
-					start_index, end_index, edge_index, glued_to_index = edge
-					self.create_edge(self.vertices[start_index], self.vertices[end_index])
-				
-				for index, edge in enumerate(edges):
-					start_index, end_index, edge_index, glued_to_index = edge
-					if glued_to_index is not None and glued_to_index > index:
-						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
-			else:
+			if canvas_objects is None:
 				# Build a triangulation ourselves.
-				pass
+				if abstract_triangulation is None:
+					raise ValueError('Triangulation required.')
+				
+				if abstract_triangulation.is_isometric_to(self.abstract_triangulation):
+					isom = self.abstract_triangulation.all_isometries(abstract_triangulation)[0]
+					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
+					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
+					canvas_objects = [vertices, edges]
+					# !?! To do: No initialise here.
+				else:
+					# !?! To do: Create a triangulation ourselves if there isn't a good one here. 
+					pass
+					canvas_objects = [vertices, edges]
+			
+			if not self.initialise():
+				return
+			
+			vertices, edges = canvas_objects
+			for vertex in vertices:
+				self.create_vertex(vertex)
+			
+			for edge in edges:
+				start_index, end_index, edge_index, glued_to_index = edge
+				self.create_edge(self.vertices[start_index], self.vertices[end_index])
+			
+			for index, edge in enumerate(edges):
+				start_index, end_index, edge_index, glued_to_index = edge
+				if glued_to_index is not None and glued_to_index > index:
+					self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
+			
+			for index, edge in enumerate(edges):
+				start_index, end_index, edge_index, glued_to_index = edge
+				self.edges[index].index = edge_index
 			
 			self.abstract_triangulation = abstract_triangulation
 			

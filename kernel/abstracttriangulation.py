@@ -269,9 +269,9 @@ class AbstractTriangulation(object):
 						isometries.append(isometry)
 		
 		return isometries
-
-	def is_isometric_to(self, other_triangulation):
-		return len(self.all_isometries(other_triangulation)) > 0
+	
+	def is_isometric_to(self, other):
+		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0
 	
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector, rescale=False):

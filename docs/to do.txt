@@ -9,7 +9,7 @@ add import / export without triangulation
 
 ### Documentation ###
 more documentation
-documentation for kernel - sphinx
+documentation for kernel - sphinx?
 
 ### Kernel ###
 make polynomials squarefree - polynomial gcd

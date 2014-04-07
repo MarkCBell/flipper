@@ -14,24 +14,20 @@ def package(abstract_triangulation, laminations=None, mapping_classes=None):
 	if laminations is None: laminations = []
 	if mapping_classes is None: mapping_classes = []
 	
-	spec = 'A Flipper file.'
+	spec = 'A Flipper kernel file.'
 	version = Flipper.version.Flipper_version
 	
-	canvas_objects = None
-	cache = {}
-	
-	data = (canvas_objects, abstract_triangulation, laminations, mapping_classes, cache)
+	data = (abstract_triangulation, laminations, mapping_classes)
 	return pickle.dumps((spec, version, data))
 
 def depackage(packaged_objects):
-	''' Extracts the stuff from the contents of a Flipper file which is of interest to the kernel. '''
+	''' Extracts the stuff from the contents of a Flipper kernel file. '''
 	(spec, version, data) = pickle.loads(packaged_objects)
-	if spec != 'A Flipper file.':
+	if spec != 'A Flipper kernel file.':
 		raise ValueError('Not a valid specification.')
 	if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(Flipper.version.Flipper_version):
 		raise ValueError('Wrong version of Flipper.')
 	
-	
-	[canvas_objects, abstract_triangulation, laminations, mapping_classes, cache] = data
+	[abstract_triangulation, laminations, mapping_classes] = data
 	return abstract_triangulation, laminations, mapping_classes
 

@@ -7,6 +7,7 @@ show algebraic intersection number
 add examples to application/examples/
 add import / export without triangulation
 add version number compare in saves
+arrow keys to move
 
 ### Documentation ###
 more documentation

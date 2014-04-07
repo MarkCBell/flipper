@@ -15,3 +15,7 @@ Flipper.AbortError = Flipper.kernel.AbortError
 Flipper.ApproximationError = Flipper.kernel.ApproximationError
 Flipper.AssumptionError = Flipper.kernel.AssumptionError
 Flipper.ComputationError = Flipper.kernel.ComputationError
+
+Flipper.package = Flipper.kernel.package
+Flipper.depackage = Flipper.kernel.depackage
+

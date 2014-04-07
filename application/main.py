@@ -55,8 +55,9 @@ DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
 class FlipperApp(object):
-	def __init__(self, parent):
+	def __init__(self, parent, return_slot=None):
 		self.parent = parent
+		self.return_slot = return_slot if return_slot is not None else [None]
 		self.options = Flipper.application.Options(self)
 		self.colour_picker = Flipper.application.ColourPalette()
 		
@@ -111,7 +112,7 @@ class FlipperApp(object):
 		self.filemenu.add_command(label='Open', command=self.load, accelerator='%s+O' % COMMAND_MODIFIER, font=app_font)
 		self.filemenu.add_command(label='Save', command=self.save, accelerator='%s+S' % COMMAND_MODIFIER, font=app_font)
 		self.exportmenu = TK.Menu(self.menubar, tearoff=0)
-		self.exportmenu.add_command(label='Export script', command=self.export_script, font=app_font)
+		self.exportmenu.add_command(label='Export kernel file', command=self.export_kernel_file, font=app_font)
 		self.exportmenu.add_command(label='Export image', command=self.export_image, font=app_font)
 		self.filemenu.add_cascade(label='Export', menu=self.exportmenu, font=app_font)
 		self.filemenu.add_separator()
@@ -343,7 +344,7 @@ class FlipperApp(object):
 				mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
 				cache = self.cache
 				canvas_objects = (vertices, edges)
-				data = (canvas_objects, abstract_triangulation, laminations, mapping_classes, cache)
+				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects, cache)
 				
 				pickled_objects = pickle.dumps((spec, version, data))
 				open(path, 'wb').write(pickled_objects)
@@ -354,27 +355,36 @@ class FlipperApp(object):
 		
 		return False
 	
-	def load(self, path=None, pickled_objects=None):
-		if pickled_objects is None:
-			if path is None:
-				path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-			if path == '':
-				return
-			try:
-				pickled_object = open(path, 'rb').read()
-			except IOError:
-				tkMessageBox.showerror('Load Error', 'Could not open: %s' % path)
-				return
-		
+	def load(self, path=None, load_objects=None):
 		try:
-			spec, version, data =  pickle.loads(pickled_objects)
-			if spec != 'A Flipper file.':
-				raise ValueError('Not a valid specification.')
-			if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
-				raise ValueError('Wrong version of Flipper.')
+			if load_objects is None:
+				if path is None:
+					path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+				if path == '':
+					return
+				try:
+					pickled_object = open(path, 'rb').read()
+					spec, version, data = pickle.loads(pickled_objects)
+					if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
+						raise ValueError('Wrong version of Flipper.')
+					if spec == 'A Flipper file.':
+						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data
+					elif spec != 'A Flipper kernel file.':
+						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data + [None, {}]
+					else:
+						raise ValueError('Not a valid specification.')
+				except IOError:
+					tkMessageBox.showerror('Load Error', 'Could not open: %s' % path)
+					return
+				except (IndexError, ValueError):
+					tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
+					return
+			else:
+				[abstract_triangulation, laminations, mapping_classes] = load_objects
+				canvas_objects, cache = None, {}
 			
-			[canvas_objects, abstract_triangulation, laminations, mapping_classes, cache] = data
 			if canvas_objects is not None:
+				# Install the triangulation we were given.
 				if not self.initialise():
 					return
 				
@@ -391,12 +401,8 @@ class FlipperApp(object):
 					if glued_to_index is not None and glued_to_index > index:
 						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
 			else:
-				# We should try to use the current triangulation or create a triangulation to use.
-				# !?! TO DO.
-				if self.abstract_triangulation is not None:
-					pass
-				else:
-					pass
+				# Build a triangulation ourselves.
+				pass
 			
 			self.abstract_triangulation = abstract_triangulation
 			
@@ -410,45 +416,44 @@ class FlipperApp(object):
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
-			tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
+			tkMessageBox.showerror('Load Error', 'Cannot initialise Flipper %s from this.' % (path, self.options.version))
 	
-	def export_image(self, path=''):
-		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
+	def export_image(self):
+		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
 		if path != '':
 			try:
 				self.canvas.postscript(file=path, colormode='color')
 			except IOError:
 				tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 	
-	def export_script(self, path=''):
+	def export_script(self):
 		if self.is_complete():
-			if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.py', filetypes=[('Python files', '.py'), ('all files', '.*')], title='Export Image')
+			path = tkFileDialog.asksaveasfilename(defaultextension='.py', filetypes=[('Python files', '.py'), ('all files', '.*')], title='Export Image')
+			if path != '':
+				try:
+					disk_file = open(path, 'w')
+					# !?! To Do
+					disk_file.write('')
+				except IOError:
+					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
+				finally:
+					disk_file.close()
+		else:
+			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
+	
+	def export_kernel_file(self):
+		if self.is_complete():
+			path = tkFileDialog.asksaveasfilename(defaultextension='.fpk', filetypes=[('Flipper kernel file', '.fpk'), ('all files', '.*')], title='Export Kernel File')
 			if path != '':
 				try:
 					disk_file = open(path, 'w')
 					
-					twists = [(mapping_class, self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'twist' and self.mapping_classes[mapping_class][1][2] == +1]
-					halfs = [(mapping_class, self.mapping_classes[mapping_class][1][1].vector) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'half' and self.mapping_classes[mapping_class][1][2] == +1]
-					isoms = [(mapping_class, self.mapping_classes[mapping_class][1][1].edge_map) for mapping_class in self.mapping_classes if self.mapping_classes[mapping_class][1][0] == 'isometry' and self.mapping_classes[mapping_class][1][2] == +1]
+					lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
+					mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
+					laminations = [(name, self.laminations[name]) for name in lamination_names]
+					mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
 					
-					twist_names = [mapping_class for mapping_class, _ in twists]
-					half_names = [mapping_class for mapping_class, _ in halfs]
-					isom_names = [mapping_class for mapping_class, _ in isoms]
-					
-					example = '\n' + \
-					'import Flipper\n' + \
-					'\n' + \
-					'def Example(word=None):\n' + \
-					'	T = Flipper.AbstractTriangulation(%s)\n' % [triangle.edge_indices for triangle in self.abstract_triangulation] + \
-					'	\n' + \
-					''.join('\t%s = T.lamination(%s)\n' % (mapping_class, vector) for (mapping_class, vector) in twists) + \
-					''.join('\t%s = T.lamination(%s)\n' % (mapping_class, vector) for (mapping_class, vector) in halfs) + \
-					''.join('\t%s = Flipper.isometry_from_edge_map(T, T, %s).encode_isometry()\n' % (mapping_class, edge_map) for (mapping_class, edge_map) in isoms) + \
-					'	\n' + \
-					'	return build_mapping_class(T, Flipper.examples.abstracttriangulation.make_mapping_classes(%s, %s, %s), word)\n' % (twist_names, half_names, isom_names)
-					
-					example = example.replace("'", '')
-					
+					example = Flipper.package(self.abstract_triangulation, laminations, mapping_classes)
 					disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
@@ -458,6 +463,14 @@ class FlipperApp(object):
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
 	
 	def quit(self):
+		# If we are complete then write down our current state in the return slot.
+		if self.is_complete():
+			lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
+			mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
+			laminations = [(name, self.laminations[name]) for name in lamination_names]
+			mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
+			self.return_slot[0] = (self.abstract_triangulation, laminations, mapping_classes)
+		
 		if self.initialise():
 			self.parent.destroy()
 			self.parent.quit()
@@ -1343,11 +1356,12 @@ class FlipperApp(object):
 def start(load_objects=None, load_path=None):
 	root = TK.Tk()
 	root.title('Flipper')
-	flipper = FlipperApp(root)
+	return_slot = [None]
+	flipper = FlipperApp(root, return_slot)
 	root.minsize(300, 300)
 	root.geometry('700x500')
 	if load_path is not None: flipper.load(path=load_path)
-	if load_objects is not None: flipper.load(pickled_objects=load_objects)
+	if load_objects is not None: flipper.load(load_objects=load_objects)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
 	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files
@@ -1356,6 +1370,7 @@ def start(load_objects=None, load_path=None):
 	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
+	return flipper.return_slot[0]
 
 if __name__ == '__main__':
 	start()

@@ -4,6 +4,7 @@ from . import algebraicapproximation
 from . import encoding
 from . import error
 from . import interval
+from . import io
 from . import isometry
 from . import lamination
 from . import layeredtriangulation
@@ -41,3 +42,7 @@ Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
 log_height_int = algebraicapproximation.log_height_int
+
+package = io.package
+depackage = io.depackage
+

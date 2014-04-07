@@ -335,16 +335,18 @@ class FlipperApp(object):
 				spec = 'A Flipper file.'
 				version = self.options.version
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
-				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
+				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-				laminations = self.laminations
-				mapping_classes = self.mapping_classes
+				laminations = [(name, self.laminations[name]) for name in lamination_names]
+				mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
 				cache = self.cache
-				data = (vertices, edges, abstract_triangulation, lamination_names, mapping_class_names, laminations, mapping_classes, cache)
+				canvas_objects = (vertices, edges)
+				data = (canvas_objects, abstract_triangulation, laminations, mapping_classes, cache)
 				
-				pickle.dump((spec, version, data), open(path, 'wb'))
+				pickled_objects = pickle.dumps((spec, version, data))
+				open(path, 'wb').write(pickled_objects)
 				self.unsaved_work = False
 				return True
 			except IOError:
@@ -352,48 +354,63 @@ class FlipperApp(object):
 		
 		return False
 	
-	def load(self):
-		path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
-		if path != '':
+	def load(self, path=None, pickled_objects=None):
+		if pickled_objects is None:
+			if path is None:
+				path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Open Flipper File')
+			if path == '':
+				return
 			try:
-				spec, version, data =  pickle.load(open(path, 'rb'))
-				if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.option.version):
-					raise ValueError('Wrong version of Flipper.')
-				else:
-					(vertices, edges, abstract_triangulation) = data[0:3]
-					(lamination_names, mapping_class_names, laminations) = data[3:6]
-					(mapping_classes, cache) = data[6:9]
-					if self.initialise():
-						if spec != 'A Flipper file.':
-							raise ValueError('Not a valid specification.')
-						
-						for vertex in vertices:
-							self.create_vertex(vertex)
-						
-						for edge in edges:
-							start_index, end_index, glued_to_index = edge
-							self.create_edge(self.vertices[start_index], self.vertices[end_index])
-						
-						for index, edge in enumerate(edges):
-							start_index, end_index, glued_to_index = edge
-							if glued_to_index is not None and glued_to_index > index:
-								self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
-						
-						self.abstract_triangulation = abstract_triangulation
-						
-						for name in lamination_names:
-							self.add_lamination(laminations[name], name)
-						
-						for name in mapping_class_names:
-							self.add_mapping_class(mapping_classes[name], name)
-						
-						self.cache = cache
-						
-						self.unsaved_work = False
+				pickled_object = open(path, 'rb').read()
 			except IOError:
-				tkMessageBox.showwarning('Load Error', 'Could not open: %s' % path)
-			except ValueError:
-				tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
+				tkMessageBox.showerror('Load Error', 'Could not open: %s' % path)
+				return
+		
+		try:
+			spec, version, data =  pickle.loads(pickled_objects)
+			if spec != 'A Flipper file.':
+				raise ValueError('Not a valid specification.')
+			if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
+				raise ValueError('Wrong version of Flipper.')
+			
+			[canvas_objects, abstract_triangulation, laminations, mapping_classes, cache] = data
+			if canvas_objects is not None:
+				if not self.initialise():
+					return
+				
+				vertices, edges = canvas_objects
+				for vertex in vertices:
+					self.create_vertex(vertex)
+				
+				for edge in edges:
+					start_index, end_index, edge_index, glued_to_index = edge
+					self.create_edge(self.vertices[start_index], self.vertices[end_index])
+				
+				for index, edge in enumerate(edges):
+					start_index, end_index, edge_index, glued_to_index = edge
+					if glued_to_index is not None and glued_to_index > index:
+						self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
+			else:
+				# We should try to use the current triangulation or create a triangulation to use.
+				# !?! TO DO.
+				if self.abstract_triangulation is not None:
+					pass
+				else:
+					pass
+			
+			self.abstract_triangulation = abstract_triangulation
+			
+			for name, lamination in laminations:
+				self.add_lamination(lamination, name)
+			
+			for name, mapping_class in mapping_classes:
+				self.add_mapping_class(mapping_class, name)
+			
+			self.cache = cache
+			
+			self.unsaved_work = False
+		except (IndexError, ValueError):
+			tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
 	
 	def export_image(self, path=''):
 		if path == '': path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -442,6 +459,7 @@ class FlipperApp(object):
 	
 	def quit(self):
 		if self.initialise():
+			self.parent.destroy()
 			self.parent.quit()
 	
 	def show_help(self):
@@ -1240,6 +1258,14 @@ class FlipperApp(object):
 			self.zoom_centre(1.05)
 		elif key == 'Next':
 			self.zoom_centre(0.95)
+		elif key == 'Up':
+			self.translate(0, -5)
+		elif key == 'Down':
+			self.translate(0, 5)
+		elif key == 'Left':
+			self.translate(-5, 0)
+		elif key == 'Right':
+			self.translate(5, 0)
 	
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
@@ -1314,13 +1340,14 @@ class FlipperApp(object):
 			pass
 
 
-def main(load_path=None):
+def start(load_objects=None, load_path=None):
 	root = TK.Tk()
 	root.title('Flipper')
 	flipper = FlipperApp(root)
 	root.minsize(300, 300)
 	root.geometry('700x500')
-	if load_path is not None: flipper.load(load_path)
+	if load_path is not None: flipper.load(path=load_path)
+	if load_objects is not None: flipper.load(pickled_objects=load_objects)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
 	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files
@@ -1331,5 +1358,5 @@ def main(load_path=None):
 	root.mainloop()
 
 if __name__ == '__main__':
-	main()
+	start()
 

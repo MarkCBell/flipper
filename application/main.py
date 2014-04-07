@@ -426,21 +426,6 @@ class FlipperApp(object):
 			except IOError:
 				tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 	
-	def export_script(self):
-		if self.is_complete():
-			path = tkFileDialog.asksaveasfilename(defaultextension='.py', filetypes=[('Python files', '.py'), ('all files', '.*')], title='Export Image')
-			if path != '':
-				try:
-					disk_file = open(path, 'w')
-					# !?! To Do
-					disk_file.write('')
-				except IOError:
-					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
-				finally:
-					disk_file.close()
-		else:
-			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
-	
 	def export_kernel_file(self):
 		if self.is_complete():
 			path = tkFileDialog.asksaveasfilename(defaultextension='.fpk', filetypes=[('Flipper kernel file', '.fpk'), ('all files', '.*')], title='Export Kernel File')
@@ -619,7 +604,7 @@ class FlipperApp(object):
 					all_vertices = all_vertices[::2]
 				
 				for i, j in combinations(range(n), r=2):
-					if gluing[i] == gluing[j].swapcase():  # !?! Get rid of the swapcase()?
+					if gluing[i] == gluing[j].swapcase():
 						self.create_edge_identification(self.edges[i], self.edges[j])
 				
 				self.unsaved_work = True
@@ -1290,8 +1275,6 @@ class FlipperApp(object):
 			self.show_apply(self.mapping_classes[self.mapping_class_names[iid]])
 		elif 'apply_mapping_class_inverse' in tags:
 			self.show_apply(self.mapping_classes[self.mapping_class_names[iid].swapcase()])
-		else:
-			pass  # !?! To do.
 	
 	def treeview_objects_double_left_click(self, event):
 		self.treeview_objects_left_click(event)

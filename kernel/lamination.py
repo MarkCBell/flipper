@@ -217,7 +217,7 @@ class Lamination(object):
 				new_corner_labels.append([0, 0, 0])
 		
 		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return Flipper.kernel.Encoding([Flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
+		return Flipper.kernel.PLFunction([Flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -341,9 +341,9 @@ class Lamination(object):
 			return True
 	
 	def encode_twist(self, k=1):
-		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
+		''' Returns an EncodingSequence of a left Dehn twist about this lamination raised to the power k.
 		If k is zero this will return the identity encoding. If k is negative this 
-		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
+		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a twistable curve. '''
 		if not self.is_twistable():
 			raise Flipper.AssumptionError('Not a good curve.')
@@ -373,9 +373,9 @@ class Lamination(object):
 		return conjugation.inverse() * T**abs(k) * conjugation
 	
 	def encode_halftwist(self, k=1):
-		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
+		''' Returns an EncodingSequence of a left Dehn twist about this lamination raised to the power k.
 		If k is zero this will return the identity encoding. If k is negative this 
-		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
+		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a half twistable curve. '''
 		if not self.is_halftwistable():
 			raise Flipper.AssumptionError('Not a boundary of a pair of pants.')

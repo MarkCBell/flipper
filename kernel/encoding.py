@@ -33,7 +33,7 @@ class PartialFunction(object):
 		
 		raise TypeError('Object is not in domain.')
 
-class Encoding(object):
+class PLFunction(object):
 	''' This represent the piecewise-linear map between the spaces of laminations on two AbstractTriangulations. '''
 	def __init__(self, partial_functions, inverse_partial_functions=None, name=None):
 		self.partial_functions = partial_functions
@@ -65,7 +65,7 @@ class Encoding(object):
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
-		if isinstance(other, Encoding):
+		if isinstance(other, PLFunction):
 			return EncodingSequence([self, other])
 		elif isinstance(other, EncodingSequence):
 			return EncodingSequence([self] + other.sequence)
@@ -83,16 +83,16 @@ class Encoding(object):
 		if n > 0:
 			return EncodingSequence([self] * n)
 		elif n == 0:
-			return self.source_triangulation.Id_Encoding()
+			return self.source_triangulation.Id_EncodingSequence()
 		elif n < 0:
 			return self.inverse()**abs(n)
 	def copy(self):
-		return Encoding([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions], self.name)
+		return PLFunction([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions], self.name)
 	def inverse(self):
 		if not self.inverse_partial_functions:
 			raise TypeError('Function is not invertible.')
 		
-		return Encoding(self.inverse_partial_functions, self.partial_functions)
+		return PLFunction(self.inverse_partial_functions, self.partial_functions)
 	def applied_index(self, lamination):
 		# Returns the index of the partial function that would be applied to this lamination.
 		for index, function in enumerate(self.partial_functions):
@@ -106,9 +106,9 @@ class Encoding(object):
 
 class EncodingSequence(object):
 	def __init__(self, sequence, name=None):
-		''' This represents the composition of several Encodings. '''
+		''' This represents the composition of several PLFunction. '''
 		self.sequence = sequence
-		assert(all(isinstance(x, Encoding) for x in self.sequence))
+		assert(all(isinstance(x, PLFunction) for x in self.sequence))
 		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
 		
 		self.source_triangulation = self.sequence[-1].source_triangulation
@@ -140,7 +140,7 @@ class EncodingSequence(object):
 	def __mul__(self, other):
 		if isinstance(other, EncodingSequence):
 			return EncodingSequence(self.sequence + other.sequence)
-		elif isinstance(other, Encoding):
+		elif isinstance(other, PLFunction):
 			return EncodingSequence(self.sequence + [other])
 		else:
 			other = other.copy()
@@ -351,9 +351,9 @@ class EncodingSequence(object):
 			new_curves, curves = [self**(2**i) * new_curve for new_curve in new_curves], new_curves
 			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
 			if i > 0:  # Make sure to do at least 4 iterations.
-				print(i)
-				print(curves[0])
-				print(int(''.join(str(x) for x in self.name_indices(curves[0])), base=2))
+				#print(i)
+				#print(curves[0])
+				#print(int(''.join(str(x) for x in self.name_indices(curves[0])), base=2))
 				for new_curve, curve in zip(new_curves, curves):
 					if projective_difference(new_curve, curve, 1000):
 						if curve == new_curve:  # !?! Think about removing this.

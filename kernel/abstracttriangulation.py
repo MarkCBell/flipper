@@ -81,7 +81,7 @@ class AbstractTriangulation(object):
 		return iter(self.triangles)
 	
 	def __getitem__(self, index):
-		return self.triangles[index % 3]
+		return self.triangles[index]
 	
 	def find_corner_class(self, triangle, side):
 		side = side % 3

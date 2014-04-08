@@ -41,6 +41,7 @@ Empty_Matrix = matrix.Empty_Matrix
 Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
+String_Type = types.String_Type
 log_height_int = algebraicapproximation.log_height_int
 
 package = io.package

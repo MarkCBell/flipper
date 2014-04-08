@@ -10,6 +10,7 @@ Flipper.AbstractTriangulation = Flipper.kernel.AbstractTriangulation
 
 Flipper.isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
 Flipper.Integer_Type = Flipper.kernel.Integer_Type
+Flipper.String_Type = Flipper.kernel.String_Type
 
 Flipper.AbortError = Flipper.kernel.AbortError
 Flipper.ApproximationError = Flipper.kernel.ApproximationError

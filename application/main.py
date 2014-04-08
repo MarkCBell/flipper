@@ -4,8 +4,8 @@ import os
 import sys
 import pickle
 import string
-from math import sin, cos, pi
-from itertools import combinations
+from math import sin, cos, pi, sqrt
+from itertools import product, combinations
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
@@ -74,6 +74,8 @@ class FlipperApp(object):
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
 		self.treeview_objects.tag_configure('txt', font=self.options.application_font)
 		self.treeview_objects.tag_configure('Heading', font=self.options.application_font)
+		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
+		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		
 		self.treeview_objects.grid(row=0, column=0, sticky='nesw')
 		self.scrollbar_treeview.grid(row=0, column=1, sticky='nws')
@@ -355,31 +357,45 @@ class FlipperApp(object):
 		
 		return False
 	
-	def load(self, path=None, load_objects=None):
+	def load(self, load_from=None):
+		''' Loads up some informations. If given no options opens a file dialog and
+		asks for a Flipper (kernel) file. Alternatively can be passed the path of the file
+		or the contents of a file or a list / tuple [abstract_triangulation, laminations, mapping_classes]. '''
 		try:
-			if load_objects is None:
-				if path is None:
-					path = tkFileDialog.askopenfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], title='Open Flipper File')
-				if path == '':
+			if load_from is None:
+				load_from = tkFileDialog.askopenfilename(
+					defaultextension='.flp', 
+					filetypes=[('Flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], 
+					title='Open Flipper File')
+				if load_from == '':  # Cancelled the dialog.
 					return
+			if isinstance(load_from, file):
+				load_from = load_from.read()
+			
+			if isinstance(load_from, (tuple, list)):
+				load_objects = tuple(load_from) + (None, {})
+			elif isinstance(load_from, Flipper.String_Type):
+				try:  # Try and load the file at this location.
+					string_contents = open(load_from, 'rb').read()
+				except IOError:  # If that fails assume that we have been given the contents of a file.
+					string_contents = load_from
+				
 				try:
-					spec, version, data = pickle.load(open(path, 'rb'))
-					if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
-						raise ValueError('Wrong version of Flipper.')
-					if spec == 'A Flipper file.':
-						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data
-					elif spec == 'A Flipper kernel file.':
-						[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = data + (None, {})
-					else:
-						raise ValueError('Not a valid specification.')
-				except IOError:
-					tkMessageBox.showerror('Load Error', 'Could not open: %s' % path)
-					return
-				except (IndexError, ValueError):
-					tkMessageBox.showerror('Load Error', '%s is not a Flipper %s file.' % (path, self.options.version))
-					return
+					spec, version, data = pickle.loads(string_contents)
+				except AttributeError:
+					raise ValueError('Not a valid Flipper file.')
+				if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
+					raise ValueError('Wrong version of Flipper.')
+				if spec == 'A Flipper file.':
+					load_objects = data
+				elif spec == 'A Flipper kernel file.':
+					load_objects = data + (None, {})
+				else:
+					raise ValueError('Not a valid specification.')
 			else:
-				[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = load_object + (None, {})
+				raise ValueError('Not a valid specification.')
+			
+			[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = load_objects
 			
 			if canvas_objects is None:
 				# Build a triangulation ourselves.
@@ -391,10 +407,35 @@ class FlipperApp(object):
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 					canvas_objects = [vertices, edges]
-					# !?! To do: No initialise here.
 				else:
-					# !?! To do: Create a triangulation ourselves if there isn't a good one here. 
-					pass
+					# There isn't a good one here so create a triangulation ourselves. 
+					# We will place n triangles in k x k square there may be a few unused slots
+					# at the end.
+					n = abstract_triangulation.num_triangles
+					self.parent.update_idletasks()
+					w = int(self.canvas.winfo_width())
+					h = int(self.canvas.winfo_height())
+					r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+					k = int(sqrt(n)) + 1
+					cell_size = r / k
+					r = cell_size / 2
+					x_0, y_0 = (w / 2, h / 2) 
+					
+					vertices = []
+					edges = []
+					# Create the vertices.
+					for i in range(n):
+						x_1, y_1 = x_0 + cell_size * (i % k), y_0 + cell_size * (i // k)
+						for j in range(3):
+							x_2, y_2 = x_1 + sin(2*pi*(j+0.5) / 3) * r, y_1 + cos(2*pi*(j+0.5) / 3) * r
+							vertices.append((x_2, y_2))
+					
+					# Add in the edges.
+					for i, j in product(range(n), range(3)):
+						edge_number = abstract_triangulation[i][j]
+						[glued_to] = [3*a + b for a, b in product(range(n), range(3)) if abstract_triangulation[a][b] == edge_number and (a, b) != (i, j)]
+						edge_info = (3*i + j, 3*i + ((j+1) % 3), edge_number, glued_to)
+						edges.append(edge_info)
 					canvas_objects = [vertices, edges]
 			
 			if not self.initialise():
@@ -416,6 +457,7 @@ class FlipperApp(object):
 			for index, edge in enumerate(edges):
 				start_index, end_index, edge_index, glued_to_index = edge
 				self.edges[index].index = edge_index
+			self.auto_zoom()
 			
 			self.abstract_triangulation = abstract_triangulation
 			
@@ -429,7 +471,7 @@ class FlipperApp(object):
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
-			tkMessageBox.showerror('Load Error', 'Cannot initialise Flipper %s from this.' % (path, self.options.version))
+			tkMessageBox.showerror('Load Error', 'Cannot initialise Flipper %s from this.' % self.options.version)
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -514,6 +556,7 @@ class FlipperApp(object):
 		self.redraw()
 	
 	def zoom_centre(self, scale):
+		self.parent.update_idletasks()
 		cw = int(self.canvas.winfo_width())
 		ch = int(self.canvas.winfo_height())
 		self.translate(-cw / 2, -ch / 2)
@@ -521,6 +564,7 @@ class FlipperApp(object):
 		self.translate(cw / 2, ch / 2)
 	
 	def auto_zoom(self):
+		self.parent.update_idletasks()
 		box = self.canvas.bbox('all')
 		if box is not None:
 			x0, y0, x1, y1 = box
@@ -578,6 +622,7 @@ class FlipperApp(object):
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
+				self.parent.update_idletasks()
 				w = int(self.canvas.winfo_width())
 				h = int(self.canvas.winfo_height())
 				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
@@ -601,6 +646,7 @@ class FlipperApp(object):
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
+				self.parent.update_idletasks()
 				w = int(self.canvas.winfo_width())
 				h = int(self.canvas.winfo_height())
 				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
@@ -775,7 +821,9 @@ class FlipperApp(object):
 		while self.train_track_blocks != []:
 			self.destroy_train_track_block(self.train_track_blocks[-1])
 		
-		self.current_lamination = self.abstract_triangulation.empty_lamination()
+		if self.is_complete():
+			self.current_lamination = self.abstract_triangulation.empty_lamination()
+		
 		self.select_object(None)
 		self.redraw()
 	
@@ -831,15 +879,13 @@ class FlipperApp(object):
 		self.abstract_triangulation = Flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
 		self.create_edge_labels()
-		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
-		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		self.menubar.entryconfig('Lamination', state='normal')
 		self.menubar.entryconfig('Mapping class', state='normal')
 	
 	def destroy_abstract_triangulation(self):
+		self.destroy_lamination()
 		self.clear_edge_indices()
 		self.destroy_edge_labels()
-		self.destroy_lamination()
 		self.abstract_triangulation = None
 		self.current_lamination = None
 		self.laminations = {}
@@ -847,7 +893,7 @@ class FlipperApp(object):
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
 		self.cache = {}
-		for child in self.treeview_objects.get_children(''):
+		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
 			self.treeview_objects.delete(child)
 		self.menubar.entryconfig('Lamination', state='disabled')
 		self.menubar.entryconfig('Mapping class', state='disabled')
@@ -1349,15 +1395,14 @@ class FlipperApp(object):
 			pass
 
 
-def start(load_objects=None, load_path=None):
+def start(load_from=None):
 	root = TK.Tk()
 	root.title('Flipper')
 	return_slot = [None]
 	flipper = FlipperApp(root, return_slot)
 	root.minsize(300, 300)
 	root.geometry('700x500')
-	if load_path is not None: flipper.load(path=load_path)
-	if load_objects is not None: flipper.load(load_objects=load_objects)
+	if load_from is not None: flipper.load(load_from=load_from)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
 	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files

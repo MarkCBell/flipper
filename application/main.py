@@ -57,7 +57,7 @@ MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 class FlipperApp(object):
 	def __init__(self, parent, return_slot=None):
 		self.parent = parent
-		self.return_slot = return_slot if return_slot is not None else [None]
+		self.return_slot = return_slot
 		self.options = Flipper.application.Options(self)
 		self.colour_picker = Flipper.application.ColourPalette()
 		
@@ -384,7 +384,7 @@ class FlipperApp(object):
 			if spec == 'A Flipper file.':
 				load_objects = data
 			elif spec == 'A Flipper kernel file.':
-				load_objects = data + (None, {})
+				load_objects = data + (None, None)
 			else:
 				raise ValueError('Not a valid specification.')
 			
@@ -460,7 +460,8 @@ class FlipperApp(object):
 			for name in mapping_classes:
 				self.add_mapping_class(mapping_classes[name], name)
 			
-			self.cache = cache
+			if cache is not None:
+				self.cache = cache
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
@@ -497,7 +498,7 @@ class FlipperApp(object):
 	
 	def quit(self):
 		# If we are complete then write down our current state in the return slot.
-		if self.is_complete():
+		if self.is_complete() and self.return_slot is not None:
 			lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 			mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
 			laminations = dict([(name, self.laminations[name]) for name in lamination_names])
@@ -508,7 +509,6 @@ class FlipperApp(object):
 				self.return_slot[0] = self.abstract_triangulation
 		
 		if self.initialise():
-			self.parent.destroy()
 			self.parent.quit()
 	
 	def show_help(self):
@@ -1410,6 +1410,7 @@ def start(load_from=None):
 	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
+	root.destroy()
 	return flipper.return_slot[0]
 
 if __name__ == '__main__':

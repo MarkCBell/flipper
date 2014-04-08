@@ -342,8 +342,8 @@ class FlipperApp(object):
 				abstract_triangulation = self.abstract_triangulation
 				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-				laminations = [(name, self.laminations[name]) for name in lamination_names]
-				mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
+				laminations = dict([(name, self.laminations[name]) for name in lamination_names])
+				mapping_classes = dict([(name, self.mapping_classes[name]) for name in mapping_class_names])
 				cache = self.cache
 				canvas_objects = (vertices, edges)
 				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects, cache)
@@ -359,8 +359,8 @@ class FlipperApp(object):
 	
 	def load(self, load_from=None):
 		''' Loads up some informations. If given no options opens a file dialog and
-		asks for a Flipper (kernel) file. Alternatively can be passed the path of the file
-		or the contents of a file or a list / tuple [abstract_triangulation, laminations, mapping_classes]. '''
+		asks for a Flipper (kernel) file. Alternatively can be passed the contents of 
+		a file, a file object or something that Flipper.package can eat. '''
 		try:
 			if load_from is None:
 				load_from = tkFileDialog.askopenfilename(
@@ -369,29 +369,22 @@ class FlipperApp(object):
 					title='Open Flipper File')
 				if load_from == '':  # Cancelled the dialog.
 					return
-			if isinstance(load_from, file):
-				load_from = load_from.read()
+				string_contents = open(load_from, 'rb').read()
+			elif isinstance(load_from, file):
+				string_contents = load_from.read()
+			elif not isinstance(load_from, Flipper.String_Type):
+				string_contents = Flipper.package(load_from)
 			
-			if isinstance(load_from, (tuple, list)):
-				load_objects = tuple(load_from) + (None, {})
-			elif isinstance(load_from, Flipper.String_Type):
-				try:  # Try and load the file at this location.
-					string_contents = open(load_from, 'rb').read()
-				except IOError:  # If that fails assume that we have been given the contents of a file.
-					string_contents = load_from
-				
-				try:
-					spec, version, data = pickle.loads(string_contents)
-				except AttributeError:
-					raise ValueError('Not a valid Flipper file.')
-				if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
-					raise ValueError('Wrong version of Flipper.')
-				if spec == 'A Flipper file.':
-					load_objects = data
-				elif spec == 'A Flipper kernel file.':
-					load_objects = data + (None, {})
-				else:
-					raise ValueError('Not a valid specification.')
+			try:
+				spec, version, data = pickle.loads(string_contents)
+			except AttributeError:
+				raise ValueError('Not a valid Flipper file.')
+			if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
+				raise ValueError('Wrong version of Flipper.')
+			if spec == 'A Flipper file.':
+				load_objects = data
+			elif spec == 'A Flipper kernel file.':
+				load_objects = data + (None, {})
 			else:
 				raise ValueError('Not a valid specification.')
 			
@@ -461,11 +454,11 @@ class FlipperApp(object):
 			
 			self.abstract_triangulation = abstract_triangulation
 			
-			for name, lamination in laminations:
-				self.add_lamination(lamination, name)
+			for name in laminations:
+				self.add_lamination(laminations[name], name)
 			
-			for name, mapping_class in mapping_classes:
-				self.add_mapping_class(mapping_class, name)
+			for name in mapping_classes:
+				self.add_mapping_class(mapping_classes[name], name)
 			
 			self.cache = cache
 			

@@ -1,28 +1,45 @@
 
 import pickle
+from string import ascii_lowercase
 
 import Flipper
 
 def package(objects, names=None):
-	''' Dumps packages an abstract triangulation, some laminations and mapping classes 
-	into a format that can be loaded into an instance of the Flipper application. 
+	''' This packages an abstract triangulation, some laminations and mapping classes 
+	into a format that can be writen to disk and loaded into an instance of the 
+	Flipper application at a later date. 
 	
-	The list must contain at most one abstract triangulation and all laminations and 
-	mapping classes must be defined on the same triangulation (which must be the given 
-	one if provided). '''
+	Objects must be either:
+		1) triangulation,
+		2) ({names -> laminations}, {name -> mapping classes}), or
+		2) ([laminations], [mapping classes]) (or some combination of the pair).
 	
-	abstract_triangulations = [item for item in objects if isinstance(item, Flipper.kernel.AbstractTriangulation)]
-	laminations = [item for item in objects if isinstance(item, Flipper.kernel.Lamination)]
-	mapping_classes = [item for item in objects if isinstance(item, Flipper.kernel.EncodingSequence)]
-	if len(abstract_triangulations) > 0:
-		raise ValueError('At most one abstract triangulation must be provided')
-	[abstract_triangulation] = abstract_triangulations
-	if any(lamination.abstract_triangulation != abstract_triangulation for lamination in laminations):
-		raise ValueError('All laminations must be on the same abstract triangulations.')
-	if any(mapping_class.source_triangulation != abstract_triangulation for mapping_class in mapping_classes):
-		raise ValueError('All mapping classes must go from the same abstract triangulations.')
-	if any(mapping_class.target_triangulation != abstract_triangulation for mapping_class in mapping_classes):
-		raise ValueError('All mapping classes must go to the same abstract triangulations.')
+	All laminations / mapping classes must be defined on the same triangulation and
+	in the last two cases at least one of the pair must be non-empty. '''
+	
+	if isinstance(objects, Flipper.AbstractTriangulation):
+		abstract_triangulation = objects
+		laminations = {}
+		mapping_classes = {}
+	elif isinstance(objects, (list, tuple)) and len(objects) == 2:
+		laminations, mapping_classes = objects
+		if isinstance(laminations, (list, tuple)): laminations = dict(list(zip(ascii_lowercase, laminations)))
+		if isinstance(mapping_classes, (list, tuple)): mapping_classes = dict(list(zip(ascii_lowercase, mapping_classes)))
+		if len(laminations) > 0:
+			abstract_triangulation = list(laminations.values())[0].abstract_triangulation
+		elif len(mapping_classes) > 0:
+			abstract_triangulation = list(mapping_classes.values())[0].source_triangulation
+		else:
+			raise ValueError('Must be a pair of laminations and mapping classes.')
+		
+		if any(lamination.abstract_triangulation != abstract_triangulation for lamination in laminations.values()):
+			raise ValueError('All laminations must be on the same abstract triangulations.')
+		if any(mapping_class.source_triangulation != abstract_triangulation for mapping_class in mapping_classes.values()):
+			raise ValueError('All mapping classes must go from the same abstract triangulations.')
+		if any(mapping_class.target_triangulation != abstract_triangulation for mapping_class in mapping_classes.values()):
+			raise ValueError('All mapping classes must go to the same abstract triangulations.')
+	else:
+		raise ValueError('Must be an abstract triangulation or a pair.')
 	
 	spec = 'A Flipper kernel file.'
 	version = Flipper.version.Flipper_version

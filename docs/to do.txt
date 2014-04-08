@@ -5,7 +5,6 @@ handle commands better
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 update examples in application/examples/
-add import / export without triangulation
 
 ### Documentation ###
 more documentation

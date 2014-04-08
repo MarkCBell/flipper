@@ -500,9 +500,12 @@ class FlipperApp(object):
 		if self.is_complete():
 			lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 			mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-			laminations = [(name, self.laminations[name]) for name in lamination_names]
-			mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
-			self.return_slot[0] = (self.abstract_triangulation, laminations, mapping_classes)
+			laminations = dict([(name, self.laminations[name]) for name in lamination_names])
+			mapping_classes = dict([(name, self.mapping_classes[name]) for name in mapping_class_names])
+			if len(laminations) > 0 or len(mapping_classes) > 0:
+				self.return_slot[0] = (laminations, mapping_classes)
+			else:
+				self.return_slot[0] = self.abstract_triangulation
 		
 		if self.initialise():
 			self.parent.destroy()
@@ -927,7 +930,10 @@ class FlipperApp(object):
 		
 		current_vector = self.current_lamination.vector
 		new_vector = [a+b for a, b in zip(vector, current_vector)]
-		self.current_lamination = self.abstract_triangulation.lamination(new_vector)
+		try:
+			self.current_lamination = self.abstract_triangulation.lamination(new_vector)
+		except TypeError:
+			self.current_lamination = self.abstract_triangulation.empty_lamination()
 		
 		return self.current_lamination
 	

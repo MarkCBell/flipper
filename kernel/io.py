@@ -1,6 +1,7 @@
 
 import pickle
 from string import ascii_lowercase
+# !?! Possible concern: ascii_lowercase is too short.
 
 import Flipper
 
@@ -10,12 +11,14 @@ def package(objects, names=None):
 	Flipper application at a later date. 
 	
 	Objects must be either:
-		1) triangulation,
+		1) an abstract triangulation,
 		2) ({names -> laminations}, {name -> mapping classes}), or
 		2) ([laminations], [mapping classes]) (or some combination of the pair).
 	
 	All laminations / mapping classes must be defined on the same triangulation and
-	in the last two cases at least one of the pair must be non-empty. '''
+	in the last two cases at least one of the pair must be non-empty. In the third
+	case we will name the laminations and mapping classes sequentially:
+		a, b, ..., z. '''
 	
 	if isinstance(objects, Flipper.AbstractTriangulation):
 		abstract_triangulation = objects

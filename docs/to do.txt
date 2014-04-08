@@ -1,7 +1,6 @@
 
 ### Application ###
 undo and redo
-handle commands better
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 update examples in application/examples/
@@ -15,7 +14,7 @@ make polynomials squarefree - polynomial gcd
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
-be able to (half) twist along all curves
+be able to (half) twist along all curves - construct chain
 add set accuracy to AlgebraicApproximation
 add support for Fractions to the number classes
 doc strings everywhere

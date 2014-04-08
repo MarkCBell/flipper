@@ -4,6 +4,7 @@
 
 from random import choice
 from string import ascii_lowercase, ascii_uppercase
+# !?! Possible concern: ascii_lower/uppercase is too short.
 
 import Flipper
 

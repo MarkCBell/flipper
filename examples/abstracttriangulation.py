@@ -3,44 +3,41 @@
 # Mainly used for running tests on.
 
 from random import choice
-from string import ascii_lowercase
+from string import ascii_lowercase, ascii_uppercase
 
 import Flipper
 
-def random_word(dic, n):
-	return ''.join(choice(list(dic.keys())) for _ in range(n))
+class ExampleSurface(object):
+	def __init__(self, abstract_triangulation, laminations, mapping_classes):
+		self.abstract_triangulation = abstract_triangulation
+		if isinstance(laminations, dict):
+			self.laminations = laminations
+		else:
+			self.laminations = dict(list(zip(ascii_lowercase, laminations)))
+		if isinstance(mapping_classes, dict):
+			self.mapping_classes = mapping_classes
+		else:
+			inverse_mapping_classes = [h.inverse() for h in mapping_classes]
+			self.mapping_classes = dict(list(zip(ascii_lowercase, mapping_classes)) + list(zip(ascii_uppercase, inverse_mapping_classes)))
+	def random_word(self, length):
+		return ''.join(choice(list(self.mapping_classes.keys())) for _ in range(length))
+	def mapping_class(self, word):
+		if isinstance(word, Flipper.Integer_Type):
+			word = self.get_random_word(word)
+		
+		h = self.abstract_triangulation.Id_EncodingSequence()
+		for letter in word:
+			h = self.mapping_classes[letter] * h
+		
+		return h
 
-def make_mapping_classes(twists, half_twists, isometries, names=None):
-	mapping_classes = [C.encode_twist(k=1) for C in twists] + [C.encode_halftwist(k=1) for C in half_twists] + [isom.encode_isometry() for isom in isometries]
-	mapping_classes_inverses = [C.encode_twist(k=-1) for C in twists] + [C.encode_halftwist(k=-1) for C in half_twists] + [isom.inverse().encode_isometry() for isom in isometries]
-	
-	if names is None: names = ascii_lowercase
-	inverse_names = [name.swapcase() for name in names]
-	
-	return dict(list(zip(names, mapping_classes)) + list(zip(inverse_names, mapping_classes_inverses)))
-
-def build_mapping_class(T, dic, word):
-	if word is None:
-		return T, dic
-	
-	if isinstance(word, Flipper.kernel.Integer_Type):
-		word = random_word(dic, word)
-	
-	h = T.Id_EncodingSequence()
-	for letter in word:
-		h = dic[letter] * h
-	h.name = word
-	
-	return h
-
-def Example_S_1_1(word=None):
-	# S_1_1 and its standard (Twister) curves:
+def Example_S_1_1():
 	T = Flipper.AbstractTriangulation([[0, 2, 1], [0, 2, 1]])
 	
 	a = T.lamination([1, 0, 1])
 	b = T.lamination([0, 1, 1])
 	
-	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
 def Example_S_1_1m(word=None):
 	# Mirror image of S_1_1 and its standard (Twister) curves:
@@ -49,7 +46,7 @@ def Example_S_1_1m(word=None):
 	a = T.lamination([1, 1, 0]).encode_twist()
 	b = T.lamination([0, 1, 1]).encode_twist()
 	
-	return build_mapping_class(T, make_mapping_classes([a, b], [], []), word)
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
 def Example_S_1_2(word=None):
 	# S_1_2 and its standard (Twister) curves:
@@ -59,7 +56,7 @@ def Example_S_1_2(word=None):
 	b = T.lamination([1, 0, 0, 0, 1, 1])
 	c = T.lamination([0, 1, 0, 1, 0, 1])
 	
-	return build_mapping_class(T, make_mapping_classes([a, b, c], [], []), word)
+	return ExampleSurface(T, [a, b, c], [a.encode_twist(), b.encode_twist(), c.encode_twist()])
 
 def Example_S_2_1(word=None):
 	# S_2_1 and its standard (Twister) curves:
@@ -72,7 +69,9 @@ def Example_S_2_1(word=None):
 	e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
 	f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
 	
-	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f], [], []), word)
+	return ExampleSurface(T, [a, b, c, d, e, f], 
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
 def Example_S_3_1(word=None):
 	T = Flipper.AbstractTriangulation([[1, 2, 5], [0, 6, 3], [4, 1, 7], [3, 8, 2], [9, 5, 6], 
@@ -87,8 +86,10 @@ def Example_S_3_1(word=None):
 	g = T.lamination([0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0])
 	h = T.lamination([0, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
 	
-	return build_mapping_class(T, make_mapping_classes([a, b, c, d, e, f, g, h], [], []), word)
-
+	return ExampleSurface(T, [a, b, c, d, e, f, g, h], 
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist(),
+		g.encode_twist(), h.encode_twist()])
 
 def Example_12(word=None):
 	# A 12-gon:
@@ -99,7 +100,7 @@ def Example_12(word=None):
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/12 click.
 	
-	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
 
 def Example_24(word=None):
 	# A 24-gon.
@@ -112,7 +113,7 @@ def Example_24(word=None):
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/24 click.
 	
-	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
 
 def Example_36(word=None):
 	# A 36-gon
@@ -125,7 +126,7 @@ def Example_36(word=None):
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/36 click.
 	
-	return build_mapping_class(T, make_mapping_classes([a, b], [], [p]), word)
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
 
 # We also provide a dictionary to allow quick lookup of an example by name.
 SURFACES = {'S_1_1':Example_S_1_1, 
@@ -133,3 +134,4 @@ SURFACES = {'S_1_1':Example_S_1_1,
 			'S_2_1':Example_S_2_1,
 			'S_3_1':Example_S_3_1
 			}
+

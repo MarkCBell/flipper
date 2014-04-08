@@ -319,5 +319,5 @@ class AbstractTriangulation(object):
 		f_inv = Flipper.kernel.PartialFunction(new_triangulation, self, A1, C1)
 		g_inv = Flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
 		
-		return Flipper.kernel.PLFunction([f, g], [f_inv, g_inv])
+		return Flipper.kernel.EncodingSequence([Flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
 

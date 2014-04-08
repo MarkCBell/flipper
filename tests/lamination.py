@@ -8,7 +8,7 @@ NT_TYPE_REDUCIBLE = Flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main():
-	example = Flipper.examples.abstracttriangulation.Example_S_1_2
+	S = Flipper.examples.abstracttriangulation.Example_S_1_2()
 	
 	# Add more tests here.
 	tests = [
@@ -22,7 +22,7 @@ def main():
 	
 	try:
 		for word, mapping_class_type in tests:
-			mapping_class = example(word)
+			mapping_class = S.mapping_class(word)
 			# assert(mapping_class.NT_type() == mapping_class_type)
 			assert(mapping_class.NT_type_alternate() == mapping_class_type)
 	except ImportError:

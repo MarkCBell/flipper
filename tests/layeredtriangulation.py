@@ -23,7 +23,7 @@ def main():
 	
 	try:
 		for word, target_manifold in tests:
-			Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(word).splitting_sequence().snappy_manifolds()
+			Ms = Flipper.examples.abstracttriangulation.Example_S_1_1().mapping_class(word).splitting_sequence().snappy_manifolds()
 			N = snappy.Manifold(target_manifold)
 			assert(any(M.is_isometric_to(N) for M in Ms))
 	except ImportError:
@@ -36,8 +36,10 @@ def main():
 	try:
 		for _ in range(50):
 			try:
-				Ms = Flipper.examples.abstracttriangulation.Example_S_1_1(RANDOM_WORD_LENGTH).splitting_sequence().snappy_manifolds()
-				N = snappy.twister.Surface('S_1_1').bundle(Ms[0].name())
+				S = Flipper.examples.abstracttriangulation.Example_S_1_1()
+				word = S.random_word(RANDOM_WORD_LENGTH)
+				Ms = S.mapping_class(word).splitting_sequence().snappy_manifolds()
+				N = snappy.twister.Surface('S_1_1').bundle(word)
 				assert(any(M.is_isometric_to(N) for M in Ms))
 			except Flipper.AssumptionError:
 				pass  # Word we chose was not pA.

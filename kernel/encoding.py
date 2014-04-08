@@ -35,7 +35,7 @@ class PartialFunction(object):
 
 class PLFunction(object):
 	''' This represent the piecewise-linear map between the spaces of laminations on two AbstractTriangulations. '''
-	def __init__(self, partial_functions, inverse_partial_functions=None, name=None):
+	def __init__(self, partial_functions, inverse_partial_functions=None):
 		self.partial_functions = partial_functions
 		assert(len(self.partial_functions) > 0)
 		self.source_triangulation = self.partial_functions[0].source_triangulation
@@ -44,8 +44,6 @@ class PLFunction(object):
 		if inverse_partial_functions is None: inverse_partial_functions = []
 		self.inverse_partial_functions = inverse_partial_functions
 		assert(all(f.target_triangulation == self.target_triangulation for f in self.partial_functions))
-		
-		self.name = name
 	
 	def __iter__(self):
 		return iter(self.partial_functions)
@@ -87,7 +85,7 @@ class PLFunction(object):
 		elif n < 0:
 			return self.inverse()**abs(n)
 	def copy(self):
-		return PLFunction([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions], self.name)
+		return PLFunction([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions])
 	def inverse(self):
 		if not self.inverse_partial_functions:
 			raise TypeError('Function is not invertible.')
@@ -105,7 +103,7 @@ class PLFunction(object):
 		raise TypeError('Object is not in domain.')
 
 class EncodingSequence(object):
-	def __init__(self, sequence, name=None):
+	def __init__(self, sequence):
 		''' This represents the composition of several PLFunction. '''
 		self.sequence = sequence
 		assert(all(isinstance(x, PLFunction) for x in self.sequence))
@@ -114,7 +112,6 @@ class EncodingSequence(object):
 		self.source_triangulation = self.sequence[-1].source_triangulation
 		self.target_triangulation = self.sequence[0].target_triangulation
 		self.zeta = self.source_triangulation.zeta
-		self.name = name
 	
 	def __len__(self):
 		return len(self.sequence)
@@ -378,7 +375,7 @@ class EncodingSequence(object):
 		lamination = self.invariant_lamination()
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
-		splitting = lamination.splitting_sequence(target_dilatation=dilatation, name=self.name)
+		splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		# new_dilatation = splitting.dilatation()
 		return splitting
 	

@@ -3,16 +3,26 @@ import pickle
 
 import Flipper
 
-def package(abstract_triangulation, laminations=None, mapping_classes=None):
-	''' Dumps some information into a format that can be loaded into an instance of 
-	the Flipper application. 
+def package(objects, names=None):
+	''' Dumps packages an abstract triangulation, some laminations and mapping classes 
+	into a format that can be loaded into an instance of the Flipper application. 
 	
-	Let T = abstract_triangulation then laminations is a list of pairs (name, lamination)
-	where name is a valid name and lamination is on T.
-	Similarly mapping_classes is a list of pairs (name, mapping_class) where
-	name is a valid name and mapping_class is on T. '''
-	if laminations is None: laminations = []
-	if mapping_classes is None: mapping_classes = []
+	The list must contain at most one abstract triangulation and all laminations and 
+	mapping classes must be defined on the same triangulation (which must be the given 
+	one if provided). '''
+	
+	abstract_triangulations = [item for item in objects if isinstance(item, Flipper.kernel.AbstractTriangulation)]
+	laminations = [item for item in objects if isinstance(item, Flipper.kernel.Lamination)]
+	mapping_classes = [item for item in objects if isinstance(item, Flipper.kernel.EncodingSequence)]
+	if len(abstract_triangulations) > 0:
+		raise ValueError('At most one abstract triangulation must be provided')
+	[abstract_triangulation] = abstract_triangulations
+	if any(lamination.abstract_triangulation != abstract_triangulation for lamination in laminations):
+		raise ValueError('All laminations must be on the same abstract triangulations.')
+	if any(mapping_class.source_triangulation != abstract_triangulation for mapping_class in mapping_classes):
+		raise ValueError('All mapping classes must go from the same abstract triangulations.')
+	if any(mapping_class.target_triangulation != abstract_triangulation for mapping_class in mapping_classes):
+		raise ValueError('All mapping classes must go to the same abstract triangulations.')
 	
 	spec = 'A Flipper kernel file.'
 	version = Flipper.version.Flipper_version

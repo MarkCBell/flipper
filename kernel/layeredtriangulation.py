@@ -94,18 +94,17 @@ class Tetrahedron(object):
 
 class Triangulation3(object):
 	''' This represents triangulation, that is a collection of tetrahedra. '''
-	def __init__(self, num_tetrahedra, name='Flipper_triangulation'):
+	def __init__(self, num_tetrahedra):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
 		self.num_cusps = 0
 		self.cusp_types = []
 		self.fibre_slopes = []
 		self.degeneracy_slopes = []
-		self.name = name
 	
 	def copy(self):
 		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
-		new_triangulation = Triangulation3(self.num_tetrahedra, self.name)
+		new_triangulation = Triangulation3(self.num_tetrahedra)
 		forwards = dict(zip(self, new_triangulation))
 		
 		for tetrahedron in self:
@@ -322,13 +321,13 @@ class Triangulation3(object):
 		
 		return (meridian_copies, longitude_copies)
 	
-	def snappy_string(self):
+	def snappy_string(self, name='Flipper triangulation'):
 		if not self.is_closed(): raise Flipper.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		s = ''
 		s += '% Triangulation3\n'
-		s += '%s\n' % self.name
+		s += '%s\n' % name
 		s += 'not_attempted 0.0\n'
 		s += 'oriented_manifold\n'
 		s += 'CS_unknown\n'
@@ -345,10 +344,10 @@ class Triangulation3(object):
 # A class to represent a layered triangulation over a surface specified by a Flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
 	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. ''' 
-	def __init__(self, abstract_triangulation, name='Flipper_triangulation'):
+	def __init__(self, abstract_triangulation):
 		self.lower_triangulation = abstract_triangulation.copy()
 		self.upper_triangulation = abstract_triangulation.copy()
-		self.core_triangulation = Triangulation3(2 * abstract_triangulation.num_triangles, name)
+		self.core_triangulation = Triangulation3(2 * abstract_triangulation.num_triangles)
 		
 		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
 		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]

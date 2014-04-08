@@ -5,9 +5,9 @@ from time import time
 import Flipper
 
 def main():
-	T, dic = Flipper.examples.abstracttriangulation.Example_S_2_1()
+	S = Flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(100):
-		word = Flipper.examples.abstracttriangulation.random_word(dic, 20)
+		word = S.random_word(20)
 		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
 		#word = 'CdEBfbCDFCAEeadfaCEe'  # Rotation of above. 
 		#word = 'aFcE'  # 2 Dim eigenspace 
@@ -22,7 +22,7 @@ def main():
 		print('###############')
 		print(i, word)
 		print('###############')
-		mapping_class = Flipper.examples.abstracttriangulation.build_mapping_class(T, dic, word)
+		mapping_class = S.mapping_class(word)
 		t = time()
 		mapping_class.invariant_lamination()
 		print('TIME TAKEN: %f' % (time() - t))

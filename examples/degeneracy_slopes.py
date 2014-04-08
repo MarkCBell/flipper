@@ -12,7 +12,7 @@ def with_bundle_structure(manifold_name, surface_name, word):
 	# M = snappy.Manifold(manifold_name)
 	# This should be the same as:
 	M = snappy.twister.Surface(surface_name).bundle(word)
-	Bs = Flipper.examples.abstracttriangulation.SURFACES[surface_name](word).splitting_sequence().snappy_manifolds()
+	Bs = Flipper.examples.abstracttriangulation.SURFACES[surface_name]().mapping_class(word).splitting_sequence().snappy_manifolds(name=word)
 	for B in Bs:
 		if B.is_isometric_to(M):
 			return B

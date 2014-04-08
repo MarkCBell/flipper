@@ -13,11 +13,11 @@ class Lamination(object):
 		# Compute how much peripheral component there is on each corner class.
 		peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
 		# If there is any...
-		if max(peripheral.values()) > 0:
+		if any(peripheral.values()):
 			if rescale:  # and we are allowed to rescale then remove it.
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
 			else:  # Otherwise we have a problem.
-				assert(False)
+				raise TypeError('Need to adjust peripheral components but prevented from rescaling.')
 		self.vector = list(vector)
 		self.labels = [str(v) for v in self.vector]
 	

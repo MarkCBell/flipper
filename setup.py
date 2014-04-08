@@ -23,12 +23,23 @@ class TestCommand(Command):
 		except ImportError:
 			print('Flipper module unavailable, install by running: \n>>> python setup.py install [--user]')
 		else:
+			failed_tests = []
 			for test_name in dir(test_module):
 				if not test_name.startswith('_') and test_name != 'Flipper':
 					test = importlib.import_module('Flipper.tests.%s' % test_name)
 					print('Running %s test...' % test_name)
-					print('\tPassed' if test.main() else '\tFAILED')
-			print('Tests complete.')
+					result = test.main()
+					print('\tPassed' if result else '\tFAILED')
+					if not result:
+						failed_tests.append(test_name)
+			
+			print('Finished testing.')
+			if len(failed_tests) > 0:
+				print('\tFAILED TESTS:')
+				for test_name in failed_tests:
+					print('\t%s' % test_name)
+			else:
+				print('\tAll tests passed.')
 
 setup(
 	name='Flipper',

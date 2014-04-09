@@ -21,7 +21,8 @@ import Flipper
 class Interval(object):
 	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
-		assert(lower <= upper)
+		if lower > upper:
+			raise ValueError('Interval is empty.')
 		
 		self.lower = lower
 		self.upper = upper
@@ -61,9 +62,9 @@ class Interval(object):
 		assert(new_accuracy <= self.accuracy)
 		return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
 	def simplify(self):
-		d = int(log(self.upper - self.lower))
+		d = self.precision - self.accuracy
 		if d > 1:
-			return self.change_denominator(self.precision - (d-1))
+			return self.change_denominator(self.accuracy-1)
 		else:
 			return self
 	def __contains__(self, other):

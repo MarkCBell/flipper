@@ -20,7 +20,7 @@ def main(verbose=False, timings=False):
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
 		# ('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Really slow.
 		# ('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
-		('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
+		# ('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow useful for profiling. Current best time 102s.
 		]
 	
 	try:
@@ -37,7 +37,6 @@ def main(verbose=False, timings=False):
 		return False
 	
 	if timings and verbose: print('Time taken: %0.3fs' % (time() - start_time))
-	print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':

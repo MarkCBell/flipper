@@ -309,7 +309,7 @@ class EncodingSequence(object):
 			except Flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 	
-	def invariant_lamination(self):
+	def invariant_lamination(self, verbose=False):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
 		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
 		#
@@ -333,6 +333,7 @@ class EncodingSequence(object):
 		# map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
+		triangulation = self.source_triangulation
 		if self.is_periodic():
 			raise Flipper.AssumptionError('Mapping class is periodic.')
 		
@@ -344,20 +345,33 @@ class EncodingSequence(object):
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 		
 		new_curves = [self * curve for curve in curves]
-		for i in range(60):
-			new_curves, curves = [self**(2**i) * new_curve for new_curve in new_curves], new_curves
-			new_curves, curves = [self * new_curve for new_curve in new_curves], new_curves
-			if i > 0:  # Make sure to do at least 4 iterations.
-				for new_curve, curve in zip(new_curves, curves):
-					if projective_difference(new_curve, curve, 1000):
-						partial_function = self.applied_function(curve)
-						action_matrix, condition_matrix = partial_function.action, partial_function.condition
+		for i in range(50):
+			new_curves, curves = [self**(1) * new_curve for new_curve in new_curves], new_curves
+			#new_curves, curves = [self**(i+1) * new_curve for new_curve in new_curves], new_curves
+			#new_curves, curves = [self**(2**i) * new_curve for new_curve in new_curves], new_curves
+			if verbose: print(curves[0])
+			for new_curve, curve in zip(new_curves, curves):
+				if projective_difference(new_curve, curve, 1000):
+					partial_function = self.applied_function(curve)
+					action_matrix, condition_matrix = partial_function.action, partial_function.condition
+					try:
 						eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
+					except Flipper.AssumptionError:
+						pass  # Largest eigenvalue was not real.
+					else:
 						# If we actually found an invariant lamination then return it.
 						if condition_matrix.nonnegative_image(eigenvector):
-							invariant_lamination = self.source_triangulation.lamination(eigenvector, remove_peripheral=True)
+							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():
 								return invariant_lamination
+			
+			for curve in curves:
+				smallest = min(x for x in curve if x > 0)
+				vector = [int(round(float(x) / (i+1), 0)) for x in curve]
+				small_curve = triangulation.lamination(vector, remove_peripheral=True)
+				if self * small_curve == small_curve:
+					print('Small invariant curve found.')  # !?! Remove this later.
+					return small_curve
 		
 		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	

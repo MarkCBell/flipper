@@ -28,7 +28,6 @@ class NumberField(object):
 		self.current_accuracy = -1
 		# A list of approximations of \lambda^0, ..., \lambda^(d-1).
 		# Note we need one more power for if this is QQ to make the increase accuracy code nicer. 
-		self._algebraic_approximations = [None] * (self.degree+1)
 		self._algebraic_approximations = self.lmbda_approximations(10)
 		
 		self.one = self.element([1])

@@ -23,7 +23,7 @@ class Lamination(object):
 		return Lamination(self.abstract_triangulation, list(self.vector))
 	
 	def __repr__(self):
-		return str(self.labels)
+		return str([str(v) for v in self.vector])
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -309,7 +309,6 @@ class Lamination(object):
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
-			#print(len(flips), edge_index)
 			
 			if lamination[edge_index] == 0:
 				try:
@@ -322,7 +321,6 @@ class Lamination(object):
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					#print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():

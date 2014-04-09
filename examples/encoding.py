@@ -4,31 +4,33 @@ from time import time
 
 import Flipper
 
-def main():
+def main(n=100):
+	times = {}
 	S = Flipper.examples.abstracttriangulation.Example_S_2_1()
-	for i in range(100):
-		word = S.random_word(20)
+	for i in range(n):
+		word = S.random_word(20)  # , negative=False)
 		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
 		#word = 'CdEBfbCDFCAEeadfaCEe'  # Rotation of above. 
 		#word = 'aFcE'  # 2 Dim eigenspace 
 		#word = 'aDefFecDBdFCcACDcCdF'  # 12 iterates.
-		#word = 'fedCFadBbBEfBBAdCDbb'
-		#word = 'fDCFEdbafdaEbaDDcdCF'
-		#word = 'EeEaadebAABDCEDCCfad'
-		#word = 'EbbccbBcFcAbdcFCBFff'
-		#word = 'acCCceedDCFdABdbFAcE'
-		#word = 'aeedDCFdABdbFAcE'
-		word = 'BcEC'  # Is reducible but (unlike BC) mixes every edge just a little so growth is super slow.
-		print('###############')
-		print(i, word)
-		print('###############')
+		#word = 'BcEC'  # Is reducible but (unlike BC) mixes every edge just a little so growth is super slow.
+		#word = 'ebbFaBDECFbBCFFbFeCa'
+		#word = 'daeaeFEdbEDaDf'  # First iteration has no real roots.
+		#word = 'fAAEffcedEafdDeFcDCe'  # Dividing by total steps is bad for this one.
+		#word = 'eeDcbeBbcdFfDBaDfDeF'  # Really slow. 4 iterations needed.
+		#word = 'fCbaAdDafeEdbcaabABb'
+		#word = 'baccabebededdccceeba'
+		#word = 'FacBcDBACfbDAbCAfEdb'
 		mapping_class = S.mapping_class(word)
 		t = time()
-		mapping_class.invariant_lamination()
-		print('TIME TAKEN: %f' % (time() - t))
-		#print(mapping_class.invariant_lamination())
-		#mapping_class.decompose(dic)
-		print('###############')
+		try:
+			mapping_class.invariant_lamination()
+		except Flipper.AssumptionError:
+			print('\tPeriodic.')
+		times[word] = time() - t
+		print('%d: %s, Time: %0.3f' % (i, word, times[word]))
+	print('Average time: %0.3f' % (sum(times.values()) / n))
+	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
 
 if __name__ == '__main__':
 	main()

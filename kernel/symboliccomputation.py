@@ -18,7 +18,8 @@ import Flipper
 #		Given a matrix (of type Flipper.kernel.Matrix) let L be its demoninant eigenvalue
 #		and v = (v_1 ... v_k) the orthogonal projection of vector to the eigenspace of L. 
 #		This returns the list of coefficients of a small (ideally minimal) integral polynomial 
-#		of L and a list of list of integers [[v_ij]] such that v_i = sum(v_ij L**j). 
+#		of L and a list of list of integers [[v_ij]] such that v_i = sum(v_ij L**j). Throws
+#		a Flipper.AssertionError if L is not real.
 # 
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #

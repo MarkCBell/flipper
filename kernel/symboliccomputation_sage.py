@@ -1,5 +1,5 @@
 
-from sage.all import Matrix, lcm, NumberField, QQ
+from sage.all import Matrix, lcm, NumberField, QQ, RR
 from sage.rings.number_field.number_field import NumberField_generic
 
 import Flipper
@@ -20,6 +20,9 @@ def PF_eigen(matrix, vector):
 	
 	M = Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvalues(), key=abs)
+	# Make sure that the eigenvalue that we've got is real.
+	if eigenvalue.imag() != 0:
+		raise Flipper.AssumptionError('Largest eigenvalue is not real.')
 	
 	# We need to be a little careful, for some reason sage needs a variable name if eigenvalue is a rational.
 	polynomial = eigenvalue.minpoly()  # if eigenvalue not in QQ else eigenvalue.minpoly('x')
@@ -29,10 +32,10 @@ def PF_eigen(matrix, vector):
 	K = NumberField(polynomial, 'L', embedding=eigenvalue.n())
 	[lam] = K.gens()
 	
-	orthogon_kernel_basis = gram_schmidt((M - lam).right_kernel_matrix().rows())
-	row_lengths = [dot(row, row) for row in orthogon_kernel_basis] 
-	linear_combination = [dot(vector, row) / row_length for row, row_length in zip(orthogon_kernel_basis, row_lengths)]
-	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogon_kernel_basis)) for i in range(matrix.width)]
+	orthogonal_kernel_basis = gram_schmidt((M - lam).right_kernel_matrix().rows())
+	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis] 
+	linear_combination = [dot(vector, row) / row_length for row, row_length in zip(orthogonal_kernel_basis, row_lengths)]
+	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
 	
 	scale2 = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
 	eigenvector_coefficients = [[int(scale2 * x) for x in v.polynomial().coeffs()] for v in eigenvector]

@@ -13,7 +13,7 @@ import Flipper
 # 1, \lambda, ..., \lambda^{d-1}. Currently only Sage can do this.
 
 class NumberField(object):
-	''' This represents a number field. '''
+	''' This represents a number field QQ(\lambda). '''
 	def __init__(self, polynomial=None):
 		if polynomial is None: polynomial = Flipper.kernel.Polynomial([-1, 1])
 		
@@ -76,7 +76,6 @@ class NumberFieldElement(object):
 		# Let [a_i] := self.linear_combination, [\alpha_i] := N._algebraic_approximations[i].
 		# Let \alpha := sum(a_i * \alpha_i).
 		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
-		self.log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
 		self._algebraic_approximation = None
 		self.current_accuracy = -1
 	
@@ -84,6 +83,8 @@ class NumberFieldElement(object):
 		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(self.algebraic_approximation())
 	def __iter__(self):
 		return iter(self.linear_combination)
+	def __len__(self):
+		return self.number_field.degree
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	def __bool__(self):
@@ -136,9 +137,6 @@ class NumberFieldElement(object):
 				raise TypeError('Cannot divide elements of different number fields.')
 			
 			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
-			# return self.algebraic_approximation(additive_error=3) / other.algebraic_approximation(additive_error=3) 
-		elif isinstance(other, Flipper.kernel.types.Integer_Type):
-			return self.algebraic_approximation(additive_error=3) / other
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
@@ -176,10 +174,12 @@ class NumberFieldElement(object):
 	def is_zero(self):
 		return not self.is_positive() and not self.is_negative()
 	
-	def algebraic_approximation(self, accuracy=None, multiplicative_error=1, additive_error=0):
-		# If no accuracy is given, calculate how much accuracy is needed to ensure that
-		# the AlgebraicApproximation produced is well defined.
+	def algebraic_approximation(self, accuracy=0):
+		''' Returns an AlgebraicApproximation of this element which is correct to at least the 
+		requested accuracy. If no accuracy is given then accuracy will be chosen such that 
+		the approximation will determine a unique algebraic number. '''
 		
+		# Let:
 		N = self.number_field
 		d = N.degree
 		# Let [I_i] := [\alpha_i.interval] and I := \alpha.interval = sum(a_i * I_i).
@@ -196,17 +196,12 @@ class NumberFieldElement(object):
 		#	k >= 2 * sum(h(a_i)) + sum(h(\alpha_i)) + log(d) + (d-1) + (d-1) log(2).
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
-		#	2*self.log_height + d.
-		if accuracy is None: accuracy = int(2 * self.log_height + d) + 1
-		accuracy = accuracy * multiplicative_error + additive_error
+		#	2 * (self.log_height + d).
+		log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
+		accuracy = max(accuracy, int(2 * log_height + d) + 1)
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
-			# Watch out there is an all zeros case to worry about. We'll be careful but this should never be used though.
-			if all(a == 0 for a in self):
-				self._algebraic_approximation = Flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(0, 2*accuracy, self.number_field.degree, 1)
-			else:
-				self._algebraic_approximation = sum(a * generator_approximation for a, generator_approximation in zip(self, N.lmbda_approximations(accuracy)))
-			
+			self._algebraic_approximation = Flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
 			# Now if accuracy was not None then self.current_accuracy >= accuracy.
 		

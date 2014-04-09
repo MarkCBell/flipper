@@ -21,6 +21,7 @@ def main(n=100):
 		#word = 'fCbaAdDafeEdbcaabABb'
 		#word = 'baccabebededdccceeba'
 		#word = 'FacBcDBACfbDAbCAfEdb'
+		print('%d: %s' % (i, word), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()
 		try:
@@ -28,7 +29,7 @@ def main(n=100):
 		except Flipper.AssumptionError:
 			print('\tPeriodic.')
 		times[word] = time() - t
-		print('%d: %s, Time: %0.3f' % (i, word, times[word]))
+		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
 

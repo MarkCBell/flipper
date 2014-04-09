@@ -38,14 +38,15 @@ class NumberField(object):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			new_accuracy = max(2 * accuracy, int(self.degree * self.log_height + 10))
-			if self._algebraic_approximations[1] is None:
-				self._algebraic_approximations[1] = self.polynomial.algebraic_approximate_leading_root(2)
-			
-			accuracy_needed = new_accuracy + 2 * self.degree * self._algebraic_approximations[1].log_plus + 10  # Check this !?!
-			AA = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
-			# !?! Hmmm, there is a bug in the line below. Change_denominator doesn't take an accuracy.
-			self._algebraic_approximations = [(AA**i).change_denominator(new_accuracy) for i in range(self.degree+1)]
-			self.current_accuracy = min(approx.interval.accuracy for approx in self._algebraic_approximations)
+			# We will compute a really accurate approximation of lmbda.
+			accuracy_needed = new_accuracy + 2 * self.degree * self.log_height + 10  # Check this !?!
+			lmbda = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
+			# So that the accuracy of lmbda**i is at least new_accuracy.
+			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree+1)]
+			self._algebraic_approximations = [AA.change_accuracy(new_accuracy) for AA in self._algebraic_approximations]
+			largest_precision = max(AA.interval.precision for AA in self._algebraic_approximations)
+			self._algebraic_approximations = [AA.change_denominator(largest_precision) for AA in self._algebraic_approximations]
+			self.current_accuracy = min(AA.interval.accuracy for AA in self._algebraic_approximations)
 			assert(self.current_accuracy >= new_accuracy)
 		
 		return self._algebraic_approximations

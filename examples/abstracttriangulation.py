@@ -20,8 +20,9 @@ class ExampleSurface(object):
 		else:
 			inverse_mapping_classes = [h.inverse() for h in mapping_classes]
 			self.mapping_classes = dict(list(zip(ascii_lowercase, mapping_classes)) + list(zip(ascii_uppercase, inverse_mapping_classes)))
-	def random_word(self, length):
-		return ''.join(choice(list(self.mapping_classes.keys())) for _ in range(length))
+	def random_word(self, length, positive=True, negative=True):
+		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper())]
+		return ''.join(choice(available_letters) for _ in range(length))
 	def mapping_class(self, word):
 		if isinstance(word, Flipper.Integer_Type):
 			word = self.get_random_word(word)

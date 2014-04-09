@@ -100,13 +100,13 @@ class Polynomial(object):
 			return NotImplemented
 	def __mod__(self, other):
 		Q, R, k = self.divmod(other)
-		return R
+		return R if k >= 0 else -R
 	def __div__(self, other):
 		# Assumes that the division is perfect.
 		Q, R, k = self.divmod(other)
 		if not R.is_zero():
 			raise ValueError('Polynomials do not divide.')
-		return Q
+		return Q if k >= 0 else -Q
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __floordiv__(self, other):
@@ -142,6 +142,7 @@ class Polynomial(object):
 	def num_roots(self, interval, chain=None):
 		''' Returns the number of roots of self in the interior of the given interval. '''
 		if chain is None: chain = self.sturm_chain()
+		
 		lower_signs, upper_signs = zip(*[f.signs_at_interval_endpoints(interval) for f in chain])
 		lower_non_zero_signs = [x for x in lower_signs if x != 0]
 		upper_non_zero_signs = [x for x in upper_signs if x != 0]
@@ -167,19 +168,20 @@ class Polynomial(object):
 		# Start by building a really tiny interval containing the midpoint of this one.
 		J = interval.midpoint(10)
 		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step. Could throw division by zero.
-		L = K.change_denominator(K.accuracy * 2)  # Stop the precision from blowing up too much.
-		return L.intersect(interval)
+		L = K.change_denominator(2 * K.accuracy)  # Stop the precision from blowing up too much.
+		return L.intersect(interval)  # This can throw a ValueError if the intersection is empty.
 	
 	def converge_iterate(self, interval, accuracy):
-		chain = self.sturm_chain()
+		chain = None
 		while interval.accuracy <= accuracy:
 			old_accuracy = interval.accuracy
 			try:
 				interval = self.NR_iterate(interval)
-			except ZeroDivisionError:
+			except (ZeroDivisionError, ValueError):
 				pass
 			
 			if interval.accuracy == old_accuracy:
+				if chain is None: chain = self.sturm_chain()
 				interval = self.subdivide_iterate(interval, chain)
 		
 		return interval

@@ -350,6 +350,14 @@ class EncodingSequence(object):
 			#new_curves, curves = [self**(i+1) * new_curve for new_curve in new_curves], new_curves
 			#new_curves, curves = [self**(2**i) * new_curve for new_curve in new_curves], new_curves
 			if verbose: print(curves[0])
+			for curve in curves:
+				smallest = min(x for x in curve if x > 0)
+				vector = [int(round(float(x) / (i+1), 0)) for x in curve]
+				small_curve = triangulation.lamination(vector, remove_peripheral=True)
+				if self * small_curve == small_curve:
+					print('Small invariant curve found.')  # !?! Remove this later.
+					return small_curve
+			
 			for new_curve, curve in zip(new_curves, curves):
 				if projective_difference(new_curve, curve, 1000):
 					partial_function = self.applied_function(curve)
@@ -364,14 +372,6 @@ class EncodingSequence(object):
 							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():
 								return invariant_lamination
-			
-			for curve in curves:
-				smallest = min(x for x in curve if x > 0)
-				vector = [int(round(float(x) / (i+1), 0)) for x in curve]
-				small_curve = triangulation.lamination(vector, remove_peripheral=True)
-				if self * small_curve == small_curve:
-					print('Small invariant curve found.')  # !?! Remove this later.
-					return small_curve
 		
 		raise Flipper.ComputationError('Could not estimate invariant lamination.')
 	

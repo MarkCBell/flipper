@@ -355,7 +355,7 @@ class EncodingSequence(object):
 						eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
 						# If we actually found an invariant lamination then return it.
 						if condition_matrix.nonnegative_image(eigenvector):
-							invariant_lamination = self.source_triangulation.lamination(eigenvector, rescale=True)
+							invariant_lamination = self.source_triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():
 								return invariant_lamination
 		
@@ -398,7 +398,6 @@ class EncodingSequence(object):
 					best_score = score(imgs)
 			
 			images = [other_encodings[best_word[0]] * curve for curve in images]
-			print(best_word, score(images))
 		
 		return True
 

@@ -46,7 +46,8 @@ class Interval(object):
 	def approximate_string(self, accuracy=None):
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		I = self.change_denominator(accuracy)
-		s = str((I.lower + I.upper) // 2).zfill(accuracy + 2)
+		v = (I.lower + I.upper) // 2
+		s = str(v).zfill(accuracy + (2 if v < 0 else 1))
 		return '%s.%s?' % (s[:-I.precision], s[-I.precision:])
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
@@ -59,6 +60,16 @@ class Interval(object):
 			return self.copy()
 		elif d < 0:
 			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
+	def change_accuracy(self, new_accuracy):
+		assert(isinstance(new_accuracy, Flipper.Integer_Type))
+		assert(new_accuracy <= self.accuracy)
+		return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
+	def simplify(self):
+		d = int(log(self.upper - self.lower))
+		if d > 1:
+			return self.change_denominator(self.precision - (d-1))
+		else:
+			return self
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper

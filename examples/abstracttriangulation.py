@@ -130,9 +130,12 @@ def Example_36(word=None):
 	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
 
 # We also provide a dictionary to allow quick lookup of an example by name.
-SURFACES = {'S_1_1':Example_S_1_1, 
-			'S_1_2':Example_S_1_2,
-			'S_2_1':Example_S_2_1,
-			'S_3_1':Example_S_3_1
+SURFACES = {'S_1_1': Example_S_1_1, 
+			'S_1_2': Example_S_1_2,
+			'S_2_1': Example_S_2_1,
+			'S_3_1': Example_S_3_1,
+			'E_12': Example_12,
+			'E_24': Example_24,
+			'E_36': Example_36
 			}
 

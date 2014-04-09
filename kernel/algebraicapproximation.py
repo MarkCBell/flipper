@@ -59,6 +59,10 @@ class AlgebraicApproximation(object):
 	
 	def change_denominator(self, new_denominator):
 		return AlgebraicApproximation(self.interval.change_denominator(new_denominator), self.degree, self.log_height)
+	def change_accuracy(self, new_accuracy):
+		return AlgebraicApproximation(self.interval.change_accuracy(new_accuracy), self.degree, self.log_height)
+	def simplify(self):
+		return AlgebraicApproximation(self.interval.simplify(), self.degree, self.log_height)
 	
 	def __neg__(self):
 		return AlgebraicApproximation(-self.interval, self.degree, self.log_height)

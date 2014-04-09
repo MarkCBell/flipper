@@ -184,20 +184,18 @@ class Polynomial(object):
 		return interval
 	
 	def increase_accuracy(self, accuracy):
-		# Eventually we will find the interval ourselves, however at the minute sage is much faster so
-		# we'll just use that.
+		# You cannot set the accuracy to less than this:
+		accuracy = max(int(accuracy), int(log(self.degree)) + 2 * int(self.log_height) + 20, 1)  # !?! Check this.
 		if self.accuracy < accuracy:
 			self.interval = self.converge_iterate(self.interval, accuracy)
 			self.accuracy = self.interval.accuracy
+			assert(self.accuracy >= accuracy)  # Let's just make sure.
 	
 	def algebraic_approximate_leading_root(self, accuracy):
-		# Returns an algebraic approximation of this polynomials leading root raised to the requested power
-		# which is correct to at least accuracy decimal places.
-		accuracy = max(int(accuracy), int(log(self.degree)) + 2 * int(self.log_height) + 20, 1)  # !?! Check this.
+		# Returns an algebraic approximation of this polynomials leading root which has at least
+		# the requested accuracy.
 		self.increase_accuracy(accuracy)
-		AA = Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
-		assert(AA.interval.accuracy >= accuracy)  # Let's just make sure.
-		return AA
+		return Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
 	
 	def companion_matrix(self):
 		# Assumes that this polynomial is irreducible and monic.

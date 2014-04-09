@@ -271,7 +271,7 @@ class FlipperApp(object):
 		multicurve_string = lamination.is_multicurve()
 		twistable_string = lamination.is_twistable()
 		halftwistable_string = lamination.is_halftwistable()
-		filling_string = '??' if not multicurve_string else 'False'
+		filling_string = '?' if not multicurve_string else 'False'
 		
 		# Set up all the properties to appear under this label.
 		# We will also set up self.lamination_names to point each item under this to <name> too.
@@ -307,7 +307,7 @@ class FlipperApp(object):
 		order = mapping_class.order()
 		order_string = 'Infinite' if order == 0 else str(order)
 		type_string = '?' if order == 0 else 'Periodic'
-		invariant_string = '??' if order == 0 else 'x'
+		invariant_string = '?' if order == 0 else 'x'
 		
 		# Set up all the properties to appear under this label.
 		# We will also set up self.mapping_class_names to point each item under this to <name> too.
@@ -1142,7 +1142,8 @@ class FlipperApp(object):
 			composition, mapping_class = self.create_composition(return_name=True)
 			if mapping_class is not None:
 				try:
-					NT_type = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					# NT_type = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					NT_type = Flipper.application.apply_progression(mapping_class.NT_type_alternate)
 					
 					if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:
 						tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)

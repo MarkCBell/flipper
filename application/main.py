@@ -189,6 +189,7 @@ class FlipperApp(object):
 		self.parent.bind('<%s-l>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_lamination())
 		self.parent.bind('<%s-t>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_twist())
 		self.parent.bind('<%s-h>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_halftwist())
+		self.parent.bind('<%s-i>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_isometry())
 		self.parent.bind('<%s-m>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_composition())
 		self.parent.bind('<Key>', self.parent_key_press)
 		

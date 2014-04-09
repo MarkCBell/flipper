@@ -140,6 +140,7 @@ class Polynomial(object):
 		return sturm_chain
 	
 	def num_roots(self, interval, chain=None):
+		''' Returns the number of roots of self in the interior of the given interval. '''
 		if chain is None: chain = self.sturm_chain()
 		lower_signs, upper_signs = zip(*[f.signs_at_interval_endpoints(interval) for f in chain])
 		lower_non_zero_signs = [x for x in lower_signs if x != 0]

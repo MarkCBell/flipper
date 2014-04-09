@@ -17,7 +17,7 @@ class Lamination(object):
 			if any(peripheral.values()):
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
-		self.labels = [str(v) for v in self.vector]
+		#self.labels = [str(v) for v in self.vector]
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -309,7 +309,7 @@ class Lamination(object):
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
-			print(len(flips), edge_index)
+			#print(len(flips), edge_index)
 			
 			if lamination[edge_index] == 0:
 				try:
@@ -322,7 +322,7 @@ class Lamination(object):
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
+					#print('!!!!!!!!!!!!!!!!!!!!!!!!!!')
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():

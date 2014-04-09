@@ -1,5 +1,6 @@
 
 from __future__ import print_function
+from time import time
 
 import Flipper
 
@@ -7,7 +8,8 @@ NT_TYPE_PERIODIC = Flipper.kernel.encoding.NT_TYPE_PERIODIC
 NT_TYPE_REDUCIBLE = Flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
-def main(verbose=False):
+def main(verbose=False, timings=False):
+	start_time = time()
 	# Add more tests here.
 	tests = [
 		('S_1_2', 'a', NT_TYPE_REDUCIBLE),
@@ -16,8 +18,9 @@ def main(verbose=False):
 		('S_1_2', 'aB', NT_TYPE_REDUCIBLE), 
 		('S_1_2', 'bbaCBAaBabcABB', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
-		('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Too slow.
-		('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Too slow.
+		# ('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Really slow.
+		# ('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
+		('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
 		]
 	
 	try:
@@ -33,7 +36,11 @@ def main(verbose=False):
 	except AssertionError:
 		return False
 	
+	if timings and verbose: print('Time taken: %0.3fs' % (time() - start_time))
+	print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':
-	print(main(verbose=True))
+	import cProfile
+	cProfile.run('main()', 'stats')
+	#print(main(verbose=True, timings=True))

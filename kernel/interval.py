@@ -19,20 +19,16 @@ import Flipper
 #	acc(x * I) >= acc(I) - log+(x)
 
 class Interval(object):
-	''' This represents an open interval. '''
+	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
-		''' This is the open interval (lower*10**-precision, upper*10**-precision. '''
-		if lower == upper: 
-			lower, upper = lower-1, upper+1
-		assert(lower < upper)
+		assert(lower <= upper)
 		
 		self.lower = lower
 		self.upper = upper
 		self.precision = precision
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
-		self.accuracy = self.precision - int(log(self.upper - self.lower))
-		self.log_plus = int(max(log(max(abs(self.lower), 1)) - self.precision, log(max(abs(self.upper), 1)) - self.precision, 1)) + 1 
+		self.accuracy = float('inf') if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
 	
 	def __repr__(self):
 		return self.approximate_string(6)
@@ -57,7 +53,7 @@ class Interval(object):
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
 		elif d == 0:
-			return self.copy()
+			return self
 		elif d < 0:
 			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
 	def change_accuracy(self, new_accuracy):
@@ -79,6 +75,13 @@ class Interval(object):
 			return NotImplemented
 	def __neg__(self):
 		return Interval(-self.upper, -self.lower, self.precision)
+	def __abs__(self):
+		if self.lower > 0:  # Interval is entirely positive.
+			return self
+		elif self.upper < 0:  # Interval is entirely negative.
+			return -self
+		if self.lower <= 0 <= self.upper:  # Interval straddles 0.
+			return Interval(0, max(-self.lower, self.upper), self.precision)
 	def __add__(self, other):
 		if isinstance(other, Interval):
 			common_precision = max(self.precision, other.precision)
@@ -113,8 +116,6 @@ class Interval(object):
 			return Interval(min(values), max(values), 2*common_precision)
 		elif isinstance(other, Flipper.kernel.Integer_Type):
 			# Multiplication by 0 could cause problems here as these represent open intervals.
-			if other == 0: return 0
-			
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -137,7 +138,7 @@ class Interval(object):
 			if 0 in other:
 				raise ZeroDivisionError  # Denominator contains 0.
 			# !?! RECHECK THIS!
-			common_precision = max(self.precision, other.precision) + other.log_plus
+			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)

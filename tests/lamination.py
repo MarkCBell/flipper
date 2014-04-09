@@ -16,7 +16,8 @@ def main(verbose=False):
 		('S_1_2', 'aB', NT_TYPE_REDUCIBLE), 
 		('S_1_2', 'bbaCBAaBabcABB', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
-		('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV)
+		('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Too slow.
+		('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Too slow.
 		]
 	
 	try:

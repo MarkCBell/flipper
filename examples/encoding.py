@@ -5,7 +5,7 @@ from time import time
 import Flipper
 import Flipper.application
 
-def main(n=100, verbose=False, show=False):
+def main(n=100, show=False):
 	times = {}
 	S = Flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(n):
@@ -30,10 +30,7 @@ def main(n=100, verbose=False, show=False):
 			Flipper.application.start((L, M))
 		
 		t = time()
-		try:
-			mapping_class.invariant_lamination(verbose=verbose)
-		except Flipper.AssumptionError:
-			if verbose: print('\tPeriodic.')
+		mapping_class.invariant_lamination()
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))

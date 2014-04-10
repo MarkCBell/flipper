@@ -37,5 +37,9 @@ def main(n=100, show=False):
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
 
 if __name__ == '__main__':
-	main()
+	import sys
+	if len(sys.argv) > 1:
+		main(int(sys.argv[1]))
+	else:
+		main()
 

@@ -43,6 +43,25 @@ class Lamination(object):
 		# This should be done better.
 		return hash(tuple(self.vector))
 	
+	def __add__(self, other):
+		if isinstance(other, Lamination):
+			if other.abstract_triangulation == self.abstract_triangulation:
+				return self.abstract_triangulation.lamination([x + y for x, y in zip(self, other)], remove_peripheral=True)
+			else:
+				raise ValueError('Laminations must be on the same triangulation to add them.')
+		else:
+			return self.abstract_triangulation.lamination([x + other for x in self], remove_peripheral=True) 
+	def __radd__(self, other):
+		return self + other
+	
+	def __mul__(self, other):
+		if isinstance(other, Flipper.Integer_Type):
+			return self.abstract_triangulation.lamination([other * x for x in self])
+		else:
+			return NotImplemented
+	def __rmul__(self, other):
+		return self * other
+	
 	def is_empty(self):
 		return not any(self)
 	

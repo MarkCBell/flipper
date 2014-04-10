@@ -347,7 +347,7 @@ class EncodingSequence(object):
 			for curve in new_curves:
 				smallest = min(x for x in curve if x > 0)
 				vector = [QQ.element([int(round(float(x) / (i+1), 0))]) for x in curve]
-				small_curve = triangulation.lamination(vector, remove_peripheral=True)
+				small_curve = triangulation.lamination(vector)
 				if self * small_curve == small_curve:
 					return small_curve
 			
@@ -363,7 +363,7 @@ class EncodingSequence(object):
 						else:
 							# If we actually found an invariant lamination then return it.
 							if condition_matrix.nonnegative_image(eigenvector):
-								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
+								invariant_lamination = triangulation.lamination(eigenvector)
 								invariant_lamination = sum([self**(k+1) * invariant_lamination for k in range(j)])
 								if not invariant_lamination.is_empty():
 									return invariant_lamination

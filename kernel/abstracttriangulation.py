@@ -274,8 +274,8 @@ class AbstractTriangulation(object):
 		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0
 	
 	# Laminations we can build on the triangulation.
-	def lamination(self, vector, remove_peripheral=False):
-		return Flipper.kernel.Lamination(self, vector, remove_peripheral)
+	def lamination(self, vector):
+		return Flipper.kernel.Lamination(self, vector)
 	
 	def empty_lamination(self):
 		return self.lamination([0] * self.zeta)

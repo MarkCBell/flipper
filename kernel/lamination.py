@@ -4,20 +4,18 @@ import Flipper
 class Lamination(object):
 	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
 	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation. 
-	If rescale is True then the Lamination is allowed to rescale its weights (by a factor of 2) in order to
-	remove any peripheral components. If not then there must not be any. '''
-	def __init__(self, abstract_triangulation, vector, remove_peripheral=False):
+	The Lamination is allowed to rescale its weights (by a factor of 2) in order to remove any peripheral i
+	components. '''
+	def __init__(self, abstract_triangulation, vector):
 		self.abstract_triangulation = abstract_triangulation
 		self.zeta = self.abstract_triangulation.zeta
 		assert(Flipper.kernel.matrix.nonnegative(vector))
-		if remove_peripheral:
 		# Compute how much peripheral component there is on each corner class.
-			peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
-			# If there is any...
-			if any(peripheral.values()):
-				vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
+		peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
+		# If there is any remove it.
+		if any(peripheral.values()):
+			vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
-		#self.labels = [str(v) for v in self.vector]
 	
 	def copy(self):
 		return Lamination(self.abstract_triangulation, list(self.vector))
@@ -46,11 +44,11 @@ class Lamination(object):
 	def __add__(self, other):
 		if isinstance(other, Lamination):
 			if other.abstract_triangulation == self.abstract_triangulation:
-				return self.abstract_triangulation.lamination([x + y for x, y in zip(self, other)], remove_peripheral=True)
+				return self.abstract_triangulation.lamination([x + y for x, y in zip(self, other)])
 			else:
 				raise ValueError('Laminations must be on the same triangulation to add them.')
 		else:
-			return self.abstract_triangulation.lamination([x + other for x in self], remove_peripheral=True) 
+			return self.abstract_triangulation.lamination([x + other for x in self]) 
 	def __radd__(self, other):
 		return self + other
 	

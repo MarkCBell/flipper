@@ -351,7 +351,7 @@ class EncodingSequence(object):
 				if self * small_curve == small_curve:
 					return small_curve
 			
-			for j in range(1, len(curves)):
+			for j in range(1, min(triangulation.max_order, len(curves))):
 				for new_curve, curve in zip(new_curves, curves[-j]):
 					if projective_difference(new_curve, curve, 1000):
 						partial_function = (self**j).applied_function(curve)

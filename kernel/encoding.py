@@ -309,38 +309,29 @@ class EncodingSequence(object):
 			except Flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 	
-	def invariant_lamination(self, verbose=False):
+	def invariant_lamination(self):
 		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
-		# (with entries of algebraic_type) which is projectively invariant under this mapping class. 
+		# (with entries in a NumberField) which is projectively invariant under this mapping class. 
+		# If it cannot find one then it raises a ComputationError.
 		#
 		# This was originally designed to be called only with pseudo-Anosov mapping classes 
-		# but should now work with reducibles too. However, this does assume that 
-		# the mapping class is not periodic.
-		# In summary, if the mapping class is:
-		#	periodic then an AssumptionError will be thrown,
-		#	reducible then a ComputationError might be thrown or an invariant lamination will be returned, or
-		#	pseudo-Anosov then a ComputationError might be thrown or an invariant lamination will be returned.
+		# but should now work with periodics and reducibles too. 
 		#
-		# !?! THIS IS ALL OUT OF DATE.
 		# The process starts with several curves on the surface and repeatedly applies the map until 
-		# they appear to projectively converge. Finally Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
-		# is used to find the nearby projective fixed point. Technically if we are in the reducible case we
-		# might need to solve some LP problem over QQbar, but we don't know how to do this (quickly) so we
-		# raise an AssumptionError - signifying that our mapping class is not pseudo-Anosov.
+		# they appear to projectively similar to a previous iteration. 
+		# Finally it uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
+		# to find the nearby projective fixed point. 
 		#
-		# If these curves do not appear to converge, this is detected and a ComputationError thrown. 
-		#
-		# Note: in most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
+		# Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
 		# 100 iterations and a ComputationError is thrown then it's actually extremely likely that the 
 		# map was not pseudo-Anosov.
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		triangulation = self.source_triangulation
-		if self.is_periodic():
-			order = self.order()
-			raise Flipper.AssumptionError('Mapping class is periodic.')
 		
 		curves = self.source_triangulation.key_curves()
+		# We will need the number field QQ for constructing small invariant curves.
+		QQ = Flipper.kernel.NumberField()
 		
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
@@ -349,13 +340,13 @@ class EncodingSequence(object):
 		
 		curves = [[self * curve for curve in curves]]
 		for i in range(50):
-			new_curves = [self**(1) * curve for curve in curves[-1]]
-			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]
-			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]
-			if verbose: print(new_curves[0])
+			# Differnt schemes for taking steps.
+			new_curves = [self**(1) * curve for curve in curves[-1]]  # Constant.
+			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]  # Linear.
+			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]  # Exponential.
 			for curve in new_curves:
 				smallest = min(x for x in curve if x > 0)
-				vector = [int(round(float(x) / (i+1), 0)) for x in curve]
+				vector = [QQ.element([int(round(float(x) / (i+1), 0))]) for x in curve]
 				small_curve = triangulation.lamination(vector, remove_peripheral=True)
 				if self * small_curve == small_curve:
 					return small_curve
@@ -392,10 +383,16 @@ class EncodingSequence(object):
 		return new_lamination.weight() / lamination.weight()
 	
 	def splitting_sequence(self):
+		# Assumes that the mapping class is pseudo-Anosov. 
+		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
+			raise Flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
-		splitting = lamination.splitting_sequence(target_dilatation=dilatation)
+		try:
+			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
+		except Flipper.AssumptionError:  # lamination is not filling.
+			raise Flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		# new_dilatation = splitting.dilatation()
 		return splitting
 	

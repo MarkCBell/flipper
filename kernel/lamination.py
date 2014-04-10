@@ -305,8 +305,8 @@ class Lamination(object):
 		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None):
-		# Computes the splitting sequence of this lamination until we reach a periodic sequence (with the
-		# required dilatation if given).
+		# Computes the splitting sequence of this lamination until we reach
+		# a periodic sequence (with the required dilatation if given).
 		# We assume that each entry is a NumberFieldElement and that this is a filling lamination. 
 		# If not, it will discover this along the way and throw an AssumptionFlipper.
 		

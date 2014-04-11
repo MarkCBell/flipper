@@ -203,16 +203,14 @@ class Lamination(object):
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
 	
-	def encode_puncture_trigons(self):
-		''' Returns an encoding from this triangulation to one in which all trigon regions of this
-		lamination have been punctured. '''
-		to_puncture = []
-		for triangle in self.abstract_triangulation:
-			a, b, c = triangle.edge_indices
-			if self[a] + self[b] > self[c] and self[b] + self[c] > self[a] and self[c] + self[a] > self[b]:
-				to_puncture.append(triangle)
+	def tripod_regions(self):
+		''' Returns a list of all triangles in which this lamination looks
+		like a tripod. That is, each dual weight > 0. '''
 		
-		return self.abstract_triangulation.encode_puncture_triangles(to_puncture)
+		def is_tripod(triangle):
+			return all(self[triangle[i]] + self[triangle[i+1]] > self[triangle[i+2]] for i in range(3))
+		
+		return [triangle for triangle in self.abstract_triangulation if is_tripod(triangle)]
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -284,35 +282,53 @@ class Lamination(object):
 		
 		return Lamination(flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
-	def splitting_sequence(self, target_dilatation=None):
-		# Computes the splitting sequence of this lamination until we reach
-		# a periodic sequence (with the required dilatation if given).
-		# We assume that each entry is a NumberFieldElement and that this is a filling lamination. 
-		# If not, it will discover this along the way and throw an Assumptionflipper.
+	def splitting_sequence(self, target_dilatation=None, puncture_first=None):
+		''' Returns the splitting sequence associated to this laminations.
+		This is the list of edges of maximal weight until you reach a
+		periodic sequence (with required dilatation if given).
 		
-		# Check if vector is obviously reducible.
+		The splitting sequence will have self.preperiodic_encoding set to
+		None iff an edge collapse occurs. This is because we don't (yet) 
+		know how to describe this by a PLFunction but only happens because
+		we punctured too many triangles to begin with.
+		
+		This requires the entries to be NumberFieldElements (over the same 
+		NumberField).
+		
+		This assumes that the lamination is filling. If not then it will
+		discover this along the way.
+		'''
+		
+		# Check if the lamination is obviously non-filling.
 		if any(v == 0 for v in self.vector):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
-		# Puncture out all trigon regions.
-		lamination = self.encode_puncture_trigons() * self
+		# If not given, puncture all the triangles where the lamination is a tripod.
+		if puncture_first is None: puncture_first = self.tripod_regions()
+		puncture_encoding = self.abstract_triangulation.encode_puncture_triangles(puncture_first)
+		lamination = puncture_encoding * self
 		
 		laminations = [lamination]
 		flips = []
-		encodings = []
+		encodings = [puncture_encoding]
 		seen = {lamination.projective_hash():[0]}
 		while True:
-			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])  # Find the index of the largest entry.
+			# Find the index of the largest entry.
+			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])
 			E = lamination.abstract_triangulation.encode_flip(edge_index)
 			lamination = E * lamination
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
 			
+			# Check if we have created any edges of weight 0. 
+			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
+					# We cannot provide the preperiodic encoding so just block it by sticking in a None.
+					encodings.append(None)
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
 			
@@ -323,7 +339,23 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							return flipper.kernel.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+							p_laminations = laminations[index:]
+							p_flips = flips[index:]
+							if None in encodings:
+								pp_encoding = None
+								p_encoding = None
+							else:
+								pp_encoding = encodings[0]
+								for index2, encoding in enumerate(encodings[1:index+1]):
+									pp_encoding = encoding * pp_encoding  # Check this is the correct side to do the mul on.
+								p_encoding = encodings[index+1]
+								for encoding in encodings[index+2:]:
+									p_encoding = encoding * p_encoding
+								assert(pp_encoding.source_triangulation == self.abstract_triangulation)
+								assert(pp_encoding.target_triangulation == p_laminations[0].abstract_triangulation)
+								assert(p_encoding.source_triangulation == p_laminations[0].abstract_triangulation)
+								assert(p_encoding.target_triangulation == p_laminations[-1].abstract_triangulation)
+							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

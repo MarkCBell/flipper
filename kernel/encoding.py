@@ -49,12 +49,15 @@ class PLFunction(object):
 		return iter(self.partial_functions)
 	def __str__(self):
 		return '\n'.join(str(function) for function in self.partial_functions)
+	def __repr__(self):
+		return 'PLfunction: %s --> %s' % (self.source_triangulation, self.target_triangulation)
 	def __len__(self):
 		return len(self.partial_functions)
 	def __getitem__(self, index):
 		return self.partial_functions[index]
 	def __eq__(self, other):
-		return self.source_triangulation == other.source_triangulation and \
+		return isinstance(other, PLFunction) and \
+			self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
 			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
 	def __hash__(self):
@@ -105,13 +108,13 @@ class EncodingSequence(object):
 	def __init__(self, sequence):
 		''' This represents the composition of several PLFunction. '''
 		# Try and make a shorter sequence.
-		seq = []
-		for f in sequence:
-			if seq and seq[-1] == f.inverse():
-				seq.pop()
-			else:
-				seq.append(f)
-		sequence = seq
+		#seq = []
+		#for f in sequence:
+		#	if seq and seq[-1] == f.inverse():
+		#		seq.pop()
+		#	else:
+		#		seq.append(f)
+		#sequence = seq
 		
 		self.sequence = sequence
 		assert(all(isinstance(x, PLFunction) for x in self.sequence))
@@ -123,8 +126,10 @@ class EncodingSequence(object):
 	
 	def __len__(self):
 		return len(self.sequence)
-	def __str__(self):
-		return '\n###\n'.join(str(A) for A in self.sequence)
+	#def __str__(self):
+	#	return '\n###\n'.join(str(A) for A in self.sequence)
+	def __repr__(self):
+		return 'PLfunction (comp): %s --> %s' % (self.source_triangulation, self.target_triangulation)
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):
@@ -135,7 +140,8 @@ class EncodingSequence(object):
 		else:
 			raise TypeError('Invalid argument type.')
 	def __eq__(self, other):
-		return self.source_triangulation == other.source_triangulation and \
+		return isinstance(other, EncodingSequence) and \
+			self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
 			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
 	def __hash__(self):
@@ -402,6 +408,37 @@ class EncodingSequence(object):
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+		else:
+			# We might need to do more work to get the closing isometry.
+			if splitting.closing_isometry is None:
+				# If we installed too many punctures by default then
+				# the preperiodic encoding wont make it through.
+				if splitting.preperiodic is None:
+					# So we have to do it again with fewer.
+					initial_triangulation = splitting.laminations[0].abstract_triangulation
+					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
+					tripods = lamination.tripod_regions()
+					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
+					splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
+				
+				# Find the correct isometry (isom) which completes the square (pentagon?).
+				# Remember: The periodic goes in the _opposite_ direction to self so the
+				# diagram looks like this:
+				#
+				#   T ------------ self^{-1} ------------> T
+				#    \                                      \
+				#  preperiodic                            preperiodic
+				#      \                                      \
+				#       V                                      V 
+				#       T' --- periodic ---> T'' --- isom ---> T'
+				#
+				preperiodic, periodic = splitting.preperiodic, splitting.periodic
+				for isom in splitting.closing_isometries:
+					if preperiodic * self.inverse() == isom.encode_isometry() * periodic * preperiodic:
+						splitting.closing_isometry = isom
+						break
+				else:
+					assert(False)  # There was no way to close the square!?
 		# new_dilatation = splitting.dilatation()
 		return splitting
 	

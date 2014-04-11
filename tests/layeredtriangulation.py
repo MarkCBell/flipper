@@ -15,17 +15,23 @@ def main():
 		return True
 	
 	tests = [
-		('aB', 'm003'), ('aB', 'm004'),
-		('Ba', 'm003'), ('Ba', 'm004'),
-		('Ab', 'm003'), ('Ab', 'm004'),
-		('bA', 'm003'), ('bA', 'm004')
+		('S_1_1', 'aB', 'm003'), ('S_1_1', 'aB', 'm004'),
+		('S_1_1', 'Ba', 'm003'), ('S_1_1', 'Ba', 'm004'),
+		('S_1_1', 'Ab', 'm003'), ('S_1_1', 'Ab', 'm004'),
+		('S_1_1', 'bA', 'm003'), ('S_1_1', 'bA', 'm004'),
+		('S_2_1', 'aaabcd', 'm036')
 		]
 	
 	try:
-		for word, target_manifold in tests:
-			Ms = flipper.examples.abstracttriangulation.Example_S_1_1().mapping_class(word).splitting_sequence().snappy_manifolds()
+		for surface, word, target_manifold in tests:
+			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			N = snappy.Manifold(target_manifold)
-			assert(any(M.is_isometric_to(N) for M in Ms))
+			if surface == 'S_1_1' or surface == 'S_0_4':
+				Ms = S.mapping_class(word).splitting_sequence().snappy_manifolds()
+				assert(any(M.is_isometric_to(N) for M in Ms))
+			else:
+				M = S.mapping_class(word).splitting_sequence().snappy_manifold()
+				assert(M.is_isometric_to(N))
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except flipper.ComputationError:

@@ -18,6 +18,7 @@ def main(verbose=False, timings=False):
 		('S_1_2', 'aB', NT_TYPE_REDUCIBLE), 
 		('S_1_2', 'bbaCBAaBabcABB', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
+		('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
 		# ('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Really slow.
 		# ('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
 		# ('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow useful for profiling. Current best time 102s.
@@ -29,8 +30,7 @@ def main(verbose=False, timings=False):
 			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			mapping_class = S.mapping_class(word)
 			# assert(mapping_class.NT_type() == mapping_class_type)
-			T = mapping_class.NT_type_alternate()
-			assert(T == mapping_class_type)
+			assert(mapping_class.NT_type_alternate() == mapping_class_type)
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except AssertionError:

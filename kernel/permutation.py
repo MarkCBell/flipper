@@ -1,7 +1,7 @@
 
 from itertools import permutations, combinations
 
-import Flipper
+import flipper
 
 # Represents a permutation on N elements.
 class Permutation(object):
@@ -33,12 +33,12 @@ class Permutation(object):
 	def embed(self, n):
 		# Returns the permutation given by including this permutation into Sym(n). Assumes n >= len(self).
 		if n < len(self):
-			raise Flipper.AssumptionError('Cannot embed permutation into smaller symmetric group.')
+			raise flipper.AssumptionError('Cannot embed permutation into smaller symmetric group.')
 		return Permutation(list(self.permutation) + list(range(len(self), n)))
 	def matrix(self):
 		# Returns a matrix M such that M*e_i == e_{self[i]}.
 		dim = len(self)
-		return Flipper.kernel.Matrix([[1 if i == self[j] else 0 for j in range(dim)] for i in range(dim)])
+		return flipper.kernel.Matrix([[1 if i == self[j] else 0 for j in range(dim)] for i in range(dim)])
 
 #### Some special Permutations we know how to build.
 

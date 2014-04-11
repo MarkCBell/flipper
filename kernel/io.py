@@ -3,12 +3,12 @@ import pickle
 from string import ascii_lowercase
 # !?! Possible concern: ascii_lowercase is too short.
 
-import Flipper
+import flipper
 
 def package(objects, names=None):
 	''' This packages an abstract triangulation, some laminations and mapping classes 
 	into a format that can be writen to disk and loaded into an instance of the 
-	Flipper application at a later date. 
+	flipper application at a later date. 
 	
 	Objects must be either:
 		1) an abstract triangulation,
@@ -20,7 +20,7 @@ def package(objects, names=None):
 	case we will name the laminations and mapping classes sequentially:
 		a, b, ..., z. '''
 	
-	if isinstance(objects, Flipper.AbstractTriangulation):
+	if isinstance(objects, flipper.AbstractTriangulation):
 		abstract_triangulation = objects
 		laminations = {}
 		mapping_classes = {}
@@ -44,19 +44,19 @@ def package(objects, names=None):
 	else:
 		raise ValueError('Must be an abstract triangulation or a pair.')
 	
-	spec = 'A Flipper kernel file.'
-	version = Flipper.version.Flipper_version
+	spec = 'A flipper kernel file.'
+	version = flipper.version.flipper_version
 	
 	data = (abstract_triangulation, laminations, mapping_classes)
 	return pickle.dumps((spec, version, data))
 
 def depackage(packaged_objects):
-	''' Extracts the stuff from the contents of a Flipper kernel file. '''
+	''' Extracts the stuff from the contents of a flipper kernel file. '''
 	(spec, version, data) = pickle.loads(packaged_objects)
-	if spec != 'A Flipper kernel file.':
+	if spec != 'A flipper kernel file.':
 		raise ValueError('Not a valid specification.')
-	if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(Flipper.version.Flipper_version):
-		raise ValueError('Wrong version of Flipper.')
+	if flipper.version.version_tuple(version) != flipper.version.version_tuple(flipper.version.flipper_version):
+		raise ValueError('Wrong version of flipper.')
 	
 	[abstract_triangulation, laminations, mapping_classes] = data
 	return abstract_triangulation, laminations, mapping_classes

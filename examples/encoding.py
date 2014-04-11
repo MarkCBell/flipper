@@ -2,12 +2,12 @@
 from __future__ import print_function
 from time import time
 
-import Flipper
-import Flipper.application
+import flipper
+import flipper.application
 
 def main(n=100, show=False):
 	times = {}
-	S = Flipper.examples.abstracttriangulation.Example_S_2_1()
+	S = flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(n):
 		word = S.random_word(10)  # , negative=False)
 		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
@@ -22,12 +22,13 @@ def main(n=100, show=False):
 		#word = 'baccabebededdccceeba'
 		#word = 'FacBcDBACfbDAbCAfEdb'
 		#word = 'bbdcecbcFA'  # Reducible with 2 pseudo-Anosov components which are swapped.
+		#word = 'FEFdFCBA'
 		print('%d: %s' % (i, word), end='')
 		mapping_class = S.mapping_class(word)
 		if show:
 			L = mapping_class.source_triangulation.key_curves()
 			M = [mapping_class]
-			Flipper.application.start((L, M))
+			flipper.application.start((L, M))
 		
 		t = time()
 		mapping_class.invariant_lamination()

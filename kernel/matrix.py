@@ -3,7 +3,7 @@ from itertools import combinations, groupby, product
 from fractions import Fraction, gcd
 from functools import reduce
 
-import Flipper
+import flipper
 
 def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.
@@ -182,7 +182,7 @@ class Matrix(object):
 			A = self * (A + p[i])
 		# Actually now A / pi == A^{-1}. 
 		sign = +1 if self.width % 2 == 0 else -1
-		return Flipper.kernel.Polynomial(p[::-1]) * sign
+		return flipper.kernel.Polynomial(p[::-1]) * sign
 	
 	def row_reduce(self, zeroing_width=None):
 		# Returns this matrix after applying elementary row operations

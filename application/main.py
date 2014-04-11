@@ -30,8 +30,8 @@ except ImportError:  # Python 3.
 	except ImportError:
 		raise ImportError('Ttk not available.')
 
-import Flipper
-import Flipper.application
+import flipper
+import flipper.application
 
 # Some constants.
 COMMAND_MODIFIERS = {'darwin':'Command', 'win32':'Ctrl', 'linux2':'Ctrl', 'linux3':'Ctrl'}
@@ -58,8 +58,8 @@ class FlipperApp(object):
 	def __init__(self, parent, return_slot=None):
 		self.parent = parent
 		self.return_slot = return_slot
-		self.options = Flipper.application.Options(self)
-		self.colour_picker = Flipper.application.ColourPalette()
+		self.options = flipper.application.Options(self)
+		self.colour_picker = flipper.application.ColourPalette()
 		
 		self.panels = TK.PanedWindow(self.parent, orient='horizontal', relief='raised')
 		
@@ -152,21 +152,21 @@ class FlipperApp(object):
 		self.settingsmenu = TK.Menu(self.menubar, tearoff=0)
 		
 		self.sizemenu = TK.Menu(self.menubar, tearoff=0)
-		self.sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=Flipper.application.options.SIZE_SMALL, font=app_font)
-		self.sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=Flipper.application.options.SIZE_MEDIUM, font=app_font)
-		self.sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=Flipper.application.options.SIZE_LARGE, font=app_font)
-		# self.sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=Flipper.application.options.SIZE_XLARGE, font=app_font)
+		self.sizemenu.add_radiobutton(label='Small', var=self.options.size_var, value=flipper.application.options.SIZE_SMALL, font=app_font)
+		self.sizemenu.add_radiobutton(label='Medium', var=self.options.size_var, value=flipper.application.options.SIZE_MEDIUM, font=app_font)
+		self.sizemenu.add_radiobutton(label='Large', var=self.options.size_var, value=flipper.application.options.SIZE_LARGE, font=app_font)
+		# self.sizemenu.add_radiobutton(label='Extra large', var=self.options.size_var, value=flipper.application.options.SIZE_XLARGE, font=app_font)
 		
 		self.edgelabelmenu = TK.Menu(self.menubar, tearoff=0)
-		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_NONE, var=self.options.label_edges_var, font=app_font)
-		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=app_font)
-		self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=app_font)
-		# self.edgelabelmenu.add_radiobutton(label=Flipper.application.options.LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=app_font)
+		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_NONE, var=self.options.label_edges_var, font=app_font)
+		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=app_font)
+		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=app_font)
+		# self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_ALGEBRAIC, var=self.options.edge_labels_var, font=app_font)
 		
 		self.laminationdrawmenu = TK.Menu(self.menubar, tearoff=0)
-		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=app_font)
-		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
-		self.laminationdrawmenu.add_radiobutton(label=Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
+		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=app_font)
+		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
+		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
 		
 		self.settingsmenu.add_cascade(label='Sizes', menu=self.sizemenu, font=app_font)
 		self.settingsmenu.add_cascade(label='Edge label', menu=self.edgelabelmenu, font=app_font)
@@ -333,10 +333,10 @@ class FlipperApp(object):
 		self.unsaved_work = True
 	
 	def save(self):
-		path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('Flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
+		path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
 		if path != '':
 			try:
-				spec = 'A Flipper file.'
+				spec = 'A flipper file.'
 				version = self.options.version
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
@@ -360,31 +360,31 @@ class FlipperApp(object):
 	
 	def load(self, load_from=None):
 		''' Loads up some informations. If given no options opens a file dialog and
-		asks for a Flipper (kernel) file. Alternatively can be passed the contents of 
-		a file, a file object or something that Flipper.package can eat. '''
+		asks for a flipper (kernel) file. Alternatively can be passed the contents of 
+		a file, a file object or something that flipper.package can eat. '''
 		try:
 			if load_from is None:
 				load_from = tkFileDialog.askopenfilename(
 					defaultextension='.flp', 
-					filetypes=[('Flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], 
-					title='Open Flipper File')
+					filetypes=[('flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], 
+					title='Open flipper File')
 				if load_from == '':  # Cancelled the dialog.
 					return
 				string_contents = open(load_from, 'rb').read()
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
-			elif not isinstance(load_from, Flipper.String_Type):
-				string_contents = Flipper.package(load_from)
+			elif not isinstance(load_from, flipper.String_Type):
+				string_contents = flipper.package(load_from)
 			
 			try:
 				spec, version, data = pickle.loads(string_contents)
 			except AttributeError:
-				raise ValueError('Not a valid Flipper file.')
-			if Flipper.version.version_tuple(version) != Flipper.version.version_tuple(self.options.version):
-				raise ValueError('Wrong version of Flipper.')
-			if spec == 'A Flipper file.':
+				raise ValueError('Not a valid flipper file.')
+			if flipper.version.version_tuple(version) != flipper.version.version_tuple(self.options.version):
+				raise ValueError('Wrong version of flipper.')
+			if spec == 'A flipper file.':
 				load_objects = data
-			elif spec == 'A Flipper kernel file.':
+			elif spec == 'A flipper kernel file.':
 				load_objects = data + (None, None)
 			else:
 				raise ValueError('Not a valid specification.')
@@ -466,7 +466,7 @@ class FlipperApp(object):
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
-			tkMessageBox.showerror('Load Error', 'Cannot initialise Flipper %s from this.' % self.options.version)
+			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % self.options.version)
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -478,7 +478,7 @@ class FlipperApp(object):
 	
 	def export_kernel_file(self):
 		if self.is_complete():
-			path = tkFileDialog.asksaveasfilename(defaultextension='.fpk', filetypes=[('Flipper kernel file', '.fpk'), ('all files', '.*')], title='Export Kernel File')
+			path = tkFileDialog.asksaveasfilename(defaultextension='.fpk', filetypes=[('flipper kernel file', '.fpk'), ('all files', '.*')], title='Export Kernel File')
 			if path != '':
 				try:
 					disk_file = open(path, 'w')
@@ -488,7 +488,7 @@ class FlipperApp(object):
 					laminations = [(name, self.laminations[name]) for name in lamination_names]
 					mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
 					
-					example = Flipper.package(self.abstract_triangulation, laminations, mapping_classes)
+					example = flipper.package(self.abstract_triangulation, laminations, mapping_classes)
 					disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
@@ -514,7 +514,7 @@ class FlipperApp(object):
 	
 	def show_help(self):
 		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
-		disk_file = os.path.join(datadir, 'docs', 'Flipper.pdf')
+		disk_file = os.path.join(datadir, 'docs', 'flipper.pdf')
 		if sys.platform.startswith('darwin'):
 			command = 'open'
 		elif sys.platform.startswith('win'):
@@ -524,7 +524,7 @@ class FlipperApp(object):
 		os.system(command + ' ' + disk_file)
 	
 	def show_about(self):
-		tkMessageBox.showinfo('About', 'Flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
+		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
 	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:
@@ -615,7 +615,7 @@ class FlipperApp(object):
 	
 	
 	def initialise_radial_n_gon(self):
-		gluing = Flipper.application.get_input('Surface specification', 'New specification for radial ngon:', validate=self.valid_specification)
+		gluing = flipper.application.get_input('Surface specification', 'New specification for radial ngon:', validate=self.valid_specification)
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
@@ -639,7 +639,7 @@ class FlipperApp(object):
 				self.unsaved_work = True
 	
 	def initialise_circular_n_gon(self):
-		gluing = Flipper.application.get_input('Surface specification', 'New specification for ngon:', validate=self.valid_specification)
+		gluing = flipper.application.get_input('Surface specification', 'New specification for ngon:', validate=self.valid_specification)
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
@@ -679,7 +679,7 @@ class FlipperApp(object):
 	
 	
 	def create_vertex(self, point):
-		self.vertices.append(Flipper.application.Vertex(self.canvas, point, self.options))
+		self.vertices.append(flipper.application.Vertex(self.canvas, point, self.options))
 		self.unsaved_work = True
 		self.redraw()
 		self.build_abstract_triangulation()
@@ -711,10 +711,10 @@ class FlipperApp(object):
 			return None
 		
 		# Don't create a new edge if it would intersect one that already exists.
-		if any(Flipper.application.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
+		if any(flipper.application.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = Flipper.application.Edge(self.canvas, [v1, v2], self.options)
+		e0 = flipper.application.Edge(self.canvas, [v1, v2], self.options)
 		self.edges.append(e0)
 		# Add in any needed triangles.
 		for e1, e2 in combinations(self.edges, r=2):
@@ -744,7 +744,7 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = Flipper.application.Triangle(self.canvas, [e1, e2, e3], self.options)
+		new_triangle = flipper.application.Triangle(self.canvas, [e1, e2, e3], self.options)
 		self.triangles.append(new_triangle)
 		
 		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
@@ -796,7 +796,7 @@ class FlipperApp(object):
 		self.build_abstract_triangulation()
 	
 	def create_curve_component(self, vertices, multiplicity=1, counted=False):
-		self.curve_components.append(Flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
+		self.curve_components.append(flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
@@ -804,7 +804,7 @@ class FlipperApp(object):
 		self.curve_components.remove(curve_component)
 	
 	def create_train_track_block(self, vertices, multiplicity=1, counted=False):
-		self.train_track_blocks.append(Flipper.application.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity, counted))
+		self.train_track_blocks.append(flipper.application.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity, counted))
 		return self.train_track_blocks[-1]
 	
 	def destroy_train_track_block(self, curve_component):
@@ -873,7 +873,7 @@ class FlipperApp(object):
 	def create_abstract_triangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
-		self.abstract_triangulation = Flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
+		self.abstract_triangulation = flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
 		self.create_edge_labels()
 		self.menubar.entryconfig('Lamination', state='normal')
@@ -913,7 +913,7 @@ class FlipperApp(object):
 			if not curve.counted:
 				meets = []  # We store (index of edge intersection, should we double count).
 				for i in range(len(curve.vertices)-1):
-					this_segment_meets = [(Flipper.application.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge[0], edge[1], self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
+					this_segment_meets = [(flipper.application.lines_intersect(curve.vertices[i], curve.vertices[i+1], edge[0], edge[1], self.options.float_error, edge.equivalent_edge is None), edge.index) for edge in self.edges]
 					for (d, double), index in sorted(this_segment_meets):
 						if d >= -self.options.float_error:
 							if len(meets) > 0 and meets[-1][0] == index:
@@ -924,7 +924,7 @@ class FlipperApp(object):
 				for index, double in meets:
 					vector[index] += (2 if double else 1) * curve.multiplicity
 		
-		if all(isinstance(x, Flipper.kernel.Integer_Type) and x % 2 == 0 for x in vector):
+		if all(isinstance(x, flipper.kernel.Integer_Type) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]
 		else:
 			vector = [i / 2 for i in vector]
@@ -943,8 +943,8 @@ class FlipperApp(object):
 		
 		# Choose the right way to render this lamination.
 		if not lamination.is_multicurve() or lamination.weight() > MAX_DRAWABLE: 
-			if self.options.render_lamination == Flipper.application.options.RENDER_LAMINATION_FULL:
-				render = Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK
+			if self.options.render_lamination == flipper.application.options.RENDER_LAMINATION_FULL:
+				render = flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK
 			else:
 				render = self.options.render_lamination
 		else:
@@ -953,7 +953,7 @@ class FlipperApp(object):
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb = self.options.vertex_buffer  # We are going to use this a lot.
 		a_weights = [float(x) for x in lamination]
-		if render == Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
+		if render == flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
 			master_scale = max(a_weights)
 			if master_scale == 0: master_scale = float(1)
 		
@@ -964,7 +964,7 @@ class FlipperApp(object):
 				a = triangle[i-1] - triangle[i]
 				b = triangle[i-2] - triangle[i]
 				
-				if render == Flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
+				if render == flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
@@ -985,7 +985,7 @@ class FlipperApp(object):
 						
 						vertices = [start_point, end_point, end_point2, start_point2]
 						self.create_train_track_block(vertices, counted=True)  # We've counted this so don't set the multiplicity.
-				elif render == Flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
+				elif render == flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
 					weights = [lamination[edge.index] for edge in triangle.edges]
@@ -997,7 +997,7 @@ class FlipperApp(object):
 						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
 						vertices = [start_point, end_point]
 						self.create_curve_component(vertices, counted=True)  # We've counted this so don't set the multiplicity.
-				elif render == Flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
+				elif render == flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						scale = float(1) / 2
 						start_point = triangle[i][0] + a[0] * scale, triangle[i][1] + a[1] * scale
@@ -1013,7 +1013,7 @@ class FlipperApp(object):
 			try:
 				lamination = self.canvas_to_lamination()
 				self.lamination_to_canvas(lamination)
-			except Flipper.AssumptionError:
+			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 	
 	def store_lamination(self, lamination=None):
@@ -1021,11 +1021,11 @@ class FlipperApp(object):
 			if lamination is None:
 				try:
 					lamination = self.canvas_to_lamination()
-				except Flipper.AssumptionError:
+				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 					return
 			
-			name = Flipper.application.get_input('Name', 'New lamination name:', validate=self.valid_name)
+			name = flipper.application.get_input('Name', 'New lamination name:', validate=self.valid_name)
 			if name is not None:
 				self.add_lamination(lamination, name)
 				self.destroy_lamination()
@@ -1035,12 +1035,12 @@ class FlipperApp(object):
 			if lamination is None:
 				try:
 					lamination = self.canvas_to_lamination()
-				except Flipper.AssumptionError:
+				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 					return
 			
 			if lamination.is_twistable():
-				name = Flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
+				name = flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_twist(), name)
 					self.add_lamination(lamination, name)
@@ -1053,12 +1053,12 @@ class FlipperApp(object):
 			if lamination is None:
 				try:
 					lamination = self.canvas_to_lamination()
-				except Flipper.AssumptionError:
+				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 					return
 			
 			if lamination.is_halftwistable():
-				name = Flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
+				name = flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_halftwist(), name)
 					self.add_lamination(lamination, name)
@@ -1068,7 +1068,7 @@ class FlipperApp(object):
 	
 	def store_isometry(self):
 		if self.is_complete():
-			specification = Flipper.application.get_input('Isometry specification', 'New isometry:', validate=self.valid_isometry)
+			specification = flipper.application.get_input('Isometry specification', 'New isometry:', validate=self.valid_isometry)
 			if specification is not None:
 				from_edges, to_edges = zip(*[[int(d) for d in x.split(':')] for x in specification.split(' ')])
 				try:
@@ -1078,14 +1078,14 @@ class FlipperApp(object):
 				except IndexError:
 					tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
 				else:
-					name = Flipper.application.get_input('Name', 'New isometry name:', validate=self.valid_name)
+					name = flipper.application.get_input('Name', 'New isometry name:', validate=self.valid_name)
 					if name is not None:
 						self.add_mapping_class(isometry.encode_isometry(), name)
 	
 	def create_composition(self, return_name=False):
 		# Assumes that each of the named mapping classes exist.
 		if self.is_complete():
-			composition = Flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
+			composition = flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
 				mapping_class = self.abstract_triangulation.Id_EncodingSequence()
 				for twist in composition.split('.'):
@@ -1095,7 +1095,7 @@ class FlipperApp(object):
 						mapping_class = mapping_class * self.mapping_classes[twist].inverse()
 					else:
 						tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
-						raise Flipper.AssumptionError()
+						raise flipper.AssumptionError()
 				
 				if return_name:
 					return composition, mapping_class
@@ -1111,7 +1111,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			mapping_class = self.create_composition()
 			if mapping_class is not None:
-				name = Flipper.application.get_input('Name', 'New composition name:', validate=self.valid_name)
+				name = flipper.application.get_input('Name', 'New composition name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(mapping_class, name)
 	
@@ -1119,7 +1119,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			try:
 				lamination = self.canvas_to_lamination()
-			except Flipper.AssumptionError:
+			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 			else:
 				if mapping_class is None:
@@ -1143,18 +1143,18 @@ class FlipperApp(object):
 			composition, mapping_class = self.create_composition(return_name=True)
 			if mapping_class is not None:
 				try:
-					# NT_type = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
-					NT_type = Flipper.application.apply_progression(mapping_class.NT_type_alternate)
+					# NT_type = flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					NT_type = flipper.application.apply_progression(mapping_class.NT_type_alternate)
 					
-					if NT_type == Flipper.kernel.encoding.NT_TYPE_PERIODIC:
+					if NT_type == flipper.kernel.encoding.NT_TYPE_PERIODIC:
 						tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
-					elif NT_type == Flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
+					elif NT_type == flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
 						tkMessageBox.showinfo('Periodic', '%s is reducible.' % composition)
-					elif NT_type == Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
+					elif NT_type == flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
 						tkMessageBox.showinfo('Periodic', '%s is pseudo-Anosov.' % composition)
-				except Flipper.AssumptionError:
+				except flipper.AssumptionError:
 					pass
-				except Flipper.AbortError:
+				except flipper.AbortError:
 					pass
 	
 	
@@ -1166,11 +1166,11 @@ class FlipperApp(object):
 			composition, mapping_class = self.create_composition(return_name=True)
 			if mapping_class is not None:
 				try:
-					lamination = Flipper.application.apply_progression(mapping_class.invariant_lamination)
+					lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					# dilatation = mapping_class.dilatation(lamination)
-				except Flipper.AssumptionError:
+				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
-				except Flipper.ComputationError:
+				except flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
 					self.lamination_to_canvas(lamination)
@@ -1185,9 +1185,9 @@ class FlipperApp(object):
 						disk_file = open(path, 'w')
 						try:
 							splitting = mapping_class.splitting_sequence()
-						except Flipper.AssumptionError:
+						except flipper.AssumptionError:
 							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
-						except Flipper.ComputationError:
+						except flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						else:
 							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
@@ -1221,32 +1221,32 @@ class FlipperApp(object):
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
 				self.select_object(self.create_curve_component([(x, y), (x, y)]))
-			elif isinstance(self.selected_object, Flipper.application.CurveComponent):
+			elif isinstance(self.selected_object, flipper.application.CurveComponent):
 				self.selected_object.append_point((x, y))
 		else:
 			if self.selected_object is None:
 				if possible_object is None:
 					self.select_object(self.create_vertex((x, y)))
-				elif isinstance(possible_object, Flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.Edge):
 					self.destroy_edge_identification(possible_object)
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.Vertex):
 					self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.application.Vertex):
+			elif isinstance(self.selected_object, flipper.application.Vertex):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
 					new_vertex = self.create_vertex((x, y))
 					self.create_edge(self.selected_object, new_vertex)
 					self.select_object(new_vertex)
-				elif isinstance(possible_object, Flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.Vertex):
 					self.create_edge(self.selected_object, possible_object)
 					self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.Edge):
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-			elif isinstance(self.selected_object, Flipper.application.Edge):
+			elif isinstance(self.selected_object, flipper.application.Edge):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
@@ -1254,14 +1254,14 @@ class FlipperApp(object):
 					self.create_edge(self.selected_object[0], new_vertex)
 					self.create_edge(self.selected_object[1], new_vertex)
 					self.select_object(None)
-				elif isinstance(possible_object, Flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.Vertex):
 					if possible_object != self.selected_object[0] and possible_object != self.selected_object[1]:
 						self.create_edge(self.selected_object[0], possible_object)
 						self.create_edge(self.selected_object[1], possible_object)
 						self.select_object(None)
 					else:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, Flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.Edge):
 					if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
 						self.destroy_edge_identification(self.selected_object)
 						self.destroy_edge_identification(possible_object)
@@ -1272,7 +1272,7 @@ class FlipperApp(object):
 	
 	def canvas_right_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.application.CurveComponent):
+			if isinstance(self.selected_object, flipper.application.CurveComponent):
 				if len(self.selected_object.vertices) > 2:
 					(x, y) = self.selected_object.vertices[-1]
 					self.selected_object.pop_point()
@@ -1285,26 +1285,26 @@ class FlipperApp(object):
 	
 	def canvas_double_left_click(self, event):
 		if self.selected_object is not None:
-			if isinstance(self.selected_object, Flipper.application.CurveComponent):
+			if isinstance(self.selected_object, flipper.application.CurveComponent):
 				self.selected_object.pop_point()
 			
 			self.select_object(None)
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
-		if isinstance(self.selected_object, Flipper.application.CurveComponent):
+		if isinstance(self.selected_object, flipper.application.CurveComponent):
 			self.selected_object.move_point(-1, x, y)
 	
 	def parent_key_press(self, event):
 		key = event.keysym
 		if key in ('Delete', 'BackSpace'):
-			if isinstance(self.selected_object, Flipper.application.Vertex):
+			if isinstance(self.selected_object, flipper.application.Vertex):
 				self.destroy_vertex(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.application.Edge):
+			elif isinstance(self.selected_object, flipper.application.Edge):
 				self.destroy_edge(self.selected_object)
 				self.select_object(None)
-			elif isinstance(self.selected_object, Flipper.application.CurveComponent):
+			elif isinstance(self.selected_object, flipper.application.CurveComponent):
 				self.canvas_right_click(event)
 		elif key == 'Escape':
 			self.canvas_right_click(event)
@@ -1346,23 +1346,23 @@ class FlipperApp(object):
 		elif 'twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[iid]]
 			if lamination.is_twistable():
-				name = Flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
+				name = flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_twist(), name)
 		elif 'half_twist_lamination' in tags:
 			lamination = self.laminations[self.lamination_names[iid]]
 			if lamination.is_halftwistable():
-				name = Flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
+				name = flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_halftwist(), name)
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[iid]]
 				if 'filling' not in self.cache[lamination]:
-					self.cache[lamination]['filling'] = Flipper.application.apply_progression(lamination.is_filling)
+					self.cache[lamination]['filling'] = flipper.application.apply_progression(lamination.is_filling)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
-			except Flipper.AbortError:
+			except flipper.AbortError:
 				pass
 		elif 'mapping_class_order' in tags:
 			mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
@@ -1372,25 +1372,25 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					# self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
-					self.cache[mapping_class]['NT_type'] = Flipper.application.apply_progression(mapping_class.NT_type_alternate)
+					# self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
+					self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type_alternate)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
-			except Flipper.AbortError:
+			except flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['invariant_lamination'] = Flipper.application.apply_progression(mapping_class.invariant_lamination)
+					self.cache[mapping_class]['invariant_lamination'] = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
-			except Flipper.AssumptionError:
+			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is periodic.')
-			except Flipper.ComputationError:
+			except flipper.ComputationError:
 				tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
-			except Flipper.AbortError:
+			except flipper.AbortError:
 				pass
 		else:
 			pass
@@ -1398,7 +1398,7 @@ class FlipperApp(object):
 
 def start(load_from=None):
 	root = TK.Tk()
-	root.title('Flipper')
+	root.title('flipper')
 	return_slot = [None]
 	flipper = FlipperApp(root, return_slot)
 	root.minsize(300, 300)

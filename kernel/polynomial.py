@@ -1,7 +1,7 @@
 
 from math import log10 as log
 
-import Flipper
+import flipper
 
 # This class represents an integral polynomial. In various places we will assume that it is 
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
@@ -17,8 +17,8 @@ class Polynomial(object):
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
 		self.accuracy = 0
 		self.root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
-		self.interval = Flipper.kernel.Interval(-self.root_range, self.root_range, 0)
-		# self.interval = Flipper.kernel.Interval(0, r, 0)
+		self.interval = flipper.kernel.Interval(-self.root_range, self.root_range, 0)
+		# self.interval = flipper.kernel.Interval(0, r, 0)
 	
 	def copy(self):
 		return Polynomial(self.coefficients)
@@ -60,7 +60,7 @@ class Polynomial(object):
 			return Polynomial([self[0] - other] + self.coefficients[1:])
 	
 	def __mul__(self, other):
-		if isinstance(other, Flipper.kernel.Integer_Type):
+		if isinstance(other, flipper.kernel.Integer_Type):
 			return Polynomial([a * other for a in self])
 	def __rmull__(self, other):
 		return self * other
@@ -111,6 +111,8 @@ class Polynomial(object):
 		return self.__div__(other)
 	def __floordiv__(self, other):
 		return self.__div__(other)
+	def rescale(self):
+		return Polynomial(flipper.kernel.matrix.rescale(self))
 	
 	def remove_factors(self, possible_factors):
 		# Returns self with all factors in possible_factors removed.
@@ -135,7 +137,7 @@ class Polynomial(object):
 		f2 = self.derivative()
 		sturm_chain = [f1, f2]
 		while not sturm_chain[-1].is_zero():
-			sturm_chain.append(-(sturm_chain[-2] % sturm_chain[-1]))
+			sturm_chain.append(-(sturm_chain[-2] % sturm_chain[-1]).rescale())
 		
 		return sturm_chain
 	
@@ -155,7 +157,7 @@ class Polynomial(object):
 		try:
 			return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
 		except IndexError:
-			raise Flipper.AssumptionError('Polynomial has no real roots.')
+			raise flipper.AssumptionError('Polynomial has no real roots.')
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -167,7 +169,7 @@ class Polynomial(object):
 		# For why this works see: http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html
 		# Start by building a really tiny interval containing the midpoint of this one.
 		J = interval.midpoint(10)
-		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step. Could throw division by zero.
+		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step. Could throw a ZeroDivisionError.
 		L = K.change_denominator(2 * K.accuracy)  # Stop the precision from blowing up too much.
 		return L.intersect(interval)  # This can throw a ValueError if the intersection is empty.
 	
@@ -198,15 +200,15 @@ class Polynomial(object):
 		# Returns an algebraic approximation of this polynomials leading root which has at least
 		# the requested accuracy.
 		self.increase_accuracy(accuracy)
-		return Flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
+		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
 	
 	def companion_matrix(self):
 		# Assumes that this polynomial is irreducible and monic.
 		if not self.is_monic():
-			raise Flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
+			raise flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
 		
 		scale = -1 if self[-1] == 1 else 1
-		return Flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
+		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
 
 
 def cyclotomic_polynomials(n):

@@ -2,7 +2,7 @@
 from __future__ import print_function
 from time import time
 
-import Flipper
+import flipper
 
 def determine_type(mapping_class, verbose=False):
 	start_time = time()
@@ -11,7 +11,7 @@ def determine_type(mapping_class, verbose=False):
 		print(' -- %s.' % mapping_class.NT_type_alternate())
 	except ImportError:
 		print(' Cannot determine without a symbolic library.')
-	except Flipper.ComputationError:
+	except flipper.ComputationError:
 		print(' ~~ Probably reducible.')
 	print('      (Time: %0.4fs)' % (time() - start_time))
 	return time() - start_time
@@ -35,7 +35,7 @@ def random_test(S, words=None, num_trials=None, verbose=False):
 	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
 
 def main():
-	S = Flipper.examples.abstracttriangulation.Example_S_1_2()
+	S = flipper.examples.abstracttriangulation.Example_S_1_2()
 	random_test(S, ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'], verbose=True)
 
 if __name__ == '__main__':

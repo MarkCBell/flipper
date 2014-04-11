@@ -15,7 +15,7 @@ except ImportError: # Python 3
 	import tkinter as TK
 	# from tkinter import ttk as TTK
 
-import Flipper
+import flipper
 
 CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
 
@@ -37,10 +37,10 @@ class ProgressApp(object):
 		self.parent = TK.Toplevel(self.host_app_parent)
 		self.parent.withdraw()  # Hide self while we set up the geometry.
 		
-		self.parent.title('Flipper: Computing...')
+		self.parent.title('flipper: Computing...')
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
 		
-		self.progress = Flipper.application.Meter(self.parent)
+		self.progress = flipper.application.Meter(self.parent)
 		self.progress.pack(padx=2, pady=2)
 		
 		self.button_cancel = TK.Button(self.parent, text='Cancel', command=self.cancel)
@@ -98,7 +98,7 @@ class ProgressApp(object):
 				if indeterminant: self.update_bar(self.progress.get()[0] % 1 + 0.01, '')
 		
 		# If we reach this point then the calculation was aborted.
-		raise Flipper.AbortError
+		raise flipper.AbortError
 	
 	def update_bar(self, value, text=None):
 		self.progress.set(value, text)

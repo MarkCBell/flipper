@@ -1,7 +1,7 @@
 
 from math import log10 as log
 
-import Flipper
+import flipper
 
 # This provides us with a way of storing and manipulating elements of QQ(\lambda),
 # where \lambda is an algebraic integer (however technically this can currently only actually
@@ -15,7 +15,7 @@ import Flipper
 class NumberField(object):
 	''' This represents a number field QQ(\lambda). '''
 	def __init__(self, polynomial=None):
-		if polynomial is None: polynomial = Flipper.kernel.Polynomial([-1, 1])
+		if polynomial is None: polynomial = flipper.kernel.Polynomial([-1, 1])
 		
 		self.polynomial = polynomial
 		self.polynomial_coefficients = self.polynomial.coefficients
@@ -98,7 +98,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a+b for a, b in zip(self, other)])
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] + other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -109,7 +109,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot subtract elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a-b for a, b in zip(self, other)])
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] - other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -123,7 +123,7 @@ class NumberFieldElement(object):
 				raise TypeError('Cannot multiply elements of different number fields.')
 			
 			return self.number_field.element(self.multiplicative_matrix() * other.linear_combination)
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return self.number_field.element([a * other for a in self])
 		else:
 			return NotImplemented
@@ -141,7 +141,7 @@ class NumberFieldElement(object):
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rtruediv__(self, other):
-		if isinstance(other, Flipper.Integer_Type):
+		if isinstance(other, flipper.Integer_Type):
 			return self.number_field.element([other]) // self
 	def __floordiv__(self, other):
 		if isinstance(other, NumberFieldElement):
@@ -150,7 +150,7 @@ class NumberFieldElement(object):
 			
 			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
 	def __rfloordiv__(self, other):
-		if isinstance(other, Flipper.Integer_Type):
+		if isinstance(other, flipper.Integer_Type):
 			return self.number_field.element([other]) // self
 	
 	def __lt__(self, other):
@@ -196,11 +196,11 @@ class NumberFieldElement(object):
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	2 * (self.log_height + d).
-		log_height = sum(Flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
+		log_height = sum(flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
 		accuracy = max(accuracy, int(2 * log_height + d) + 1)
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
-			self._algebraic_approximation = Flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))
+			self._algebraic_approximation = flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))
 			self.current_accuracy = self._algebraic_approximation.interval.accuracy
 			# Now if accuracy was not None then self.current_accuracy >= accuracy.
 		

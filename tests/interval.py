@@ -3,8 +3,8 @@ from __future__ import print_function
 from math import log10 as log
 from itertools import product
 
-import Flipper
-interval_from_string = Flipper.kernel.interval.interval_from_string
+import flipper
+interval_from_string = flipper.kernel.interval.interval_from_string
 
 def main():
 	w = interval_from_string('0.10')

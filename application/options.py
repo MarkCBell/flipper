@@ -19,7 +19,7 @@ except ImportError:  # Python 3.
 	except ImportError:
 		raise ImportError('Ttk not available.')
 
-import Flipper
+import flipper
 
 RENDER_LAMINATION_FULL = 'Full'
 RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'
@@ -62,7 +62,7 @@ class Options(object):
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
 		self.zoom_fraction = 0.9 # Must be in (0, 1)
 		
-		self.version = Flipper.version.Flipper_version
+		self.version = flipper.version.flipper_version
 	
 	def update(self, *args):
 		self.render_lamination = str(self.render_lamination_var.get())

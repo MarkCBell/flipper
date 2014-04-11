@@ -1,22 +1,22 @@
 
-# import Flipper.application  # Don't do this import so people without tkinter can still use the kernel.
-import Flipper.kernel
-import Flipper.examples
-import Flipper.tests
-import Flipper.version
+# import flipper.application  # Don't do this import so people without tkinter can still use the kernel.
+import flipper.kernel
+import flipper.examples
+import flipper.tests
+import flipper.version
 
 # Set up really short names for the most commonly used classes and functions by users.
-Flipper.AbstractTriangulation = Flipper.kernel.AbstractTriangulation
+flipper.AbstractTriangulation = flipper.kernel.AbstractTriangulation
 
-Flipper.isometry_from_edge_map = Flipper.kernel.isometry.isometry_from_edge_map
-Flipper.Integer_Type = Flipper.kernel.Integer_Type
-Flipper.String_Type = Flipper.kernel.String_Type
+flipper.isometry_from_edge_map = flipper.kernel.isometry.isometry_from_edge_map
+flipper.Integer_Type = flipper.kernel.Integer_Type
+flipper.String_Type = flipper.kernel.String_Type
 
-Flipper.AbortError = Flipper.kernel.AbortError
-Flipper.ApproximationError = Flipper.kernel.ApproximationError
-Flipper.AssumptionError = Flipper.kernel.AssumptionError
-Flipper.ComputationError = Flipper.kernel.ComputationError
+flipper.AbortError = flipper.kernel.AbortError
+flipper.ApproximationError = flipper.kernel.ApproximationError
+flipper.AssumptionError = flipper.kernel.AssumptionError
+flipper.ComputationError = flipper.kernel.ComputationError
 
-Flipper.package = Flipper.kernel.package
-Flipper.depackage = Flipper.kernel.depackage
+flipper.package = flipper.kernel.package
+flipper.depackage = flipper.kernel.depackage
 

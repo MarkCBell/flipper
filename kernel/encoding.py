@@ -2,7 +2,7 @@
 from functools import reduce
 from itertools import product
 
-import Flipper
+import flipper
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
@@ -17,7 +17,7 @@ class PartialFunction(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.action = action
-		if condition is None: condition = Flipper.kernel.Empty_Matrix()
+		if condition is None: condition = flipper.kernel.Empty_Matrix()
 		self.condition = condition
 	
 	def __str__(self):
@@ -27,7 +27,7 @@ class PartialFunction(object):
 		return self * other
 	
 	def __mul__(self, other):
-		if isinstance(other, Flipper.kernel.Lamination) and other.abstract_triangulation == self.source_triangulation:
+		if isinstance(other, flipper.kernel.Lamination) and other.abstract_triangulation == self.source_triangulation:
 			if self.condition.nonnegative_image(other.vector):
 				return self.target_triangulation.lamination(self.action * other.vector)
 		
@@ -54,7 +54,6 @@ class PLFunction(object):
 	def __getitem__(self, index):
 		return self.partial_functions[index]
 	def __eq__(self, other):
-		all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
 			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
@@ -67,7 +66,7 @@ class PLFunction(object):
 			return EncodingSequence([self, other])
 		elif isinstance(other, EncodingSequence):
 			return EncodingSequence([self] + other.sequence)
-		elif isinstance(other, Flipper.kernel.Lamination):
+		elif isinstance(other, flipper.kernel.Lamination):
 			for function in self.partial_functions:
 				try:
 					return function(other)
@@ -105,6 +104,15 @@ class PLFunction(object):
 class EncodingSequence(object):
 	def __init__(self, sequence):
 		''' This represents the composition of several PLFunction. '''
+		# Try and make a shorter sequence.
+		seq = []
+		for f in sequence:
+			if seq and seq[-1] == f.inverse():
+				seq.pop()
+			else:
+				seq.append(f)
+		sequence = seq
+		
 		self.sequence = sequence
 		assert(all(isinstance(x, PLFunction) for x in self.sequence))
 		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
@@ -122,7 +130,7 @@ class EncodingSequence(object):
 	def __getitem__(self, key):
 		if isinstance(key, slice):
 			return EncodingSequence(self.sequence[key])
-		elif isinstance(key, Flipper.kernel.Integer_Type):
+		elif isinstance(key, flipper.kernel.Integer_Type):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')
@@ -173,8 +181,8 @@ class EncodingSequence(object):
 		''' Given indices = [a_0, ..., a_k] this returns the partial function of
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
-		As = Flipper.kernel.Id_Matrix(self.zeta)
-		Cs = Flipper.kernel.Empty_Matrix()
+		As = flipper.kernel.Id_Matrix(self.zeta)
+		Cs = flipper.kernel.Empty_Matrix()
 		source_triangulation = self.source_triangulation
 		target_triangulation = self.source_triangulation
 		for E, i in zip(reversed(self), indices):
@@ -251,7 +259,7 @@ class EncodingSequence(object):
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
-		M6 = Flipper.kernel.Id_Matrix(self.zeta)
+		M6 = flipper.kernel.Id_Matrix(self.zeta)
 		indices = [0]
 		while indices != []:
 			partial_function = self.expand_indices(indices)
@@ -268,12 +276,12 @@ class EncodingSequence(object):
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
-					M2 = As - M6  # As - Flipper.kernel.Id_Matrix.
-					M3 = M6 - As  # Flipper.kernel.Id_Matrix - As.
+					M2 = As - M6  # As - flipper.kernel.Id_Matrix.
+					M3 = M6 - As  # flipper.kernel.Id_Matrix - As.
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M6 = Flipper.kernel.Id_Matrix(self.zeta)
+					# M6 = flipper.kernel.Id_Matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					if P.nontrivial_polytope():
 						# We could just return True here but we'll repeat some work
@@ -301,16 +309,16 @@ class EncodingSequence(object):
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
-			# This can also fail with a Flipper.ComputationError if self.invariant_lamination()
+			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 			# fails to find an invariant lamination.
 			try:
 				self.splitting_sequence()
 				return NT_TYPE_PSEUDO_ANOSOV
-			except Flipper.AssumptionError:
+			except flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 	
 	def invariant_lamination(self):
-		# This uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
+		# This uses flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
 		# (with entries in a NumberField) which is projectively invariant under this mapping class. 
 		# If it cannot find one then it raises a ComputationError.
 		#
@@ -319,7 +327,7 @@ class EncodingSequence(object):
 		#
 		# The process starts with several curves on the surface and repeatedly applies the map until 
 		# they appear to projectively similar to a previous iteration. 
-		# Finally it uses Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
+		# Finally it uses flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
 		# to find the nearby projective fixed point. 
 		#
 		# Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
@@ -331,7 +339,7 @@ class EncodingSequence(object):
 		
 		curves = self.source_triangulation.key_curves()
 		# We will need the number field QQ for constructing small invariant curves.
-		QQ = Flipper.kernel.NumberField()
+		QQ = flipper.kernel.NumberField()
 		
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
@@ -344,21 +352,15 @@ class EncodingSequence(object):
 			new_curves = [self**(1) * curve for curve in curves[-1]]  # Constant.
 			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]  # Linear.
 			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]  # Exponential.
-			for curve in new_curves:
-				smallest = min(x for x in curve if x > 0)
-				vector = [QQ.element([int(round(float(x) / (i+1), 0))]) for x in curve]
-				small_curve = triangulation.lamination(vector)
-				if self * small_curve == small_curve:
-					return small_curve
 			
-			for j in range(1, min(triangulation.max_order, len(curves))):
+			for j in range(1, min(triangulation.max_order, len(curves))+1):
 				for new_curve, curve in zip(new_curves, curves[-j]):
 					if projective_difference(new_curve, curve, 1000):
 						partial_function = (self**j).applied_function(curve)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
-							eigenvector = Flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
-						except Flipper.AssumptionError:
+							eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
+						except flipper.AssumptionError:
 							pass  # Largest eigenvalue was not real.
 						else:
 							# If we actually found an invariant lamination then return it.
@@ -368,9 +370,16 @@ class EncodingSequence(object):
 								if not invariant_lamination.is_empty():
 									return invariant_lamination
 			
+			for curve in new_curves:
+				denominator = max(min(x for x in curve if x > 0), i+1)
+				vector = [QQ.element([int(round(float(x) / denominator, 0))]) for x in curve]
+				small_curve = triangulation.lamination(vector)
+				if self * small_curve == small_curve:
+					return small_curve
+			
 			curves.append(new_curves)
 		
-		raise Flipper.ComputationError('Could not estimate invariant lamination.')
+		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	def dilatation(self, lamination):
 		# Returns the dilatation of this mapping class on the given lamination.
@@ -378,21 +387,21 @@ class EncodingSequence(object):
 		
 		new_lamination = self * lamination
 		if not lamination.projectively_equal(new_lamination):
-			raise Flipper.AssumptionError('Lamination is not projectively invariant.')
+			raise flipper.AssumptionError('Lamination is not projectively invariant.')
 		
 		return new_lamination.weight() / lamination.weight()
 	
 	def splitting_sequence(self):
 		# Assumes that the mapping class is pseudo-Anosov. 
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
-			raise Flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
-		except Flipper.AssumptionError:  # lamination is not filling.
-			raise Flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+		except flipper.AssumptionError:  # lamination is not filling.
+			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		# new_dilatation = splitting.dilatation()
 		return splitting
 	

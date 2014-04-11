@@ -1,7 +1,7 @@
 
 import sys
-import Flipper.application
+import flipper.application
 
 if __name__ == '__main__':
-	Flipper.application.start(load_from=(None if len(sys.argv) == 1 else sys.argv[1]))
+	flipper.application.start(load_from=(None if len(sys.argv) == 1 else sys.argv[1]))
 

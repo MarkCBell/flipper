@@ -1,7 +1,7 @@
 
 from functools import reduce
 
-import Flipper
+import flipper
 
 symbolic_libaray_name = 'dummy'
 
@@ -9,8 +9,8 @@ symbolic_libaray_name = 'dummy'
 def gram_schmidt(rows):
 	for i in range(len(rows)):
 		for j in range(i):
-			a = Flipper.kernel.matrix.dot(rows[i], rows[j])
-			b = Flipper.kernel.matrix.dot(rows[j], rows[j])
+			a = flipper.kernel.matrix.dot(rows[i], rows[j])
+			b = flipper.kernel.matrix.dot(rows[j], rows[j])
 			rows[i] = [b * x - a * y for x, y in zip(rows[i], rows[j])]
 	return rows
 
@@ -19,7 +19,7 @@ def PF_eigen(matrix, vector):
 	eigenvalue_coefficients = eigenvalue_polynomial.coefficients
 	
 	# We will calculate the eigenvector ourselves.
-	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
+	N = flipper.kernel.NumberField(eigenvalue_polynomial)
 	orthogonal_kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
 	dim_ker = len(orthogonal_kernel_basis)
 	row_lengths = [dot(row, row) for row in orthogon_kernel_basis] 

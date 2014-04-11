@@ -1,7 +1,7 @@
 
 from math import log10 as log
 
-import Flipper
+import flipper
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
@@ -49,7 +49,7 @@ class Interval(object):
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
 	def change_denominator(self, new_denominator):
-		assert(isinstance(new_denominator, Flipper.kernel.Integer_Type))
+		assert(isinstance(new_denominator, flipper.kernel.Integer_Type))
 		d = new_denominator - self.precision
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
@@ -58,7 +58,7 @@ class Interval(object):
 		elif d < 0:
 			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
 	def change_accuracy(self, new_accuracy):
-		assert(isinstance(new_accuracy, Flipper.Integer_Type))
+		assert(isinstance(new_accuracy, flipper.Integer_Type))
 		assert(new_accuracy <= self.accuracy)
 		return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
 	def simplify(self):
@@ -70,7 +70,7 @@ class Interval(object):
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return self.lower < other * 10**self.precision < self.upper
 		else:
 			return NotImplemented
@@ -90,7 +90,7 @@ class Interval(object):
 			new_lower = P.lower + Q.lower
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -103,7 +103,7 @@ class Interval(object):
 			new_lower = P.lower - Q.upper
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -115,8 +115,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
-		elif isinstance(other, Flipper.kernel.Integer_Type):
-			# Multiplication by 0 could cause problems here as these represent open intervals.
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -143,7 +142,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
-		elif isinstance(other, Flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.kernel.Integer_Type):
 			values = [self.lower // other, self.upper // other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -151,7 +150,7 @@ class Interval(object):
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, Flipper.kernel.Integer_Type):
+		if isinstance(other, flipper.kernel.Integer_Type):
 			# !?! RECHECK THIS!
 			return interval_from_int(other, self.precision) / self
 		else:
@@ -166,15 +165,14 @@ class Interval(object):
 		P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 		return Interval(max(P.lower, Q.lower), min(P.upper, Q.upper), common_precision)
 	def subdivide(self):
-		if self.upper - self.lower == 1:
-			lower = self.lower * 10
-			precision = self.precision + 1
-			steps = 10
-		else:
-			lower = self.lower
-			precision = self.precision
-			steps = self.upper - self.lower
-		return [Interval(lower+i, lower+i+1, precision) for i in range(steps)]
+		d = self.upper - self.lower
+		if d > 1:
+			k = 1 + d // 10
+			return [Interval(self.lower + i, min(self.lower + i + k, self.upper), self.precision) for i in range(0, d, k)]
+		elif d == 1:
+			return [Interval(10*self.lower + i, 10*self.lower + i+1, self.precision + 1) for i in range(10)]
+		elif d == 0:
+			return [Interval(self.lower, self.upper, self.precision)]
 
 #### Some special Intervals we know how to build.
 

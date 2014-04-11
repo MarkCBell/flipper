@@ -5,7 +5,7 @@ try:
 except ImportError: # Python 3
 	from queue import Queue
 
-import Flipper
+import flipper
 
 class AbstractTriangle(object):
 	''' This represents a triangle in a trianglulation of a punctured surface. '''
@@ -98,14 +98,14 @@ class AbstractTriangulation(object):
 	def face_matrix(self):
 		if self._face_matrix is None:
 			X = [[(3*i + j, self.triangles[i][j+k]) for i in range(self.num_triangles) for j in range(3)] for k in range(3)]
-			self._face_matrix = Flipper.kernel.Zero_Matrix(self.zeta, 3*self.num_triangles).tweak(X[0] + X[1], X[2])
+			self._face_matrix = flipper.kernel.Zero_Matrix(self.zeta, 3*self.num_triangles).tweak(X[0] + X[1], X[2])
 		return self._face_matrix
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
 			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
 			X = dict((P, [[(i, triangle[side+j]) for i, (triangle, side) in enumerate(P)] for j in range(3)]) for P in corner_choices)
-			self._marking_matrices = [Flipper.kernel.Zero_Matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
+			self._marking_matrices = [flipper.kernel.Zero_Matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
 		return self._marking_matrices
 	
 	def find_edge(self, edge_index):
@@ -248,17 +248,17 @@ class AbstractTriangulation(object):
 					from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
 					to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, cycle[side])
 					if from_triangle_neighbour not in seen_triangles:
-						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, Flipper.kernel.permutation.cyclic_permutation((to_neighbour_side-from_neighbour_side) % 3, 3)))
+						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, flipper.kernel.permutation.cyclic_permutation((to_neighbour_side-from_neighbour_side) % 3, 3)))
 						seen_triangles.add(from_triangle_neighbour)
 			
-			return Flipper.kernel.Isometry(source_triangulation, target_triangulation, triangle_map)
+			return flipper.kernel.Isometry(source_triangulation, target_triangulation, triangle_map)
 		
 		isometries = []
 		for other_triangle in other_triangulation:
 			for i in range(3):
 				try:
-					isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, Flipper.kernel.permutation.cyclic_permutation(i, 3))
-				except Flipper.AssumptionError:
+					isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, flipper.kernel.permutation.cyclic_permutation(i, 3))
+				except flipper.AssumptionError:
 					pass
 				else:
 					for triangle in self:
@@ -274,8 +274,8 @@ class AbstractTriangulation(object):
 		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0
 	
 	# Laminations we can build on the triangulation.
-	def lamination(self, vector):
-		return Flipper.kernel.Lamination(self, vector)
+	def lamination(self, vector, remove_peripheral=False):
+		return flipper.kernel.Lamination(self, vector, remove_peripheral)
 	
 	def empty_lamination(self):
 		return self.lamination([0] * self.zeta)
@@ -296,8 +296,8 @@ class AbstractTriangulation(object):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def Id_EncodingSequence(self):
-		f = b = [Flipper.kernel.PartialFunction(self, self, Flipper.kernel.Id_Matrix(self.zeta))]
-		return Flipper.kernel.EncodingSequence([Flipper.kernel.PLFunction(f, b)])
+		f = b = [flipper.kernel.PartialFunction(self, self, flipper.kernel.Id_Matrix(self.zeta))]
+		return flipper.kernel.EncodingSequence([flipper.kernel.PLFunction(f, b)])
 	
 	def encode_flip(self, edge_index):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
@@ -307,17 +307,17 @@ class AbstractTriangulation(object):
 		
 		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
 		e = edge_index  # Give it a shorter name.
-		A1 = Flipper.kernel.Id_Matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
-		C1 = Flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])
+		A1 = flipper.kernel.Id_Matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
+		C1 = flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])
 		
-		A2 = Flipper.kernel.Id_Matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
-		C2 = Flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
+		A2 = flipper.kernel.Id_Matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
+		C2 = flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		
-		f = Flipper.kernel.PartialFunction(self, new_triangulation, A1, C1)
-		g = Flipper.kernel.PartialFunction(self, new_triangulation, A2, C2)
+		f = flipper.kernel.PartialFunction(self, new_triangulation, A1, C1)
+		g = flipper.kernel.PartialFunction(self, new_triangulation, A2, C2)
 		
-		f_inv = Flipper.kernel.PartialFunction(new_triangulation, self, A1, C1)
-		g_inv = Flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
+		f_inv = flipper.kernel.PartialFunction(new_triangulation, self, A1, C1)
+		g_inv = flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
 		
-		return Flipper.kernel.EncodingSequence([Flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
+		return flipper.kernel.EncodingSequence([flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
 

@@ -2,7 +2,7 @@
 from importlib import import_module
 from math import log10 as log
 
-import Flipper
+import flipper
 
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
 #	compute the stable lamination exactly, and
@@ -15,11 +15,11 @@ import Flipper
 #
 # Each library provides one function:
 #	PF_eigen(matrix, vector):
-#		Given a matrix (of type Flipper.kernel.Matrix) let L be its demoninant eigenvalue
+#		Given a matrix (of type flipper.kernel.Matrix) let L be its demoninant eigenvalue
 #		and v = (v_1 ... v_k) the orthogonal projection of vector to the eigenspace of L. 
 #		This returns the list of coefficients of a small (ideally minimal) integral polynomial 
 #		of L and a list of list of integers [[v_ij]] such that v_i = sum(v_ij L**j). Throws
-#		a Flipper.AssertionError if L is not real.
+#		a flipper.AssertionError if L is not real.
 # 
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
@@ -32,7 +32,7 @@ libraries = {'sage':'symboliccomputation_sage', 'dummy':'symboliccomputation_dum
 def load_library(library_name=None):
 	for library in ([library_name] + load_order) if library_name in libraries else load_order:
 		try:
-			return import_module('Flipper.kernel.' + libraries[library])
+			return import_module('flipper.kernel.' + libraries[library])
 		except ImportError:
 			pass
 	
@@ -41,9 +41,9 @@ def load_library(library_name=None):
 def Perron_Frobenius_eigen(matrix, curve):
 	symbolic_computation_library = load_library()
 	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix, curve)
-	eigenvalue_polynomial = Flipper.kernel.Polynomial(eigenvalue_coefficients)
+	eigenvalue_polynomial = flipper.kernel.Polynomial(eigenvalue_coefficients)
 	
-	N = Flipper.kernel.NumberField(eigenvalue_polynomial)
+	N = flipper.kernel.NumberField(eigenvalue_polynomial)
 	eigenvector = [N.element(v) for v in eigenvector_coefficients]
 	
 	return eigenvector

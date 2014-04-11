@@ -5,7 +5,7 @@ try:
 except ImportError:
 	snappy = None
 
-import Flipper
+import flipper
 
 RANDOM_WORD_LENGTH = 10
 
@@ -23,12 +23,12 @@ def main():
 	
 	try:
 		for word, target_manifold in tests:
-			Ms = Flipper.examples.abstracttriangulation.Example_S_1_1().mapping_class(word).splitting_sequence().snappy_manifolds()
+			Ms = flipper.examples.abstracttriangulation.Example_S_1_1().mapping_class(word).splitting_sequence().snappy_manifolds()
 			N = snappy.Manifold(target_manifold)
 			assert(any(M.is_isometric_to(N) for M in Ms))
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
-	except Flipper.ComputationError:
+	except flipper.ComputationError:
 		return False  # Mapping class is probably reducible.
 	except AssertionError:
 		return False
@@ -36,14 +36,14 @@ def main():
 	try:
 		for _ in range(50):
 			try:
-				S = Flipper.examples.abstracttriangulation.Example_S_1_1()
+				S = flipper.examples.abstracttriangulation.Example_S_1_1()
 				word = S.random_word(RANDOM_WORD_LENGTH)
 				Ms = S.mapping_class(word).splitting_sequence().snappy_manifolds()
 				N = snappy.twister.Surface('S_1_1').bundle(word)
 				assert(any(M.is_isometric_to(N) for M in Ms))
-			except Flipper.AssumptionError:
+			except flipper.AssumptionError:
 				pass  # Word we chose was not pA.
-			except Flipper.ComputationError:
+			except flipper.ComputationError:
 				pass  # Mapping class is probably reducible.
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')

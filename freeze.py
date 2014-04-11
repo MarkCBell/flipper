@@ -3,11 +3,11 @@ import sys
 from cx_Freeze import setup, Executable
 
 # Get the correct version.
-from version import Flipper_version
+from version import flipper_version
 
 setup(
-	name='Flipper',
-	version=Flipper_version,  # Get the correct version.
+	name='flipper',
+	version=flipper_version,  # Get the correct version.
 	author='Mark Bell',
 	description='For manipulating curves on surfaces and producing mapping tori.',
 	options={'build_exe':{'icon':'./application/icon/icon.ico', 'include_files':[('./application/icon/', './icon'), ('./application/docs/', './docs')]}},

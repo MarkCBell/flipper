@@ -2,11 +2,11 @@
 from __future__ import print_function
 from itertools import product, permutations
 
-import Flipper
+import flipper
 
 def main(n=4):
 	# Get some example permutations.
-	all_perms = Flipper.kernel.permutation.all_permutations(n)
+	all_perms = flipper.kernel.permutation.all_permutations(n)
 	
 	try:
 		# Check that there are the same number of odd and even permutations.

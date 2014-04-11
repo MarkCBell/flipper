@@ -1,5 +1,5 @@
 
-import Flipper
+import flipper
 
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an AbstractTriangulation. '''
@@ -16,13 +16,13 @@ class SplittingSequence(object):
 		return self.laminations[0].weight() / self.laminations[-1].weight()
 	
 	def bundle(self, isometry_number=0):
-		L = Flipper.kernel.LayeredTriangulation(self.laminations[0].abstract_triangulation)
+		L = flipper.kernel.LayeredTriangulation(self.laminations[0].abstract_triangulation)
 		L.flips(self.flips)
 		closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in self.closing_isometries)]
 		
 		return L.close(closing_isometries[isometry_number])
 	
-	def snappy_manifold(self, isometry_number=0, name='Flipper triangulation'):
+	def snappy_manifold(self, isometry_number=0, name='flipper triangulation'):
 		import snappy
 		B = self.bundle(isometry_number)
 		M = snappy.Manifold(B.snappy_string(name))
@@ -34,6 +34,6 @@ class SplittingSequence(object):
 	def bundles(self):
 		return [self.bundle(isometry_number) for isometry_number in range(len(self.closing_isometries))]
 	
-	def snappy_manifolds(self, name='Flipper triangulation'):
+	def snappy_manifolds(self, name='flipper triangulation'):
 		return [self.snappy_manifold(isometry_number, name) for isometry_number in range(len(self.closing_isometries))]
 

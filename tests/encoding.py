@@ -1,7 +1,7 @@
 
 from __future__ import print_function
 
-import Flipper
+import flipper
 
 def main():
 	

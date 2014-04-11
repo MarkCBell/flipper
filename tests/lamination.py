@@ -2,11 +2,11 @@
 from __future__ import print_function
 from time import time
 
-import Flipper
+import flipper
 
-NT_TYPE_PERIODIC = Flipper.kernel.encoding.NT_TYPE_PERIODIC
-NT_TYPE_REDUCIBLE = Flipper.kernel.encoding.NT_TYPE_REDUCIBLE
-NT_TYPE_PSEUDO_ANOSOV = Flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
+NT_TYPE_PERIODIC = flipper.kernel.encoding.NT_TYPE_PERIODIC
+NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
+NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main(verbose=False, timings=False):
 	start_time = time()
@@ -26,7 +26,7 @@ def main(verbose=False, timings=False):
 	try:
 		for surface, word, mapping_class_type in tests:
 			if verbose: print(word)
-			S = Flipper.examples.abstracttriangulation.SURFACES[surface]()
+			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			mapping_class = S.mapping_class(word)
 			# assert(mapping_class.NT_type() == mapping_class_type)
 			T = mapping_class.NT_type_alternate()
@@ -41,5 +41,6 @@ def main(verbose=False, timings=False):
 
 if __name__ == '__main__':
 	import cProfile
-	cProfile.run('main()', 'stats')
+	cProfile.run('main(verbose=True)', 'stats')
 	#print(main(verbose=True, timings=True))
+

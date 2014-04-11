@@ -1,20 +1,21 @@
 
-import Flipper
+import flipper
 
 class Lamination(object):
 	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
 	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation. 
-	The Lamination is allowed to rescale its weights (by a factor of 2) in order to remove any peripheral i
-	components. '''
-	def __init__(self, abstract_triangulation, vector):
+	If remove_peripheral is True then the Lamination is allowed to rescale its weights (by a factor of 2) in order 
+	to remove any peripheral components. '''
+	def __init__(self, abstract_triangulation, vector, remove_peripheral=False):
 		self.abstract_triangulation = abstract_triangulation
 		self.zeta = self.abstract_triangulation.zeta
-		assert(Flipper.kernel.matrix.nonnegative(vector))
-		# Compute how much peripheral component there is on each corner class.
-		peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
-		# If there is any remove it.
-		if any(peripheral.values()):
-			vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
+		assert(flipper.kernel.matrix.nonnegative(vector))
+		if remove_peripheral:
+			# Compute how much peripheral component there is on each corner class.
+			peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.abstract_triangulation.corner_classes)
+			# If there is any remove it.
+			if any(peripheral.values()):
+				vector = [2*vector[i] - sum(peripheral[x] for x in self.abstract_triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 	
 	def copy(self):
@@ -44,7 +45,7 @@ class Lamination(object):
 	def __add__(self, other):
 		if isinstance(other, Lamination):
 			if other.abstract_triangulation == self.abstract_triangulation:
-				return self.abstract_triangulation.lamination([x + y for x, y in zip(self, other)])
+				return self.abstract_triangulation.lamination([x + y for x, y in zip(self, other)], remove_peripheral=True)
 			else:
 				raise ValueError('Laminations must be on the same triangulation to add them.')
 		else:
@@ -53,7 +54,7 @@ class Lamination(object):
 		return self + other
 	
 	def __mul__(self, other):
-		if isinstance(other, Flipper.Integer_Type):
+		if isinstance(other, flipper.Integer_Type):
 			return self.abstract_triangulation.lamination([other * x for x in self])
 		else:
 			return NotImplemented
@@ -90,7 +91,7 @@ class Lamination(object):
 				weights = [self.vector[index] for index in triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
 				for i in range(3):
-					if not isinstance(dual_weights_doubled[i], Flipper.kernel.types.Integer_Type):
+					if not isinstance(dual_weights_doubled[i], flipper.kernel.types.Integer_Type):
 						return False
 					
 					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
@@ -109,7 +110,7 @@ class Lamination(object):
 		# The latter case happens iff a component of S - \gamma has no punctures.
 		
 		if not self.is_multicurve():
-			raise Flipper.AssumptionError('Can only conjugate multicurves to be short.')
+			raise flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
 		best_conjugation = conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
@@ -206,7 +207,7 @@ class Lamination(object):
 		# We label real punctures with a 0 and fake ones created by this process with a 1.
 		
 		zeta1 = self.abstract_triangulation.zeta
-		M = Flipper.kernel.Id_Matrix(zeta1) * 2
+		M = flipper.kernel.Id_Matrix(zeta1) * 2
 		
 		new_labels = []
 		new_corner_labels = []
@@ -222,7 +223,7 @@ class Lamination(object):
 				new_corner_labels.append([1, 0, 0])
 				new_corner_labels.append([1, 0, 0])
 				
-				X = Flipper.kernel.Zero_Matrix(zeta1, 3).tweak([(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
+				X = flipper.kernel.Zero_Matrix(zeta1, 3).tweak([(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
 				M = M.join(X)
 				
 				zeta = zeta + 3
@@ -230,8 +231,8 @@ class Lamination(object):
 				new_labels.append([a, b, c])
 				new_corner_labels.append([0, 0, 0])
 		
-		T = Flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return Flipper.kernel.PLFunction([Flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
+		T = flipper.AbstractTriangulation(new_labels, new_corner_labels)
+		return flipper.kernel.PLFunction([flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -245,23 +246,23 @@ class Lamination(object):
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == b or c == d:
 			# This means that self[a] (respectively self[c]) == 0.
-			raise Flipper.AssumptionError('Additional weightless edge.')
+			raise flipper.AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
 		if a == d and b == c:
 			# We're on S_{0,3}.
-			raise Flipper.AssumptionError('Underlying surface is S_{0,3}.')
+			raise flipper.AssumptionError('Underlying surface is S_{0,3}.')
 		
 		if a == c and a == d:
 			# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
-			raise Flipper.AssumptionError('Edge connects between two vertices labelled 0.')
+			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
 		base_triangle, base_side = self.abstract_triangulation.find_edge(edge_index)[0]
 		corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
 		corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
 		if corner_A_label == 0 and corner_B_label == 0:
-			raise Flipper.AssumptionError('Edge connects between two vertices labelled 0.')
+			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
 		
 		# We'll replace the labels on the corner class with higher labels with the label from the lower
 		good_corner_label = min(corner_A_label, corner_B_label)
@@ -300,17 +301,17 @@ class Lamination(object):
 		new_vector = [[self[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
 		new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in self.abstract_triangulation if edge_index not in triangle]
 		
-		return Lamination(Flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
+		return Lamination(flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None):
 		# Computes the splitting sequence of this lamination until we reach
 		# a periodic sequence (with the required dilatation if given).
 		# We assume that each entry is a NumberFieldElement and that this is a filling lamination. 
-		# If not, it will discover this along the way and throw an AssumptionFlipper.
+		# If not, it will discover this along the way and throw an Assumptionflipper.
 		
 		# Check if vector is obviously reducible.
 		if any(v == 0 for v in self.vector):
-			raise Flipper.AssumptionError('Lamination is not filling.')
+			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Puncture out all trigon regions.
 		lamination = self.encode_puncture_trigons() * self
@@ -331,8 +332,8 @@ class Lamination(object):
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
-				except Flipper.AssumptionError:
-					raise Flipper.AssumptionError('Lamination is not filling.')
+				except flipper.AssumptionError:
+					raise flipper.AssumptionError('Lamination is not filling.')
 			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
@@ -341,7 +342,7 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							return Flipper.kernel.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
+							return flipper.kernel.SplittingSequence(self, None, laminations[index:], flips[index:], encodings)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]
@@ -349,7 +350,7 @@ class Lamination(object):
 	def is_filling(self):
 		try:
 			self.splitting_sequence()
-		except Flipper.AssumptionError:
+		except flipper.AssumptionError:
 			return False
 		else:
 			return True
@@ -360,7 +361,7 @@ class Lamination(object):
 		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a twistable curve. '''
 		if not self.is_twistable():
-			raise Flipper.AssumptionError('Not a good curve.')
+			raise flipper.AssumptionError('Not a good curve.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		
@@ -392,7 +393,7 @@ class Lamination(object):
 		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a half twistable curve. '''
 		if not self.is_halftwistable():
-			raise Flipper.AssumptionError('Not a boundary of a pair of pants.')
+			raise flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
 		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
 		

@@ -204,35 +204,15 @@ class Lamination(object):
 		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
 	
 	def encode_puncture_trigons(self):
-		# We label real punctures with a 0 and fake ones created by this process with a 1.
-		
-		zeta1 = self.abstract_triangulation.zeta
-		M = flipper.kernel.Id_Matrix(zeta1) * 2
-		
-		new_labels = []
-		new_corner_labels = []
-		zeta = self.zeta
+		''' Returns an encoding from this triangulation to one in which all trigon regions of this
+		lamination have been punctured. '''
+		to_puncture = []
 		for triangle in self.abstract_triangulation:
 			a, b, c = triangle.edge_indices
 			if self[a] + self[b] > self[c] and self[b] + self[c] > self[a] and self[c] + self[a] > self[b]:
-				x, y, z = zeta, zeta+1, zeta+2
-				new_labels.append([a, z, y])
-				new_labels.append([b, x, z])
-				new_labels.append([c, y, x])
-				new_corner_labels.append([1, 0, 0])
-				new_corner_labels.append([1, 0, 0])
-				new_corner_labels.append([1, 0, 0])
-				
-				X = flipper.kernel.Zero_Matrix(zeta1, 3).tweak([(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
-				M = M.join(X)
-				
-				zeta = zeta + 3
-			else:
-				new_labels.append([a, b, c])
-				new_corner_labels.append([0, 0, 0])
+				to_puncture.append(triangle)
 		
-		T = flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return flipper.kernel.PLFunction([flipper.kernel.PartialFunction(self.abstract_triangulation, T, M)])
+		return self.abstract_triangulation.encode_puncture_triangles(to_puncture)
 	
 	def collapse_trivial_weight(self, edge_index):
 		# Assumes that AbstractTriangulation is not S_{0,3}. Assumes that the given 
@@ -271,7 +251,8 @@ class Lamination(object):
 		else:
 			bad_corner_class = self.abstract_triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
 		
-		# replacement is a map sending the old edge_indices to the new edge indices. We already know what it does on edges far away from edge_index.
+		# replacement is a map sending the old edge_indices to the new edge indices. 
+		# We already know what it does on edges far away from edge_index.
 		replacement = dict(zip([i for i in range(self.zeta) if i not in [edge_index, a, b, c, d]], range(self.zeta)))
 		zeta = len(replacement)
 		if a == c:

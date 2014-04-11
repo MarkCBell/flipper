@@ -320,4 +320,40 @@ class AbstractTriangulation(object):
 		g_inv = flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
 		
 		return flipper.kernel.EncodingSequence([flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
+	
+	def encode_puncture_triangles(self, to_puncture):
+		''' Returns an encoding from this triangulation to one in which each triangle
+		on the list to_puncture has been punctured. That is the canonical map from self
+		to the self where 1-->3 Pachner moves have been applied to the given triangles. '''
+		# We label real punctures with a 0 and number fake one by intergers > 0.
+		
+		old_zeta = self.zeta
+		M = flipper.kernel.Id_Matrix(old_zeta) * 2
+		
+		new_labels = []
+		new_corner_labels = []
+		zeta = self.zeta
+		num_fake = 0
+		for triangle in self:
+			a, b, c = triangle.edge_indices
+			if triangle in to_puncture:
+				num_fake += 1
+				x, y, z = zeta, zeta+1, zeta+2
+				new_labels.append([a, z, y])
+				new_labels.append([b, x, z])
+				new_labels.append([c, y, x])
+				new_corner_labels.append([num_fake, 0, 0])
+				new_corner_labels.append([num_fake, 0, 0])
+				new_corner_labels.append([num_fake, 0, 0])
+				
+				X = flipper.kernel.Zero_Matrix(old_zeta, 3).tweak([(0, b), (0, c), (1, c), (1, a), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
+				M = M.join(X)
+				
+				zeta = zeta + 3
+			else:
+				new_labels.append([a, b, c])
+				new_corner_labels.append([0, 0, 0])
+		
+		T = flipper.AbstractTriangulation(new_labels, new_corner_labels)
+		return flipper.kernel.PLFunction([flipper.kernel.PartialFunction(self, T, M)])
 

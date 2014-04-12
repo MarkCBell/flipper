@@ -27,7 +27,7 @@ class ExampleSurface(object):
 		if isinstance(word, flipper.Integer_Type):
 			word = self.get_random_word(word)
 		
-		h = self.abstract_triangulation.Id_EncodingSequence()
+		h = self.abstract_triangulation.Id_Encoding()
 		for letter in word:
 			h = self.mapping_classes[letter] * h
 		
@@ -102,7 +102,7 @@ def Example_12(word=None):
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/12 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
 def Example_24(word=None):
 	# A 24-gon.
@@ -115,7 +115,7 @@ def Example_24(word=None):
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/24 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
 def Example_36(word=None):
 	# A 36-gon
@@ -128,7 +128,7 @@ def Example_36(word=None):
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.all_isometries(T)[1] # This is a 1/36 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode_isometry()])
+	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
 # We also provide a dictionary to allow quick lookup of an example by name.
 SURFACES = {'S_1_1': Example_S_1_1, 

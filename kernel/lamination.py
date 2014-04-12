@@ -113,7 +113,7 @@ class Lamination(object):
 			raise flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
-		best_conjugation = conjugation = lamination.abstract_triangulation.Id_EncodingSequence()
+		best_conjugation = conjugation = lamination.abstract_triangulation.Id_Encoding()
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
@@ -296,7 +296,7 @@ class Lamination(object):
 		NumberField).
 		
 		This assumes that the lamination is filling. If not then it will
-		discover this along the way.
+		discover this.
 		'''
 		
 		# Check if the lamination is obviously non-filling.
@@ -369,14 +369,14 @@ class Lamination(object):
 			return True
 	
 	def encode_twist(self, k=1):
-		''' Returns an EncodingSequence of a left Dehn twist about this lamination raised to the power k.
+		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
 		If k is zero this will return the identity encoding. If k is negative this 
-		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
+		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a twistable curve. '''
 		if not self.is_twistable():
 			raise flipper.AssumptionError('Not a good curve.')
 		
-		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
+		if k == 0: return self.abstract_triangulation.Id_Encoding()
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
@@ -395,20 +395,20 @@ class Lamination(object):
 		short_lamination = forwards * short_lamination
 		
 		# Find the correct isometry to take us back.
-		map_back = [isom for isom in short_lamination.abstract_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode_isometry()
+		map_back = [isom for isom in short_lamination.abstract_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
 		T = map_back * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
 	
 	def encode_halftwist(self, k=1):
-		''' Returns an EncodingSequence of a left Dehn twist about this lamination raised to the power k.
+		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
 		If k is zero this will return the identity encoding. If k is negative this 
-		will return an EncodingSequence of a right Dehn twist about this lamination raised to the power -k.
+		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a half twistable curve. '''
 		if not self.is_halftwistable():
 			raise flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
-		if k == 0: return self.abstract_triangulation.Id_EncodingSequence()
+		if k == 0: return self.abstract_triangulation.Id_Encoding()
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation * self
@@ -440,7 +440,7 @@ class Lamination(object):
 		new_triangulation = short_lamination.abstract_triangulation
 		
 		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode_isometry()
+		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
 		T = map_back * forwards3 * forwards2 * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation

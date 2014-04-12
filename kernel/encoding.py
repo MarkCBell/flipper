@@ -66,9 +66,9 @@ class PLFunction(object):
 		return self * other
 	def __mul__(self, other):
 		if isinstance(other, PLFunction):
-			return EncodingSequence([self, other])
-		elif isinstance(other, EncodingSequence):
-			return EncodingSequence([self] + other.sequence)
+			return Encoding([self, other])
+		elif isinstance(other, Encoding):
+			return Encoding([self] + other.sequence)
 		elif isinstance(other, flipper.kernel.Lamination):
 			for function in self.partial_functions:
 				try:
@@ -81,9 +81,9 @@ class PLFunction(object):
 	def __pow__(self, n):
 		assert(self.source_triangulation == self.target_triangulation)
 		if n > 0:
-			return EncodingSequence([self] * n)
+			return Encoding([self] * n)
 		elif n == 0:
-			return self.source_triangulation.Id_EncodingSequence()
+			return self.source_triangulation.Id_Encoding()
 		elif n < 0:
 			return self.inverse()**abs(n)
 	def copy(self):
@@ -104,7 +104,7 @@ class PLFunction(object):
 		
 		raise TypeError('Object is not in domain.')
 
-class EncodingSequence(object):
+class Encoding(object):
 	def __init__(self, sequence):
 		''' This represents the composition of several PLFunction. '''
 		# Try and make a shorter sequence.
@@ -134,13 +134,13 @@ class EncodingSequence(object):
 		return iter(self.sequence)
 	def __getitem__(self, key):
 		if isinstance(key, slice):
-			return EncodingSequence(self.sequence[key])
+			return Encoding(self.sequence[key])
 		elif isinstance(key, flipper.kernel.Integer_Type):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')
 	def __eq__(self, other):
-		return isinstance(other, EncodingSequence) and \
+		return isinstance(other, Encoding) and \
 			self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
 			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
@@ -149,10 +149,10 @@ class EncodingSequence(object):
 	def __call__(self, other):
 		return self * other
 	def __mul__(self, other):
-		if isinstance(other, EncodingSequence):
-			return EncodingSequence(self.sequence + other.sequence)
+		if isinstance(other, Encoding):
+			return Encoding(self.sequence + other.sequence)
 		elif isinstance(other, PLFunction):
-			return EncodingSequence(self.sequence + [other])
+			return Encoding(self.sequence + [other])
 		else:
 			other = other.copy()
 			for A in reversed(self.sequence):
@@ -161,14 +161,14 @@ class EncodingSequence(object):
 	def __pow__(self, k):
 		assert(self.source_triangulation == self.target_triangulation)
 		if k == 0:
-			return self.source_triangulation.Id_EncodingSequence()
+			return self.source_triangulation.Id_Encoding()
 		elif k > 0:
-			return EncodingSequence(self.sequence * k)
+			return Encoding(self.sequence * k)
 		else:
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
-		return EncodingSequence([A.inverse() for A in reversed(self)])
+		return Encoding([A.inverse() for A in reversed(self)])
 	
 	def name_indices(self, lamination):
 		indices = []
@@ -203,7 +203,7 @@ class EncodingSequence(object):
 		assert(self.source_triangulation == self.target_triangulation)
 		curve_images = curves = self.source_triangulation.key_curves()
 		# We could do:
-		# id_map = self.source_triangulation.Id_EncodingSequence()
+		# id_map = self.source_triangulation.Id_Encoding()
 		# for i in range(self.source_triangulation.max_order):
 		#	if self**(i+1) == id_map:
 		#		return i+1
@@ -224,14 +224,16 @@ class EncodingSequence(object):
 		return 'Infinite' if order == 0 else str(order)
 	
 	def is_identity(self):
-		return self == self.source_triangulation.Id_EncodingSequence()
+		return self == self.source_triangulation.Id_Encoding()
 	
 	def is_periodic(self):
 		return self.order() > 0
 	
 	def is_reducible(self, log_progress=None):
-		''' This determines if the induced action of self on V has a fixed point satisfying:
-		face_matrix.v >= 0 and marking_matrix.v >= 0 for some marking_matrix in marking_matrices. '''
+		''' This determines if the induced action of self on V the space of laminations on T
+		has a fixed point satisfying:
+			face_matrix.v >= 0 and marking_matrix.v >= 0 
+		for some marking_matrix in marking_matrices. '''
 		# We now use Ben's branch and bound approach. It's much better.
 		assert(self.source_triangulation == self.target_triangulation)
 		
@@ -304,6 +306,7 @@ class EncodingSequence(object):
 		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def NT_type(self, log_progress=None):
+		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		elif self.is_reducible(log_progress=log_progress):
@@ -312,6 +315,7 @@ class EncodingSequence(object):
 			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def NT_type_alternate(self):
+		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
@@ -324,21 +328,17 @@ class EncodingSequence(object):
 				return NT_TYPE_REDUCIBLE
 	
 	def invariant_lamination(self):
-		# This uses flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() to return a lamination
-		# (with entries in a NumberField) which is projectively invariant under this mapping class. 
-		# If it cannot find one then it raises a ComputationError.
-		#
-		# This was originally designed to be called only with pseudo-Anosov mapping classes 
-		# but should now work with periodics and reducibles too. 
-		#
-		# The process starts with several curves on the surface and repeatedly applies the map until 
-		# they appear to projectively similar to a previous iteration. 
-		# Finally it uses flipper.kernel.symboliccomputation.Perron_Frobenius_eigen() 
-		# to find the nearby projective fixed point. 
-		#
-		# Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
-		# 100 iterations and a ComputationError is thrown then it's actually extremely likely that the 
-		# map was not pseudo-Anosov.
+		''' Returns a lamination (with entries in a NumberField) which is projectively invariant
+		under this mapping class. If it cannot find one then it raises a ComputationError.
+		
+		The process starts with several curves on the surface and repeatedly applies the map until
+		they appear to projectively similar to a previous iteration. Finally it uses:
+			flipper.kernel.symboliccomputation.Perron_Frobenius_eigen()
+		to find the nearby projective fixed point.
+		
+		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
+		100 iterations and a ComputationError is thrown then it's actually extremely likely that the
+		map was not pseudo-Anosov. '''
 		
 		assert(self.source_triangulation == self.target_triangulation)
 		triangulation = self.source_triangulation
@@ -388,9 +388,12 @@ class EncodingSequence(object):
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	def dilatation(self, lamination):
-		# Returns the dilatation of this mapping class on the given lamination.
-		# This only makes sense if the lamination is projectively invariant.
+		''' Returns the dilatation of this mapping class on the given lamination.
 		
+		Assumes that the given lamination is projectively invariant. If not then
+		it will discover this. '''
+		
+		assert(self.source_triangulation == self.target_triangulation)
 		new_lamination = self * lamination
 		if not lamination.projectively_equal(new_lamination):
 			raise flipper.AssumptionError('Lamination is not projectively invariant.')
@@ -398,7 +401,18 @@ class EncodingSequence(object):
 		return new_lamination.weight() / lamination.weight()
 	
 	def splitting_sequence(self):
-		# Assumes that the mapping class is pseudo-Anosov. 
+		''' Returns the (unique) splitting sequence associated to this mapping class.
+		
+		If the mapping class is not on S_{1,1} or S_{0,4} then then splitting
+		sequence will have a unique closing isometry set. To do this the algorithm may
+		occasionally need to perform a second round of lamination.splitting_sequence().
+		However this is only done when the mapping class has a symmetry and its
+		stable lamination has fewer singularities than we could initally see.
+		
+		Assumes that the mapping class is pseudo-Anosov. If not then it will
+		discover this. '''
+		
+		assert(self.source_triangulation == self.target_triangulation)
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
@@ -434,7 +448,7 @@ class EncodingSequence(object):
 				#
 				preperiodic, periodic = splitting.preperiodic, splitting.periodic
 				for isom in splitting.closing_isometries:
-					if preperiodic * self.inverse() == isom.encode_isometry() * periodic * preperiodic:
+					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom
 						break
 				else:
@@ -443,6 +457,7 @@ class EncodingSequence(object):
 		return splitting
 	
 	def decompose(self, other_encodings):
+		''' Returns this mapping class as a composition of the given others. '''
 		search_radius = 2
 		all_words = [''.join(x) for x in product(other_encodings.keys(), repeat=search_radius)]
 		
@@ -463,4 +478,17 @@ class EncodingSequence(object):
 			images = [other_encodings[best_word[0]] * curve for curve in images]
 		
 		return True
+
+class MappingClass(Encoding):
+	def __init__(self, sequence):
+		self.sequence = sequence
+		assert(all(isinstance(x, PLFunction) for x in self.sequence))
+		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
+		
+		self.source_triangulation = self.sequence[-1].source_triangulation
+		self.target_triangulation = self.sequence[0].target_triangulation
+		assert(self.source_triangulation == self.target_triangulation)
+		self.triangulation = self.source_triangulation
+		self.zeta = self.source_triangulation.zeta
+	
 

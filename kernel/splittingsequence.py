@@ -25,6 +25,7 @@ class SplittingSequence(object):
 		else:
 			# We still need to adapt the closing isometry that we have.
 			closing_isometries = [isometry for isometry in L.upper_lower_isometries() if isometry.edge_map == self.closing_isometry.edge_map]
+			# Problem: There may be more than one.
 			return L.close(closing_isometries[0])
 	
 	def snappy_manifold(self, isometry_number=None, name='flipper triangulation'):

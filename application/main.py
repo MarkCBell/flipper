@@ -1080,14 +1080,14 @@ class FlipperApp(object):
 				else:
 					name = flipper.application.get_input('Name', 'New isometry name:', validate=self.valid_name)
 					if name is not None:
-						self.add_mapping_class(isometry.encode_isometry(), name)
+						self.add_mapping_class(isometry.encode(), name)
 	
 	def create_composition(self, return_name=False):
 		# Assumes that each of the named mapping classes exist.
 		if self.is_complete():
 			composition = flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				mapping_class = self.abstract_triangulation.Id_EncodingSequence()
+				mapping_class = self.abstract_triangulation.Id_Encoding()
 				for twist in composition.split('.'):
 					if twist in self.mapping_classes:
 						mapping_class = mapping_class * self.mapping_classes[twist]

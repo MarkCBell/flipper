@@ -296,9 +296,9 @@ class AbstractTriangulation(object):
 		# (or possibly the hyperelliptic if we are on S_{0, 4} or S_{1, 1}).
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
-	def Id_EncodingSequence(self):
+	def Id_Encoding(self):
 		f = b = [flipper.kernel.PartialFunction(self, self, flipper.kernel.Id_Matrix(self.zeta))]
-		return flipper.kernel.EncodingSequence([flipper.kernel.PLFunction(f, b)])
+		return flipper.kernel.Encoding([flipper.kernel.PLFunction(f, b)])
 	
 	def encode_flip(self, edge_index):
 		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
@@ -320,7 +320,7 @@ class AbstractTriangulation(object):
 		f_inv = flipper.kernel.PartialFunction(new_triangulation, self, A1, C1)
 		g_inv = flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
 		
-		return flipper.kernel.EncodingSequence([flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
+		return flipper.kernel.Encoding([flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
 	
 	def encode_puncture_triangles(self, to_puncture):
 		''' Returns an encoding from this triangulation to one in which each triangle

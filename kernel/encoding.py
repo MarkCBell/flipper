@@ -436,7 +436,7 @@ class Encoding(object):
 					splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
 				
 				# Find the correct isometry (isom) which completes the square (pentagon?).
-				# Remember: The periodic goes in the _opposite_ direction to self so the
+				# Remember: The periodic goes in the *opposite* direction to self so the
 				# diagram looks like this:
 				#
 				#   T ------------ self^{-1} ------------> T
@@ -478,17 +478,4 @@ class Encoding(object):
 			images = [other_encodings[best_word[0]] * curve for curve in images]
 		
 		return True
-
-class MappingClass(Encoding):
-	def __init__(self, sequence):
-		self.sequence = sequence
-		assert(all(isinstance(x, PLFunction) for x in self.sequence))
-		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
-		
-		self.source_triangulation = self.sequence[-1].source_triangulation
-		self.target_triangulation = self.sequence[0].target_triangulation
-		assert(self.source_triangulation == self.target_triangulation)
-		self.triangulation = self.source_triangulation
-		self.zeta = self.source_triangulation.zeta
-	
 

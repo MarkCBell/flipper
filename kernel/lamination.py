@@ -201,7 +201,12 @@ class Lamination(object):
 	def weight_difference_flip_edge(self, edge_index):
 		# Returns how much the weight would change by if this flip was done.
 		a, b, c, d = self.abstract_triangulation.find_indicies_of_square_about_edge(edge_index)
-		return max(self[a] + self[c], self[b] + self[d]) - self[edge_index] - self[edge_index]
+		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
+	
+	def puncture_stratum_orders(self):
+		''' Returns a list of the number of stratum exiting each cusp. This is the
+		number of triangles incident to the cusp whose dual weight is zero. '''
+		return [sum(1 for triangle, side in corner_class if self[triangle[side+1]] + self[triangle[side+2]] == self[triangle[side]]) for corner_class in self.abstract_triangulation.corner_classes]
 	
 	def tripod_regions(self):
 		''' Returns a list of all triangles in which this lamination looks

@@ -359,7 +359,7 @@ class Encoding(object):
 			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]  # Linear.
 			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]  # Exponential.
 			
-			for j in range(1, min(triangulation.max_order, len(curves))+1):
+			for j in range(1, min(1, triangulation.max_order, len(curves))+1):  # Remove the 1??
 				for new_curve, curve in zip(new_curves, curves[-j]):
 					if projective_difference(new_curve, curve, 1000):
 						partial_function = (self**j).applied_function(curve)
@@ -379,7 +379,7 @@ class Encoding(object):
 			for curve in new_curves:
 				denominator = max(min(x for x in curve if x > 0), i+1)
 				vector = [QQ.element([int(round(float(x) / denominator, 0))]) for x in curve]
-				small_curve = triangulation.lamination(vector)
+				small_curve = triangulation.lamination(vector, remove_peripheral=True)
 				if self * small_curve == small_curve:
 					return small_curve
 			
@@ -398,7 +398,7 @@ class Encoding(object):
 		if not lamination.projectively_equal(new_lamination):
 			raise flipper.AssumptionError('Lamination is not projectively invariant.')
 		
-		return new_lamination.weight() / lamination.weight()
+		return float(new_lamination.weight()) / float(lamination.weight())
 	
 	def splitting_sequence(self):
 		''' Returns the (unique) splitting sequence associated to this mapping class.
@@ -416,15 +416,17 @@ class Encoding(object):
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
+		print('!!!', self.dilatation(lamination))
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
+		print(float(dilatation))
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
 			# We might need to do more work to get the closing isometry.
-			if splitting.closing_isometry is None:
+			if splitting.closing_isometry is None and False:
 				# If we installed too many punctures by default then
 				# the preperiodic encoding wont make it through.
 				if splitting.preperiodic is None:
@@ -433,7 +435,8 @@ class Encoding(object):
 					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
 					tripods = lamination.tripod_regions()
 					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
-					splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
+					splitting = lamination.splitting_sequence(puncture_first=real_tripods)
+					# splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
 				
 				# Find the correct isometry (isom) which completes the square (pentagon?).
 				# Remember: The periodic goes in the *opposite* direction to self so the
@@ -443,12 +446,12 @@ class Encoding(object):
 				#    \                                      \
 				#  preperiodic                            preperiodic
 				#      \                                      \
-				#       V                                      V 
+				#       V                                      V
 				#       T' --- periodic ---> T'' --- isom ---> T'
 				#
 				preperiodic, periodic = splitting.preperiodic, splitting.periodic
 				for isom in splitting.closing_isometries:
-					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
+					if preperiodic * self.inverse()**3 == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom
 						break
 				else:

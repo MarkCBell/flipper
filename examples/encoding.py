@@ -3,9 +3,8 @@ from __future__ import print_function
 from time import time
 
 import flipper
-import flipper.application
 
-def main(n=100, show=False):
+def main(n=100):
 	times = {}
 	S = flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(n):
@@ -25,11 +24,6 @@ def main(n=100, show=False):
 		#word = 'FEFdFCBA'
 		print('%d: %s' % (i, word), end='')
 		mapping_class = S.mapping_class(word)
-		if show:
-			L = mapping_class.source_triangulation.key_curves()
-			M = [mapping_class]
-			flipper.application.start((L, M))
-		
 		t = time()
 		mapping_class.invariant_lamination()
 		times[word] = time() - t
@@ -38,9 +32,5 @@ def main(n=100, show=False):
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
 
 if __name__ == '__main__':
-	import sys
-	if len(sys.argv) > 1:
-		main(int(sys.argv[1]))
-	else:
-		main()
+	main()
 

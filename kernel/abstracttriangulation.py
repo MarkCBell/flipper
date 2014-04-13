@@ -75,7 +75,7 @@ class AbstractTriangulation(object):
 		return AbstractTriangulation([list(triangle.edge_indices) for triangle in self.triangles], [list(triangle.corner_labels) for triangle in self.triangles])
 	
 	def __repr__(self):
-		return str(id(self))
+		# return str(id(self))
 		return '\n'.join(str(triangle) for triangle in self.triangles)
 	
 	def __iter__(self):

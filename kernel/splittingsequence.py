@@ -14,7 +14,7 @@ class SplittingSequence(object):
 		self.closing_isometry = self.closing_isometries[0] if self.num_isometries == 1 else None
 	
 	def dilatation(self):
-		return self.laminations[0].weight() / self.laminations[-1].weight()
+		return float(self.laminations[0].weight()) / float(self.laminations[-1].weight())
 	
 	def bundle(self, isometry_number=None):
 		L = flipper.kernel.LayeredTriangulation(self.laminations[0].abstract_triangulation)
@@ -24,7 +24,7 @@ class SplittingSequence(object):
 			return L.close(closing_isometries[isometry_number])
 		else:
 			# We still need to adapt the closing isometry that we have.
-			closing_isometries = [isometry for isometry in L.upper_lower_isometries() if isometry.edge_map == self.closing_isometry.edge_map]
+			closing_isometries = [isom for isom in L.upper_lower_isometries() if isom.edge_map == self.closing_isometry.edge_map]
 			# Problem: There may be more than one.
 			return L.close(closing_isometries[0])
 	

@@ -309,7 +309,9 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# If not given, puncture all the triangles where the lamination is a tripod.
+		print(puncture_first)
 		if puncture_first is None: puncture_first = self.tripod_regions()
+		print(puncture_first)
 		puncture_encoding = self.abstract_triangulation.encode_puncture_triangles(puncture_first)
 		lamination = puncture_encoding * self
 		
@@ -325,6 +327,28 @@ class Lamination(object):
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
+			print(len(flips), float(lamination.weight()), float(lamination.weight()) * 1.684910152717295)
+			A, B = 47, 57
+			A, B = 50, 60
+			if len(flips) == B:
+				print(len(laminations))
+				print([float(x) for x in laminations[A]])
+				print([float(x) * 1.684910152717295 for x in laminations[B]])
+				T = laminations[A].abstract_triangulation
+				T2 = laminations[B].abstract_triangulation
+				V = [int(float(x)) for x in laminations[A]]
+				V2 = [int(float(x) * 1.684910152717295) for x in laminations[B]]
+				d = dict((i, [j for j in range(len(V2)) if V2[j] == V[i]]) for i in range(len(V)))
+				for i in range(len(V)):
+					print(i, d[i])
+				print(T)
+				print('###############')
+				print(T2)
+				print('###########')
+				for t in T2:
+					print(d[t[0]], d[t[1]], d[t[2]])
+				
+				exit(1)
 			
 			# Check if we have created any edges of weight 0. 
 			# It is enough to just check edge_index.
@@ -334,15 +358,20 @@ class Lamination(object):
 					lamination = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the preperiodic encoding so just block it by sticking in a None.
 					encodings.append(None)
+					print('###################')
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
 			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
+			#if True:
+			#	for index in range(len(laminations)-1):
 			if target in seen:
 				for index in seen[target]:
 					old_lamination = laminations[index]
 					if len(lamination.all_projective_isometries(old_lamination)) > 0:
+						print('ALMOST')
+						print(float(old_lamination.weight()) / float(lamination.weight()))
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
 							p_laminations = laminations[index:]
 							p_flips = flips[index:]

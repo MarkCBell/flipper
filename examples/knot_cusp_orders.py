@@ -1,15 +1,9 @@
 
-import os
-
 import flipper
-
-def from_database(file_name):
-	for line in open(os.path.join(os.path.dirname(__file__), file_name)):
-		if line:
-			yield line.strip().split('\t')
+from database import from_database
 
 def main():
-	for word, surface in from_database('knot_monodromies'):
+	for surface, word in from_database('knot_monodromies'):
 		print(surface, word)
 		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 		mapping_class = S.mapping_class(word)
@@ -20,6 +14,7 @@ def main():
 		cusp_numbers = [[triangle.corner_labels[side] for triangle, side in corner_class][0] for corner_class in corner_classes]
 		real_cusp_orders = [stratum_order for number, stratum_order in zip(cusp_numbers, cusp_stratum_orders) if number == 0]
 		print(real_cusp_orders)
+		print(cusp_stratum_orders)
 
 if __name__ == '__main__':
 	main()

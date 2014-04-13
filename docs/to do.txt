@@ -19,6 +19,7 @@ add set accuracy to AlgebraicApproximation
 add support for Fractions to the number classes
 doc strings everywhere
 recheck ALL number theory bounds
+rewrite all tests and examples to a standard format
 
 ### Tests ###
 add more tests

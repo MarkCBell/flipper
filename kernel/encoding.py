@@ -416,46 +416,12 @@ class Encoding(object):
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
-		print('!!!', self.dilatation(lamination))
 		# dilatation = self.dilatation(lamination)
 		dilatation = lamination.vector[0].number_field.lmbda
-		print(float(dilatation))
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		else:
-			# We might need to do more work to get the closing isometry.
-			if splitting.closing_isometry is None and False:
-				# If we installed too many punctures by default then
-				# the preperiodic encoding wont make it through.
-				if splitting.preperiodic is None:
-					# So we have to do it again with fewer.
-					initial_triangulation = splitting.laminations[0].abstract_triangulation
-					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
-					tripods = lamination.tripod_regions()
-					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
-					splitting = lamination.splitting_sequence(puncture_first=real_tripods)
-					# splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
-				
-				# Find the correct isometry (isom) which completes the square (pentagon?).
-				# Remember: The periodic goes in the *opposite* direction to self so the
-				# diagram looks like this:
-				#
-				#   T ------------ self^{-1} ------------> T
-				#    \                                      \
-				#  preperiodic                            preperiodic
-				#      \                                      \
-				#       V                                      V
-				#       T' --- periodic ---> T'' --- isom ---> T'
-				#
-				preperiodic, periodic = splitting.preperiodic, splitting.periodic
-				for isom in splitting.closing_isometries:
-					if preperiodic * self.inverse()**3 == isom.encode() * periodic * preperiodic:
-						splitting.closing_isometry = isom
-						break
-				else:
-					assert(False)  # There was no way to close the square!?
 		# new_dilatation = splitting.dilatation()
 		return splitting
 	

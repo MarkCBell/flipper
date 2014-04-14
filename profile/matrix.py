@@ -5,7 +5,6 @@ from time import time
 
 import flipper
 
-
 def main(n=1000, k=100, p=3, q=5):
 	try:
 		for i in range(n):
@@ -19,13 +18,8 @@ def main(n=1000, k=100, p=3, q=5):
 			print(r-t, s-r)
 			if a != b:
 				print(M)
-				print('Foo')
 				assert(False)
-	except AssertionError:
-		return False
-	
-	return True
 
 if __name__ == '__main__':
-	main(p=5, q=20)
+	main()
 

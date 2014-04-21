@@ -21,7 +21,7 @@ class PartialFunction(object):
 		self.condition = condition
 	
 	def __str__(self):
-		return str(self.action) + '\n' + str(self.condition)
+		return '%s\n%s' % (self.action, self.condition)
 	
 	def __call__(self, other):
 		return self * other
@@ -79,7 +79,7 @@ class PLFunction(object):
 		else:
 			return NotImplemented
 	def __pow__(self, n):
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		if n > 0:
 			return Encoding([self] * n)
 		elif n == 0:
@@ -123,6 +123,8 @@ class Encoding(object):
 		self.source_triangulation = self.sequence[-1].source_triangulation
 		self.target_triangulation = self.sequence[0].target_triangulation
 		self.zeta = self.source_triangulation.zeta
+	def is_mapping_class(self):
+		return self.source_triangulation == self.target_triangulation
 	
 	def __len__(self):
 		return len(self.sequence)
@@ -159,7 +161,7 @@ class Encoding(object):
 				other = A * other
 			return other
 	def __pow__(self, k):
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		if k == 0:
 			return self.source_triangulation.Id_Encoding()
 		elif k > 0:
@@ -200,7 +202,7 @@ class Encoding(object):
 	
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		curve_images = curves = self.source_triangulation.key_curves()
 		# We could do:
 		# id_map = self.source_triangulation.Id_Encoding()
@@ -235,7 +237,7 @@ class Encoding(object):
 			face_matrix.v >= 0 and marking_matrix.v >= 0 
 		for some marking_matrix in marking_matrices. '''
 		# We now use Ben's branch and bound approach. It's much better.
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		
 		# We first create two little functions to increment the list of indices to the next point that 
 		# we are interested in. The first jumps from our current location to the next subtree, the second
@@ -302,11 +304,11 @@ class Encoding(object):
 		return False
 	
 	def check_fixedpoint(self, certificate):
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		return certificate.is_multicurve() and self * certificate == certificate
 	
 	def NT_type(self, log_progress=None):
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		elif self.is_reducible(log_progress=log_progress):
@@ -315,7 +317,7 @@ class Encoding(object):
 			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def NT_type_alternate(self):
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
@@ -340,7 +342,7 @@ class Encoding(object):
 		100 iterations and a ComputationError is thrown then it's actually extremely likely that the
 		map was not pseudo-Anosov. '''
 		
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		triangulation = self.source_triangulation
 		
 		curves = self.source_triangulation.key_curves()
@@ -359,20 +361,21 @@ class Encoding(object):
 			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]  # Linear.
 			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]  # Exponential.
 			
-			for j in range(1, min(1, triangulation.max_order, len(curves))+1):  # Remove the 1??
+			for j in range(1, min(triangulation.max_order, len(curves))+1):
 				for new_curve, curve in zip(new_curves, curves[-j]):
 					if projective_difference(new_curve, curve, 1000):
-						partial_function = (self**j).applied_function(curve)
+						average_curve = sum(self**k * curve for k in range(j))
+						partial_function = self.applied_function(average_curve)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
-							eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, curve)
+							eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
 						except flipper.AssumptionError:
 							pass  # Largest eigenvalue was not real.
 						else:
-							# If we actually found an invariant lamination then return it.
+							# Test if the vector we found lies in the cone given by the condition matrix.
 							if condition_matrix.nonnegative_image(eigenvector):
+								# If it does then we have a projectively invariant lamintation.
 								invariant_lamination = triangulation.lamination(eigenvector)
-								invariant_lamination = sum([self**(k+1) * invariant_lamination for k in range(j)])
 								if not invariant_lamination.is_empty():
 									return invariant_lamination
 			
@@ -393,7 +396,7 @@ class Encoding(object):
 		Assumes that the given lamination is projectively invariant. If not then
 		it will discover this. '''
 		
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		new_lamination = self * lamination
 		if not lamination.projectively_equal(new_lamination):
 			raise flipper.AssumptionError('Lamination is not projectively invariant.')
@@ -412,18 +415,47 @@ class Encoding(object):
 		Assumes that the mapping class is pseudo-Anosov. If not then it will
 		discover this. '''
 		
-		assert(self.source_triangulation == self.target_triangulation)
+		assert(self.is_mapping_class())
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		lamination = self.invariant_lamination()
-		# dilatation = self.dilatation(lamination)
-		dilatation = lamination.vector[0].number_field.lmbda
+		dilatation = lamination[0].number_field.lmbda
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		# new_dilatation = splitting.dilatation()
-		return splitting
+		else:
+			# We might need to do more work to get the closing isometry.
+			if splitting.closing_isometry is None:
+				# If we installed too many punctures by default then
+				# the preperiodic encoding wont make it through.
+				if splitting.preperiodic is None:
+					# So we have to do it again with fewer.
+					initial_triangulation = splitting.laminations[0].abstract_triangulation
+					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
+					tripods = lamination.tripod_regions()
+					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
+					splitting = lamination.splitting_sequence(target_dilatation=dilatation, puncture_first=real_tripods)
+				
+				# Find the correct isometry (isom) which completes the square (pentagon?).
+				# Remember: The periodic goes in the _opposite_ direction to self so the
+				# diagram looks like this:
+				#
+				#   T ------------ self^{-1} ------------> T
+				#    \                                      \
+				#  preperiodic                            preperiodic
+				#      \                                      \
+				#       V                                      V
+				#       T' --- periodic ---> T'' --- isom ---> T'
+				#
+				preperiodic, periodic = splitting.preperiodic, splitting.periodic
+				for isom in splitting.closing_isometries:
+					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
+						splitting.closing_isometry = isom
+						break
+					else:
+						assert(False)  # There was no way to close the square!?
+			return splitting
 	
 	def decompose(self, other_encodings):
 		''' Returns this mapping class as a composition of the given others. '''

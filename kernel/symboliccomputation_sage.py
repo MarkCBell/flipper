@@ -1,19 +1,10 @@
 
-from sage.all import Matrix, lcm, NumberField, QQ, RR
-from sage.rings.number_field.number_field import NumberField_generic
+from sage.all import Matrix, lcm, NumberField
+from flipper.kernel.symboliccomputation_dummy import gram_schmidt
 
 import flipper
 
 symbolic_libaray_name = 'sage'
-
-def gram_schmidt(rows):
-	dot = flipper.kernel.matrix.dot
-	for i in range(len(rows)):
-		for j in range(i):
-			a = dot(rows[i], rows[j])
-			b = dot(rows[j], rows[j])
-			rows[i] = [b * x - a * y for x, y in zip(rows[i], rows[j])]
-	return rows
 
 def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
@@ -24,8 +15,7 @@ def PF_eigen(matrix, vector):
 	if eigenvalue.imag() != 0:
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
-	# We need to be a little careful, for some reason sage needs a variable name if eigenvalue is a rational.
-	polynomial = eigenvalue.minpoly()  # if eigenvalue not in QQ else eigenvalue.minpoly('x')
+	polynomial = eigenvalue.minpoly()
 	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
 	eigenvalue_coefficients = [int(scale * x) for x in polynomial.coeffs()]
 	

@@ -9,17 +9,21 @@ import flipper
 #	compute splitting sequences.
 #
 # This module selects and imports the appropriate library for manipulating algebraic numbers.
-# Currently there is only an interface to sage though more can easily be added. We used to 
-# have an interface to SymPy but this turned out to be extremely unreliable, there were 9x9 
+# Currently there is only an interface to sage though more can easily be added. We used to
+# have an interface to SymPy but this turned out to be extremely unreliable, there were 9x9
 # invertible matrices for which it could only find 1 eigenvalue!
+#
+# There is also a dummy library which has a basic implementation of the gram schmidt 
+# orthonormalisation process that other libraries may be able to make use of.
 #
 # Each library provides one function:
 #	PF_eigen(matrix, vector):
 #		Given a matrix (of type flipper.kernel.Matrix) let L be its demoninant eigenvalue
-#		and v = (v_1 ... v_k) the orthogonal projection of vector to the eigenspace of L. 
-#		This returns the list of coefficients of a small (ideally minimal) integral polynomial 
-#		of L and a list of list of integers [[v_ij]] such that v_i = sum(v_ij L**j). Throws
-#		a flipper.AssertionError if L is not real.
+#		and v = (v_1 ... v_k) the orthogonal projection of vector to the eigenspace of L.
+#		This returns the list of coefficients of a small (ideally minimal) integral polynomial
+#		of L and a list of list of integers [[v_ij]] such that:
+#			v_i = sum(v_ij L**j).
+#		Throws a flipper.AssertionError if L is not real.
 # 
 # and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #

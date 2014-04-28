@@ -27,7 +27,7 @@ class PartialFunction(object):
 		return self * other
 	
 	def __mul__(self, other):
-		if isinstance(other, flipper.kernel.Lamination) and other.abstract_triangulation == self.source_triangulation:
+		if isinstance(other, flipper.kernel.Lamination) and other.triangulation == self.source_triangulation:
 			if self.condition.nonnegative_image(other.vector):
 				return self.target_triangulation.lamination(self.action * other.vector)
 		
@@ -426,12 +426,12 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
 			# We might need to do more work to get the closing isometry.
-			if splitting.closing_isometry is None:
+			if splitting.closing_isometry is None and False:  # This is broken !!?!!
 				# If we installed too many punctures by default then
 				# the preperiodic encoding wont make it through.
-				if splitting.preperiodic is None:
+				if splitting.preperiodic is None:  # Actually this is the broken bit.
 					# So we have to do it again with fewer.
-					initial_triangulation = splitting.laminations[0].abstract_triangulation
+					initial_triangulation = splitting.laminations[0].triangulation
 					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
 					tripods = lamination.tripod_regions()
 					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
@@ -450,6 +450,8 @@ class Encoding(object):
 				#
 				preperiodic, periodic = splitting.preperiodic, splitting.periodic
 				for isom in splitting.closing_isometries:
+					# Note: Until algebraic intersection numbers are done, this equality 
+					# isn't strong enought if the underlying surface is S_1_1 or S_0_4.
 					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom
 						break

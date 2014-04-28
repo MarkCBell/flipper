@@ -5,7 +5,7 @@ import flipper
 
 def main():
 	S = flipper.examples.abstracttriangulation.Example_S_1_1()
-	T = S.abstract_triangulation
+	T = S.triangulation
 	if len(T.all_isometries(T)) != 6:
 		return False
 	

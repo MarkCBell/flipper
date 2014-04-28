@@ -90,6 +90,9 @@ class AbstractTriangulation(object):
 			if (triangle, side) in corner_class:
 				return corner_class
 	
+	def vertex_orders(self):
+		return [len(corner_class) for corner_class in self.corner_classes]
+	
 	def find_edge_corner_classes(self, edge_index):
 		# Returns the two corner classes contain the ends of the specified edge.
 		containing_triangles = self.find_edge(edge_index)

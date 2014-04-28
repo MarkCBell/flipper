@@ -10,7 +10,7 @@ def main():
 		splitting_sequence = mapping_class.splitting_sequence()
 		lamination = splitting_sequence.laminations[0]
 		cusp_stratum_orders = lamination.puncture_stratum_orders()
-		corner_classes = lamination.abstract_triangulation.corner_classes
+		corner_classes = lamination.triangulation.corner_classes
 		cusp_numbers = [[triangle.corner_labels[side] for triangle, side in corner_class][0] for corner_class in corner_classes]
 		real_cusp_orders = [stratum_order for number, stratum_order in zip(cusp_numbers, cusp_stratum_orders) if number == 0]
 		print(real_cusp_orders)

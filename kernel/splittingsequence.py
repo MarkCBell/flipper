@@ -17,7 +17,7 @@ class SplittingSequence(object):
 		return float(self.laminations[0].weight()) / float(self.laminations[-1].weight())
 	
 	def bundle(self, isometry_number=None):
-		L = flipper.kernel.LayeredTriangulation(self.laminations[0].abstract_triangulation)
+		L = flipper.kernel.LayeredTriangulation(self.laminations[0].triangulation)
 		L.flips(self.flips)
 		if isometry_number is not None:
 			closing_isometries = [isometry for isometry in L.upper_lower_isometries() if any(isometry.edge_map == isom.edge_map for isom in self.closing_isometries)]

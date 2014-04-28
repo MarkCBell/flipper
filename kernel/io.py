@@ -21,7 +21,7 @@ def package(objects, names=None):
 		a, b, ..., z. '''
 	
 	if isinstance(objects, flipper.AbstractTriangulation):
-		abstract_triangulation = objects
+		triangulation = objects
 		laminations = {}
 		mapping_classes = {}
 	elif isinstance(objects, (list, tuple)) and len(objects) == 2:
@@ -29,17 +29,17 @@ def package(objects, names=None):
 		if isinstance(laminations, (list, tuple)): laminations = dict(list(zip(ascii_lowercase, laminations)))
 		if isinstance(mapping_classes, (list, tuple)): mapping_classes = dict(list(zip(ascii_lowercase, mapping_classes)))
 		if len(laminations) > 0:
-			abstract_triangulation = list(laminations.values())[0].abstract_triangulation
+			triangulation = list(laminations.values())[0].triangulation
 		elif len(mapping_classes) > 0:
-			abstract_triangulation = list(mapping_classes.values())[0].source_triangulation
+			triangulation = list(mapping_classes.values())[0].source_triangulation
 		else:
 			raise ValueError('Must be a pair of laminations and mapping classes.')
 		
-		if any(lamination.abstract_triangulation != abstract_triangulation for lamination in laminations.values()):
+		if any(lamination.triangulation != triangulation for lamination in laminations.values()):
 			raise ValueError('All laminations must be on the same abstract triangulations.')
-		if any(mapping_class.source_triangulation != abstract_triangulation for mapping_class in mapping_classes.values()):
+		if any(mapping_class.source_triangulation != triangulation for mapping_class in mapping_classes.values()):
 			raise ValueError('All mapping classes must go from the same abstract triangulations.')
-		if any(mapping_class.target_triangulation != abstract_triangulation for mapping_class in mapping_classes.values()):
+		if any(mapping_class.target_triangulation != triangulation for mapping_class in mapping_classes.values()):
 			raise ValueError('All mapping classes must go to the same abstract triangulations.')
 	else:
 		raise ValueError('Must be an abstract triangulation or a pair.')
@@ -47,7 +47,7 @@ def package(objects, names=None):
 	spec = 'A flipper kernel file.'
 	version = flipper.version.flipper_version
 	
-	data = (abstract_triangulation, laminations, mapping_classes)
+	data = (triangulation, laminations, mapping_classes)
 	return pickle.dumps((spec, version, data))
 
 def depackage(packaged_objects):
@@ -58,6 +58,6 @@ def depackage(packaged_objects):
 	if flipper.version.version_tuple(version) != flipper.version.version_tuple(flipper.version.flipper_version):
 		raise ValueError('Wrong version of flipper.')
 	
-	[abstract_triangulation, laminations, mapping_classes] = data
-	return abstract_triangulation, laminations, mapping_classes
+	[triangulation, laminations, mapping_classes] = data
+	return triangulation, laminations, mapping_classes
 

@@ -9,8 +9,8 @@ from string import ascii_lowercase, ascii_uppercase
 import flipper
 
 class ExampleSurface(object):
-	def __init__(self, abstract_triangulation, laminations, mapping_classes):
-		self.abstract_triangulation = abstract_triangulation
+	def __init__(self, triangulation, laminations, mapping_classes):
+		self.triangulation = triangulation
 		if isinstance(laminations, dict):
 			self.laminations = laminations
 		else:
@@ -27,7 +27,7 @@ class ExampleSurface(object):
 		if isinstance(word, flipper.Integer_Type):
 			word = self.get_random_word(word)
 		
-		h = self.abstract_triangulation.Id_Encoding()
+		h = self.triangulation.Id_Encoding()
 		for letter in word:
 			h = self.mapping_classes[letter] * h
 		

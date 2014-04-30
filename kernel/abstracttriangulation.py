@@ -258,8 +258,8 @@ class AbstractTriangulation(object):
 			return flipper.kernel.Isometry(source_triangulation, target_triangulation, triangle_map)
 		
 		isometries = []
-		#if False:
-		if True:
+		if False:
+		#if True:
 			source_corner_class = min(self.corner_classes, key=len)
 			min_degree = len(source_corner_class)
 			possible_targets = [target for corner_class in other_triangulation.corner_classes for target in corner_class if len(corner_class) == min_degree]
@@ -277,7 +277,6 @@ class AbstractTriangulation(object):
 			return isometries
 			
 		else:
-			
 			for other_triangle in other_triangulation:
 				for i in range(3):
 					try:

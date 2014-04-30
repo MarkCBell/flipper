@@ -452,17 +452,24 @@ class Encoding(object):
 				#       T' --- periodic ---> T'' --- isom ---> T'
 				#
 				preperiodic, periodic = splitting.preperiodic, splitting.periodic
+				init_isoms = self.source_triangulation.all_isometries(self.source_triangulation)
+				for curve in self.source_triangulation.key_curves():
+					for isom in init_isoms:
+						print(preperiodic * self.inverse()**21 * isom.encode() * curve)
+					for isom in splitting.closing_isometries:
+						print((isom.encode() * periodic)**21 * preperiodic * curve)
+					print('####')
 				for isom in splitting.closing_isometries:
 					# Note: Until algebraic intersection numbers are done, this equality 
 					# isn't strong enought if the underlying surface is S_1_1 or S_0_4.
-					for curve in self.source_triangulation.key_curves():
-						print(preperiodic * self.inverse()**5 * curve)
-						print((isom.encode() * periodic)**5 * preperiodic * curve)
-					print('####')
 					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom
 						break
 				else:
+					for isom in splitting.closing_isometries:
+						print(isom.permutation())
+					for isom in self.source_triangulation.all_isometries(self.source_triangulation):
+						print(isom.permutation())
 					assert(False)  # There was no way to close the square!?
 			return splitting
 	

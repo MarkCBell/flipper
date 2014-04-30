@@ -11,6 +11,8 @@ class Permutation(object):
 		self.permutation = tuple(permutation)
 	def __str__(self):
 		return str(self.permutation)
+	def compressed_string(self):
+		return ''.join(str(p) for p in self.permutation)
 	def __iter__(self):
 		return iter(self.permutation)
 	def __getitem__(self, index):

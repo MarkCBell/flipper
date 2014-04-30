@@ -15,6 +15,7 @@ from . import polynomial
 from . import splittingsequence
 from . import symboliccomputation
 from . import types
+from . import utilities
 
 # Set up shorter names for all of the different classes and some common constructors.
 AbstractTriangle = abstracttriangulation.AbstractTriangle

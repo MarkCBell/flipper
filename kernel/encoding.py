@@ -323,10 +323,10 @@ class Encoding(object):
 		else:
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 			# fails to find an invariant lamination.
-			try:
-				self.splitting_sequence()
+			lamination = self.invariant_lamination()
+			if lamination.is_filling():
 				return NT_TYPE_PSEUDO_ANOSOV
-			except flipper.AssumptionError:
+			else:
 				return NT_TYPE_REDUCIBLE
 	
 	def invariant_lamination(self):
@@ -377,6 +377,7 @@ class Encoding(object):
 								# If it does then we have a projectively invariant lamintation.
 								invariant_lamination = triangulation.lamination(eigenvector)
 								if not invariant_lamination.is_empty():
+									lmbda = invariant_lamination[0].number_field.lmbda
 									return invariant_lamination
 			
 			for curve in new_curves:
@@ -418,18 +419,20 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		lamination = self.invariant_lamination()
+		lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		dilatation = lamination[0].number_field.lmbda
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
-		except flipper.AssumptionError:  # lamination is not filling.
+		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
 			# We might need to do more work to get the closing isometry.
-			if splitting.closing_isometry is None and False:  # This is broken !!?!!
+			if splitting.closing_isometry is None:
 				# If we installed too many punctures by default then
 				# the preperiodic encoding wont make it through.
-				if splitting.preperiodic is None:  # Actually this is the broken bit.
+				print('Finding closer')
+				if splitting.preperiodic is None:
+					print('OLD BROKEN')
 					# So we have to do it again with fewer.
 					initial_triangulation = splitting.laminations[0].triangulation
 					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
@@ -452,11 +455,15 @@ class Encoding(object):
 				for isom in splitting.closing_isometries:
 					# Note: Until algebraic intersection numbers are done, this equality 
 					# isn't strong enought if the underlying surface is S_1_1 or S_0_4.
+					for curve in self.source_triangulation.key_curves():
+						print(preperiodic * self.inverse()**5 * curve)
+						print((isom.encode() * periodic)**5 * preperiodic * curve)
+					print('####')
 					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom
 						break
-					else:
-						assert(False)  # There was no way to close the square!?
+				else:
+					assert(False)  # There was no way to close the square!?
 			return splitting
 	
 	def decompose(self, other_encodings):

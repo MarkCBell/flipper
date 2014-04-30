@@ -8,6 +8,7 @@ from version import flipper_version
 
 # So we can access all of the test suite just by doing 'python setup.py test'
 class TestCommand(Command):
+	description = 'Runs all tests in the tests directory.'
 	user_options = []
 	
 	def initialize_options(self):
@@ -17,7 +18,8 @@ class TestCommand(Command):
 		pass
 	
 	def run(self):
-		''' Runs all of the tests in the Tests directory. '''
+		''' Runs all of the tests in the tests directory. '''
+		print(self.verbose)
 		try:
 			test_module = importlib.import_module('flipper.tests')
 		except ImportError:
@@ -51,6 +53,6 @@ setup(
 	packages=['flipper'],
 	package_dir={'flipper':''},
 	# Remember to update these if the directory structure changes.
-	package_data={'flipper':['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'docs/*', 'version.py']},
+	package_data={'flipper':['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'profile/*.py', 'docs/*', 'version.py']},
 	cmdclass={'test':TestCommand}
 	)

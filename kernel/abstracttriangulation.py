@@ -319,7 +319,6 @@ class AbstractTriangulation(object):
 		return flipper.kernel.Encoding([flipper.kernel.PLFunction(f, b)])
 	
 	def encode_flip(self, edge_index):
-		# Returns a forwards and backwards maps to a new triangulation obtained by flipping the edge of index edge_index.
 		assert(self.edge_is_flippable(edge_index))
 		
 		new_triangulation = self.flip_edge(edge_index)

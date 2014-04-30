@@ -380,6 +380,7 @@ class Encoding(object):
 									lmbda = invariant_lamination[0].number_field.lmbda
 									return invariant_lamination
 			
+			# !?! Remove this?
 			for curve in new_curves:
 				denominator = max(min(x for x in curve if x > 0), i+1)
 				vector = [QQ.element([int(round(float(x) / denominator, 0))]) for x in curve]
@@ -427,7 +428,7 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
 			# We might need to do more work to get the closing isometry.
-			if splitting.closing_isometry is None:
+			if splitting.closing_isometry is None and False:
 				# If we installed too many punctures by default then
 				# the preperiodic encoding wont make it through.
 				print('Finding closer')
@@ -452,12 +453,16 @@ class Encoding(object):
 				#       T' --- periodic ---> T'' --- isom ---> T'
 				#
 				preperiodic, periodic = splitting.preperiodic, splitting.periodic
+				
+				conj_lamination = preperiodic * lamination
+				
 				init_isoms = self.source_triangulation.all_isometries(self.source_triangulation)
 				for curve in self.source_triangulation.key_curves():
-					for isom in init_isoms:
-						print(preperiodic * self.inverse()**21 * isom.encode() * curve)
+					print(curve)
+					print((preperiodic * self.inverse()**100 * curve).weight())
 					for isom in splitting.closing_isometries:
-						print((isom.encode() * periodic)**21 * preperiodic * curve)
+						print(((isom.encode() * periodic)**100 * preperiodic * curve).weight())
+					
 					print('####')
 				for isom in splitting.closing_isometries:
 					# Note: Until algebraic intersection numbers are done, this equality 
@@ -466,8 +471,11 @@ class Encoding(object):
 						splitting.closing_isometry = isom
 						break
 				else:
+					print(dilatation)
+					print(self.dilatation(lamination))
 					for isom in splitting.closing_isometries:
 						print(isom.permutation())
+						print(1 / (isom.encode() * periodic).dilatation(conj_lamination))
 					for isom in self.source_triangulation.all_isometries(self.source_triangulation):
 						print(isom.permutation())
 					assert(False)  # There was no way to close the square!?

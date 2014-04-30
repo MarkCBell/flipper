@@ -50,7 +50,7 @@ class Lamination(object):
 			else:
 				raise ValueError('Laminations must be on the same triangulation to add them.')
 		else:
-			return self.triangulation.lamination([x + other for x in self]) 
+			return self.triangulation.lamination([x + other for x in self])
 	def __radd__(self, other):
 		return self + other
 	
@@ -358,7 +358,6 @@ class Lamination(object):
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
 								assert(p_encoding.source_triangulation == old_lamination.triangulation)
 								assert(p_encoding.target_triangulation == lamination.triangulation)
-								
 								
 							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():

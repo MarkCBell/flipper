@@ -83,7 +83,7 @@ class Tetrahedron(object):
 	def snappy_string(self):
 		s = ''
 		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-		s += ' %s %s %s %s\n' % tuple([str(gluing) for tetrahedra, gluing in self.glued_to])
+		s += ' %s %s %s %s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
 		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
 		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
 		s += ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n'
@@ -512,10 +512,11 @@ class LayeredTriangulation(object):
 		for triangle in self.upper_triangulation:
 			tetrahedron, permutation = fibre_immersion[triangle]
 			for side in range(3):
+				label = 0 if triangle.corner_labels[side] == 0 else 1
 				if cusp_types[tetrahedron.cusp_indices[permutation[side]]] is None:
-					cusp_types[tetrahedron.cusp_indices[permutation[side]]] = triangle.corner_labels[side]
+					cusp_types[tetrahedron.cusp_indices[permutation[side]]] = label
 				else:
-					assert(cusp_types[tetrahedron.cusp_indices[permutation[side]]] == triangle.corner_labels[side])
+					assert(cusp_types[tetrahedron.cusp_indices[permutation[side]]] == label)
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps

@@ -1,5 +1,6 @@
 
 import flipper
+import snappy
 from database import from_database
 
 def main():
@@ -15,6 +16,18 @@ def main():
 		real_cusp_orders = [stratum_order for number, stratum_order in zip(cusp_numbers, cusp_stratum_orders) if number == 0]
 		print(real_cusp_orders)
 		print(cusp_stratum_orders)
+		N = snappy.twister.Surface(surface).bundle(word)
+		for M in splitting_sequence.snappy_manifolds():
+			print(N.volume(), M.volume())
+			print(N.chern_simons(), M.chern_simons())
+			for i in range(300):
+				M.randomize()
+				N.randomize()
+				if M.is_isometric_to(N):
+					print('TRUE')
+					break
+			else:
+				print('False (probably)')
 
 if __name__ == '__main__':
 	main()

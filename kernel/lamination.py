@@ -22,7 +22,8 @@ class Lamination(object):
 		return Lamination(self.triangulation, list(self.vector))
 	
 	def __repr__(self):
-		return str([str(v) for v in self.vector])
+		# return '\n'.join(str([self[i] for i in triangle]) for triangle in self.triangulation)
+		return str(self.vector)
 	
 	def __iter__(self):
 		return iter(self.vector)
@@ -54,10 +55,7 @@ class Lamination(object):
 		return self + other
 	
 	def __mul__(self, other):
-		if isinstance(other, flipper.Integer_Type):
-			return self.triangulation.lamination([other * x for x in self])
-		else:
-			return NotImplemented
+		return self.triangulation.lamination([other * x for x in self])
 	def __rmul__(self, other):
 		return self * other
 	
@@ -353,13 +351,18 @@ class Lamination(object):
 								pp_encoding = None
 								p_encoding = None  # Technically we could still work this out but the indexing is hard.
 							else:
-								pp_encoding = encodings[0]
-								for index2, encoding in enumerate(encodings[1:index+1]):
-									pp_encoding = encoding * pp_encoding
-								p_encoding = encodings[index+1]
-								for encoding in encodings[index+2:]:
-									p_encoding = encoding * p_encoding
+								pp_encoding = flipper.kernel.utilities.product(encodings[:index+1])
+								p_encoding = flipper.kernel.utilities.product(encodings[index+1:])
+								
+								assert(pp_encoding.source_triangulation == self.triangulation)
+								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
+								assert(p_encoding.source_triangulation == old_lamination.triangulation)
+								assert(p_encoding.target_triangulation == lamination.triangulation)
+								
+								
 							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
+						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
+							assert(False)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

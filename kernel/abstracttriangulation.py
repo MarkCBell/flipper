@@ -258,21 +258,37 @@ class AbstractTriangulation(object):
 			return flipper.kernel.Isometry(source_triangulation, target_triangulation, triangle_map)
 		
 		isometries = []
-		for other_triangle in other_triangulation:
-			for i in range(3):
+		#if False:
+		if True:
+			source_corner_class = min(self.corner_classes, key=len)
+			min_degree = len(source_corner_class)
+			possible_targets = [target for corner_class in other_triangulation.corner_classes for target in corner_class if len(corner_class) == min_degree]
+			
+			source_triangle, source_side = source_corner_class[0]
+			for other_triangle, other_side in possible_targets:
 				try:
-					isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, flipper.kernel.permutation.cyclic_permutation(i, 3))
+					isometry = extend_isometry(self, other_triangulation, source_triangle, other_triangle, flipper.kernel.permutation.cyclic_permutation(other_side - source_side, 3))
 				except flipper.AssumptionError:
 					pass
 				else:
-					for triangle in self:
-						target, perm = isometry[triangle]
-						if any(target.corner_labels[perm[side]] != triangle.corner_labels[side] for side in range(3)):
-							break
-					else:
+					if not any((isometry[triangle][0].corner_labels[isometry[triangle][1][side]] > 0) != (triangle.corner_labels[side] > 0) for triangle in self for side in range(3)):
 						isometries.append(isometry)
-		
-		return isometries
+			
+			return isometries
+			
+		else:
+			
+			for other_triangle in other_triangulation:
+				for i in range(3):
+					try:
+						isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, flipper.kernel.permutation.cyclic_permutation(i, 3))
+					except flipper.AssumptionError:
+						pass
+					else:
+						if not any((isometry[triangle][0].corner_labels[isometry[triangle][1][side]] > 0) != (triangle.corner_labels[side] > 0) for triangle in self for side in range(3)):
+							isometries.append(isometry)
+			
+			return isometries
 	
 	def is_isometric_to(self, other):
 		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0

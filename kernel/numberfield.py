@@ -79,7 +79,8 @@ class NumberFieldElement(object):
 		self.current_accuracy = -1
 	
 	def __repr__(self):
-		return ' + '.join('%d L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(self.algebraic_approximation())
+		return str(float(self.algebraic_approximation()))
+		return ' + '.join('%d*L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(float(self.algebraic_approximation()))
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __len__(self):

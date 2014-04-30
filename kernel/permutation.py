@@ -26,10 +26,20 @@ class Permutation(object):
 		return ''.join(str(p) for p in self.permutation)
 	def __eq__(self, other):
 		return self.permutation == other.permutation
+	def __ne__(self, other):
+		return self.permutation != other.permutation
 	def inverse(self):
 		return Permutation([j for i in range(len(self)) for j in range(len(self)) if self[j] == i])
 	def is_even(self):
 		return len([(i, j) for j, i in combinations(range(len(self)), 2) if self[j] > self[i]]) % 2 == 0
+	def order(self):
+		ID = Id_Permutation(len(self))
+		order = 1
+		product = self
+		while product != ID:
+			product = product * self
+			order += 1
+		return order
 	def embed(self, n):
 		# Returns the permutation given by including this permutation into Sym(n). Assumes n >= len(self).
 		if n < len(self):

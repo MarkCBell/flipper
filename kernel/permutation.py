@@ -9,7 +9,7 @@ class Permutation(object):
 	def __init__(self, permutation):
 		assert(set(permutation) == set(range(len(permutation))))
 		self.permutation = tuple(permutation)
-	def __repr__(self):
+	def __str__(self):
 		return str(self.permutation)
 	def __iter__(self):
 		return iter(self.permutation)
@@ -22,8 +22,7 @@ class Permutation(object):
 	def __mul__(self, other):
 		assert(len(self) == len(other))
 		return Permutation([self[other[i]] for i in range(len(self))])
-	def __str__(self):
-		return ''.join(str(p) for p in self.permutation)
+	# !?! Add in __pow__?
 	def __eq__(self, other):
 		return self.permutation == other.permutation
 	def __ne__(self, other):

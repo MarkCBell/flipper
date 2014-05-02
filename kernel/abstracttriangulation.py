@@ -48,6 +48,7 @@ class AbstractTriangulation(object):
 		self.edge_contained_in = dict((edge_index, [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]) for edge_index in range(self.zeta))
 		
 		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
+		self.corners = list(product(self.triangles, range(3)))
 		corners = list(product(self.triangles, range(3)))
 		self.corner_classes = []
 		while len(corners) > 0:

@@ -423,6 +423,7 @@ class LayeredTriangulation(object):
 	
 	def flips(self, sequence):
 		for edge_index in sequence:
+			print(edge_index)
 			self.flip(edge_index)
 	
 	def upper_lower_isometries(self):

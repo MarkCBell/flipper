@@ -1,5 +1,7 @@
 
+from time import sleep
 import flipper
+import flipper.application
 
 class Lamination(object):
 	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
@@ -204,16 +206,53 @@ class Lamination(object):
 	def puncture_stratum_orders(self):
 		''' Returns a list of the number of stratum exiting each cusp. This is the
 		number of triangles incident to the cusp whose dual weight is zero. '''
-		return [sum(1 for triangle, side in corner_class if self[triangle[side+1]] + self[triangle[side+2]] == self[triangle[side]]) for corner_class in self.triangulation.corner_classes]
+		return [sum(1 for triangle, side in corner_class if self.is_bipod((triangle, side))) for corner_class in self.triangulation.corner_classes]
+	
+	def is_bipod(self, corner_class):
+		''' Returns if the lamination looks like a bipod in this triangle (wtr this side). '''
+		triangle, side = corner_class
+		return self[triangle[side+1]] + self[triangle[side+2]] == self[triangle[side]]
+	
+	def open_bipod(self, corner_class):
+		''' Returns an encoding flipping the edge opposite this corner along with a new corner class. '''
+		assert(self.is_bipod(corner_class))
+		triangle, side = corner_class
+		edge_index = triangle[side]
+		E = self.triangulation.encode_flip(edge_index)
+		assert(False)  # !?! TO DO.
+	
+	def is_tripod(self, triangle):
+		''' Returns if the lamination looks like a tripod in this triangle. That is, each dual weight > 0. '''
+		return all(self[triangle[i]] + self[triangle[i+1]] > self[triangle[i+2]] for i in range(3))
 	
 	def tripod_regions(self):
-		''' Returns a list of all triangles in which this lamination looks
-		like a tripod. That is, each dual weight > 0. '''
+		''' Returns a list of all triangles in which this lamination looks like a tripod. '''
+		return [triangle for triangle in self.triangulation if self.is_tripod(triangle)]
+	
+	def is_tripod_free(self):
+		return not any(self.tripod_regions())
+		return not any(self.is_tripod(triangle) for triangle in self.triangulation)
+		return len(self.tripod_regions()) == 0
+	
+	def remove_tripod_regions(self):
+		lamination = self
+		encodings = []
+		while not lamination.is_tripod_free():
+			#print(len(lamination.tripod_regions()))
+			print(lamination.tripod_regions())
+			bipod_edges = [triangle[side] for triangle, side in lamination.triangulation.corners if lamination.is_bipod((triangle, side))]
+			edge_index = max(bipod_edges, key=lambda i: lamination[i])
+			edge_index = int(input('Edge to flip'))
+			print(bipod_edges, edge_index)
+			print(lamination)
+			#flipper.application.start(([lamination], []))
+			#sleep(1)
+			
+			E = lamination.triangulation.encode_flip(edge_index)
+			lamination = E * lamination
+			encodings.append(E)
 		
-		def is_tripod(triangle):
-			return all(self[triangle[i]] + self[triangle[i+1]] > self[triangle[i+2]] for i in range(3))
-		
-		return [triangle for triangle in self.triangulation if is_tripod(triangle)]
+		return flipper.kernel.utilities.product(encodings)
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Returns this lamination on the triangulation obtained by collapsing edge edge_index.
@@ -324,12 +363,20 @@ class Lamination(object):
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
+			print(len(flips), len(lamination.tripod_regions()))
 			
 			# Check if we have created any edges of weight 0. 
 			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
 				try:
 					# If this fails it's because the lamination isn't filling.
+					curve = lamination.triangulation.regular_neighbourhood(edge_index)
+					E2 = flipper.kernel.utilities.product(encodings[1:])
+					L = E2.inverse() * curve
+					L2 = E2.inverse() * lamination
+					a = [[triangle[side] for triangle, side in corner_class] for corner_class in L.triangulation.corner_classes]
+					print(a)
+					#flipper.application.start(([L, L2], []))
 					lamination = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the preperiodic encoding so just block it by sticking in a None.
 					encodings.append(None)
@@ -358,7 +405,8 @@ class Lamination(object):
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
 								assert(p_encoding.source_triangulation == old_lamination.triangulation)
 								assert(p_encoding.target_triangulation == lamination.triangulation)
-								
+							
+							print('!!!!', len(flips), index)
 							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)

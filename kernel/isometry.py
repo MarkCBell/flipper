@@ -34,6 +34,10 @@ class Isometry(object):
 			return self.encode() * other
 		else:
 			return NotImplemented
+	def triangle_image(self, triangle):
+		edge = triangle.labels[0]
+		corner = self.target_triangulation.find_edge(self[edge])
+		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side, 3))
 	def inverse(self):
 		new_map = dict((self[edge], edge) for edge in self)
 		return Isometry(self.target_triangulation, self.source_triangulation, new_map)

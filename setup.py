@@ -19,7 +19,6 @@ class TestCommand(Command):
 	
 	def run(self):
 		''' Runs all of the tests in the tests directory. '''
-		print(self.verbose)
 		try:
 			test_module = importlib.import_module('flipper.tests')
 		except ImportError:

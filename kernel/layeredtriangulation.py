@@ -31,10 +31,10 @@ class Tetrahedron(object):
 	''' This represents a tetrahedron. '''
 	def __init__(self, label=None):
 		self.label = label
-		self.glued_to = [None] * 4 # None or (Tetrahedron, permutation).
+		self.glued_to = [None] * 4 # Each entry is either: None or (Tetrahedron, permutation).
 		self.cusp_indices = [-1, -1, -1, -1]
 		self.peripheral_curves = [[[0, 0, 0, 0] for _ in range(4)] for _ in PERIPHERAL_TYPES]
-		self.edge_labels = {(0, 1):VEERING_UNKNOWN, (0, 2):VEERING_UNKNOWN, (0, 3):VEERING_UNKNOWN, (1, 2):VEERING_UNKNOWN, (1, 3):VEERING_UNKNOWN, (2, 3):VEERING_UNKNOWN}
+		self.edge_labels = dict((vertex_pair, VEERING_UNKNOWN) for vertex_pair in combinations(range(4), r=2))
 		self.vertex_labels = [None, None, None, None]
 	
 	def __repr__(self):
@@ -253,7 +253,7 @@ class Triangulation3(object):
 					key = (tetrahedron, side, other)
 					if key not in edge_label_map:
 						edge_label_map[key] = label
-						edge_label_map[cusp_pairing[key]] = label
+						edge_label_map[cusp_pairing[key]] = ~label
 						label += 1
 			
 			T = flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp])
@@ -370,7 +370,7 @@ class LayeredTriangulation(object):
 	
 	def flip(self, edge_index):
 		# MEGA WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
-		assert(self.upper_triangulation.edge_is_flippable(edge_index))
+		assert(self.upper_triangulation.is_flippable(edge_index))
 		
 		# Get a new tetrahedra.
 		new_tetrahedron = self.core_triangulation.create_tetrahedra()
@@ -380,7 +380,9 @@ class LayeredTriangulation(object):
 		new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
-		(A, side_A), (B, side_B) = self.upper_triangulation.find_edge(edge_index)
+		cornerA = self.upper_triangulation.find_edge(edge_index)
+		cornerB = self.upper_triangulation.find_edge(~edge_index)
+		(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
 		object_A, perm_A = self.upper_map[A]
 		object_B, perm_B = self.upper_map[B]
 		
@@ -404,7 +406,9 @@ class LayeredTriangulation(object):
 		
 		# Rebuild the upper_map.
 		new_upper_map = dict()
-		(new_A, new_side_A), (new_B, new_side_B) = new_upper_triangulation.find_edge(edge_index)
+		cornerA = new_upper_triangulation.find_edge(edge_index)
+		cornerB = new_upper_triangulation.find_edge(~edge_index)
+		(new_A, new_side_A), (new_B, new_side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
 		# Most of the triangles have stayed the same.
 		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]
 		new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
@@ -465,7 +469,7 @@ class LayeredTriangulation(object):
 		# self.upper_triangulation, if it is directly paired with one.
 		paired = dict()
 		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = isometry[source_triangle]
+			target_triangle, perm = isometry.triangle_image(source_triangle)
 			B, perm_B = core_lower_map[target_triangle]
 			
 			if B in upper_tetrahedra:

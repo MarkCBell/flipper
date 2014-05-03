@@ -266,68 +266,69 @@ class Lamination(object):
 		if self[edge_index] != 0:
 			raise Flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
 		
-		a, b, c, d = self.triangulation.find_indicies_of_square_about_edge(edge_index)  # Get the square about it.
+		# This relies on knowing how squares are returned.
+		a, b, c, d = self.triangulation.find_labels_of_square_about_edge(edge_index)  # Get the square about it.
+		e = edge_index  # Shorter name.
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
-		if a == b or c == d:
-			# This means that self[a] (respectively self[c]) == 0.
+		if a == ~b or c == ~d:
+			# This implies that self[a] (respectively self[c]) == 0.
 			raise flipper.AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
-		if a == d and b == c:
-			# We're on S_{0,3}.
+		if a == ~d and b == ~c:
+			# This implies that the underlying surface is S_{0,3}.
 			raise flipper.AssumptionError('Underlying surface is S_{0,3}.')
 		
-		if a == c and a == d:
-			# We're on the square torus, there's only one vertex so both endpoints of this edge must be labelled 0.
+		if a == ~c and a == ~d:
+			# This implies the underlying surface is S_{1,1}. As there is
+			# only one vertex, both endpoints of this edge must be labelled 0.
 			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
+		
+		# Now the only remaining possibilities are:
+		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
 		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
-		base_triangle, base_side = self.triangulation.find_edge(edge_index)[0]
-		corner_A_label = base_triangle.corner_labels[(base_side + 1) % 3]
-		corner_B_label = base_triangle.corner_labels[(base_side + 2) % 3]
-		if corner_A_label == 0 and corner_B_label == 0:
+		corner = self.triangulation.find_edge(e)
+		corner_labels = [corner.rotate(1).corner_label, corner.rotate(-1).corner_label]
+		# We'll replace the labels on the corner class with higher labels with the label from the lower.
+		# This ensures that any 0 vertex survives.
+		good_label, bad_label = min(corner_labels), max(corner_labels)
+		if good_label == 0 and bad_label == 0:  # Actually bad_label == 0 => good_label == 0.
 			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
 		
-		# We'll replace the labels on the corner class with higher labels with the label from the lower
-		good_corner_label = min(corner_A_label, corner_B_label)
-		if corner_A_label < corner_B_label:
-			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+2) % 3)
+		# Now figure out how the edges should be mapped.
+		far_triangles = [triangle for triangle in self.triangulation if e not in triangle and ~e not in triangle]
+		far_edges = [i for i in range(self.zeta) if i not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]]
+		# There is nothing to do for edges that are far away.
+		edge_map = [(i, index) for index, i in enumerate(far_edges)] + [(~i, ~index) for index, i in enumerate(far_edges)]
+		
+		zeta = len(far_edges)
+		if a == ~c:  # Collapsing an annulus.
+			edge_map.append((~b, zeta))
+			edge_map.append((~d, ~zeta))
+		elif b == ~d:  # An annulus in the other direction.
+			edge_map.append((~a, zeta))
+			edge_map.append((~c, ~zeta))
+		elif a == ~d:  #Collapsing a bigon.
+			edge_map.append((~b, zeta))
+			edge_map.append((~c, ~zeta))
+		elif b == ~c:  # A bigon in the other direction.
+			edge_map.append((~a, zeta))
+			edge_map.append((~d, ~zeta))
 		else:
-			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+1) % 3)
+			edge_map.append((~a, zeta))
+			edge_map.append((~b, ~zeta))
+			edge_map.append((~c, zeta+1))
+			edge_map.append((~d, ~(zeta+1)))
+		zeta = len(edge_map) // 2
+		replacement = dict(edge_map)
 		
-		# replacement is a map sending the old edge_indices to the new edge indices. 
-		# We already know what it does on edges far away from edge_index.
-		replacement = dict(zip([i for i in range(self.zeta) if i not in [edge_index, a, b, c, d]], range(self.zeta)))
-		zeta = len(replacement)
-		if a == c:
-			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
-			zeta += 1
-		elif a == d:
-			# Must make sure to update the vertex which is not in the interior of the bigon.
-			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+1) % 3)
-			
-			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
-			zeta += 1
-		elif b == c:
-			# Must make sure to update the vertex which is not in the interior of the bigon.
-			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+2) % 3)
-			
-			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
-			zeta += 1
-		elif b == d:
-			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
-			zeta += 1
-		else:
-			replacement[a] = replacement[b] = zeta
-			replacement[c] = replacement[d] = zeta + 1
-			zeta += 2
+		new_labels = [[replacement[i] for i in triangle.labels] for triangle in far_triangles]
+		new_vector = [[self[j] for j in replacement if replacement[j] == i][0] for i in range(zeta)]
+		new_corner_labels = [[triangle.corner_labels[side] if triangle.corner_labels[side] != bad_label else good_label for side in range(3)] for triangle in far_triangles]
 		
-		new_edge_labels = [[replacement[i] for i in triangle] for triangle in self.triangulation if edge_index not in triangle]
-		new_vector = [[self[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
-		new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_vertex else good_corner_label for side in range(3)] for triangle in self.triangulation if edge_index not in triangle]
-		
-		return Lamination(flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
+		return Lamination(flipper.AbstractTriangulation(new_labels, new_corner_labels), new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None, puncture_first=None):
 		''' Returns the splitting sequence associated to this laminations.
@@ -366,20 +367,12 @@ class Lamination(object):
 			encodings.append(E)
 			laminations.append(lamination)
 			flips.append(edge_index)
-			print(len(flips), len(lamination.tripod_regions()))
 			
 			# Check if we have created any edges of weight 0. 
 			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
 				try:
 					# If this fails it's because the lamination isn't filling.
-					curve = lamination.triangulation.regular_neighbourhood(edge_index)
-					E2 = flipper.kernel.utilities.product(encodings[1:])
-					L = E2.inverse() * curve
-					L2 = E2.inverse() * lamination
-					a = [[triangle[side] for triangle, side in vertex] for vertex in L.triangulation.vertices]
-					print(a)
-					#flipper.application.start(([L, L2], []))
 					lamination = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the preperiodic encoding so just block it by sticking in a None.
 					encodings.append(None)
@@ -409,7 +402,6 @@ class Lamination(object):
 								assert(p_encoding.source_triangulation == old_lamination.triangulation)
 								assert(p_encoding.target_triangulation == lamination.triangulation)
 							
-							print('!!!!', len(flips), index)
 							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
@@ -442,8 +434,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		corner = triangulation.find_edge(e1)
-		if corner.rotate(2).index != e2: e1, e2 = e2, e1
+		if triangulation.find_edge(e1).rotate(2).index != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		
@@ -463,6 +454,7 @@ class Lamination(object):
 		If k is zero this will return the identity encoding. If k is negative this 
 		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
 		Assumes that this lamination is a half twistable curve. '''
+		# !?! TOTALLY REDO.
 		if not self.is_halftwistable():
 			raise flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
@@ -475,8 +467,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		containing_triangles = triangulation.find_edge(e1)
-		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
+		if triangulation.find_edge(e1).rotate(2).index != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		

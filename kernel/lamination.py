@@ -14,10 +14,10 @@ class Lamination(object):
 		assert(flipper.kernel.matrix.nonnegative(vector))
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
-			peripheral = dict((vertex, min(vector[triangle[side+1]] + vector[triangle[side+2]] - vector[triangle[side+3]] for triangle, side in vertex)) for vertex in self.triangulation.corner_classes)
+			peripheral = dict((vertex, min(vector[corner.rotate(1).index] + vector[corner.rotate(2).index] - vector[corner.index] for corner in vertex)) for vertex in self.triangulation.vertices)
 			# If there is any remove it.
 			if any(peripheral.values()):
-				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.find_edge_corner_classes(i)) for i in range(self.zeta)]
+				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.find_edge_vertices(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 	
 	def copy(self):
@@ -31,6 +31,7 @@ class Lamination(object):
 		return iter(self.vector)
 	
 	def __getitem__(self, index):
+		index = max(index, ~index)
 		return self.vector[index]
 	
 	def __len__(self):
@@ -86,10 +87,12 @@ class Lamination(object):
 	def is_multicurve(self):
 		if self == self.triangulation.empty_lamination(): return False
 		
-		for vertex in self.triangulation.corner_classes:
-			for triangle, side in vertex:
-				weights = [self.vector[index] for index in triangle]
-				dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
+		for vertex in self.triangulation.vertices:
+			for corner in vertex:
+				weights = [self.vector[index] for index in corner.triangle]
+				dual_weights_doubled = [weights[1] + weights[2] - weights[0],
+					weights[2] + weights[0] - weights[1],
+					weights[0] + weights[1] - weights[2]]
 				for i in range(3):
 					if not isinstance(dual_weights_doubled[i], flipper.kernel.types.Integer_Type):
 						return False
@@ -122,7 +125,7 @@ class Lamination(object):
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this. 
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.triangulation.edge_is_flippable(i)], key=lamination.weight_difference_flip_edge)
+			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.triangulation.is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			backwards = forwards.inverse()
@@ -154,18 +157,18 @@ class Lamination(object):
 		# So if we collapse the edges with weight 0 we must end up with a
 		# one vertex triangulation.
 		triangulation = short_lamination.triangulation
-		corner_class_numbers = dict(zip(list(triangulation.corner_classes), range(len(triangulation.corner_classes))))
+		vertex_numbers = dict(zip(list(triangulation.vertices), range(len(triangulation.vertices))))
 		for edge_index in range(triangulation.zeta):
 			if self[edge_index] == 0:
-				c1, c2 = triangulation.find_edge_corner_classes(edge_index)
-				a, b = corner_class_numbers[c1], corner_class_numbers[c2]
+				c1, c2 = triangulation.find_edge_vertices(edge_index)
+				a, b = vertex_numbers[c1], vertex_numbers[c2]
 				if a != b:
 					x, y = max(a, b), min(a, b)
-					for c in corner_class_numbers:
-						if corner_class_numbers[c] == x: corner_class_numbers[c] = y
+					for c in vertex_numbers:
+						if vertex_numbers[c] == x: vertex_numbers[c] = y
 		
 		# If any corner class is numbered > 0 then we don't have a one vertex triangulation.
-		if any(corner_class_numbers.values()): return False
+		if any(vertex_numbers.values()): return False
 		
 		# So either we have a single curve or we have a multicurve with two parallel components.
 		# We can test for the latter by seeing if the halved curve is still a multicurve.
@@ -206,17 +209,17 @@ class Lamination(object):
 	def puncture_stratum_orders(self):
 		''' Returns a list of the number of stratum exiting each cusp. This is the
 		number of triangles incident to the cusp whose dual weight is zero. '''
-		return [sum(1 for triangle, side in corner_class if self.is_bipod((triangle, side))) for corner_class in self.triangulation.corner_classes]
+		return [sum(1 for triangle, side in vertex if self.is_bipod((triangle, side))) for vertex in self.triangulation.vertices]
 	
-	def is_bipod(self, corner_class):
+	def is_bipod(self, vertex):
 		''' Returns if the lamination looks like a bipod in this triangle (wtr this side). '''
-		triangle, side = corner_class
+		triangle, side = vertex
 		return self[triangle[side+1]] + self[triangle[side+2]] == self[triangle[side]]
 	
-	def open_bipod(self, corner_class):
+	def open_bipod(self, vertex):
 		''' Returns an encoding flipping the edge opposite this corner along with a new corner class. '''
-		assert(self.is_bipod(corner_class))
-		triangle, side = corner_class
+		assert(self.is_bipod(vertex))
+		triangle, side = vertex
 		edge_index = triangle[side]
 		E = self.triangulation.encode_flip(edge_index)
 		assert(False)  # !?! TO DO.
@@ -289,9 +292,9 @@ class Lamination(object):
 		# We'll replace the labels on the corner class with higher labels with the label from the lower
 		good_corner_label = min(corner_A_label, corner_B_label)
 		if corner_A_label < corner_B_label:
-			bad_corner_class = self.triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+2) % 3)
 		else:
-			bad_corner_class = self.triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+1) % 3)
 		
 		# replacement is a map sending the old edge_indices to the new edge indices. 
 		# We already know what it does on edges far away from edge_index.
@@ -302,13 +305,13 @@ class Lamination(object):
 			zeta += 1
 		elif a == d:
 			# Must make sure to update the vertex which is not in the interior of the bigon.
-			bad_corner_class = self.triangulation.find_corner_class(base_triangle, (base_side+1) % 3)
+			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+1) % 3)
 			
 			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
 			zeta += 1
 		elif b == c:
 			# Must make sure to update the vertex which is not in the interior of the bigon.
-			bad_corner_class = self.triangulation.find_corner_class(base_triangle, (base_side+2) % 3)
+			bad_vertex = self.triangulation.find_vertex(base_triangle, (base_side+2) % 3)
 			
 			replacement[a] = replacement[b] = replacement[c] = replacement[d] = zeta
 			zeta += 1
@@ -322,7 +325,7 @@ class Lamination(object):
 		
 		new_edge_labels = [[replacement[i] for i in triangle] for triangle in self.triangulation if edge_index not in triangle]
 		new_vector = [[self[j] for j in range(self.zeta) if j != edge_index and replacement[j] == i][0] for i in range(zeta)]
-		new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_corner_class else good_corner_label for side in range(3)] for triangle in self.triangulation if edge_index not in triangle]
+		new_corner_labels = [[triangle.corner_labels[side] if (triangle, side) not in bad_vertex else good_corner_label for side in range(3)] for triangle in self.triangulation if edge_index not in triangle]
 		
 		return Lamination(flipper.AbstractTriangulation(new_edge_labels, new_corner_labels), new_vector)
 	
@@ -374,7 +377,7 @@ class Lamination(object):
 					E2 = flipper.kernel.utilities.product(encodings[1:])
 					L = E2.inverse() * curve
 					L2 = E2.inverse() * lamination
-					a = [[triangle[side] for triangle, side in corner_class] for corner_class in L.triangulation.corner_classes]
+					a = [[triangle[side] for triangle, side in vertex] for vertex in L.triangulation.vertices]
 					print(a)
 					#flipper.application.start(([L, L2], []))
 					lamination = lamination.collapse_trivial_weight(edge_index)
@@ -439,8 +442,8 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		containing_triangles = triangulation.find_edge(e1)
-		if containing_triangles[0][0][containing_triangles[0][1] + 2] != e2: e1, e2 = e2, e1
+		corner = triangulation.find_edge(e1)
+		if corner.rotate(2).index != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		
@@ -449,6 +452,7 @@ class Lamination(object):
 		short_lamination = forwards * short_lamination
 		
 		# Find the correct isometry to take us back.
+		# !?! TO DO.
 		map_back = [isom for isom in short_lamination.triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
 		T = map_back * forwards
 		

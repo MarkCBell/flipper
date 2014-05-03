@@ -7,25 +7,44 @@ except ImportError: # Python 3
 
 import flipper
 
+def norm(value):
+	return max(value, ~value)
+
 class AbstractTriangle(object):
 	''' This represents a triangle in a trianglulation of a punctured surface. '''
-	def __init__(self, index=None, edge_indices=None, corner_labels=None):
+	def __init__(self, labels, corner_labels=None):
 		''' A Triangle is specified by giving the labels on its edges, ordered anticlockwise. '''
 		# Edges are ordered anti-clockwise.
-		self.index = index
-		self.edge_indices = list(edge_indices) if edge_indices is not None else [-1, -1, -1]
+		self.labels = list(labels)
+		self.indices = [norm(x) for x in self.labels]
 		self.corner_labels = list(corner_labels) if corner_labels is not None else [None, None, None]
 	
 	def __repr__(self):
-		return '(%s, %s, %s)' % (self.index, self.edge_indices, self.corner_labels)
+		return str((self.labels, self.corner_labels))
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
 	def __iter__(self):
-		return iter(self.edge_indices)
+		return iter(self.indices)
 	
 	def __getitem__(self, index):
-		return self.edge_indices[index % 3]
+		return self.indices[index % 3]
+
+class Corner(object):
+	def __init__(self, triangulation, triangle, side):
+		self.triangulation = triangulation
+		self.triangle = triangle
+		self.side = side
+		self.label = self.triangle.labels[self.side]
+		self.index = self.triangle[self.side]  # Shorthand for triangle.indices[side].
+		self.corner_label = self.triangle.corner_labels[self.side]
+	def rotate(self, turn):
+		return [corner for corner in self.triangulation.corners if corner.triangle == self.triangle and corner.side == (self.side + turn) % 3][0]
+	def opposite(self):
+		return [corner for corner in self.triangulation.corners if corner.label == ~self.label][0]
+	def adjacent(self):
+		# Returns the corner 1 click anti-clockwise around this vertex.
+		return self.rotate(1).opposite().rotate(-1)
 
 # Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
 # of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
@@ -33,72 +52,56 @@ class AbstractTriangle(object):
 class AbstractTriangulation(object):
 	''' This represents a triangulation of a puctured surface, it is a collection of AbstractTriangles whose
 	edge labels satisfy certain criteria. '''
-	def __init__(self, all_edge_indices, all_corner_labels=None):
+	def __init__(self, all_labels, all_corner_labels=None):
 		''' An abstract triangulation is a collection of abstract triangles and is given by a list of triples 
 		each of which specifies a triangle. '''
-		self.num_triangles = len(all_edge_indices)
+		# We label one side of an edge with x and its other side with ~x := -x-1.
+		
+		self.num_triangles = len(all_labels)
 		self.zeta = self.num_triangles * 3 // 2
 		
 		# We should assert a load of stuff here first. !?!
-		# Convention: Flattening all_edge_indices must give the list 0,...,self.zeta-1 with each number appearing exactly twice.
-		assert(sorted([x for edge_indices in all_edge_indices for x in edge_indices]) == sorted(list(range(self.zeta)) + list(range(self.zeta))))
+		assert(all(len(labels) == 3 for labels in all_labels))
+		assert(len(all_labels) % 2 == 0)  # There must be an even number of triangles.
+		flat = [x for labels in all_labels for x in labels]
+		assert(all(x in flat and ~x in flat for x in range(self.zeta)))  # Every number and its ~ must appear.
 		
 		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
-		self.triangles = [AbstractTriangle(i, edge_indices, corner_labels) for i, edge_indices, corner_labels in zip(range(self.num_triangles), all_edge_indices, all_corner_labels)]
-		self.edge_contained_in = dict((edge_index, [(triangle, side) for triangle in self.triangles for side in range(3) if triangle[side] == edge_index]) for edge_index in range(self.zeta))
+		self.triangles = [AbstractTriangle(labels, corner_labels) for labels, corner_labels in zip(all_labels, all_corner_labels)]
+		self.corners = [Corner(self, triangle, side) for triangle in self for side in range(3)]
+		self.edge_contained_in = dict((corner.label, corner) for corner in self.corners)
 		
 		# Now build all the equivalence classes of corners. These are each guaranteed to be ordered anti-clockwise about the vertex.
-		self.corners = list(product(self.triangles, range(3)))
-		corners = list(product(self.triangles, range(3)))
-		self.corner_classes = []
-		while len(corners) > 0:
-			new_corner_class = [corners.pop()]
-			while True:
-				next_corner = self.find_adjacent(*new_corner_class[-1])
-				if next_corner in corners: 
-					new_corner_class.append(next_corner)
-					corners.remove(next_corner)
-				else:
-					break
+		used = dict(zip(self.corners, [False] * len(self.corners)))
+		self.vertices = []
+		while not all(used.values()):
+			new_vertex = []
+			unused_corners = [corner for corner in self.corners if not used[corner]]
+			next_corner = unused_corners[0]
+			while not used[next_corner]:
+				new_vertex.append(next_corner)
+				used[next_corner] = True
+				next_corner = next_corner.adjacent()
 			
-			self.corner_classes.append(tuple(new_corner_class))
+			self.vertices.append(tuple(new_vertex))
 		
-		self.num_vertices = len(self.corner_classes)
+		self.num_vertices = len(self.vertices)
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
 		self.max_order = 6 - 4 * self.Euler_characteristic  # The maximum order of a periodic mapping class.
 		self._face_matrix = None
 		self._marking_matrices = None
-		
-		for edge_index in range(self.zeta):
-			assert(len(self.find_edge(edge_index)) == 2)
 	
 	def copy(self):
-		return AbstractTriangulation([list(triangle.edge_indices) for triangle in self.triangles], [list(triangle.corner_labels) for triangle in self.triangles])
+		return AbstractTriangulation([list(triangle.indices) for triangle in self], [list(triangle.corner_labels) for triangle in self])
 	
 	def __repr__(self):
-		# return str(id(self))
-		return '\n'.join(str(triangle) for triangle in self.triangles)
+		return '\n'.join(str(triangle) for triangle in self)
 	
 	def __iter__(self):
 		return iter(self.triangles)
 	
 	def __getitem__(self, index):
 		return self.triangles[index]
-	
-	def find_corner_class(self, triangle, side):
-		side = side % 3
-		for corner_class in self.corner_classes:
-			if (triangle, side) in corner_class:
-				return corner_class
-	
-	def vertex_orders(self):
-		return [len(corner_class) for corner_class in self.corner_classes]
-	
-	def find_edge_corner_classes(self, edge_index):
-		# Returns the two corner classes contain the ends of the specified edge.
-		containing_triangles = self.find_edge(edge_index)
-		triangle, side = containing_triangles[0]
-		return [self.find_corner_class(triangle, side + 1), self.find_corner_class(triangle, side + 2)]
 	
 	def face_matrix(self):
 		if self._face_matrix is None:
@@ -108,61 +111,90 @@ class AbstractTriangulation(object):
 	
 	def marking_matrices(self):
 		if self._marking_matrices is None:
-			corner_choices = [P for P in product(*self.corner_classes) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
+			corner_choices = [P for P in product(*self.vertices) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
 			X = dict((P, [[(i, triangle[side+j]) for i, (triangle, side) in enumerate(P)] for j in range(3)]) for P in corner_choices)
 			self._marking_matrices = [flipper.kernel.Zero_Matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
 		return self._marking_matrices
 	
+	def vertex_orders(self):
+		return [len(vertex) for vertex in self.vertices]
+	
+	def find_vertex(self, corner):
+		for vertex in self.vertices:
+			if corner in vertex:
+				return vertex
+		print(corner.label)
+		assert(False)
+	
+	def find_edge_vertices(self, edge_index):
+		# Returns the two corner classes contain the ends of the specified edge.
+		corner = self.find_edge(edge_index)
+		return [self.find_vertex(corner.rotate(1)), self.find_vertex(corner.rotate(-1))]
+	
 	def find_edge(self, edge_index):
-		# Return the list of (triangle, side) which have label edge_index.
+		# Return the corner with this edge_index.
 		return self.edge_contained_in[edge_index]
 	
-	def find_neighbour(self, triangle, side):
-		# Returns the (triangle, side) opposite to this one.
-		containing = self.find_edge(triangle[side])
-		return containing[0] if containing[0] != (triangle, side) else containing[1]
-	
-	def find_adjacent(self, triangle, side):
-		# Returns the (triangle, side) one click anti-clockwise around this vertex from this one.
-		opposite_corner = self.find_neighbour(triangle, (side+1)%3)
-		return (opposite_corner[0], (opposite_corner[1]+1)%3)
-	
-	def edge_is_flippable(self, edge_index):
+	def is_flippable(self, edge_index):
 		# An edge is flippable iff it lies in two distinct triangles.
-		containing_triangles = self.find_edge(edge_index)
-		return containing_triangles[0][0] != containing_triangles[1][0]
+		return self.find_edge(edge_index).triangle != self.find_edge(~edge_index).triangle
 	
 	def flip_edge(self, edge_index):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
-		assert(self.edge_is_flippable(edge_index))
+		assert(self.is_flippable(edge_index))
 		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(edge_index)
+		e = edge_index
+		a, b, c, d = self.find_indicies_of_square_about_edge(e)
+		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(e)
 		
-		new_edge_indices = [list(triangle.edge_indices) for triangle in self if edge_index not in triangle] + [[edge_index, d, a], [edge_index, b, c]]
-		new_corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [u, v, s]]
+		dont_copy = [self.find_edge(e).triangle, self.find_edge(~e).triangle]
+		labels = [list(triangle.labels) for triangle in self if triangle not in dont_copy] + [[e, d, a], [~e, b, c]]
+		corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [t, v, s]]
 		
-		return AbstractTriangulation(new_edge_indices, new_corner_labels)
-	
-	def find_triangle(self, edge_indices):
-		# There can be more than one match in the case of S_1_1.
-		matches = [triangle for triangle in self if any(all(triangle[i+j] == edge_indices[j] for j in range(3)) for i in range(3))]
-		if matches != []:
-			return matches[0]
-		else:
-			return None
+		return AbstractTriangulation(labels, corner_labels)
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
-		assert(self.edge_is_flippable(edge_index))
+		# Returns the indices of the 4 edges surrounding this edge (ordered anti-clockwise).
+		#       a
+		# #-----------#
+		# |          /|
+		# |         / |
+		# |        /  |
+		# |       /   |
+		#b|     E/    |d
+		# |     /     |
+		# |    /      |
+		# |   /       |
+		# |  /        |
+		# | /         |
+		# |/          |
+		# #-----------#
+		#       c
+		assert(self.is_flippable(edge_index))
 		
-		containing_triangles = self.find_edge(edge_index)
-		return [containing_triangles[i][0][containing_triangles[i][1] + j] for i in (0, 1) for j in (1, 2)]
+		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
+		return [A.rotate(1).label, A.rotate(2).label, B.rotate(1).label, B.rotate(2).label]
 	
 	def find_corner_labels_of_square_about_edge(self, edge_index):
-		assert(self.edge_is_flippable(edge_index))
+		# Returns the 6 corner labels surrounding this edge (ordered anti-clockwise).
+		# #-----------#
+		# |s        r/|
+		# |         /w|
+		# |        /  |
+		# |       /   |
+		# |     E/    |
+		# |     /     |
+		# |    /      |
+		# |   /       |
+		# |  /        |
+		# |t/         |
+		# |/u        v|
+		# #-----------#
+		assert(self.is_flippable(edge_index))
 		
-		containing_triangles = self.find_edge(edge_index)
-		return [containing_triangles[i][0].corner_labels[(containing_triangles[i][1] + j) % 3] for i in (0, 1) for j in (-1, 0, 1)]
+		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
+		return [A.rotate(-1).corner_label, A.rotate(0).corner_label, A.rotate(1).corner_label,
+			B.rotate(-1).corner_label, B.rotate(0).corner_label, B.rotate(1).corner_label]
 	
 	def homology_basis(self):
 		# Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
@@ -170,11 +202,11 @@ class AbstractTriangulation(object):
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		tree = [False] * self.zeta
-		vertices_used = dict((vertex, False) for vertex in self.corner_classes)
-		vertices_used[self.corner_classes[0]] = True
+		vertices_used = dict((vertex, False) for vertex in self.vertices)
+		vertices_used[self.vertices[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				a, b = self.find_edge_corner_classes(edge_index)
+				a, b = self.find_edge_vertices(edge_index)
 				if not tree[edge_index] and (vertices_used[a] != vertices_used[b]):
 					tree[edge_index] = True
 					vertices_used[a] = True
@@ -236,59 +268,46 @@ class AbstractTriangulation(object):
 		
 		return homology_generators
 	
+	def extend_isometry(self, other_triangulation, source_edge, target_edge):
+		''' Returns the isometry from this triangulation to other which sends
+		source_edge to target_edge or None if no such edge exists. '''
+		edge_map = {}
+		to_process = Queue()
+		to_process.put((source_edge, target_edge))
+		while not to_process.empty():
+			from_edge, to_edge = to_process.get()
+			consequences = []
+			consequences.append((from_edge, to_edge))
+			consequences.append((~from_edge, ~to_edge))
+			from_corner = self.find_edge(from_edge)
+			to_corner = other_triangulation.find_edge(to_edge)
+			
+			consequences.append((from_corner.rotate(1).label, to_corner.rotate(1).label))
+			consequences.append((from_corner.rotate(2).label, to_corner.rotate(2).label))
+			
+			for from_edge, to_edge in consequences:
+				if from_edge in edge_map:
+					if to_edge != edge_map[from_edge]:
+						return None  # Map doesn't specify an isometry.
+				else:
+					edge_map[from_edge] = to_edge
+					to_process.put((~from_edge, ~to_edge))
+		
+		return flipper.kernel.Isometry(self, other_triangulation, edge_map)
+	
 	def all_isometries(self, other_triangulation):
 		# Returns a list of all orientation preserving isometries from self to other_triangle.
 		if self.zeta != other_triangulation.zeta: return []
 		
-		def extend_isometry(source_triangulation, target_triangulation, source_triangle, target_triangle, cycle):
-			triangle_map = {}
-			triangles_to_process = Queue()
-			# We start by assuming that the source_triangle gets mapped to target_triangle via the permutation (cycle,cycle+1,cycle+2).
-			triangles_to_process.put((source_triangle, target_triangle, cycle))
-			seen_triangles = set([source_triangle])
-			while not triangles_to_process.empty():
-				from_triangle, to_triangle, cycle = triangles_to_process.get()
-				triangle_map[from_triangle] = (to_triangle, cycle)
-				for side in range(3):
-					from_triangle_neighbour, from_neighbour_side = source_triangulation.find_neighbour(from_triangle, side)
-					to_triangle_neighbour, to_neighbour_side = target_triangulation.find_neighbour(to_triangle, cycle[side])
-					if from_triangle_neighbour not in seen_triangles:
-						triangles_to_process.put((from_triangle_neighbour, to_triangle_neighbour, flipper.kernel.permutation.cyclic_permutation((to_neighbour_side-from_neighbour_side) % 3, 3)))
-						seen_triangles.add(from_triangle_neighbour)
-			
-			return flipper.kernel.Isometry(source_triangulation, target_triangulation, triangle_map)
+		source_vertex = min(self.vertices, key=len)
+		min_degree = len(source_vertex)
+		possible_targets = [corner.label for vertex in other_triangulation.vertices for corner in vertex if len(vertex) == min_degree]
 		
-		isometries = []
-		if False:
-		#if True:
-			source_corner_class = min(self.corner_classes, key=len)
-			min_degree = len(source_corner_class)
-			possible_targets = [target for corner_class in other_triangulation.corner_classes for target in corner_class if len(corner_class) == min_degree]
-			
-			source_triangle, source_side = source_corner_class[0]
-			for other_triangle, other_side in possible_targets:
-				try:
-					isometry = extend_isometry(self, other_triangulation, source_triangle, other_triangle, flipper.kernel.permutation.cyclic_permutation(other_side - source_side, 3))
-				except flipper.AssumptionError:
-					pass
-				else:
-					if not any((isometry[triangle][0].corner_labels[isometry[triangle][1][side]] > 0) != (triangle.corner_labels[side] > 0) for triangle in self for side in range(3)):
-						isometries.append(isometry)
-			
-			return isometries
-			
-		else:
-			for other_triangle in other_triangulation:
-				for i in range(3):
-					try:
-						isometry = extend_isometry(self, other_triangulation, self.triangles[0], other_triangle, flipper.kernel.permutation.cyclic_permutation(i, 3))
-					except flipper.AssumptionError:
-						pass
-					else:
-						if not any((isometry[triangle][0].corner_labels[isometry[triangle][1][side]] > 0) != (triangle.corner_labels[side] > 0) for triangle in self for side in range(3)):
-							isometries.append(isometry)
-			
-			return isometries
+		source_edge = source_vertex[0].label
+		isometries = [self.extend_isometry(other_triangulation, source_edge, target_edge) for target_edge in possible_targets]
+		isometries = [isom for isom in isometries if isom is not None]  # Discard any bad ones that we tried to create.
+		
+		return isometries
 	
 	def is_isometric_to(self, other):
 		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0
@@ -302,12 +321,11 @@ class AbstractTriangulation(object):
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
-		(t1, s1), (t2, s2) = self.find_edge(edge_index)
-		corner_classes = [corner_class for corner_class in self.corner_classes if (t1, (s1+1) % 3) in corner_class or (t2, (s2+1) % 3) in corner_class]
-		for corner_class in corner_classes:
-			for triangle, side in corner_class:
-				if triangle[side+2] != edge_index:
-					vector[triangle[side+2]] += 1
+		vertices = set(self.find_edge_vertices(edge_index))
+		for vertex in vertices:
+			for corner in vertex:
+				if corner.rotate(2).label not in [edge_index, ~edge_index]:
+					vector[corner.rotate(2).edge] += 1
 		return self.lamination(vector)
 	
 	def key_curves(self):
@@ -320,12 +338,12 @@ class AbstractTriangulation(object):
 		return flipper.kernel.Encoding([flipper.kernel.PLFunction(f, b)])
 	
 	def encode_flip(self, edge_index):
-		assert(self.edge_is_flippable(edge_index))
+		assert(self.is_flippable(edge_index))
 		
 		new_triangulation = self.flip_edge(edge_index)
 		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
-		e = edge_index  # Give it a shorter name.
+		a, b, c, d = [norm(x) for x in self.find_indicies_of_square_about_edge(edge_index)]
+		e = norm(edge_index)  # Give it a shorter name.
 		A1 = flipper.kernel.Id_Matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
 		C1 = flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])
 		
@@ -354,18 +372,19 @@ class AbstractTriangulation(object):
 		zeta = self.zeta
 		num_fake = 0
 		for triangle in self:
-			a, b, c = triangle.edge_indices
+			a, b, c = triangle.labels
+			A, B, C = triangle.indices
 			if triangle in to_puncture:
 				num_fake += 1
 				x, y, z = zeta, zeta+1, zeta+2
-				new_labels.append([a, z, y])
-				new_labels.append([b, x, z])
-				new_labels.append([c, y, x])
+				new_labels.append([a, z, ~y])
+				new_labels.append([b, x, ~z])
+				new_labels.append([c, y, ~x])
 				new_corner_labels.append([num_fake, 0, 0])
 				new_corner_labels.append([num_fake, 0, 0])
 				new_corner_labels.append([num_fake, 0, 0])
 				
-				X = flipper.kernel.Zero_Matrix(old_zeta, 3).tweak([(0, b), (0, c), (1, a), (1, c), (2, a), (2, b)], [(0, a), (1, b), (2, c)])
+				X = flipper.kernel.Zero_Matrix(old_zeta, 3).tweak([(0, B), (0, C), (1, A), (1, C), (2, A), (2, B)], [(0, A), (1, B), (2, C)])
 				M = M.join(X)
 				
 				zeta = zeta + 3

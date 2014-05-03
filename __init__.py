@@ -8,7 +8,6 @@ import flipper.version
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.AbstractTriangulation = flipper.kernel.AbstractTriangulation
 
-flipper.isometry_from_edge_map = flipper.kernel.isometry.isometry_from_edge_map
 flipper.Integer_Type = flipper.kernel.Integer_Type
 flipper.String_Type = flipper.kernel.String_Type
 

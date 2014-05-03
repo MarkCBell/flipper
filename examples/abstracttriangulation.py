@@ -34,7 +34,7 @@ class ExampleSurface(object):
 		return h
 
 def Example_S_1_1():
-	T = flipper.AbstractTriangulation([[0, 2, 1], [0, 2, 1]])
+	T = flipper.AbstractTriangulation([[0, 2, 1], [~0, ~2, ~1]])
 	
 	a = T.lamination([1, 0, 1])
 	b = T.lamination([0, 1, 1])

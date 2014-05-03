@@ -12,6 +12,7 @@ def main(verbose=False, timings=False):
 	start_time = time()
 	# Add more tests here.
 	tests = [
+		('S_1_1', 'a', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'a', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'b', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'c', NT_TYPE_REDUCIBLE),
@@ -40,7 +41,7 @@ def main(verbose=False, timings=False):
 	return True
 
 if __name__ == '__main__':
-	import cProfile
-	cProfile.run('main(verbose=True)', 'stats')
-	#print(main(verbose=True, timings=True))
+	#import cProfile
+	#cProfile.run('main(verbose=True)', 'stats')
+	print(main(verbose=True, timings=True))
 

@@ -107,15 +107,6 @@ class PLFunction(object):
 class Encoding(object):
 	def __init__(self, sequence):
 		''' This represents the composition of several PLFunction. '''
-		# Try and make a shorter sequence.
-		#seq = []
-		#for f in sequence:
-		#	if seq and seq[-1] == f.inverse():
-		#		seq.pop()
-		#	else:
-		#		seq.append(f)
-		#sequence = seq
-		
 		self.sequence = sequence
 		assert(all(isinstance(x, PLFunction) for x in self.sequence))
 		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
@@ -128,8 +119,6 @@ class Encoding(object):
 	
 	def __len__(self):
 		return len(self.sequence)
-	#def __str__(self):
-	#	return '\n###\n'.join(str(A) for A in self.sequence)
 	def __repr__(self):
 		return 'PLfunction (comp): %s --> %s' % (self.source_triangulation, self.target_triangulation)
 	def __iter__(self):
@@ -156,6 +145,8 @@ class Encoding(object):
 		elif isinstance(other, PLFunction):
 			return Encoding(self.sequence + [other])
 		else:
+			# !?! Could do something like:
+			# return flipper.kernel.utilities.product(list(self) + [other.copy()])
 			other = other.copy()
 			for A in reversed(self.sequence):
 				other = A * other
@@ -430,8 +421,7 @@ class Encoding(object):
 		else:
 			# We might need to do more work to get the closing isometry.
 			#if splitting.closing_isometry is None:
-			if True:
-			#if False:
+			if False:
 				# If we installed too many punctures by default then
 				# the preperiodic encoding wont make it through.
 				print('Finding closer')

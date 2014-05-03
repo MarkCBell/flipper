@@ -20,7 +20,7 @@ class AbstractTriangle(object):
 		self.corner_labels = list(corner_labels) if corner_labels is not None else [None, None, None]
 	
 	def __repr__(self):
-		return str((self.labels, self.corner_labels))
+		return '(' + ','.join('%s%d:%d' % ('+' if x == y else '-', norm(x), z) for x, y, z in zip(self.labels, self.indices, self.corner_labels)) + ')'
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
@@ -38,13 +38,15 @@ class Corner(object):
 		self.label = self.triangle.labels[self.side]
 		self.index = self.triangle[self.side]  # Shorthand for triangle.indices[side].
 		self.corner_label = self.triangle.corner_labels[self.side]
+	def __repr__(self):
+		return str((self.triangle, self.side))
 	def rotate(self, turn):
 		return [corner for corner in self.triangulation.corners if corner.triangle == self.triangle and corner.side == (self.side + turn) % 3][0]
 	def opposite(self):
 		return [corner for corner in self.triangulation.corners if corner.label == ~self.label][0]
 	def adjacent(self):
 		# Returns the corner 1 click anti-clockwise around this vertex.
-		return self.rotate(1).opposite().rotate(-1)
+		return self.rotate(1).opposite().rotate(1)
 
 # Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
 # of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
@@ -63,8 +65,13 @@ class AbstractTriangulation(object):
 		# We should assert a load of stuff here first. !?!
 		assert(all(len(labels) == 3 for labels in all_labels))
 		assert(len(all_labels) % 2 == 0)  # There must be an even number of triangles.
+		# Every number and its ~ must appear.
 		flat = [x for labels in all_labels for x in labels]
-		assert(all(x in flat and ~x in flat for x in range(self.zeta)))  # Every number and its ~ must appear.
+		for x in range(self.zeta):
+			if x not in flat:
+				raise ValueError('Missing: %d' % x)
+			if ~x not in flat:
+				raise ValueError('Missing: ~%d' % x)
 		
 		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
 		self.triangles = [AbstractTriangle(labels, corner_labels) for labels, corner_labels in zip(all_labels, all_corner_labels)]
@@ -82,7 +89,6 @@ class AbstractTriangulation(object):
 				new_vertex.append(next_corner)
 				used[next_corner] = True
 				next_corner = next_corner.adjacent()
-			
 			self.vertices.append(tuple(new_vertex))
 		
 		self.num_vertices = len(self.vertices)
@@ -92,10 +98,10 @@ class AbstractTriangulation(object):
 		self._marking_matrices = None
 	
 	def copy(self):
-		return AbstractTriangulation([list(triangle.indices) for triangle in self], [list(triangle.corner_labels) for triangle in self])
+		return AbstractTriangulation([list(triangle.labels) for triangle in self], [list(triangle.corner_labels) for triangle in self])
 	
 	def __repr__(self):
-		return '\n'.join(str(triangle) for triangle in self)
+		return '{' + ' '.join(str(triangle) for triangle in self) + '}'
 	
 	def __iter__(self):
 		return iter(self.triangles)
@@ -123,7 +129,6 @@ class AbstractTriangulation(object):
 		for vertex in self.vertices:
 			if corner in vertex:
 				return vertex
-		print(corner.label)
 		assert(False)
 	
 	def find_edge_vertices(self, edge_index):
@@ -144,7 +149,7 @@ class AbstractTriangulation(object):
 		assert(self.is_flippable(edge_index))
 		
 		e = edge_index
-		a, b, c, d = self.find_indicies_of_square_about_edge(e)
+		a, b, c, d = self.find_labels_of_square_about_edge(e)
 		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(e)
 		
 		dont_copy = [self.find_edge(e).triangle, self.find_edge(~e).triangle]
@@ -153,8 +158,8 @@ class AbstractTriangulation(object):
 		
 		return AbstractTriangulation(labels, corner_labels)
 	
-	def find_indicies_of_square_about_edge(self, edge_index):
-		# Returns the indices of the 4 edges surrounding this edge (ordered anti-clockwise).
+	def find_labels_of_square_about_edge(self, edge_index):
+		# Returns the inside labels of the 4 edges surrounding this edge (ordered anti-clockwise).
 		#       a
 		# #-----------#
 		# |          /|
@@ -174,6 +179,9 @@ class AbstractTriangulation(object):
 		
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
 		return [A.rotate(1).label, A.rotate(2).label, B.rotate(1).label, B.rotate(2).label]
+	
+	def find_indicies_of_square_about_edge(self, edge_index):
+		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
 	
 	def find_corner_labels_of_square_about_edge(self, edge_index):
 		# Returns the 6 corner labels surrounding this edge (ordered anti-clockwise).
@@ -221,7 +229,7 @@ class AbstractTriangulation(object):
 		faces_used[self.triangles[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				(a, side_a), (b, side_b) = self.find_edge(edge_index)
+				a, b = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
 				if not tree[edge_index] and not dual_tree[edge_index] and (faces_used[a] != faces_used[b]):
 					dual_tree[edge_index] = True
 					faces_used[a] = True
@@ -237,7 +245,7 @@ class AbstractTriangulation(object):
 		for edge_index in range(self.zeta):
 			if not tree[edge_index] and not dual_tree[edge_index]:
 				generator = [edge_index]
-				(source, side_source), (target, side_target) = self.find_edge(edge_index)
+				source, target = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
 				
 				# Find a path in dual_tree from source to target. This is a really
 				# inefficient way to do this. We initially define the distance to
@@ -296,9 +304,7 @@ class AbstractTriangulation(object):
 		return flipper.kernel.Isometry(self, other_triangulation, edge_map)
 	
 	def all_isometries(self, other_triangulation):
-		# Returns a list of all orientation preserving isometries from self to other_triangle.
-		if self.zeta != other_triangulation.zeta: return []
-		
+		''' Returns a list of all orientation preserving isometries from self to other_triangulation. '''
 		source_vertex = min(self.vertices, key=len)
 		min_degree = len(source_vertex)
 		possible_targets = [corner.label for vertex in other_triangulation.vertices for corner in vertex if len(vertex) == min_degree]
@@ -321,11 +327,10 @@ class AbstractTriangulation(object):
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
-		vertices = set(self.find_edge_vertices(edge_index))
-		for vertex in vertices:
+		for vertex in set(self.find_edge_vertices(edge_index)):
 			for corner in vertex:
-				if corner.rotate(2).label not in [edge_index, ~edge_index]:
-					vector[corner.rotate(2).edge] += 1
+				vector[corner.rotate(2).index] += 1
+		vector[norm(edge_index)] = 0
 		return self.lamination(vector)
 	
 	def key_curves(self):

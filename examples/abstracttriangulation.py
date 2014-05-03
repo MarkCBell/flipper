@@ -43,7 +43,7 @@ def Example_S_1_1():
 
 def Example_S_1_1m(word=None):
 	# Mirror image of S_1_1 and its standard (Twister) curves:
-	T = flipper.AbstractTriangulation([[0, 1, 2], [0, 1, 2]])
+	T = flipper.AbstractTriangulation([[0, 1, 2], [~0, ~1, ~2]])
 	
 	a = T.lamination([1, 1, 0]).encode_twist()
 	b = T.lamination([0, 1, 1]).encode_twist()
@@ -52,7 +52,7 @@ def Example_S_1_1m(word=None):
 
 def Example_S_1_2(word=None):
 	# S_1_2 and its standard (Twister) curves:
-	T = flipper.AbstractTriangulation([[1, 3, 2], [2, 0, 4], [1, 5, 0], [5, 4, 3]])
+	T = flipper.AbstractTriangulation([[1, 3, 2], [~2, 0, 4], [~1, 5, ~0], [~5, ~4, ~3]])
 	
 	a = T.lamination([0, 0, 1, 1, 1, 0])
 	b = T.lamination([1, 0, 0, 0, 1, 1])
@@ -62,7 +62,7 @@ def Example_S_1_2(word=None):
 
 def Example_S_2_1(word=None):
 	# S_2_1 and its standard (Twister) curves:
-	T = flipper.AbstractTriangulation([[1, 2, 4], [5, 3, 0], [2, 6, 1], [3, 0, 7], [4, 5, 8], [7, 8, 6]])
+	T = flipper.AbstractTriangulation([[1, 2, 4], [5, 3, 0], [~2, 6, ~1], [~3, ~0, 7], [~4, ~5, 8], [~7, ~8, ~6]])
 	
 	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0])
 	b = T.lamination([0, 0, 1, 0, 1, 0, 1, 0, 1])

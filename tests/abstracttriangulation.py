@@ -9,6 +9,7 @@ def main():
 		T = S.triangulation
 		assert(len(T.all_isometries(T)) == 6)
 		
+		# Check that every triangulation is isometric to itself.
 		for example in flipper.examples.abstracttriangulation.SURFACES:
 			S = flipper.examples.abstracttriangulation.SURFACES[example]()
 			T = S.triangulation

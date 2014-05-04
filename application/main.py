@@ -772,11 +772,12 @@ class FlipperApp(object):
 	def create_edge_identification(self, e1, e2):
 		assert(e1.equivalent_edge is None and e2.equivalent_edge is None)
 		assert(e1.free_sides() == 1 and e2.free_sides() == 1)
-		e1.equivalent_edge = e2
-		e2.equivalent_edge = e1
-		# These are boundary edges so their orientations agree with the triangles
-		# adjacent to it. So we flip the orientation of one of them.
-		e1.flip_orientation()
+		e1.equivalent_edge, e2.equivalent_edge = e2, e1
+		# Now orient the edges so they match.
+		[t1], [t2] = e1.in_triangles, e2.in_triangles
+		[s1], [s2] = [i for i in range(3) if t1.edges[i] == e1], [i for i in range(3) if t2.edges[i] == e2]
+		if e1[0] != t1[s1 + 1]: e1.flip_orientation()  # Set e1 to agree with the orientation of the triangle containing it,
+		if e2[0] != t2[s2 + 2]: e2.flip_orientation()  # and e2 to disagree.
 		
 		# Change colour.
 		new_colour = self.colour_picker.get_colour()
@@ -969,7 +970,7 @@ class FlipperApp(object):
 				b = triangle[i-2] - triangle[i]
 				
 				if render == flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
-					if a_dual_weights[i] > 0:
+					if a_dual_weights[i] > 0.00001:  # Should be 0 but we have a floating point approximation.
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
 						s_a = a_weights[triangle.edges[i-2].index] / master_scale

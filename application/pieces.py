@@ -157,12 +157,6 @@ class Triangle(DrawableObject):
 		if d10[0]*d20[1] - d10[1]*d20[0] > 0: self.vertices = [self[0], self[2], self[1]]
 		# Now we reorder the edges such that edges[i] does not meet vertices[i].
 		self.edges = [edge for vertex in self for edge in self.edges if vertex not in edge.vertices]
-		# And reorient the edges so that they point anti-clockwise. 
-		# If an edge is internal then this orientation will be overwritten later. However,
-		# boundary edges will retain theirs. When we identify boundary edge we will flip one of them
-		# so that their orientations agree.
-		for i in range(3):
-			if self.edges[i][0] != self[i+1]: self.edges[i].flip_orientation()
 		
 		# And check to make sure everyone made it through alive.
 		assert(len(self.edges) == 3)

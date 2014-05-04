@@ -774,6 +774,9 @@ class FlipperApp(object):
 		assert(e1.free_sides() == 1 and e2.free_sides() == 1)
 		e1.equivalent_edge = e2
 		e2.equivalent_edge = e1
+		# These are boundary edges so their orientations agree with the triangles
+		# adjacent to it. So we flip the orientation of one of them.
+		e1.flip_orientation()
 		
 		# Change colour.
 		new_colour = self.colour_picker.get_colour()
@@ -873,7 +876,8 @@ class FlipperApp(object):
 	def create_abstract_triangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
-		self.abstract_triangulation = flipper.AbstractTriangulation([[triangle.edges[side].index for side in range(3)] for triangle in self.triangles])
+		labels = [[triangle.edges[side].index if triangle[side+1] == triangle.edges[side][0] else ~triangle.edges[side].index for side in range(3)] for triangle in self.triangles]
+		self.abstract_triangulation = flipper.AbstractTriangulation(labels)
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
 		self.create_edge_labels()
 		self.menubar.entryconfig('Lamination', state='normal')

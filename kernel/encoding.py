@@ -415,7 +415,6 @@ class Encoding(object):
 		dilatation = lamination[0].number_field.lmbda
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
-			print(splitting.flips)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:

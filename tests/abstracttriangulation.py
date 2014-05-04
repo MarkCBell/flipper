@@ -4,9 +4,16 @@ from __future__ import print_function
 import flipper
 
 def main():
-	S = flipper.examples.abstracttriangulation.Example_S_1_1()
-	T = S.triangulation
-	if len(T.all_isometries(T)) != 6:
+	try:
+		S = flipper.examples.abstracttriangulation.Example_S_1_1()
+		T = S.triangulation
+		assert(len(T.all_isometries(T)) == 6)
+		
+		for example in flipper.examples.abstracttriangulation.SURFACES:
+			S = flipper.examples.abstracttriangulation.SURFACES[example]()
+			T = S.triangulation
+			assert(T.is_isometric_to(T))
+	except AssertionError:
 		return False
 	
 	return True

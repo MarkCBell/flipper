@@ -66,14 +66,17 @@ class Lamination(object):
 		return not any(self)
 	
 	def all_isometries(self, other):
+		assert(isinstance(other, Lamination))
 		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other == isometry * self]
 	
 	def all_projective_isometries(self, other):
+		assert(isinstance(other, Lamination))
 		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other.projectively_equal(isometry * self)]
 	
 	def projectively_equal(self, other):
-		w1, w2 = self.weight(), other.weight()
-		return all(x * w2 == y * w1 for x, y in zip(self, other))
+		assert(isinstance(other, Lamination))
+		# We can't do division so we have to cross multiply.
+		return self * other.weight() == other * self.weight()
 	
 	def projective_hash(self):
 		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation

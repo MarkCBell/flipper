@@ -31,13 +31,20 @@ class AbstractTriangle(object):
 		return self.indices[index % 3]
 
 class Corner(object):
+	''' A corner of a triangulation is a triangle along with a side number (the side opposite this corner). '''
 	def __init__(self, triangulation, triangle, side):
 		self.triangulation = triangulation
 		self.triangle = triangle
 		self.side = side
-		self.label = self.triangle.labels[self.side]
-		self.index = self.triangle[self.side]  # Shorthand for triangle.indices[side].
-		self.corner_label = self.triangle.corner_labels[self.side]
+		
+		# We cyclicly permute the labels and indices of this triangle.
+		self.labels = self.triangle.labels[self.side:] + self.triangle.labels[:self.side]
+		self.indices = self.triangle.indices[self.side:] + self.triangle.indices[:self.side]
+		self.corner_labels = self.triangle.corner_labels[self.side:] + self.triangle.corner_labels[:self.side]
+		
+		self.label = self.labels[0]
+		self.index = self.indices[0]
+		self.corner_label = self.corner_labels[0]
 	def __repr__(self):
 		return str((self.triangle, self.side))
 	def rotate(self, turn):
@@ -55,9 +62,9 @@ class AbstractTriangulation(object):
 	''' This represents a triangulation of a puctured surface, it is a collection of AbstractTriangles whose
 	edge labels satisfy certain criteria. '''
 	def __init__(self, all_labels, all_corner_labels=None):
-		''' An abstract triangulation is a collection of abstract triangles and is given by a list of triples 
-		each of which specifies a triangle. '''
-		# We label one side of an edge with x and its other side with ~x := -x-1.
+		''' An abstract triangulation is a collection of abstract triangles and is given by a list of triples
+		each of which specifies a triangle.
+		We label one side of an edge with x and its other side with ~x := -x-1. '''
 		
 		self.num_triangles = len(all_labels)
 		self.zeta = self.num_triangles * 3 // 2
@@ -65,7 +72,7 @@ class AbstractTriangulation(object):
 		# We should assert a load of stuff here first. !?!
 		assert(all(len(labels) == 3 for labels in all_labels))
 		assert(len(all_labels) % 2 == 0)  # There must be an even number of triangles.
-		# Every number and its ~ must appear.
+		# Every number and ~number must appear.
 		flat = [x for labels in all_labels for x in labels]
 		for x in range(self.zeta):
 			if x not in flat:
@@ -122,9 +129,6 @@ class AbstractTriangulation(object):
 			self._marking_matrices = [flipper.kernel.Zero_Matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
 		return self._marking_matrices
 	
-	def vertex_orders(self):
-		return [len(vertex) for vertex in self.vertices]
-	
 	def find_vertex(self, corner):
 		for vertex in self.vertices:
 			if corner in vertex:
@@ -178,7 +182,8 @@ class AbstractTriangulation(object):
 		assert(self.is_flippable(edge_index))
 		
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
-		return [A.rotate(1).label, A.rotate(2).label, B.rotate(1).label, B.rotate(2).label]
+		return [A.labels[1], A.labels[2], B.labels[1], B.labels[2]]
+		# return [A.rotate(1).label, A.rotate(2).label, B.rotate(1).label, B.rotate(2).label]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
 		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
@@ -201,8 +206,10 @@ class AbstractTriangulation(object):
 		assert(self.is_flippable(edge_index))
 		
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
-		return [A.rotate(-1).corner_label, A.rotate(0).corner_label, A.rotate(1).corner_label,
-			B.rotate(-1).corner_label, B.rotate(0).corner_label, B.rotate(1).corner_label]
+		return [A.corner_labels[2], A.corner_labels[0], A.corner_labels[1],
+			B.corner_labels[2], B.corner_labels[0], B.corner_labels[1]]
+		# return [A.rotate(-1).corner_label, A.rotate(0).corner_label, A.rotate(1).corner_label,
+		#	B.rotate(-1).corner_label, B.rotate(0).corner_label, B.rotate(1).corner_label]
 	
 	def homology_basis(self):
 		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
@@ -294,8 +301,10 @@ class AbstractTriangulation(object):
 			from_corner = self.find_edge(from_edge)
 			to_corner = other_triangulation.find_edge(to_edge)
 			
-			consequences.append((from_corner.rotate(1).label, to_corner.rotate(1).label))
-			consequences.append((from_corner.rotate(2).label, to_corner.rotate(2).label))
+			consequences.append((from_corner.labels[1], to_corner.labels[1]))
+			consequences.append((from_corner.labels[2], to_corner.labels[2]))
+			# consequences.append((from_corner.rotate(1).label, to_corner.rotate(1).label))
+			# consequences.append((from_corner.rotate(2).label, to_corner.rotate(2).label))
 			
 			for from_edge, to_edge in consequences:
 				if from_edge in edge_map:
@@ -333,7 +342,8 @@ class AbstractTriangulation(object):
 		vector = [0] * self.zeta
 		for vertex in set(self.find_edge_vertices(edge_index)):
 			for corner in vertex:
-				vector[corner.rotate(2).index] += 1
+				vector[corner.indices[2]] += 1
+				# vector[corner.rotate(2).index] += 1
 		vector[norm(edge_index)] = 0
 		return self.lamination(vector)
 	

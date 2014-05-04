@@ -241,15 +241,9 @@ class Lamination(object):
 		lamination = self
 		encodings = []
 		while not lamination.is_tripod_free():
-			#print(len(lamination.tripod_regions()))
-			print(lamination.tripod_regions())
 			bipod_edges = [triangle[side] for triangle, side in lamination.triangulation.corners if lamination.is_bipod((triangle, side))]
 			edge_index = max(bipod_edges, key=lambda i: lamination[i])
 			edge_index = int(input('Edge to flip'))
-			print(bipod_edges, edge_index)
-			print(lamination)
-			#flipper.application.start(([lamination], []))
-			#sleep(1)
 			
 			E = lamination.triangulation.encode_flip(edge_index)
 			lamination = E * lamination

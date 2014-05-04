@@ -17,10 +17,10 @@ class AbstractTriangle(object):
 		# Edges are ordered anti-clockwise.
 		self.labels = list(labels)
 		self.indices = [norm(x) for x in self.labels]
-		self.corner_labels = list(corner_labels) if corner_labels is not None else [None, None, None]
+		self.corner_labels = list(corner_labels) if corner_labels is not None else [0, 0, 0]  # [None, None, None]
 	
 	def __repr__(self):
-		return '(' + ','.join('%s%d:%d' % ('+' if x == y else '-', norm(x), z) for x, y, z in zip(self.labels, self.indices, self.corner_labels)) + ')'
+		return '(' + ','.join('%s%d:%s' % ('+' if x == y else '-', norm(x), z if z is not None else '-') for x, y, z in zip(self.labels, self.indices, self.corner_labels)) + ')'
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
@@ -205,8 +205,8 @@ class AbstractTriangulation(object):
 			B.rotate(-1).corner_label, B.rotate(0).corner_label, B.rotate(1).corner_label]
 	
 	def homology_basis(self):
-		# Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
-		# in the dual 1--skeleton. Each pair of paths is guaranteed to meet at most once. 
+		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
+		in the dual 1--skeleton. Each pair of paths is guaranteed to meet at most once. '''
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		tree = [False] * self.zeta
@@ -214,12 +214,13 @@ class AbstractTriangulation(object):
 		vertices_used[self.vertices[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				a, b = self.find_edge_vertices(edge_index)
-				if not tree[edge_index] and (vertices_used[a] != vertices_used[b]):
-					tree[edge_index] = True
-					vertices_used[a] = True
-					vertices_used[b] = True
-					break
+				if not tree[edge_index]:
+					a, b = self.find_edge_vertices(edge_index)
+					if vertices_used[a] != vertices_used[b]:
+						tree[edge_index] = True
+						vertices_used[a] = True
+						vertices_used[b] = True
+						break
 			else:
 				break  # If there are no more to add then our tree is maximal
 		
@@ -229,12 +230,13 @@ class AbstractTriangulation(object):
 		faces_used[self.triangles[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				a, b = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
-				if not tree[edge_index] and not dual_tree[edge_index] and (faces_used[a] != faces_used[b]):
-					dual_tree[edge_index] = True
-					faces_used[a] = True
-					faces_used[b] = True
-					break
+				if not tree[edge_index] and not dual_tree[edge_index]:
+					a, b = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
+					if faces_used[a] != faces_used[b]:
+						dual_tree[edge_index] = True
+						faces_used[a] = True
+						faces_used[b] = True
+						break
 			else:
 				break  # If there are no more to add then our tree is maximal
 		
@@ -244,7 +246,7 @@ class AbstractTriangulation(object):
 		homology_generators = []
 		for edge_index in range(self.zeta):
 			if not tree[edge_index] and not dual_tree[edge_index]:
-				generator = [edge_index]
+				generator = [~edge_index]
 				source, target = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
 				
 				# Find a path in dual_tree from source to target. This is a really
@@ -255,7 +257,7 @@ class AbstractTriangulation(object):
 				distance[source] = 0
 				while distance[target] == self.num_triangles+1:
 					for edge in dual_tree_indices:  # Only allowed to move in the tree.
-						(a, side_a), (b, side_b) = self.find_edge(edge)
+						a, b = self.find_edge(edge).triangle, self.find_edge(~edge).triangle
 						distance[a] = min(distance[b]+1, distance[a])
 						distance[b] = min(distance[a]+1, distance[b])
 				
@@ -263,11 +265,13 @@ class AbstractTriangulation(object):
 				current = target
 				while current != source:
 					for edge in dual_tree_indices:
-						(a, side_a), (b, side_b) = self.find_edge(edge)
-						if b == current: a, b = b, a
-						
-						if a == current and distance[b] == distance[a]-1:
+						a, b = self.find_edge(edge).triangle, self.find_edge(~edge).triangle
+						if b == current and distance[a] == distance[b]-1:
 							generator.append(edge)
+							current = a
+							break
+						elif a == current and distance[b] == distance[a]-1:
+							generator.append(~edge)
 							current = b
 							break
 				

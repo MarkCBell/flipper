@@ -56,10 +56,13 @@ class DrawableObject(object):
 	# Note that this means that Triangle will NOT have the same convention as abstracttriangle,
 	# there iterating and index accesses return edges.
 	def __getitem__(self, index):
-		return self.vertices[index]
+		return self.vertices[index % len(self)]
 	
 	def __iter__(self):
 		return iter(self.vertices)
+	
+	def __len__(self):
+		return len(self.vertices)
 	
 	def __str__(self):
 		return str(self.vertices)
@@ -154,10 +157,12 @@ class Triangle(DrawableObject):
 		if d10[0]*d20[1] - d10[1]*d20[0] > 0: self.vertices = [self[0], self[2], self[1]]
 		# Now we reorder the edges such that edges[i] does not meet vertices[i].
 		self.edges = [edge for vertex in self for edge in self.edges if vertex not in edge.vertices]
-		# And reorient any edges so that they point anti-clockwise. This wont hold for internal edges as they will be overwritten later
-		# but boundary edges will retain theirs. We probably wont actually need this and can remove it later.
+		# And reorient the edges so that they point anti-clockwise. 
+		# If an edge is internal then this orientation will be overwritten later. However,
+		# boundary edges will retain theirs. When we identify boundary edge we will flip one of them
+		# so that their orientations agree.
 		for i in range(3):
-			if self.edges[i][0] != self[(i+1) % 3]: self.edges[i].flip_orientation()
+			if self.edges[i][0] != self[i+1]: self.edges[i].flip_orientation()
 		
 		# And check to make sure everyone made it through alive.
 		assert(len(self.edges) == 3)
@@ -165,6 +170,7 @@ class Triangle(DrawableObject):
 		assert(self.edges[0] != self.edges[1] and self.edges[1] != self.edges[2] and self.edges[2] != self.edges[0])
 		
 		self.drawn = self.canvas.create_polygon([c for v in self for c in v], fill=self.default_colour, tag='polygon')
+		# Add this triangle to each edge involved.
 		for edge in self.edges:
 			edge.in_triangles.append(self)
 	

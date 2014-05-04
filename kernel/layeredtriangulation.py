@@ -256,7 +256,8 @@ class Triangulation3(object):
 						edge_label_map[cusp_pairing[key]] = ~label
 						label += 1
 			
-			T = flipper.AbstractTriangulation([[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp])
+			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
+			T = flipper.AbstractTriangulation(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -267,12 +268,12 @@ class Triangulation3(object):
 				# Find a starting point.
 				for tetrahedron, side in cusp:
 					for a, b in permutations(VERTICES_MEETING[side], 2):
-						if edge_label_map[(tetrahedron, side, a)] == first and edge_label_map[(tetrahedron, side, b)] == last:
+						if edge_label_map[(tetrahedron, side, a)] == ~first and edge_label_map[(tetrahedron, side, b)] == last:
 							current_tetrahedron, current_side, arrive = tetrahedron, side, b
 				
 				for other in homology_basis_paths[peripheral_type]:
 					for a in VERTICES_MEETING[current_side]:
-						if edge_label_map[(current_tetrahedron, current_side, a)] == other:
+						if edge_label_map[(current_tetrahedron, current_side, a)] == ~other:
 							leave = a
 							current_tetrahedron.peripheral_curves[peripheral_type][current_side][arrive] += 1
 							current_tetrahedron.peripheral_curves[peripheral_type][current_side][leave] -= 1
@@ -427,7 +428,6 @@ class LayeredTriangulation(object):
 	
 	def flips(self, sequence):
 		for edge_index in sequence:
-			print(edge_index)
 			self.flip(edge_index)
 	
 	def upper_lower_isometries(self):
@@ -526,9 +526,18 @@ class LayeredTriangulation(object):
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
-			triangle, side = [(t, s) for t, s in product(self.upper_triangulation, range(3)) if fibre_immersion[t][0].cusp_indices[fibre_immersion[t][1][s]] == index][0]
-			fibre_path = [(fibre_immersion[T][0], fibre_immersion[T][1][s], fibre_immersion[T][1][3]) for T, s in self.upper_triangulation.find_corner_class(triangle, side)]
-			fibre_slopes[index] = closed_triangulation.slope(fibre_path)
+			for vertex in self.upper_triangulation.vertices:
+				corner = vertex[0]
+				tetra, perm = fibre_immersion[corner.triangle]
+				if tetra.cusp_indices[perm[corner.side]] == index:
+					fibre_path = []
+					for corner in vertex:
+						tetra, perm = fibre_immersion[corner.triangle]
+						fibre_path.append((tetra, perm[corner.side], perm[3]))
+					fibre_slopes[index] = closed_triangulation.slope(fibre_path)
+					break
+			else:
+				assert(False)
 		
 		# Compute degeneracy slopes.
 		degeneracy_slopes = [None] * closed_triangulation.num_cusps

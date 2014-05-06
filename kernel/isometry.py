@@ -21,31 +21,34 @@ class Isometry(object):
 		return str(self.triangle_map)
 	def __getitem__(self, index):
 		return self.oriented_edge_map[index]
-	def __eq__(self, other):
-		return self.triangle_map == other.triangle_map
+	#def __eq__(self, other):
+	#	return self.triangle_map == other.triangle_map
 	def __iter__(self):
 		return iter(self.oriented_edge_map)  # Iteration is over ORIENTED EDGES!
+	def __call__(self, other):
+		if isinstance(other, flipper.kernel.Lamination):
+			if self.source_triangulation != other.triangulation:
+				raise ValueError('Cannot apply isometry to Lamination on a different triangulation.')
+			return self.encode()(other)
+		else:
+			return NotImplemented
 	def __mul__(self, other):
 		if isinstance(other, Isometry):
-			assert(other.target_triangulation == self.source_triangulation)
-			new_map = dict((edge, self[other[edge]]) for edge in other)
-			return Isometry(other.source_triangulation, self.target_triangulation, new_map)
-		elif isinstance(other, flipper.kernel.Lamination) and self.source_triangulation == other.triangulation:
-			return self.encode() * other
+			if other.target_triangulation != self.source_triangulation:
+				raise ValueError('Cannot compose isometries between different triangulations.')
+			return Isometry(other.source_triangulation, self.target_triangulation, dict((edge, self[other[edge]]) for edge in other))
 		else:
 			return NotImplemented
 	def triangle_image(self, triangle):
-		edge = triangle.labels[0]
-		corner = self.target_triangulation.find_edge(self[edge])
-		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side, 3))
+		corner = self.target_triangulation.find_edge(self[triangle.labels[0]])
+		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
-		new_map = dict((self[edge], edge) for edge in self)
-		return Isometry(self.target_triangulation, self.source_triangulation, new_map)
+		return Isometry(self.target_triangulation, self.source_triangulation, dict((self[edge], edge) for edge in self))
 	def permutation(self):
 		return flipper.kernel.Permutation([self.edge_map[i] for i in range(self.zeta)])
 	def encode(self):
-		f = [flipper.kernel.PartialFunction(self.source_triangulation, self.target_triangulation, self.permutation().matrix())]
-		b = [flipper.kernel.PartialFunction(self.target_triangulation, self.source_triangulation, self.permutation().inverse().matrix())]
+		f = [flipper.kernel.PartialFunction(self.permutation().matrix())]
+		b = [flipper.kernel.PartialFunction(self.inverse().permutation().matrix())]
 		
-		return flipper.kernel.Encoding([flipper.kernel.PLFunction(f, b)])
+		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [flipper.kernel.PLFunction(f, b)])
 

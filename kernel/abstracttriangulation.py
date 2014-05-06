@@ -53,6 +53,7 @@ class Corner(object):
 		return [corner for corner in self.triangulation.corners if corner.label == ~self.label][0]
 	def adjacent(self):
 		# Returns the corner 1 click anti-clockwise around this vertex.
+		# We can't use self.triangulation.vertices yet as these may not have been set up.
 		return self.rotate(1).opposite().rotate(1)
 
 # Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
@@ -140,6 +141,9 @@ class AbstractTriangulation(object):
 		corner = self.find_edge(edge_index)
 		return [self.find_vertex(corner.rotate(1)), self.find_vertex(corner.rotate(-1))]
 	
+	def find_edge_triangles(self, edge_index):
+		return [self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle]
+	
 	def find_edge(self, edge_index):
 		# Return the corner with this edge_index.
 		return self.edge_contained_in[edge_index]
@@ -156,7 +160,7 @@ class AbstractTriangulation(object):
 		a, b, c, d = self.find_labels_of_square_about_edge(e)
 		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(e)
 		
-		dont_copy = [self.find_edge(e).triangle, self.find_edge(~e).triangle]
+		dont_copy = self.find_edge_triangles(e)
 		labels = [list(triangle.labels) for triangle in self if triangle not in dont_copy] + [[e, d, a], [~e, b, c]]
 		corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [t, v, s]]
 		
@@ -183,7 +187,6 @@ class AbstractTriangulation(object):
 		
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
 		return [A.labels[1], A.labels[2], B.labels[1], B.labels[2]]
-		# return [A.rotate(1).label, A.rotate(2).label, B.rotate(1).label, B.rotate(2).label]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
 		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
@@ -208,8 +211,6 @@ class AbstractTriangulation(object):
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
 		return [A.corner_labels[2], A.corner_labels[0], A.corner_labels[1],
 			B.corner_labels[2], B.corner_labels[0], B.corner_labels[1]]
-		# return [A.rotate(-1).corner_label, A.rotate(0).corner_label, A.rotate(1).corner_label,
-		#	B.rotate(-1).corner_label, B.rotate(0).corner_label, B.rotate(1).corner_label]
 	
 	def homology_basis(self):
 		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
@@ -238,7 +239,7 @@ class AbstractTriangulation(object):
 		while True:
 			for edge_index in range(self.zeta):
 				if not tree[edge_index] and not dual_tree[edge_index]:
-					a, b = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
+					a, b = self.find_edge_triangles(edge_index)
 					if faces_used[a] != faces_used[b]:
 						dual_tree[edge_index] = True
 						faces_used[a] = True
@@ -254,7 +255,7 @@ class AbstractTriangulation(object):
 		for edge_index in range(self.zeta):
 			if not tree[edge_index] and not dual_tree[edge_index]:
 				generator = [~edge_index]
-				source, target = self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle
+				source, target = self.find_edge_triangles(edge_index)
 				
 				# Find a path in dual_tree from source to target. This is a really
 				# inefficient way to do this. We initially define the distance to
@@ -264,7 +265,7 @@ class AbstractTriangulation(object):
 				distance[source] = 0
 				while distance[target] == self.num_triangles+1:
 					for edge in dual_tree_indices:  # Only allowed to move in the tree.
-						a, b = self.find_edge(edge).triangle, self.find_edge(~edge).triangle
+						a, b = self.find_edge_triangles(edge)
 						distance[a] = min(distance[b]+1, distance[a])
 						distance[b] = min(distance[a]+1, distance[b])
 				
@@ -272,7 +273,7 @@ class AbstractTriangulation(object):
 				current = target
 				while current != source:
 					for edge in dual_tree_indices:
-						a, b = self.find_edge(edge).triangle, self.find_edge(~edge).triangle
+						a, b = self.find_edge_triangles(edge)
 						if b == current and distance[a] == distance[b]-1:
 							generator.append(edge)
 							current = a
@@ -303,8 +304,6 @@ class AbstractTriangulation(object):
 			
 			consequences.append((from_corner.labels[1], to_corner.labels[1]))
 			consequences.append((from_corner.labels[2], to_corner.labels[2]))
-			# consequences.append((from_corner.rotate(1).label, to_corner.rotate(1).label))
-			# consequences.append((from_corner.rotate(2).label, to_corner.rotate(2).label))
 			
 			for from_edge, to_edge in consequences:
 				if from_edge in edge_map:
@@ -343,7 +342,6 @@ class AbstractTriangulation(object):
 		for vertex in set(self.find_edge_vertices(edge_index)):
 			for corner in vertex:
 				vector[corner.indices[2]] += 1
-				# vector[corner.rotate(2).index] += 1
 		vector[norm(edge_index)] = 0
 		return self.lamination(vector)
 	
@@ -353,8 +351,8 @@ class AbstractTriangulation(object):
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def Id_Encoding(self):
-		f = b = [flipper.kernel.PartialFunction(self, self, flipper.kernel.Id_Matrix(self.zeta))]
-		return flipper.kernel.Encoding([flipper.kernel.PLFunction(f, b)])
+		f = b = [flipper.kernel.PartialFunction(flipper.kernel.Id_Matrix(self.zeta))]
+		return flipper.kernel.Encoding(self, self, [flipper.kernel.PLFunction(f, b)])
 	
 	def encode_flip(self, edge_index):
 		assert(self.is_flippable(edge_index))
@@ -369,13 +367,13 @@ class AbstractTriangulation(object):
 		A2 = flipper.kernel.Id_Matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
 		C2 = flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		
-		f = flipper.kernel.PartialFunction(self, new_triangulation, A1, C1)
-		g = flipper.kernel.PartialFunction(self, new_triangulation, A2, C2)
+		f = flipper.kernel.PartialFunction(A1, C1)
+		g = flipper.kernel.PartialFunction(A2, C2)
 		
-		f_inv = flipper.kernel.PartialFunction(new_triangulation, self, A1, C1)
-		g_inv = flipper.kernel.PartialFunction(new_triangulation, self, A2, C2)
+		f_inv = flipper.kernel.PartialFunction(A1, C1)
+		g_inv = flipper.kernel.PartialFunction(A2, C2)
 		
-		return flipper.kernel.Encoding([flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
+		return flipper.kernel.Encoding(self, new_triangulation, [flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
 	
 	def encode_puncture_triangles(self, to_puncture):
 		''' Returns an encoding from this triangulation to one in which each triangle
@@ -412,5 +410,5 @@ class AbstractTriangulation(object):
 				new_corner_labels.append([0, 0, 0])
 		
 		T = flipper.AbstractTriangulation(new_labels, new_corner_labels)
-		return flipper.kernel.PLFunction([flipper.kernel.PartialFunction(self, T, M)])
+		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
 

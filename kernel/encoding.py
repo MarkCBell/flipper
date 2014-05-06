@@ -9,83 +9,45 @@ NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
 class PartialFunction(object):
-	''' This represents a linear function defined between the spaces of laminations on two AbstractTriangulations. '''
-	def __init__(self, source_triangulation, target_triangulation, action, condition=None):
-		''' This represents a partial linear function from L(source_triangulation) to L(target_triangulation).
-		The function is defined on the subset where condition*lamination >= 0, or everywhere if condition
+	''' This represents a linear function from a subset of RR^m to RR^n. '''
+	def __init__(self, action, condition=None):
+		''' This represents a partial linear function from RR^m to RR^n.
+		The function is defined on the subset where condition*vector >= 0, or everywhere if condition
 		is None. Attempting to apply the function to a point not in the domain will raise a TypeError. '''
-		self.source_triangulation = source_triangulation
-		self.target_triangulation = target_triangulation
 		self.action = action
-		if condition is None: condition = flipper.kernel.Empty_Matrix()
-		self.condition = condition
+		self.condition = condition if condition is not None else flipper.kernel.Empty_Matrix()
 	
 	def __str__(self):
 		return '%s\n%s' % (self.action, self.condition)
 	
 	def __call__(self, other):
-		return self * other
-	
-	def __mul__(self, other):
-		if isinstance(other, flipper.kernel.Lamination) and other.triangulation == self.source_triangulation:
-			if self.condition.nonnegative_image(other.vector):
-				return self.target_triangulation.lamination(self.action * other.vector)
+		if self.condition.nonnegative_image(other):
+			return self.action * other
 		
 		raise TypeError('Object is not in domain.')
 
 class PLFunction(object):
-	''' This represent the piecewise-linear map between the spaces of laminations on two AbstractTriangulations. '''
+	''' This represent the piecewise-linear map from RR^m to RR^n. '''
 	def __init__(self, partial_functions, inverse_partial_functions=None):
 		self.partial_functions = partial_functions
 		assert(len(self.partial_functions) > 0)
-		self.source_triangulation = self.partial_functions[0].source_triangulation
-		self.target_triangulation = self.partial_functions[0].target_triangulation
-		assert(all(f.source_triangulation == self.source_triangulation for f in self.partial_functions))
-		if inverse_partial_functions is None: inverse_partial_functions = []
-		self.inverse_partial_functions = inverse_partial_functions
-		assert(all(f.target_triangulation == self.target_triangulation for f in self.partial_functions))
+		self.inverse_partial_functions = inverse_partial_functions if inverse_partial_functions is not None else []
 	
 	def __iter__(self):
 		return iter(self.partial_functions)
 	def __str__(self):
 		return '\n'.join(str(function) for function in self.partial_functions)
-	def __repr__(self):
-		return 'PLfunction: %s --> %s' % (self.source_triangulation, self.target_triangulation)
 	def __len__(self):
 		return len(self.partial_functions)
 	def __getitem__(self, index):
 		return self.partial_functions[index]
-	def __eq__(self, other):
-		return isinstance(other, PLFunction) and \
-			self.source_triangulation == other.source_triangulation and \
-			self.target_triangulation == other.target_triangulation and \
-			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
-	def __hash__(self):
-		return hash(tuple(self.partial_functions + self.inverse_partial_functions))
 	def __call__(self, other):
-		return self * other
-	def __mul__(self, other):
-		if isinstance(other, PLFunction):
-			return Encoding([self, other])
-		elif isinstance(other, Encoding):
-			return Encoding([self] + other.sequence)
-		elif isinstance(other, flipper.kernel.Lamination):
-			for function in self.partial_functions:
-				try:
-					return function(other)
-				except TypeError:
-					pass
-			raise TypeError('Object is not in domain.')
-		else:
-			return NotImplemented
-	def __pow__(self, n):
-		assert(self.is_mapping_class())
-		if n > 0:
-			return Encoding([self] * n)
-		elif n == 0:
-			return self.source_triangulation.Id_Encoding()
-		elif n < 0:
-			return self.inverse()**abs(n)
+		for function in self.partial_functions:
+			try:
+				return function(other)
+			except TypeError:
+				pass
+		raise TypeError('Object is not in domain.')
 	def copy(self):
 		return PLFunction([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions])
 	def inverse(self):
@@ -105,15 +67,17 @@ class PLFunction(object):
 		raise TypeError('Object is not in domain.')
 
 class Encoding(object):
-	def __init__(self, sequence):
-		''' This represents the composition of several PLFunction. '''
+	''' This represents a map between two AbstractTriagulations. '''
+	def __init__(self, source_triangulation, target_triangulation, sequence):
+		''' This represents a map between two AbstractTriagulations. It is given by a sequence
+		of PLFunctions whose composition is the action on the edge weights. '''
 		self.sequence = sequence
 		assert(all(isinstance(x, PLFunction) for x in self.sequence))
-		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(self.sequence, self.sequence[1:])))
 		
-		self.source_triangulation = self.sequence[-1].source_triangulation
-		self.target_triangulation = self.sequence[0].target_triangulation
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
+	
 	def is_mapping_class(self):
 		return self.source_triangulation == self.target_triangulation
 	
@@ -134,47 +98,51 @@ class Encoding(object):
 		return isinstance(other, Encoding) and \
 			self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
-			all(self * curve == other * curve for curve in self.source_triangulation.key_curves())
+			all(self(curve) == other(curve) for curve in self.source_triangulation.key_curves())
 	def __hash__(self):
 		return hash(tuple(self.sequence))
 	def __call__(self, other):
-		return self * other
+		# return self * other
+		if isinstance(other, flipper.kernel.Lamination):
+			if self.source_triangulation != other.triangulation:
+				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
+			vector = other.vector
+			for A in reversed(self):
+				vector = A(vector)
+			return self.target_triangulation.lamination(vector)
+		else:
+			return NotImplemented
 	def __mul__(self, other):
 		if isinstance(other, Encoding):
-			return Encoding(self.sequence + other.sequence)
-		elif isinstance(other, PLFunction):
-			return Encoding(self.sequence + [other])
-		else:
+			if self.source_triangulation != other.target_triangulation:
+				raise ValueError('Cannot compose Encodings over different triangulations.')
+			return Encoding(other.source_triangulation, self.target_triangulation, self.sequence + other.sequence)
 			# !?! Could do something like:
 			# return flipper.kernel.utilities.product(list(self) + [other.copy()])
-			other = other.copy()
-			for A in reversed(self.sequence):
-				other = A * other
-			return other
+		else:
+			return NotImplemented
 	def __pow__(self, k):
 		assert(self.is_mapping_class())
 		if k == 0:
 			return self.source_triangulation.Id_Encoding()
 		elif k > 0:
-			return Encoding(self.sequence * k)
+			return Encoding(self.source_triangulation, self.target_triangulation, self.sequence * k)
 		else:
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
-		return Encoding([A.inverse() for A in reversed(self)])
-	
-	def name_indices(self, lamination):
-		indices = []
-		for A in reversed(self):
-			indices.append(A.applied_index(lamination))
-			lamination = A * lamination
-		
-		return indices
+		return Encoding(self.target_triangulation, self.source_triangulation, [A.inverse() for A in reversed(self)])
 	
 	def applied_function(self, lamination):
 		''' Returns the partial function that will be applied to the lamination. '''
 		
-		return self.expand_indices(self.name_indices(lamination))
+		vector = lamination.vector
+		indices = []
+		for A in reversed(self):
+			indices.append(A.applied_index(vector))
+			vector = A(vector)
+		
+		return self.expand_indices(indices)
 	
 	def expand_indices(self, indices):
 		''' Given indices = [a_0, ..., a_k] this returns the partial function of
@@ -182,30 +150,26 @@ class Encoding(object):
 		
 		As = flipper.kernel.Id_Matrix(self.zeta)
 		Cs = flipper.kernel.Empty_Matrix()
-		source_triangulation = self.source_triangulation
-		target_triangulation = self.source_triangulation
 		for E, i in zip(reversed(self), indices):
 			Cs = Cs.join(E[i].condition * As)
 			As = E[i].action * As
-			target_triangulation = E.target_triangulation
 		
-		return PartialFunction(source_triangulation, target_triangulation, As, Cs)
+		return PartialFunction(As, Cs)
 	
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.is_mapping_class())
 		curve_images = curves = self.source_triangulation.key_curves()
 		# We could do:
-		# id_map = self.source_triangulation.Id_Encoding()
 		# for i in range(self.source_triangulation.max_order):
-		#	if self**(i+1) == id_map:
+		#	if self**(i+1) == self.source_triangulation.Id_Encoding():
 		#		return i+1
 		# But this is quadratic in the order so instead we do:
 		possible_orders = set(range(1, self.source_triangulation.max_order+1))
 		for curve in curves:
 			curve_image = curve
 			for i in range(1, max(possible_orders)+1):
-				curve_image = self * curve_image
+				curve_image = self(curve_image)
 				if curve_image != curve:
 					possible_orders.discard(i)
 					if not possible_orders: return 0  # No finite orders remain so we are infinite order.
@@ -296,7 +260,7 @@ class Encoding(object):
 	
 	def check_fixedpoint(self, certificate):
 		assert(self.is_mapping_class())
-		return certificate.is_multicurve() and self * certificate == certificate
+		return certificate.is_multicurve() and self(certificate) == certificate
 	
 	def NT_type(self, log_progress=None):
 		assert(self.is_mapping_class())
@@ -345,17 +309,17 @@ class Encoding(object):
 			A_sum, B_sum = sum(A), sum(B)
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
 		
-		curves = [[self * curve for curve in curves]]
+		curves = [[self(curve) for curve in curves]]
 		for i in range(50):
 			# Differnt schemes for taking steps.
-			new_curves = [self**(1) * curve for curve in curves[-1]]  # Constant.
-			# new_curves = [self**(i+1) * curve for curve in curvesi[-1]]  # Linear.
-			# new_curves = [self**(2**1) * curve for curve in curvesi[-1]]  # Exponential.
+			new_curves = [(self**(1))(curve) for curve in curves[-1]]  # Constant.
+			# new_curves = [(self**(i+1))(curve) for curve in curvesi[-1]]  # Linear.
+			# new_curves = [(self**(2**1))(curve) for curve in curvesi[-1]]  # Exponential.
 			
 			for j in range(1, min(triangulation.max_order, len(curves))+1):
 				for new_curve, curve in zip(new_curves, curves[-j]):
 					if projective_difference(new_curve, curve, 1000):
-						average_curve = sum(self**k * curve for k in range(j))
+						average_curve = sum((self**k)(curve) for k in range(j))
 						partial_function = self.applied_function(average_curve)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
@@ -376,7 +340,7 @@ class Encoding(object):
 				denominator = max(min(x for x in curve if x > 0), i+1)
 				vector = [QQ.element([int(round(float(x) / denominator, 0))]) for x in curve]
 				small_curve = triangulation.lamination(vector, remove_peripheral=True)
-				if self * small_curve == small_curve:
+				if self(small_curve) == small_curve:
 					return small_curve
 			
 			curves.append(new_curves)
@@ -390,7 +354,7 @@ class Encoding(object):
 		it will discover this. '''
 		
 		assert(self.is_mapping_class())
-		new_lamination = self * lamination
+		new_lamination = self(lamination)
 		if not lamination.projectively_equal(new_lamination):
 			raise flipper.AssumptionError('Lamination is not projectively invariant.')
 		
@@ -433,9 +397,9 @@ class Encoding(object):
 					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
 					print(len(tripods), surviving_punctures)
 					puncture_encoding = lamination.triangulation.encode_puncture_triangles(real_tripods)
-					lamination = puncture_encoding * lamination
+					lamination = puncture_encoding(lamination)
 					remove_tripods = lamination.remove_tripod_regions()
-					lamination = remove_tripods * lamination
+					lamination = remove_tripods(lamination)
 					splitting = lamination.splitting_sequence(target_dilatation=dilatation) # , puncture_first=real_tripods)
 					print(splitting.flips)
 				
@@ -486,7 +450,7 @@ class Encoding(object):
 		all_words = [''.join(x) for x in product(other_encodings.keys(), repeat=search_radius)]
 		
 		curves = self.source_triangulation.key_curves()
-		images = [self * curve for curve in curves]
+		images = [self(curve) for curve in curves]
 		score = lambda imgs: max(curve.weight()**2 for curve in imgs)
 		
 		while score(images) > score(curves):
@@ -494,12 +458,12 @@ class Encoding(object):
 			for word in all_words:
 				imgs = list(curve.copy() for curve in images)
 				for letter in word:
-					imgs = [other_encodings[letter] * curve for curve in imgs]
+					imgs = [other_encodings[letter](curve) for curve in imgs]
 				if score(imgs) <= best_score:
 					best_word = word
 					best_score = score(imgs)
 			
-			images = [other_encodings[best_word[0]] * curve for curve in images]
+			images = [other_encodings[best_word[0]](curve) for curve in images]
 		
 		return True
 

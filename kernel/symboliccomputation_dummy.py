@@ -23,7 +23,7 @@ def PF_eigen(matrix, vector):
 	N = flipper.kernel.NumberField(eigenvalue_polynomial)
 	orthogonal_kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
 	dim_ker = len(orthogonal_kernel_basis)
-	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis] 
+	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
 	product_lengths = [reduce(lambda x, y: x*y, [row_lengths[j] for j in range(dim_ker) if j != i], 1) for i in range(dim_ker)]
 	linear_combination = [dot(vector, row) * product_length for row, product_length in zip(orthogonal_kernel_basis, product_lengths)]
 	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]

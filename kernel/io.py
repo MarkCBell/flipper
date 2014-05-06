@@ -6,9 +6,9 @@ from string import ascii_lowercase
 import flipper
 
 def package(objects, names=None):
-	''' This packages an abstract triangulation, some laminations and mapping classes 
-	into a format that can be writen to disk and loaded into an instance of the 
-	flipper application at a later date. 
+	''' This packages an abstract triangulation, some laminations and mapping classes
+	into a format that can be writen to disk and loaded into an instance of the
+	flipper application at a later date.
 	
 	Objects must be either:
 		1) an abstract triangulation,

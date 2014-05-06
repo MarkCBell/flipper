@@ -25,7 +25,7 @@ class ExampleSurface(object):
 		return ''.join(choice(available_letters) for _ in range(length))
 	def mapping_class(self, word):
 		if isinstance(word, flipper.Integer_Type):
-			word = self.get_random_word(word)
+			word = self.random_word(word)
 		
 		h = self.triangulation.Id_Encoding()
 		for letter in word:

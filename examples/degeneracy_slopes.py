@@ -17,7 +17,7 @@ def main():
 		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 		Bs = S.mapping_class(word).splitting_sequence().snappy_manifolds(name=word)
 		if not any(B.is_isometric_to(M) for B in Bs):
-			print('Could not match %s on %s' % (manifold_name, surface_name))
+			print('Could not match %s on %s' % (word, surface))
 			print(M.volume(), M.homology(), M.chern_simons())
 			print('with any of:')
 			for B in Bs:

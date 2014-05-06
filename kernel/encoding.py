@@ -218,9 +218,6 @@ class Encoding(object):
 			else:
 				raise IndexError
 		
-		def progress(indices):
-			return 
-		
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
@@ -270,19 +267,6 @@ class Encoding(object):
 			return NT_TYPE_REDUCIBLE
 		else:
 			return NT_TYPE_PSEUDO_ANOSOV
-	
-	def NT_type_alternate(self):
-		assert(self.is_mapping_class())
-		if self.is_periodic():
-			return NT_TYPE_PERIODIC
-		else:
-			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-			# fails to find an invariant lamination.
-			lamination = self.invariant_lamination()
-			if lamination.is_filling():
-				return NT_TYPE_PSEUDO_ANOSOV
-			else:
-				return NT_TYPE_REDUCIBLE
 	
 	def invariant_lamination(self):
 		''' Returns a lamination (with entries in a NumberField) which is projectively invariant
@@ -346,6 +330,19 @@ class Encoding(object):
 			curves.append(new_curves)
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
+	
+	def NT_type_alternate(self):
+		assert(self.is_mapping_class())
+		if self.is_periodic():
+			return NT_TYPE_PERIODIC
+		else:
+			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
+			# fails to find an invariant lamination.
+			lamination = self.invariant_lamination()
+			if lamination.is_filling():
+				return NT_TYPE_PSEUDO_ANOSOV
+			else:
+				return NT_TYPE_REDUCIBLE
 	
 	def dilatation(self, lamination):
 		''' Returns the dilatation of this mapping class on the given lamination.

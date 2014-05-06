@@ -262,7 +262,7 @@ class Lamination(object):
 			edge_index is the only edge of weight 0. '''
 		
 		if self[edge_index] != 0:
-			raise Flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
+			raise flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
 		
 		# This relies on knowing how squares are returned.
 		a, b, c, d = self.triangulation.find_labels_of_square_about_edge(edge_index)  # Get the square about it.

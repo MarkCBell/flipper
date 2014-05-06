@@ -488,7 +488,7 @@ class FlipperApp(object):
 					laminations = [(name, self.laminations[name]) for name in lamination_names]
 					mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
 					
-					example = flipper.package(self.abstract_triangulation, laminations, mapping_classes)
+					example = flipper.package((self.abstract_triangulation, laminations, mapping_classes))
 					disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)

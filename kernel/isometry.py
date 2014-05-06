@@ -18,7 +18,7 @@ class Isometry(object):
 		self.edge_map = dict((norm(edge), norm(self.oriented_edge_map[edge])) for edge in self.oriented_edge_map)
 		# Should check that the thing that we've built is actually well defined.
 	def __repr__(self):
-		return str(self.triangle_map)
+		return str(self.edge_map)
 	def __getitem__(self, index):
 		return self.oriented_edge_map[index]
 	#def __eq__(self, other):

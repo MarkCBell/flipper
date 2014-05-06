@@ -23,7 +23,7 @@ def PF_eigen(matrix, vector):
 	[lam] = K.gens()
 	
 	orthogonal_kernel_basis = gram_schmidt((M - lam).right_kernel_matrix().rows())
-	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis] 
+	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
 	linear_combination = [dot(vector, row) / row_length for row, row_length in zip(orthogonal_kernel_basis, row_lengths)]
 	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
 	

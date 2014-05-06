@@ -1,5 +1,5 @@
 
-from sage.all import *
+from sage.all import QQ, NumberField
 
 def test(polynomial_coefficients, max_degree=10):
 	[x] = QQ['x'].gens()
@@ -14,7 +14,7 @@ def test(polynomial_coefficients, max_degree=10):
 	roots = []
 	for i in range(2, max_degree):
 		try:
-			a = y.nth_root(i)
+			y.nth_root(i)
 			roots.append(i)
 		except ValueError:
 			pass

@@ -8,7 +8,7 @@ NT_TYPE_PERIODIC = flipper.kernel.encoding.NT_TYPE_PERIODIC
 NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
-def main(verbose=False, timings=False):
+def main(verbose=False):
 	start_time = time()
 	# Add more tests here.
 	tests = [
@@ -36,7 +36,7 @@ def main(verbose=False, timings=False):
 	except AssertionError:
 		return False
 	
-	if timings and verbose: print('Time taken: %0.3fs' % (time() - start_time))
+	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':

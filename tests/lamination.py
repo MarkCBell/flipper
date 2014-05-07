@@ -4,7 +4,7 @@ from time import time
 
 import flipper
 
-def main(verbose=False, timings=False):
+def main(verbose=False):
 	start_time = time()
 	# Add more tests here.
 	tests = [
@@ -26,7 +26,7 @@ def main(verbose=False, timings=False):
 			if verbose: print(word)
 			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			mapping_class = S.mapping_class(word)
-			mapping_class.invariant_lamination()
+			mapping_class.invariant_lamination()  # This could fail with a ComputationError.
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except AssertionError:
@@ -34,7 +34,7 @@ def main(verbose=False, timings=False):
 	except flipper.ComputationError:
 		return False
 	
-	if timings and verbose: print('Time taken: %0.3fs' % (time() - start_time))
+	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':

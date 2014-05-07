@@ -29,12 +29,7 @@ from math import log10 as log
 import flipper
 
 def log_height_int(number):
-	# We should do something like:
-	#	return log(max(abs(number), 1))
-	# However this is incredibly slow so we'll just get an upper
-	# bound by doing.
 	return log(max(abs(number), 1))
-	return len(str(number))
 
 class AlgebraicApproximation(object):
 	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 

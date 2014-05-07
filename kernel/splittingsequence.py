@@ -32,8 +32,8 @@ class SplittingSequence(object):
 		import snappy
 		B = self.bundle(isometry_number)
 		M = snappy.Manifold(B.snappy_string(name))
-		for index, (cusp_type, fibre_slope) in enumerate(zip(B.cusp_types, B.fibre_slopes)):
-			if cusp_type == 1: M.dehn_fill(fibre_slope, index)
+		for index, (real_cusp, fibre_slope) in enumerate(zip(B.real_cusps, B.fibre_slopes)):
+			if not real_cusp: M.dehn_fill(fibre_slope, index)
 		
 		return M
 	

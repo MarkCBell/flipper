@@ -159,12 +159,12 @@ class Encoding(object):
 	def order(self):
 		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
 		assert(self.is_mapping_class())
-		curve_images = curves = self.source_triangulation.key_curves()
 		# We could do:
 		# for i in range(self.source_triangulation.max_order):
 		#	if self**(i+1) == self.source_triangulation.Id_Encoding():
 		#		return i+1
 		# But this is quadratic in the order so instead we do:
+		curves = self.source_triangulation.key_curves()
 		possible_orders = set(range(1, self.source_triangulation.max_order+1))
 		for curve in curves:
 			curve_image = curve
@@ -194,7 +194,7 @@ class Encoding(object):
 		# We now use Ben's branch and bound approach. It's much better.
 		assert(self.is_mapping_class())
 		
-		# We first create two little functions to increment the list of indices to the next point that 
+		# We first create two little functions to increment the list of indices to the next point that
 		# we are interested in. The first jumps from our current location to the next subtree, the second
 		# advances to the next index according to the lex ordering.
 		
@@ -202,19 +202,19 @@ class Encoding(object):
 		sizes_mul = [reduce(lambda x, y: x*y, sizes[i:], 1) for i in range(len(sizes))]
 		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
 		
-		def jump(indices):
+		def jump_index(indices):
 			indices = list(indices)
 			while len(indices) > 0 and indices[-1] == len(self[len(self)-len(indices)])-1:
 				indices.pop()
 			if len(indices) > 0: indices[-1] += 1
 			return indices
 		
-		def next(indices):
+		def next_index(indices):
 			indices = list(indices)
 			if len(indices) < len(self):
 				return indices + [0]
 			elif len(indices) == len(self):
-				return jump(indices)
+				return jump_index(indices)
 			else:
 				raise IndexError
 		
@@ -234,7 +234,7 @@ class Encoding(object):
 			if len(indices) < len(self):
 				# Remember to always add the Id matrix as empty matrices always
 				# define trivial polytopes.
-				indices = next(indices) if Cs.join(M6).nontrivial_polytope() else jump(indices)
+				indices = next_index(indices) if Cs.join(M6).nontrivial_polytope() else jump_index(indices)
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
@@ -251,7 +251,7 @@ class Encoding(object):
 						certificate = self.source_triangulation.lamination([2*i for i in P.find_edge_vector()])
 						assert(self.check_fixedpoint(certificate))
 						return True
-				indices = jump(indices)
+				indices = jump_index(indices)
 		
 		return False
 	
@@ -259,7 +259,7 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		return certificate.is_multicurve() and self(certificate) == certificate
 	
-	def NT_type(self, log_progress=None):
+	def NT_type_alternate(self, log_progress=None):
 		assert(self.is_mapping_class())
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
@@ -316,7 +316,6 @@ class Encoding(object):
 								# If it does then we have a projectively invariant lamintation.
 								invariant_lamination = triangulation.lamination(eigenvector)
 								if not invariant_lamination.is_empty():
-									lmbda = invariant_lamination[0].number_field.lmbda
 									return invariant_lamination
 			
 			# !?! Remove this?
@@ -331,7 +330,7 @@ class Encoding(object):
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
-	def NT_type_alternate(self):
+	def NT_type(self):
 		assert(self.is_mapping_class())
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
@@ -430,7 +429,6 @@ class Encoding(object):
 				else:
 					print('FAILED')
 					
-					
 			#		print(dilatation)
 			#		print(self.dilatation(lamination))
 			#		for isom in splitting.closing_isometries:
@@ -440,27 +438,4 @@ class Encoding(object):
 			#			print(isom.permutation())
 			#		assert(False)  # There was no way to close the square!?
 			return splitting
-	
-	def decompose(self, other_encodings):
-		''' Returns this mapping class as a composition of the given others. '''
-		search_radius = 2
-		all_words = [''.join(x) for x in product(other_encodings.keys(), repeat=search_radius)]
-		
-		curves = self.source_triangulation.key_curves()
-		images = [self(curve) for curve in curves]
-		score = lambda imgs: max(curve.weight()**2 for curve in imgs)
-		
-		while score(images) > score(curves):
-			best_word, best_score = None, score(images)
-			for word in all_words:
-				imgs = list(curve.copy() for curve in images)
-				for letter in word:
-					imgs = [other_encodings[letter](curve) for curve in imgs]
-				if score(imgs) <= best_score:
-					best_word = word
-					best_score = score(imgs)
-			
-			images = [other_encodings[best_word[0]](curve) for curve in images]
-		
-		return True
 

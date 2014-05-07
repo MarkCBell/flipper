@@ -1,6 +1,4 @@
 
-from itertools import combinations
-
 import flipper
 
 def norm(x):

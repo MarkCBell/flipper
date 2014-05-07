@@ -8,14 +8,12 @@ from math import sin, cos, pi, sqrt
 from itertools import product, combinations
 try:
 	import Tkinter as TK
-	import tkFont as TK_FONT
 	import tkFileDialog
 	import tkMessageBox
 	# import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
-		import tkinter.font as TK_FONT
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
 		# import tkinter.simpledialog as tkSimpleDialog
@@ -34,9 +32,9 @@ import flipper
 import flipper.application
 
 # Some constants.
-COMMAND_MODIFIERS = {'darwin':'Command', 'win32':'Ctrl', 'linux2':'Ctrl', 'linux3':'Ctrl'}
+COMMAND_MODIFIERS = {'darwin': 'Command', 'win32': 'Ctrl', 'linux2': 'Ctrl', 'linux3': 'Ctrl'}
 COMMAND_MODIFIER = COMMAND_MODIFIERS[sys.platform] if sys.platform in COMMAND_MODIFIERS else 'Ctrl'
-COMMAND_MODIFIER_BINDINGS = {'darwin':'Command', 'win32':'Control', 'linux2':'Control', 'linux3':'Control'}
+COMMAND_MODIFIER_BINDINGS = {'darwin': 'Command', 'win32': 'Control', 'linux2': 'Control', 'linux3': 'Control'}
 COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platform in COMMAND_MODIFIER_BINDINGS else 'Control'
 
 # Event modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
@@ -1087,7 +1085,7 @@ class FlipperApp(object):
 					if name is not None:
 						self.add_mapping_class(isometry.encode(), name)
 	
-	def create_composition(self, return_name=False):
+	def create_composition(self):
 		# Assumes that each of the named mapping classes exist.
 		if self.is_complete():
 			composition = flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
@@ -1102,19 +1100,13 @@ class FlipperApp(object):
 						tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 						raise flipper.AssumptionError()
 				
-				if return_name:
-					return composition, mapping_class
-				else:
-					return mapping_class
+				return composition, mapping_class
 			else:
-				if return_name:
-					return None, None
-				else:
-					return None
+				return None, None
 	
 	def store_composition(self):
 		if self.is_complete():
-			mapping_class = self.create_composition()
+			_, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				name = flipper.application.get_input('Name', 'New composition name:', validate=self.valid_name)
 				if name is not None:
@@ -1128,7 +1120,7 @@ class FlipperApp(object):
 				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
 			else:
 				if mapping_class is None:
-					mapping_class = self.create_composition()
+					_, mapping_class = self.create_composition()
 				
 				if mapping_class is not None:
 					self.lamination_to_canvas(mapping_class * lamination)
@@ -1139,17 +1131,16 @@ class FlipperApp(object):
 	
 	def order(self):
 		if self.is_complete():
-			composition, mapping_class = self.create_composition(return_name=True)
+			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, mapping_class.order_string()))
 	
 	def NT_type(self):
 		if self.is_complete():
-			composition, mapping_class = self.create_composition(return_name=True)
+			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				try:
-					# NT_type = flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
-					NT_type = flipper.application.apply_progression(mapping_class.NT_type_alternate)
+					NT_type = flipper.application.apply_progression(mapping_class.NT_type)
 					
 					if NT_type == flipper.kernel.encoding.NT_TYPE_PERIODIC:
 						tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
@@ -1168,7 +1159,7 @@ class FlipperApp(object):
 	
 	def invariant_lamination(self):
 		if self.is_complete():
-			composition, mapping_class = self.create_composition(return_name=True)
+			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				try:
 					lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
@@ -1182,7 +1173,7 @@ class FlipperApp(object):
 	
 	def build_bundle(self):
 		if self.is_complete():
-			composition, mapping_class = self.create_composition(return_name=True)
+			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 				if path != '':
@@ -1377,8 +1368,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'NT_type' not in self.cache[mapping_class]:
-					# self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type, indeterminant=False)
-					self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type_alternate)
+					self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type)
 					self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
 			except flipper.AbortError:
@@ -1405,10 +1395,10 @@ def start(load_from=None):
 	root = TK.Tk()
 	root.title('flipper')
 	return_slot = [None]
-	flipper = FlipperApp(root, return_slot)
+	flipper_app = FlipperApp(root, return_slot)
 	root.minsize(300, 300)
 	root.geometry('700x500')
-	if load_from is not None: flipper.load(load_from=load_from)
+	if load_from is not None: flipper_app.load(load_from=load_from)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.
 	# See: http://cx-freeze.readthedocs.org/en/latest/faq.html#using-data-files
@@ -1418,7 +1408,7 @@ def start(load_from=None):
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
 	root.destroy()
-	return flipper.return_slot[0]
+	return flipper_app.return_slot[0]
 
 if __name__ == '__main__':
 	start()

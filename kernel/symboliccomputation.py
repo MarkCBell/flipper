@@ -1,6 +1,5 @@
 
 from importlib import import_module
-from math import log10 as log
 
 import flipper
 
@@ -31,7 +30,7 @@ import flipper
 
 ### Add new libraries here ###
 load_order = ['sage', 'dummy']
-libraries = {'sage':'symboliccomputation_sage', 'dummy':'symboliccomputation_dummy'}
+libraries = {'sage': 'symboliccomputation_sage', 'dummy': 'symboliccomputation_dummy'}
 
 def load_library(library_name=None):
 	for library in ([library_name] + load_order) if library_name in libraries else load_order:

@@ -3,17 +3,17 @@ from math import log10 as log
 
 import flipper
 
-# This provides us with a way of storing and manipulating elements of QQ(\lambda),
-# where \lambda is an algebraic integer (however technically this can currently only actually
-# manipulate elements of ZZ[\lambda]). This can even do multiplication of these 
+# This provides us with a way of storing and manipulating elements of QQ(lambda),
+# where lambda is an algebraic integer (however technically this can currently only actually
+# manipulate elements of ZZ[lambda]). This can even do multiplication of these 
 # elements without having to drop to an AlgebraicApproximation and so is significantly
 # faster that the previous way of doing this sort of calculation. 
 
 # This requires the numbers to be given as a linear combinations of 
-# 1, \lambda, ..., \lambda^{d-1}. Currently only Sage can do this.
+# 1, lambda, ..., lambda^{d-1}. Currently only Sage can do this.
 
 class NumberField(object):
-	''' This represents a number field QQ(\lambda). '''
+	''' This represents a number field QQ(lambda). '''
 	def __init__(self, polynomial=None):
 		if polynomial is None: polynomial = flipper.kernel.Polynomial([-1, 1])
 		
@@ -26,7 +26,7 @@ class NumberField(object):
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.current_accuracy = -1
-		# A list of approximations of \lambda^0, ..., \lambda^(d-1).
+		# A list of approximations of lambda^0, ..., lambda^(d-1).
 		# Note we need one more power for if this is QQ to make the increase accuracy code nicer. 
 		self._algebraic_approximations = self.lmbda_approximations(10)
 		
@@ -71,7 +71,7 @@ class NumberFieldElement(object):
 		elif len(linear_combination) > self.number_field.degree:
 			raise TypeError('Linear combination: %s has more terms than the degree of the field in which it lives' % linear_combination)
 		self.linear_combination = linear_combination
-		# Let N = QQ(\lambda) and d := N.degree.
+		# Let N = QQ(lambda) and d := N.degree.
 		# Let [a_i] := self.linear_combination, [\alpha_i] := N._algebraic_approximations[i].
 		# Let \alpha := sum(a_i * \alpha_i).
 		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
@@ -80,7 +80,6 @@ class NumberFieldElement(object):
 	
 	def __repr__(self):
 		return str(float(self.algebraic_approximation()))
-		return ' + '.join('%d*L^%d' % (coefficient, index) for index, coefficient in enumerate(self)) + ' ~= ' + str(float(self.algebraic_approximation()))
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __len__(self):
@@ -183,7 +182,7 @@ class NumberFieldElement(object):
 		N = self.number_field
 		d = N.degree
 		# Let [I_i] := [\alpha_i.interval] and I := \alpha.interval = sum(a_i * I_i).
-		# As \alpha also lies in K = QQ(\lambda) it also has degree at most d.
+		# As \alpha also lies in K = QQ(lambda) it also has degree at most d.
 		#
 		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) - sum(h(a_i)) [Interval.py L:13].
 		# As 

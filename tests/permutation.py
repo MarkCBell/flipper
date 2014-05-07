@@ -1,6 +1,6 @@
 
 from __future__ import print_function
-from itertools import product, permutations
+from itertools import product
 
 import flipper
 
@@ -22,3 +22,4 @@ def main(n=4):
 
 if __name__ == '__main__':
 	print(main())
+

@@ -5,7 +5,7 @@ from string import ascii_lowercase
 
 import flipper
 
-def package(objects, names=None):
+def package(objects):
 	''' This packages an abstract triangulation, some laminations and mapping classes
 	into a format that can be writen to disk and loaded into an instance of the
 	flipper application at a later date.

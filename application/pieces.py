@@ -1,5 +1,5 @@
 
-from math import sqrt, pi
+from math import sqrt
 from random import random
 from colorsys import hls_to_rgb
 

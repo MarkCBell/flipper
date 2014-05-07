@@ -1,6 +1,6 @@
 
 from itertools import combinations, groupby, product
-from fractions import Fraction, gcd
+from fractions import gcd
 from functools import reduce
 
 import flipper
@@ -287,7 +287,7 @@ class Matrix(object):
 		return Matrix(R), A
 	
 	def FM_eliminate(self, index=0):
-		''' Returns the matrix obtained by using Fourier–Motzkin elimination
+		''' Returns the matric obtained by using Fourier-Motzkin elimination
 		on this matrix. '''
 		
 		pos_rows = [row for row in self if row[index] > 0]

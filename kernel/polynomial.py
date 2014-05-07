@@ -99,7 +99,7 @@ class Polynomial(object):
 		else:
 			return NotImplemented
 	def __mod__(self, other):
-		Q, R, k = self.divmod(other)
+		_, R, k = self.divmod(other)
 		return R if k >= 0 else -R
 	def __div__(self, other):
 		# Assumes that the division is perfect.
@@ -122,7 +122,7 @@ class Polynomial(object):
 				Q, R = p, Polynomial([0]), 
 				while R.is_zero():
 					p = Q
-					Q, R, k = p.divmod(q)
+					Q, R, _ = p.divmod(q)
 		return p
 	def simplify(self):
 		return self.remove_factors(cyclotomic_polynomials(self.degree))

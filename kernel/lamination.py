@@ -258,7 +258,7 @@ class Lamination(object):
 		''' Returns this lamination on the triangulation obtained by collapsing edge edge_index.
 		Assumes that:
 			self.triangulation is not S_{0,3},
-			the given edge does not connect between two real vertices, (with label 0), and
+			the given edge does not connect between two real vertices, (with non-negative label), and
 			edge_index is the only edge of weight 0. '''
 		
 		if self[edge_index] != 0:
@@ -281,7 +281,7 @@ class Lamination(object):
 		if a == ~c and a == ~d:
 			# This implies the underlying surface is S_{1,1}. As there is
 			# only one vertex, both endpoints of this edge must be labelled 0.
-			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
+			raise flipper.AssumptionError('Edge connects between two non-negatively labelled vertices.')
 		
 		# Now the only remaining possibilities are:
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
@@ -289,11 +289,11 @@ class Lamination(object):
 		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
 		corner = self.triangulation.find_edge(e)
 		corner_labels = [corner.corner_labels[1], corner.corner_labels[2]]
-		# We'll replace the labels on the corner class with higher labels with the label from the lower.
-		# This ensures that any 0 vertex survives.
-		good_label, bad_label = min(corner_labels), max(corner_labels)
-		if good_label == 0 and bad_label == 0:  # Actually bad_label == 0 => good_label == 0.
-			raise flipper.AssumptionError('Edge connects between two vertices labelled 0.')
+		# We'll replace the labels on the corner class with lower labels with the label from the higher.
+		# This ensures that any non-negative vertex survives.
+		good_label, bad_label = max(corner_labels), min(corner_labels)
+		if bad_label >= 0:
+			raise flipper.AssumptionError('Edge connects between two non-negatively labelled vertices.')
 		
 		# Now figure out how the edges should be mapped.
 		far_triangles = [triangle for triangle in self.triangulation if e not in triangle and ~e not in triangle]
@@ -314,7 +314,7 @@ class Lamination(object):
 		elif b == ~c:  # A bigon in the other direction.
 			edge_map.append((~a, zeta))
 			edge_map.append((~d, ~zeta))
-		else:
+		else:  # No identification.
 			edge_map.append((~a, zeta))
 			edge_map.append((~b, ~zeta))
 			edge_map.append((~c, zeta+1))
@@ -356,7 +356,7 @@ class Lamination(object):
 		laminations = [lamination]
 		flips = []
 		encodings = [puncture_encoding]
-		seen = {lamination.projective_hash():[0]}
+		seen = {lamination.projective_hash(): [0]}
 		while True:
 			# Find the index of the largest entry.
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])

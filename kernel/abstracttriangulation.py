@@ -379,7 +379,7 @@ class AbstractTriangulation(object):
 		''' Returns an encoding from this triangulation to one in which each triangle
 		on the list to_puncture has been punctured, that is the triangulation obtained
 		by applying 1-->3 Pachner moves to the given triangles. '''
-		# We label real punctures with a 0 and number fake one by intergers > 0.
+		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
 		
 		old_zeta = self.zeta
 		M = flipper.kernel.Id_Matrix(old_zeta) * 2
@@ -397,9 +397,9 @@ class AbstractTriangulation(object):
 				new_labels.append([a, z, ~y])
 				new_labels.append([b, x, ~z])
 				new_labels.append([c, y, ~x])
-				new_corner_labels.append([num_fake, 0, 0])
-				new_corner_labels.append([num_fake, 0, 0])
-				new_corner_labels.append([num_fake, 0, 0])
+				new_corner_labels.append([-num_fake, 0, 0])
+				new_corner_labels.append([-num_fake, 0, 0])
+				new_corner_labels.append([-num_fake, 0, 0])
 				
 				X = flipper.kernel.Zero_Matrix(old_zeta, 3).tweak([(0, B), (0, C), (1, A), (1, C), (2, A), (2, B)], [(0, A), (1, B), (2, C)])
 				M = M.join(X)

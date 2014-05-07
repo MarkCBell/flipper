@@ -5,7 +5,7 @@ from database import from_database
 
 def test(splitting, N):
 	for M in splitting.snappy_manifolds():
-		for i in range(300):
+		for _ in range(300):
 			M.randomize()
 			N.randomize()
 			if M.is_isometric_to(N):

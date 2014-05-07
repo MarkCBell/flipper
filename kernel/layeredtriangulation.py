@@ -23,9 +23,10 @@ SOURCE = -1
 PERIPHERAL_TYPES = list(range(3))
 LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
-VERTICES_MEETING = {0:(1, 2, 3), 1:(0, 3, 2), 2:(0, 1, 3), 3:(0, 2, 1)} # This order was chosen so they appear ordered anti-clockwise from the cusp.
-EXIT_CUSP_LEFT = {(0, 1):3, (0, 2):1, (0, 3):2, (1, 0):2, (1, 2):3, (1, 3):0, (2, 0):3, (2, 1):0, (2, 3):1, (3, 0):1, (3, 1):2, (3, 2):0}
-EXIT_CUSP_RIGHT = {(0, 1):2, (0, 2):3, (0, 3):1, (1, 0):3, (1, 2):0, (1, 3):2, (2, 0):1, (2, 1):3, (2, 3):0, (3, 0):2, (3, 1):0, (3, 2):1}
+# This order was chosen so they appear ordered anti-clockwise from the cusp.
+VERTICES_MEETING = {0: (1, 2, 3), 1: (0, 3, 2), 2: (0, 1, 3), 3: (0, 2, 1)}
+EXIT_CUSP_LEFT = {(0, 1): 3, (0, 2): 1, (0, 3): 2, (1, 0): 2, (1, 2): 3, (1, 3): 0, (2, 0): 3, (2, 1): 0, (2, 3): 1, (3, 0): 1, (3, 1): 2, (3, 2): 0}
+EXIT_CUSP_RIGHT = {(0, 1): 2, (0, 2): 3, (0, 3): 1, (1, 0): 3, (1, 2): 0, (1, 3): 2, (2, 0): 1, (2, 1): 3, (2, 3): 0, (3, 0): 2, (3, 1): 0, (3, 2): 1}
 
 class Tetrahedron(object):
 	''' This represents a tetrahedron. '''
@@ -98,7 +99,7 @@ class Triangulation3(object):
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
 		self.num_cusps = 0
-		self.cusp_types = []
+		self.real_cusps = []
 		self.fibre_slopes = []
 		self.degeneracy_slopes = []
 	
@@ -409,7 +410,7 @@ class LayeredTriangulation(object):
 		new_upper_map = dict()
 		cornerA = new_upper_triangulation.find_edge(edge_index)
 		cornerB = new_upper_triangulation.find_edge(~edge_index)
-		(new_A, new_side_A), (new_B, new_side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
+		new_A, new_B = cornerA.triangle, cornerB.triangle
 		# Most of the triangles have stayed the same.
 		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]
 		new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
@@ -513,15 +514,15 @@ class LayeredTriangulation(object):
 		cusps = closed_triangulation.install_longitudes_and_meridians()
 		
 		# Now identify each the type of each cusp.
-		cusp_types = [None] * closed_triangulation.num_cusps
+		real_cusps = [None] * closed_triangulation.num_cusps
 		for triangle in self.upper_triangulation:
 			tetrahedron, permutation = fibre_immersion[triangle]
 			for side in range(3):
-				label = 0 if triangle.corner_labels[side] == 0 else 1
-				if cusp_types[tetrahedron.cusp_indices[permutation[side]]] is None:
-					cusp_types[tetrahedron.cusp_indices[permutation[side]]] = label
+				label = triangle.corner_labels[side] >= 0
+				if real_cusps[tetrahedron.cusp_indices[permutation[side]]] is None:
+					real_cusps[tetrahedron.cusp_indices[permutation[side]]] = label
 				else:
-					assert(cusp_types[tetrahedron.cusp_indices[permutation[side]]] == label)
+					assert(real_cusps[tetrahedron.cusp_indices[permutation[side]]] == label)
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
@@ -561,7 +562,7 @@ class LayeredTriangulation(object):
 			
 			degeneracy_slopes[index] = closed_triangulation.slope_TEMPS()
 		
-		closed_triangulation.cusp_types = cusp_types
+		closed_triangulation.real_cusps = real_cusps
 		closed_triangulation.fibre_slopes = fibre_slopes
 		closed_triangulation.degeneracy_slopes = degeneracy_slopes
 		

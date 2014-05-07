@@ -203,16 +203,12 @@ class Matrix(object):
 				break
 			
 			rlead = A[i][j]
-			div = 1 // rlead
-			for x in range(j, self.width):
-				A[i][x] = A[i][x] * div
-			new_rlead = A[i][j]
 			for k in range(self.height):
 				if k != i:
 					r2lead = A[k][j]
 					if r2lead != 0:
 						for x in range(j, self.width):
-							A[k][x] = (A[k][x] * new_rlead) - (A[i][x] * r2lead)
+							A[k][x] = (A[k][x] * rlead) - (A[i][x] * r2lead)
 			
 			i += 1
 			j += 1

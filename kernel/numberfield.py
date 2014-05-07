@@ -129,29 +129,6 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
-	def __div__(self, other):
-		assert(False)
-		if isinstance(other, NumberFieldElement):
-			if self.number_field != other.number_field:
-				raise TypeError('Cannot divide elements of different number fields.')
-			
-			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
-		else:
-			return NotImplemented
-	def __truediv__(self, other):
-		return self.__div__(other)
-	def __rtruediv__(self, other):
-		if isinstance(other, flipper.Integer_Type):
-			return self.number_field.element([other]) // self
-	def __floordiv__(self, other):
-		if isinstance(other, NumberFieldElement):
-			if self.number_field != other.number_field:
-				raise TypeError('Cannot divide elements of different number fields.')
-			
-			return self.number_field.element(other.multiplicative_matrix().solve(self.linear_combination))
-	def __rfloordiv__(self, other):
-		if isinstance(other, flipper.Integer_Type):
-			return self.number_field.element([other]) // self
 	
 	def __lt__(self, other):
 		return (self - other).is_negative()

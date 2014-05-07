@@ -16,9 +16,9 @@ class Polynomial(object):
 		self.log_height = log(self.height)
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
 		self.accuracy = 0
-		self.root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
-		self.interval = flipper.kernel.Interval(-self.root_range, self.root_range, 0)
-		# self.interval = flipper.kernel.Interval(0, r, 0)
+		
+		root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
+		self.interval = flipper.kernel.Interval(-root_range, root_range, 0)
 	
 	def copy(self):
 		return Polynomial(self.coefficients)

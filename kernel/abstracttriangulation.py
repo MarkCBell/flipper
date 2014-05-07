@@ -155,12 +155,25 @@ class AbstractTriangulation(object):
 	def flip_edge(self, edge_index):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
 		assert(self.is_flippable(edge_index))
-		
+		# #-----------#     #-----------#
+		# |s    a   r/|     |\          |
+		# |         /w|     | \         |
+		# |        /  |     |  \        |
+		# |       /   |     |   \       |
+		# |b    e/   d| --> |    \e'    |
+		# |     /     |     |     \     |
+		# |    /      |     |      \    |
+		# |   /       |     |       \   |
+		# |  /        |     |        \  |
+		# |t/         |     |         \ |
+		# |/u   c    v|     |          \|
+		# #-----------#     #-----------#
 		e = edge_index
 		a, b, c, d = self.find_labels_of_square_about_edge(e)
-		r, s, t, u, v, w = self.find_corner_labels_of_square_about_edge(e)
+		A, B = self.find_edge(e), self.find_edge(~e)
+		r, s, t, v = [A.corner_labels[2], A.corner_labels[0], A.corner_labels[1], B.corner_labels[0]]
 		
-		dont_copy = self.find_edge_triangles(e)
+		dont_copy = [A.triangle, B.triangle]
 		labels = [list(triangle.labels) for triangle in self if triangle not in dont_copy] + [[e, d, a], [~e, b, c]]
 		corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [t, v, s]]
 		
@@ -168,21 +181,6 @@ class AbstractTriangulation(object):
 	
 	def find_labels_of_square_about_edge(self, edge_index):
 		# Returns the inside labels of the 4 edges surrounding this edge (ordered anti-clockwise).
-		#       a
-		# #-----------#
-		# |          /|
-		# |         / |
-		# |        /  |
-		# |       /   |
-		#b|     E/    |d
-		# |     /     |
-		# |    /      |
-		# |   /       |
-		# |  /        |
-		# | /         |
-		# |/          |
-		# #-----------#
-		#       c
 		assert(self.is_flippable(edge_index))
 		
 		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
@@ -190,27 +188,6 @@ class AbstractTriangulation(object):
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
 		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
-	
-	def find_corner_labels_of_square_about_edge(self, edge_index):
-		# Returns the 6 corner labels surrounding this edge (ordered anti-clockwise).
-		# #-----------#
-		# |s        r/|
-		# |         /w|
-		# |        /  |
-		# |       /   |
-		# |     E/    |
-		# |     /     |
-		# |    /      |
-		# |   /       |
-		# |  /        |
-		# |t/         |
-		# |/u        v|
-		# #-----------#
-		assert(self.is_flippable(edge_index))
-		
-		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
-		return [A.corner_labels[2], A.corner_labels[0], A.corner_labels[1],
-			B.corner_labels[2], B.corner_labels[0], B.corner_labels[1]]
 	
 	def homology_basis(self):
 		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
@@ -359,7 +336,7 @@ class AbstractTriangulation(object):
 		
 		new_triangulation = self.flip_edge(edge_index)
 		
-		a, b, c, d = [norm(x) for x in self.find_indicies_of_square_about_edge(edge_index)]
+		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
 		e = norm(edge_index)  # Give it a shorter name.
 		A1 = flipper.kernel.Id_Matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
 		C1 = flipper.kernel.Zero_Matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])

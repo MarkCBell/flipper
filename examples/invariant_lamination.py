@@ -10,7 +10,7 @@ def main(n=100):
 	for i in range(n):
 		word = S.random_word(10)  # , negative=False)
 		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
-		#word = 'aFcE'  # 2 Dim eigenspace 
+		#word = 'aFcE'  # 2 Dim eigenspace.
 		#word = 'aDefFecDBdFCcACDcCdF'  # 12 iterates.
 		#word = 'BcEC'  # Is reducible but (unlike BC) mixes every edge just a little so growth is super slow.
 		#word = 'ebbFaBDECFbBCFFbFeCa'

@@ -4,7 +4,6 @@ from __future__ import print_function
 from time import time
 
 import flipper
-from database import from_database
 
 def main():
 	tests = [('S_2_1', 'abcdeF')]

@@ -1,5 +1,4 @@
 
-from time import sleep
 import flipper
 import flipper.application
 

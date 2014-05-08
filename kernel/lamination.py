@@ -285,12 +285,11 @@ class Lamination(object):
 		# Now the only remaining possibilities are:
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
-		# We'll first compute the new corner labels. This way we can check if our assumption is False early and so save some work.
-		corner = self.triangulation.find_edge(e)
-		corner_labels = [corner.corner_labels[1], corner.corner_labels[2]]
+		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
+		vertex_labels = [self.triangulation.vertex_labels[vertex] for vertex in self.triangulation.find_edge_vertices(e)]
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
-		good_label, bad_label = max(corner_labels), min(corner_labels)
+		good_label, bad_label = max(vertex_labels), min(vertex_labels)
 		if bad_label >= 0:
 			raise flipper.AssumptionError('Edge connects between two non-negatively labelled vertices.')
 		
@@ -319,13 +318,14 @@ class Lamination(object):
 			edge_map.append((~c, zeta+1))
 			edge_map.append((~d, ~(zeta+1)))
 		zeta = len(edge_map) // 2
-		replacement = dict(edge_map)
+		edge_replacement = dict(edge_map)
+		vertex_replacement = lambda x: x if x != bad_label else good_label
 		
-		new_labels = [[replacement[i] for i in triangle.labels] for triangle in far_triangles]
-		new_vector = [[self[j] for j in replacement if replacement[j] == i][0] for i in range(zeta)]
-		new_corner_labels = [[triangle.corner_labels[side] if triangle.corner_labels[side] != bad_label else good_label for side in range(3)] for triangle in far_triangles]
+		new_labels = [[edge_replacement[i] for i in triangle.labels] for triangle in far_triangles]
+		new_vector = [[self[j] for j in edge_replacement if edge_replacement[j] == i][0] for i in range(zeta)]
+		vertex_labelling_map = dict((edge_replacement[i], vertex_replacement(self.triangulation.vertex_labelling_map[i])) for triangle in far_triangles for i in triangle.labels)
 		
-		return Lamination(flipper.AbstractTriangulation(new_labels, new_corner_labels), new_vector)
+		return Lamination(flipper.AbstractTriangulation(new_labels, vertex_labelling_map), new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None, puncture_first=None):
 		''' Returns the splitting sequence associated to this laminations.

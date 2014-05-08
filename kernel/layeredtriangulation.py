@@ -382,8 +382,8 @@ class LayeredTriangulation(object):
 		new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
-		cornerA = self.upper_triangulation.find_edge(edge_index)
-		cornerB = self.upper_triangulation.find_edge(~edge_index)
+		cornerA = self.upper_triangulation.corners_of_edge(edge_index)
+		cornerB = self.upper_triangulation.corners_of_edge(~edge_index)
 		(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
 		object_A, perm_A = self.upper_map[A]
 		object_B, perm_B = self.upper_map[B]
@@ -408,8 +408,8 @@ class LayeredTriangulation(object):
 		
 		# Rebuild the upper_map.
 		new_upper_map = dict()
-		cornerA = new_upper_triangulation.find_edge(edge_index)
-		cornerB = new_upper_triangulation.find_edge(~edge_index)
+		cornerA = new_upper_triangulation.corners_of_edge(edge_index)
+		cornerB = new_upper_triangulation.corners_of_edge(~edge_index)
 		new_A, new_B = cornerA.triangle, cornerB.triangle
 		# Most of the triangles have stayed the same.
 		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]
@@ -516,22 +516,13 @@ class LayeredTriangulation(object):
 		# Now identify each the type of each cusp.
 		real_cusps = [None] * closed_triangulation.num_cusps
 		for vertex in self.upper_triangulation.vertices:
-			label = self.upper_triangulation.vertex_labels[vertex] >= 0
+			label = self.upper_triangulation.label_of_vertex(vertex) >= 0
 			for corner in vertex:
 				tetrahedron, permutation = fibre_immersion[corner.triangle]
 				if real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] is None:
 					real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] = label
 				else:
 					assert(real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] == label)
-		
-	#	for triangle in self.upper_triangulation:
-	#		tetrahedron, permutation = fibre_immersion[triangle]
-	#		for side in range(3):
-	#			label = triangle.corner_labels[side] >= 0
-	#			if real_cusps[tetrahedron.cusp_indices[permutation[side]]] is None:
-	#				real_cusps[tetrahedron.cusp_indices[permutation[side]]] = label
-	#			else:
-	#				assert(real_cusps[tetrahedron.cusp_indices[permutation[side]]] == label)
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps

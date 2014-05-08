@@ -81,8 +81,8 @@ class AbstractTriangulation(object):
 			if ~x not in flat:
 				raise ValueError('Missing: ~%d' % x)
 		
-		if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
-		self.triangles = [AbstractTriangle(labels, corner_labels) for labels, corner_labels in zip(all_labels, all_corner_labels)]
+		# if all_corner_labels is None: all_corner_labels = [None] * self.num_triangles
+		self.triangles = [AbstractTriangle(labels, corner_labels) for labels, corner_labels in zip(all_labels, all_corner_labels if all_corner_labels is not None else [None] * self.num_triangles)]
 		self.corners = [Corner(self, triangle, side) for triangle in self for side in range(3)]
 		self.edge_contained_in = dict((corner.label, corner) for corner in self.corners)
 		
@@ -98,6 +98,20 @@ class AbstractTriangulation(object):
 				used[next_corner] = True
 				next_corner = next_corner.adjacent()
 			self.vertices.append(tuple(new_vertex))
+		
+		
+		if all_corner_labels is None:
+			for index, vertex in enumerate(self.vertices):
+				for corner in vertex:
+					corner.triangle.corner_labels[corner.side] = index
+					corner.corner_labels[0] = index
+					corner.corner_label = index
+		
+		for vertex in self.vertices:
+			if any(vertex[0].corner_label != corner.corner_label for corner in vertex):
+				for corner in vertex:
+					print(corner.corner_label)
+				raise ValueError('Inconsistent vertex labelling.')
 		
 		self.num_vertices = len(self.vertices)
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
@@ -158,13 +172,13 @@ class AbstractTriangulation(object):
 		# #-----------#     #-----------#
 		# |s    a   r/|     |\          |
 		# |         /w|     | \         |
-		# |        /  |     |  \        |
+		# |  A     /  |     |  \        |
 		# |       /   |     |   \       |
 		# |b    e/   d| --> |    \e'    |
 		# |     /     |     |     \     |
 		# |    /      |     |      \    |
 		# |   /       |     |       \   |
-		# |  /        |     |        \  |
+		# |  /     B  |     |        \  |
 		# |t/         |     |         \ |
 		# |/u   c    v|     |          \|
 		# #-----------#     #-----------#
@@ -172,11 +186,20 @@ class AbstractTriangulation(object):
 		A, B = self.find_edge(e), self.find_edge(~e)
 		a, b, c, d = self.find_labels_of_square_about_edge(e)
 		r, s, u, v = [A.corner_labels[2], A.corner_labels[0], B.corner_labels[2], B.corner_labels[0]]
-		
+		print('#############')
+		for corner in self.find_vertex(A.rotate(2)):
+			print(1, r == corner.corner_label)
+		for corner in self.find_vertex(A.rotate(0)):
+			print(2, s == corner.corner_label)
+		for corner in self.find_vertex(B.rotate(2)):
+			print(3, u == corner.corner_label)
+		for corner in self.find_vertex(B.rotate(0)):
+			print(4, v == corner.corner_label)
 		dont_copy = [A.triangle, B.triangle]
 		labels = [list(triangle.labels) for triangle in self if triangle not in dont_copy] + [[e, d, a], [~e, b, c]]
-		corner_labels = [list(triangle.corner_labels) for triangle in self if edge_index not in triangle] + [[r, s, v], [u, v, s]]
+		corner_labels = [list(triangle.corner_labels) for triangle in self if triangle not in dont_copy] + [[r, s, v], [u, v, s]]
 		
+		assert(len(labels) == len(corner_labels))
 		return AbstractTriangulation(labels, corner_labels)
 	
 	def find_labels_of_square_about_edge(self, edge_index):
@@ -368,15 +391,16 @@ class AbstractTriangulation(object):
 		for triangle in self:
 			a, b, c = triangle.labels
 			A, B, C = triangle.indices
+			r, s, t = triangle.corner_labels
 			if triangle in to_puncture:
 				num_fake += 1
 				x, y, z = zeta, zeta+1, zeta+2
 				new_labels.append([a, z, ~y])
+				new_corner_labels.append([-num_fake, s, t])
 				new_labels.append([b, x, ~z])
+				new_corner_labels.append([-num_fake, t, r])
 				new_labels.append([c, y, ~x])
-				new_corner_labels.append([-num_fake, 0, 0])
-				new_corner_labels.append([-num_fake, 0, 0])
-				new_corner_labels.append([-num_fake, 0, 0])
+				new_corner_labels.append([-num_fake, r, s])
 				
 				X = flipper.kernel.Zero_Matrix(old_zeta, 3).tweak([(0, B), (0, C), (1, A), (1, C), (2, A), (2, B)], [(0, A), (1, B), (2, C)])
 				M = M.join(X)
@@ -384,7 +408,7 @@ class AbstractTriangulation(object):
 				zeta = zeta + 3
 			else:
 				new_labels.append([a, b, c])
-				new_corner_labels.append([0, 0, 0])
+				new_corner_labels.append([r, s, t])
 		
 		T = flipper.AbstractTriangulation(new_labels, new_corner_labels)
 		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])

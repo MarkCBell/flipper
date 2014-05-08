@@ -16,7 +16,7 @@ class Lamination(object):
 			peripheral = dict((vertex, min(vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index] for corner in vertex)) for vertex in self.triangulation.vertices)
 			# If there is any remove it.
 			if any(peripheral.values()):
-				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.find_edge_vertices(i)) for i in range(self.zeta)]
+				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 	
 	def copy(self):
@@ -163,7 +163,7 @@ class Lamination(object):
 		vertex_numbers = dict(zip(list(triangulation.vertices), range(len(triangulation.vertices))))
 		for edge_index in range(triangulation.zeta):
 			if self[edge_index] == 0:
-				c1, c2 = triangulation.find_edge_vertices(edge_index)
+				c1, c2 = triangulation.vertices_of_edge(edge_index)
 				a, b = vertex_numbers[c1], vertex_numbers[c2]
 				if a != b:
 					x, y = max(a, b), min(a, b)
@@ -220,12 +220,10 @@ class Lamination(object):
 		''' Returns if the lamination looks like a bipod with respect to this corner. '''
 		return self[corner.indices[1]] + self[corner.indices[2]] == self[corner.indices[0]]
 	
-	def open_bipod(self, vertex):
+	def open_bipod(self, corner):
 		''' Returns an encoding flipping the edge opposite this corner along with a new corner class. '''
-		assert(self.is_bipod(vertex))
-		triangle, side = vertex
-		edge_index = triangle[side]
-		E = self.triangulation.encode_flip(edge_index)
+		assert(self.is_bipod(corner))
+		E = self.triangulation.encode_flip(corner.label)
 		assert(False)  # !?! TO DO.
 	
 	def is_tripod(self, triangle):
@@ -286,7 +284,7 @@ class Lamination(object):
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
 		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
-		vertex_labels = [self.triangulation.vertex_labels[vertex] for vertex in self.triangulation.find_edge_vertices(e)]
+		vertex_labels = [self.triangulation.label_of_vertex(vertex) for vertex in self.triangulation.vertices_of_edge(e)]
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
 		good_label, bad_label = max(vertex_labels), min(vertex_labels)
@@ -323,7 +321,7 @@ class Lamination(object):
 		
 		new_labels = [[edge_replacement[i] for i in triangle.labels] for triangle in far_triangles]
 		new_vector = [[self[j] for j in edge_replacement if edge_replacement[j] == i][0] for i in range(zeta)]
-		vertex_labelling_map = dict((edge_replacement[i], vertex_replacement(self.triangulation.vertex_labelling_map[i])) for triangle in far_triangles for i in triangle.labels)
+		vertex_labelling_map = dict((edge_replacement[i], vertex_replacement(self.triangulation.label_of_edge(i))) for triangle in far_triangles for i in triangle.labels)
 		
 		return Lamination(flipper.AbstractTriangulation(new_labels, vertex_labelling_map), new_vector)
 	
@@ -431,7 +429,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.find_edge(e1).indices[2] != e2: e1, e2 = e2, e1
+		if triangulation.corners_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		
@@ -464,7 +462,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.find_edge(e1).indices[2] != e2: e1, e2 = e2, e1
+		if triangulation.corners_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		

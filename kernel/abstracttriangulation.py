@@ -113,13 +113,10 @@ class AbstractTriangulation(object):
 	
 	def copy(self):
 		return AbstractTriangulation([list(triangle.labels) for triangle in self], dict(self.vertex_labelling_map))
-	
 	def __repr__(self):
 		return '{' + ' '.join(str(triangle) for triangle in self) + '}'
-	
 	def __iter__(self):
 		return iter(self.triangles)
-	
 	def __getitem__(self, index):
 		return self.triangles[index]
 	
@@ -136,27 +133,37 @@ class AbstractTriangulation(object):
 			self._marking_matrices = [flipper.kernel.Zero_Matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
 		return self._marking_matrices
 	
-	def find_vertex(self, corner):
+	def vertex_of_corner(self, corner):
+		# Returns the vertex containing this corner.
 		for vertex in self.vertices:
 			if corner in vertex:
 				return vertex
 		assert(False)
 	
-	def find_edge_vertices(self, edge_index):
-		# Returns the two corner classes contain the ends of the specified edge.
-		corner = self.find_edge(edge_index)
-		return [self.find_vertex(corner.rotate(1)), self.find_vertex(corner.rotate(-1))]
+	def vertices_of_edge(self, edge):
+		# Returns the two vertices at the ends of this edge.
+		corner = self.corners_of_edge(edge)
+		return [self.vertex_of_corner(corner.rotate(1)), self.vertex_of_corner(corner.rotate(-1))]
 	
-	def find_edge_triangles(self, edge_index):
-		return [self.find_edge(edge_index).triangle, self.find_edge(~edge_index).triangle]
+	def triangles_of_edge(self, edge):
+		# Returns the two triangles containing this edge.
+		return [self.corners_of_edge(edge).triangle, self.corners_of_edge(~edge).triangle]
 	
-	def find_edge(self, edge_index):
-		# Return the corner with this edge_index.
-		return self.edge_contained_in[edge_index]
+	def corners_of_edge(self, edge):
+		# Return the corner opposite this edge.
+		return self.edge_contained_in[edge]
+	
+	def label_of_vertex(self, vertex):
+		# Returns the label on the given vertex.
+		return self.vertex_labels[vertex]
+	
+	def label_of_edge(self, edge):
+		# Returns the label of the vertex opposite the given edge.
+		return self.vertex_labelling_map[edge]
 	
 	def is_flippable(self, edge_index):
 		# An edge is flippable iff it lies in two distinct triangles.
-		return self.find_edge(edge_index).triangle != self.find_edge(~edge_index).triangle
+		return self.corners_of_edge(edge_index).triangle != self.corners_of_edge(~edge_index).triangle
 	
 	def flip_edge(self, edge_index):
 		# Returns a new triangulation obtained by flipping the edge of index edge_index.
@@ -175,7 +182,7 @@ class AbstractTriangulation(object):
 		# |/u   c    v|     |          \|
 		# #-----------#     #-----------#
 		e = edge_index
-		A, B = self.find_edge(e), self.find_edge(~e)
+		A, B = self.corners_of_edge(e), self.corners_of_edge(~e)
 		a, b, c, d = self.find_labels_of_square_about_edge(e)
 		r, s, u, v = [self.vertex_labelling_map[x] for x in [b, e, d, ~e]]
 		dont_copy = [A.triangle, B.triangle]
@@ -194,7 +201,7 @@ class AbstractTriangulation(object):
 		# Returns the inside labels of the 4 edges surrounding this edge (ordered anti-clockwise).
 		assert(self.is_flippable(edge_index))
 		
-		A, B = self.find_edge(edge_index), self.find_edge(~edge_index)
+		A, B = self.corners_of_edge(edge_index), self.corners_of_edge(~edge_index)
 		return [A.labels[1], A.labels[2], B.labels[1], B.labels[2]]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
@@ -211,7 +218,7 @@ class AbstractTriangulation(object):
 		while True:
 			for edge_index in range(self.zeta):
 				if not tree[edge_index]:
-					a, b = self.find_edge_vertices(edge_index)
+					a, b = self.vertices_of_edge(edge_index)
 					if vertices_used[a] != vertices_used[b]:
 						tree[edge_index] = True
 						vertices_used[a] = True
@@ -227,7 +234,7 @@ class AbstractTriangulation(object):
 		while True:
 			for edge_index in range(self.zeta):
 				if not tree[edge_index] and not dual_tree[edge_index]:
-					a, b = self.find_edge_triangles(edge_index)
+					a, b = self.triangles_of_edge(edge_index)
 					if faces_used[a] != faces_used[b]:
 						dual_tree[edge_index] = True
 						faces_used[a] = True
@@ -243,7 +250,7 @@ class AbstractTriangulation(object):
 		for edge_index in range(self.zeta):
 			if not tree[edge_index] and not dual_tree[edge_index]:
 				generator = [~edge_index]
-				source, target = self.find_edge_triangles(edge_index)
+				source, target = self.triangles_of_edge(edge_index)
 				
 				# Find a path in dual_tree from source to target. This is a really
 				# inefficient way to do this. We initially define the distance to
@@ -253,7 +260,7 @@ class AbstractTriangulation(object):
 				distance[source] = 0
 				while distance[target] == self.num_triangles+1:
 					for edge in dual_tree_indices:  # Only allowed to move in the tree.
-						a, b = self.find_edge_triangles(edge)
+						a, b = self.triangles_of_edge(edge)
 						distance[a] = min(distance[b]+1, distance[a])
 						distance[b] = min(distance[a]+1, distance[b])
 				
@@ -261,7 +268,7 @@ class AbstractTriangulation(object):
 				current = target
 				while current != source:
 					for edge in dual_tree_indices:
-						a, b = self.find_edge_triangles(edge)
+						a, b = self.triangles_of_edge(edge)
 						if b == current and distance[a] == distance[b]-1:
 							generator.append(edge)
 							current = a
@@ -287,8 +294,8 @@ class AbstractTriangulation(object):
 			consequences = []
 			consequences.append((from_edge, to_edge))
 			consequences.append((~from_edge, ~to_edge))
-			from_corner = self.find_edge(from_edge)
-			to_corner = other_triangulation.find_edge(to_edge)
+			from_corner = self.corners_of_edge(from_edge)
+			to_corner = other_triangulation.corners_of_edge(to_edge)
 			
 			consequences.append((from_corner.labels[1], to_corner.labels[1]))
 			consequences.append((from_corner.labels[2], to_corner.labels[2]))
@@ -327,7 +334,7 @@ class AbstractTriangulation(object):
 	
 	def regular_neighbourhood(self, edge_index):
 		vector = [0] * self.zeta
-		for vertex in set(self.find_edge_vertices(edge_index)):
+		for vertex in set(self.vertices_of_edge(edge_index)):
 			for corner in vertex:
 				vector[corner.indices[2]] += 1
 		vector[norm(edge_index)] = 0

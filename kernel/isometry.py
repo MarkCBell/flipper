@@ -38,7 +38,7 @@ class Isometry(object):
 		else:
 			return NotImplemented
 	def triangle_image(self, triangle):
-		corner = self.target_triangulation.find_edge(self[triangle.labels[0]])
+		corner = self.target_triangulation.corners_of_edge(self[triangle.labels[0]])
 		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
 		return Isometry(self.target_triangulation, self.source_triangulation, dict((self[edge], edge) for edge in self))

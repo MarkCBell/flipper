@@ -515,14 +515,23 @@ class LayeredTriangulation(object):
 		
 		# Now identify each the type of each cusp.
 		real_cusps = [None] * closed_triangulation.num_cusps
-		for triangle in self.upper_triangulation:
-			tetrahedron, permutation = fibre_immersion[triangle]
-			for side in range(3):
-				label = triangle.corner_labels[side] >= 0
-				if real_cusps[tetrahedron.cusp_indices[permutation[side]]] is None:
-					real_cusps[tetrahedron.cusp_indices[permutation[side]]] = label
+		for vertex in self.upper_triangulation.vertices:
+			label = self.upper_triangulation.vertex_labels[vertex] >= 0
+			for corner in vertex:
+				tetrahedron, permutation = fibre_immersion[corner.triangle]
+				if real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] is None:
+					real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] = label
 				else:
-					assert(real_cusps[tetrahedron.cusp_indices[permutation[side]]] == label)
+					assert(real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] == label)
+		
+	#	for triangle in self.upper_triangulation:
+	#		tetrahedron, permutation = fibre_immersion[triangle]
+	#		for side in range(3):
+	#			label = triangle.corner_labels[side] >= 0
+	#			if real_cusps[tetrahedron.cusp_indices[permutation[side]]] is None:
+	#				real_cusps[tetrahedron.cusp_indices[permutation[side]]] = label
+	#			else:
+	#				assert(real_cusps[tetrahedron.cusp_indices[permutation[side]]] == label)
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps

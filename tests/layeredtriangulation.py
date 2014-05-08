@@ -21,7 +21,7 @@ def test(surface, word, target):
 		M = splitting.snappy_manifold()
 		assert(M.is_isometric_to(target))
 
-def main():
+def main(verbose=False):
 	if snappy is None:  # !?! Should also check that the version is > 1.3.2 so that twister exists.
 		print('SnapPy required but unavailable, tests skipped.')
 		return True
@@ -41,8 +41,10 @@ def main():
 	
 	try:
 		for surface, word, target_manifold in tests:
+			if verbose: print(word)
 			test(surface, word, snappy.Manifold(target_manifold))
 		for surface, word in twister_tests:
+			if verbose: print(word)
 			test(surface, word, snappy.twister.Surface(surface).bundle(word))
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
@@ -54,5 +56,5 @@ def main():
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
 

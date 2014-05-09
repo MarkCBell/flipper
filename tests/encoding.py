@@ -33,12 +33,12 @@ def main(verbose=False):
 			assert(mapping_class.NT_type() == mapping_class_type)
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
-	except AssertionError:
-		return False
+	#except AssertionError:
+	#	return False
 	
 	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':
-	print(main(verbose=True, timings=True))
+	print(main(verbose=True))
 

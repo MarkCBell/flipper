@@ -19,8 +19,8 @@ class Isometry(object):
 		return str(self.edge_map)
 	def __getitem__(self, index):
 		return self.oriented_edge_map[index]
-	#def __eq__(self, other):
-	#	return self.triangle_map == other.triangle_map
+	def __eq__(self, other):
+		return self.oriented_edge_map == other.oriented_edge_map
 	def __iter__(self):
 		return iter(self.oriented_edge_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
@@ -38,7 +38,7 @@ class Isometry(object):
 		else:
 			return NotImplemented
 	def triangle_image(self, triangle):
-		corner = self.target_triangulation.corners_of_edge(self[triangle.labels[0]])
+		corner = self.target_triangulation.corner_of_edge(self[triangle.labels[0]])
 		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
 		return Isometry(self.target_triangulation, self.source_triangulation, dict((self[edge], edge) for edge in self))

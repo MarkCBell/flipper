@@ -142,14 +142,14 @@ class AbstractTriangulation(object):
 	
 	def vertices_of_edge(self, edge):
 		# Returns the two vertices at the ends of this edge.
-		corner = self.corners_of_edge(edge)
+		corner = self.corner_of_edge(edge)
 		return [self.vertex_of_corner(corner.rotate(1)), self.vertex_of_corner(corner.rotate(-1))]
 	
 	def triangles_of_edge(self, edge):
 		# Returns the two triangles containing this edge.
-		return [self.corners_of_edge(edge).triangle, self.corners_of_edge(~edge).triangle]
+		return [self.corner_of_edge(edge).triangle, self.corner_of_edge(~edge).triangle]
 	
-	def corners_of_edge(self, edge):
+	def corner_of_edge(self, edge):
 		# Return the corner opposite this edge.
 		return self.edge_contained_in[edge]
 	
@@ -161,13 +161,13 @@ class AbstractTriangulation(object):
 		# Returns the label of the vertex opposite the given edge.
 		return self.vertex_labelling_map[edge]
 	
-	def is_flippable(self, edge_index):
+	def is_flippable(self, edge):
 		# An edge is flippable iff it lies in two distinct triangles.
-		return self.corners_of_edge(edge_index).triangle != self.corners_of_edge(~edge_index).triangle
+		return self.corner_of_edge(edge).triangle != self.corner_of_edge(~edge).triangle
 	
-	def flip_edge(self, edge_index):
-		# Returns a new triangulation obtained by flipping the edge of index edge_index.
-		assert(self.is_flippable(edge_index))
+	def flip_edge(self, edge):
+		# Returns a new triangulation obtained by flipping the edge of index edge.
+		assert(self.is_flippable(edge))
 		# #-----------#     #-----------#
 		# |s    a   r/|     |\          |
 		# |         /w|     | \         |
@@ -181,8 +181,8 @@ class AbstractTriangulation(object):
 		# |t/         |     |         \ |
 		# |/u   c    v|     |          \|
 		# #-----------#     #-----------#
-		e = edge_index
-		A, B = self.corners_of_edge(e), self.corners_of_edge(~e)
+		e = edge
+		A, B = self.corner_of_edge(e), self.corner_of_edge(~e)
 		a, b, c, d = self.find_labels_of_square_about_edge(e)
 		r, s, u, v = [self.vertex_labelling_map[x] for x in [b, e, d, ~e]]
 		dont_copy = [A.triangle, B.triangle]
@@ -197,15 +197,15 @@ class AbstractTriangulation(object):
 		
 		return AbstractTriangulation(labels, vertex_labelling_map)
 	
-	def find_labels_of_square_about_edge(self, edge_index):
+	def find_labels_of_square_about_edge(self, edge):
 		# Returns the inside labels of the 4 edges surrounding this edge (ordered anti-clockwise).
-		assert(self.is_flippable(edge_index))
+		assert(self.is_flippable(edge))
 		
-		A, B = self.corners_of_edge(edge_index), self.corners_of_edge(~edge_index)
+		A, B = self.corner_of_edge(edge), self.corner_of_edge(~edge)
 		return [A.labels[1], A.labels[2], B.labels[1], B.labels[2]]
 	
-	def find_indicies_of_square_about_edge(self, edge_index):
-		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
+	def find_indicies_of_square_about_edge(self, edge):
+		return [norm(x) for x in self.find_labels_of_square_about_edge(edge)]
 	
 	def homology_basis(self):
 		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
@@ -294,8 +294,8 @@ class AbstractTriangulation(object):
 			consequences = []
 			consequences.append((from_edge, to_edge))
 			consequences.append((~from_edge, ~to_edge))
-			from_corner = self.corners_of_edge(from_edge)
-			to_corner = other_triangulation.corners_of_edge(to_edge)
+			from_corner = self.corner_of_edge(from_edge)
+			to_corner = other_triangulation.corner_of_edge(to_edge)
 			
 			consequences.append((from_corner.labels[1], to_corner.labels[1]))
 			consequences.append((from_corner.labels[2], to_corner.labels[2]))
@@ -345,7 +345,7 @@ class AbstractTriangulation(object):
 		# (or possibly the hyperelliptic if we are on S_{0, 4} or S_{1, 1}).
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
-	def Id_Encoding(self):
+	def id_encoding(self):
 		f = b = [flipper.kernel.PartialFunction(flipper.kernel.Id_Matrix(self.zeta))]
 		return flipper.kernel.Encoding(self, self, [flipper.kernel.PLFunction(f, b)])
 	

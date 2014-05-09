@@ -119,7 +119,7 @@ class Lamination(object):
 			raise flipper.AssumptionError('Can only conjugate multicurves to be short.')
 		
 		lamination = self.copy()
-		best_conjugation = conjugation = lamination.triangulation.Id_Encoding()
+		best_conjugation = conjugation = lamination.triangulation.id_encoding()
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
@@ -223,8 +223,45 @@ class Lamination(object):
 	def open_bipod(self, corner):
 		''' Returns an encoding flipping the edge opposite this corner along with a new corner class. '''
 		assert(self.is_bipod(corner))
-		E = self.triangulation.encode_flip(corner.label)
-		assert(False)  # !?! TO DO.
+		assert(self.triangulation.is_flippable(corner.label))
+		# #-----------#     #-----------#
+		# |c    l    /|     |\C2       A|
+		# |         / |     | \         |
+		# |        /  |     |C1\        |
+		# |       /   |     |   \       |
+		# |r    e/    | --> |    \e'    |
+		# |     /     |     |     \     |
+		# |    /      |     |      \    |
+		# |   /       |     |       \   |
+		# |  /        |     |        \  |
+		# | /         |     |         \ |
+		# |/          |     |B         \|
+		# #-----------#     #-----------#
+		
+		edge = corner.label
+		print(edge, ~edge)
+		left, right = corner.labels[1], corner.labels[2]
+		encoding = self.triangulation.encode_flip(edge)
+		new_lamination = encoding(self)
+		new_triangulation = new_lamination.triangulation
+		for corner in [new_triangulation.corner_of_edge(edge), new_triangulation.corner_of_edge(~edge)]:
+			for side in range(3):
+				if corner.labels[side] == left and new_lamination.is_bipod(corner.rotate(-1)):
+					return encoding, corner.rotate(-1)
+				if corner.labels[side] == right and new_lamination.is_bipod(corner.rotate(1)):
+					return encoding, corner.rotate(1)
+		
+		return encoding, None
+	
+	def repeatedly_open_bipod(self, corner):
+		encoding = self.triangulation.id_encoding()
+		lamination = self
+		while corner is not None:
+			open_encoding, corner = lamination.open_bipod(corner)
+			encoding = open_encoding * encoding
+			lamination = open_encoding(lamination)
+		
+		return encoding
 	
 	def is_tripod(self, triangle):
 		''' Returns if the lamination looks like a tripod in this triangle. '''
@@ -348,7 +385,7 @@ class Lamination(object):
 		# If not given, puncture all the triangles where the lamination is a tripod.
 		if puncture_first is None: puncture_first = self.tripod_regions()
 		puncture_encoding = self.triangulation.encode_puncture_triangles(puncture_first)
-		lamination = puncture_encoding(self)
+		lamination = punctured_self = puncture_encoding(self)
 		
 		laminations = [lamination]
 		flips = []
@@ -366,38 +403,57 @@ class Lamination(object):
 			# Check if we have created any edges of weight 0. 
 			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
+				lamination.collapse_trivial_weight(edge_index)
 				try:
+					if False:
+						curve = lamination.triangulation.regular_neighbourhood(edge_index)
+						pp_encoding = flipper.kernel.utilities.product(encodings[1:])
+						curve_preimage = (pp_encoding.inverse())(curve)
+						for corner in curve_preimage.triangulation.corners:
+							if curve_preimage.triangulation.label_of_edge(corner.label) >= 0 and curve_preimage.is_bipod(corner):
+								new_pp_encoding = curve_preimage.repeatedly_open_bipod(corner)
+								new_lamination = new_pp_encoding(punctured_self)
+								splitting = new_lamination.splitting_sequence()
+								pp_encoding = splitting.preperiodic
+								p_encoding = splitting.periodic
+								isometries = splitting.isometries
+								p_flips = splitting.periodic_flips
+								
+								return flipper.kernel.SplittingSequence(self, pp_encoding * new_pp_encoding * puncture_encoding, p_encoding, p_laminations, p_flips)
+					
+					
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
-					# We cannot provide the preperiodic encoding so just block it by sticking in a None.
+					# We cannot provide the encoding or flip so we'll just stick in a None.
 					encodings.append(None)
+					laminations.append(lamination)
+					flips.append(None)
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
 			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
-			#if True:
-			#	for index in range(len(laminations)-1):
 			if target in seen:
 				for index in seen[target]:
 					old_lamination = laminations[index]
-					if len(lamination.all_projective_isometries(old_lamination)) > 0:
+					isometries = lamination.all_projective_isometries(old_lamination)
+					if len(isometries) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							p_laminations = laminations[index:]
-							p_flips = flips[index:]
 							if None in encodings:
 								pp_encoding = None
-								p_encoding = None  # Technically we could still work this out but the indexing is hard.
 							else:
 								pp_encoding = flipper.kernel.utilities.product(encodings[:index+1])
-								p_encoding = flipper.kernel.utilities.product(encodings[index+1:])
-								
 								assert(pp_encoding.source_triangulation == self.triangulation)
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
-								assert(p_encoding.source_triangulation == old_lamination.triangulation)
-								assert(p_encoding.target_triangulation == lamination.triangulation)
+							p_encoding = flipper.kernel.utilities.product(encodings[index+1:])
+							p_flips = flips[index:]
 							
-							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, p_laminations, p_flips)
+							assert(p_encoding.source_triangulation == old_lamination.triangulation)
+							assert(p_encoding.target_triangulation == lamination.triangulation)
+							assert(all(isom.source_triangulation == lamination.triangulation for isom in isometries))
+							assert(all(isom.target_triangulation == old_lamination.triangulation for isom in isometries))
+							
+							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, isometries, p_flips)
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)
@@ -420,7 +476,7 @@ class Lamination(object):
 		if not self.is_twistable():
 			raise flipper.AssumptionError('Not a good curve.')
 		
-		if k == 0: return self.triangulation.Id_Encoding()
+		if k == 0: return self.triangulation.id_encoding()
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation(self)
@@ -429,7 +485,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.corners_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
+		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		
@@ -453,7 +509,7 @@ class Lamination(object):
 		if not self.is_halftwistable():
 			raise flipper.AssumptionError('Not a boundary of a pair of pants.')
 		
-		if k == 0: return self.triangulation.Id_Encoding()
+		if k == 0: return self.triangulation.id_encoding()
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation(self)
@@ -462,7 +518,7 @@ class Lamination(object):
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.corners_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
+		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		

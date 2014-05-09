@@ -382,8 +382,8 @@ class LayeredTriangulation(object):
 		new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 		
 		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
-		cornerA = self.upper_triangulation.corners_of_edge(edge_index)
-		cornerB = self.upper_triangulation.corners_of_edge(~edge_index)
+		cornerA = self.upper_triangulation.corner_of_edge(edge_index)
+		cornerB = self.upper_triangulation.corner_of_edge(~edge_index)
 		(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
 		object_A, perm_A = self.upper_map[A]
 		object_B, perm_B = self.upper_map[B]
@@ -408,8 +408,8 @@ class LayeredTriangulation(object):
 		
 		# Rebuild the upper_map.
 		new_upper_map = dict()
-		cornerA = new_upper_triangulation.corners_of_edge(edge_index)
-		cornerB = new_upper_triangulation.corners_of_edge(~edge_index)
+		cornerA = new_upper_triangulation.corner_of_edge(edge_index)
+		cornerB = new_upper_triangulation.corner_of_edge(~edge_index)
 		new_A, new_B = cornerA.triangle, cornerB.triangle
 		# Most of the triangles have stayed the same.
 		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]

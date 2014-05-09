@@ -123,7 +123,7 @@ class Encoding(object):
 	def __pow__(self, k):
 		assert(self.is_mapping_class())
 		if k == 0:
-			return self.source_triangulation.Id_Encoding()
+			return self.source_triangulation.id_encoding()
 		elif k > 0:
 			return Encoding(self.source_triangulation, self.target_triangulation, self.sequence * k)
 		else:
@@ -160,7 +160,7 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		# We could do:
 		# for i in range(self.source_triangulation.max_order):
-		#	if self**(i+1) == self.source_triangulation.Id_Encoding():
+		#	if (self**(i+1)).is_identity():
 		#		return i+1
 		# But this is quadratic in the order so instead we do:
 		curves = self.source_triangulation.key_curves()
@@ -180,7 +180,7 @@ class Encoding(object):
 		return 'Infinite' if order == 0 else str(order)
 	
 	def is_identity(self):
-		return self == self.source_triangulation.Id_Encoding()
+		return self == self.source_triangulation.id_encoding()
 	
 	def is_periodic(self):
 		return self.order() > 0

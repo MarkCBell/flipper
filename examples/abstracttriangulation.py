@@ -27,7 +27,7 @@ class ExampleSurface(object):
 		if isinstance(word, flipper.Integer_Type):
 			word = self.random_word(word)
 		
-		h = self.triangulation.Id_Encoding()
+		h = self.triangulation.id_encoding()
 		for letter in word:
 			h = self.mapping_classes[letter] * h
 		

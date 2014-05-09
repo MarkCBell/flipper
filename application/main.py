@@ -1090,7 +1090,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition = flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				mapping_class = self.abstract_triangulation.Id_Encoding()
+				mapping_class = self.abstract_triangulation.id_encoding()
 				for twist in composition.split('.'):
 					if twist in self.mapping_classes:
 						mapping_class = mapping_class * self.mapping_classes[twist]

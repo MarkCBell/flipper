@@ -362,7 +362,7 @@ class Lamination(object):
 		
 		return Lamination(flipper.AbstractTriangulation(new_labels, vertex_labelling_map), new_vector)
 	
-	def splitting_sequence(self, target_dilatation=None, puncture_first=None):
+	def splitting_sequence(self, target_dilatation=None, _good_tripods=None):
 		''' Returns the splitting sequence associated to this laminations.
 		This is the list of edges of maximal weight until you reach a
 		periodic sequence (with required dilatation if given).
@@ -383,8 +383,7 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# If not given, puncture all the triangles where the lamination is a tripod.
-		if puncture_first is None: puncture_first = self.tripod_regions()
-		puncture_encoding = self.triangulation.encode_puncture_triangles(puncture_first)
+		puncture_encoding = self.triangulation.encode_puncture_triangles(self.tripod_regions())
 		lamination = punctured_self = puncture_encoding(self)
 		
 		laminations = [lamination]

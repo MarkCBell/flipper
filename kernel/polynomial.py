@@ -24,7 +24,7 @@ class Polynomial(object):
 		return Polynomial(self.coefficients)
 	
 	def __repr__(self):
-		return ' + '.join('%d x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
+		return ' + '.join('%d*x^%d' % (coefficient, index) for index, coefficient in enumerate(self)) 
 	def __bool__(self):
 		return not self.is_zero()
 	def __nonzero__(self):
@@ -190,7 +190,7 @@ class Polynomial(object):
 	
 	def increase_accuracy(self, accuracy):
 		# You cannot set the accuracy to less than this:
-		accuracy = max(int(accuracy), int(log(self.degree)) + 2 * int(self.log_height) + 20, 1)  # !?! Check this.
+		accuracy = max(int(accuracy), int(log(max(self.degree, 1))) + 2 * int(self.log_height) + 20, 1)  # !?! Check this.
 		if self.accuracy < accuracy:
 			self.interval = self.converge_iterate(self.interval, accuracy)
 			self.accuracy = self.interval.accuracy

@@ -10,7 +10,7 @@ def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
 	
 	M = Matrix(matrix.rows)
-	eigenvalue = max(M.eigenvalues(), key=abs)
+	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
 	# Make sure that the eigenvalue that we've got is real.
 	if eigenvalue.imag() != 0:
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')

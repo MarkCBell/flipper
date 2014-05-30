@@ -2,6 +2,7 @@
 from functools import reduce
 
 import flipper
+import flipper.application
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
@@ -270,6 +271,7 @@ class Encoding(object):
 	def invariant_lamination(self):
 		''' Returns a lamination (with entries in a NumberField) which is projectively invariant
 		under this mapping class. If it cannot find one then it raises a ComputationError.
+		Assumes that the mapping class is not periodic.
 		
 		The process starts with several curves on the surface and repeatedly applies the map until
 		they appear to projectively similar to a previous iteration. Finally it uses:
@@ -281,28 +283,27 @@ class Encoding(object):
 		map was not pseudo-Anosov. '''
 		
 		assert(self.is_mapping_class())
+		if self.is_periodic():
+			raise flipper.AssumptionError('Mapping class is periodic.')
 		triangulation = self.source_triangulation
 		
-		curves = self.source_triangulation.key_curves()
+		curves = [[curve] for curve in self.source_triangulation.key_curves()]
 		# We will need the number field QQ for constructing small invariant curves.
 		QQ = flipper.kernel.NumberField()
 		
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
 			A_sum, B_sum = sum(A), sum(B)
-			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum 
+			#print(max(abs(float(p) / A_sum - float(q) / B_sum) for p, q in zip(A, B)))
+			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
-		curves = [[self(curve) for curve in curves]]
 		for i in range(50):
-			# Differnt schemes for taking steps.
-			new_curves = [(self**(1))(curve) for curve in curves[-1]]  # Constant.
-			# new_curves = [(self**(i+1))(curve) for curve in curvesi[-1]]  # Linear.
-			# new_curves = [(self**(2**1))(curve) for curve in curvesi[-1]]  # Exponential.
-			
-			for j in range(1, min(triangulation.max_order, len(curves))+1):
-				for new_curve, curve in zip(new_curves, curves[-j]):
-					if projective_difference(new_curve, curve, 1000):
-						average_curve = sum((self**k)(curve) for k in range(j))
+			for curve_images in curves:
+				new_curve = self(curve_images[-1])
+				for j in range(1, min(triangulation.max_order, len(curve_images))+1):
+					old_curve = curve_images[-j]
+					if projective_difference(new_curve, old_curve, 1000):
+						average_curve = sum(curve_images[-j:])
 						partial_function = self.applied_function(average_curve)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
@@ -313,19 +314,20 @@ class Encoding(object):
 							# Test if the vector we found lies in the cone given by the condition matrix.
 							if condition_matrix.nonnegative_image(eigenvector):
 								# If it does then we have a projectively invariant lamintation.
-								invariant_lamination = triangulation.lamination(eigenvector)
+								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 								if not invariant_lamination.is_empty():
+									print('###', i, j, average_curve, eigenvector[0].number_field.degree)
 									return invariant_lamination
-			
-			# !?! Remove this?
-			for curve in new_curves:
-				denominator = max(min(x for x in curve if x > 0), i+1)
-				vector = [QQ.element([int(round(float(x) / denominator, 0))]) for x in curve]
+				
+				denominator = i+1
+				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
 				small_curve = triangulation.lamination(vector, remove_peripheral=True)
-				if self(small_curve) == small_curve:
-					return small_curve
-			
-			curves.append(new_curves)
+				if not small_curve.is_empty() and self(small_curve) == small_curve:
+					print('???', i, 1, small_curve, 1)
+					# Remember to convert it to a lamination with NumberFieldElement entries.
+					return triangulation.lamination([QQ.element([x]) for x in small_curve])
+				
+				curve_images.append(new_curve)
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	

@@ -945,7 +945,7 @@ class FlipperApp(object):
 		self.destroy_lamination()
 		
 		# Choose the right way to render this lamination.
-		if not lamination.is_multicurve() or lamination.weight() > MAX_DRAWABLE: 
+		if not lamination.is_multicurve() or lamination.weight() > MAX_DRAWABLE:
 			if self.options.render_lamination == flipper.application.options.RENDER_LAMINATION_FULL:
 				render = flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK
 			else:
@@ -1123,7 +1123,7 @@ class FlipperApp(object):
 					_, mapping_class = self.create_composition()
 				
 				if mapping_class is not None:
-					self.lamination_to_canvas(mapping_class * lamination)
+					self.lamination_to_canvas(mapping_class(lamination))
 	
 	
 	######################################################################

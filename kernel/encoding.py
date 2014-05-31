@@ -287,14 +287,12 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is periodic.')
 		triangulation = self.source_triangulation
 		
-		curves = [[curve] for curve in self.source_triangulation.key_curves()]
-		# We will need the number field QQ for constructing small invariant curves.
-		QQ = flipper.kernel.NumberField()
+		curves = [[curve] for curve in triangulation.key_curves()]
 		
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
 			A_sum, B_sum = sum(A), sum(B)
-			#print(max(abs(float(p) / A_sum - float(q) / B_sum) for p, q in zip(A, B)))
+			# print(max(abs(float(p) / A_sum - float(q) / B_sum) for p, q in zip(A, B)))
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
 		for i in range(50):
@@ -316,15 +314,16 @@ class Encoding(object):
 								# If it does then we have a projectively invariant lamintation.
 								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 								if not invariant_lamination.is_empty():
-									print('###', i, j, average_curve, eigenvector[0].number_field.degree)
+									# print('###', i, j, average_curve, '%0.3f' % eigenvector[0].number_field.lmbda)
 									return invariant_lamination
 				
 				denominator = i+1
 				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
 				small_curve = triangulation.lamination(vector, remove_peripheral=True)
 				if not small_curve.is_empty() and self(small_curve) == small_curve:
-					print('???', i, 1, small_curve, 1)
+					# print('???', i, 1, small_curve, 1)
 					# Remember to convert it to a lamination with NumberFieldElement entries.
+					QQ = flipper.kernel.NumberField()
 					return triangulation.lamination([QQ.element([x]) for x in small_curve])
 				
 				curve_images.append(new_curve)

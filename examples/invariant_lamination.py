@@ -8,7 +8,7 @@ def main(n=100):
 	times = {}
 	S = flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(n):
-		word = S.random_word(30)  # , negative=False)
+		word = S.random_word(6)  # , negative=False)
 		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
 		#word = 'aFcE'  # 2 Dim eigenspace.
 		#word = 'aDefFecDBdFCcACDcCdF'  # 12 iterates.

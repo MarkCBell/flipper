@@ -208,8 +208,10 @@ class FlipperApp(object):
 		self.current_lamination = None
 		self.laminations = {}
 		self.lamination_names = {}
+		self.treeview_laminations = set()
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
+		self.treeview_mapping_classes = set()
 		# We will cache properties of laminations and mapping classes.
 		# The rule is that we will cache anything that we cannot compute in
 		# polynomial time.
@@ -263,91 +265,104 @@ class FlipperApp(object):
 		return True
 	
 	def add_lamination(self, lamination, name):
-		self.remove_lamination(name)
-		
-		iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
-		self.laminations[name] = lamination
-		self.lamination_names[iid] = name
-		multicurve_string = lamination.is_multicurve()
-		twistable_string = lamination.is_twistable()
-		halftwistable_string = lamination.is_halftwistable()
-		filling_string = '?' if not multicurve_string else 'False'
-		
-		# Set up all the properties to appear under this label.
-		# We will also set up self.lamination_names to point each item under this to <name> too.
-		tagged_actions = [
-			('Show', 'show_lamination'),
-			]
-		for label, tag in tagged_actions:
-			self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
-		
-		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
-		tagged_properties = [
-			('Multicurve: %s' % multicurve_string, 'multicurve_lamination'),
-			('Twistable: %s' % twistable_string, 'twist_lamination'),
-			('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
-			('Filling: %s' % filling_string, 'filling_lamination')
-			]
-		for label, tag in tagged_properties:
-			self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
-		
-		self.cache[lamination] = {}
-		
-		self.unsaved_work = True
+		if self.remove_lamination(name):
+			iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
+			self.laminations[name] = lamination
+			self.lamination_names[iid] = name
+			multicurve_string = lamination.is_multicurve()
+			twistable_string = lamination.is_twistable()
+			halftwistable_string = lamination.is_halftwistable()
+			filling_string = '?' if not multicurve_string else 'False'
+			
+			# Set up all the properties to appear under this label.
+			# We will also set up self.lamination_names to point each item under this to <name> too.
+			tagged_actions = [
+				('Show', 'show_lamination'),
+				]
+			for label, tag in tagged_actions:
+				self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+			
+			iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
+			tagged_properties = [
+				('Multicurve: %s' % multicurve_string, 'multicurve_lamination'),
+				('Twistable: %s' % twistable_string, 'twist_lamination'),
+				('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
+				('Filling: %s' % filling_string, 'filling_lamination')
+				]
+			for label, tag in tagged_properties:
+				self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
+			
+			self.cache[lamination] = {}
+			self.treeview_laminations.add(name)
+			
+			self.unsaved_work = True
 	
 	def remove_lamination(self, name):
-		if name in self.laminations:
-			lamination = self.laminations[name]
-			entry = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
-			self.treeview_objects.delete(*entry)
-			self.laminations.pop(name)
-			self.cache.pop(lamination)
-			self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
+		if name in self.treeview_laminations:
+			if tkMessageBox.showwarning('Remove lamination', 'Remove existing lamination %s?' % name, type='yesno') == 'yes':
+				lamination = self.laminations[name]
+				entry = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
+				self.treeview_objects.delete(*entry)
+				self.laminations.pop(name)
+				self.cache.pop(lamination)
+				self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
+				self.treeview_laminations.remove(name)
+			else:
+				return False
+		
+		return True
 	
 	def add_mapping_class(self, mapping_class, name):
 		name_inverse = name.swapcase()
-		self.remove_mapping_class(name)
-		self.remove_mapping_class(name_inverse)
-		
-		iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
-		self.mapping_classes[name] = mapping_class
-		self.mapping_classes[name_inverse] = mapping_class.inverse()
-		self.mapping_class_names[iid] = name
-		order = mapping_class.order()
-		order_string = 'Infinite' if order == 0 else str(order)
-		type_string = '?' if order == 0 else 'Periodic'
-		invariant_string = '?' if order == 0 else 'x'
-		
-		# Set up all the properties to appear under this label.
-		# We will also set up self.mapping_class_names to point each item under this to <name> too.
-		tagged_actions = [
-			('Apply', 'apply_mapping_class'),
-			('Apply inverse', 'apply_mapping_class_inverse'),
-			]
-		for label, tag in tagged_actions:
-			self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
-		
-		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
-		tagged_properties = [
-			('Order: %s' % order_string, 'mapping_class_order'),
-			('Type: %s' % type_string, 'mapping_class_type'),
-			('Invariant lamination: %s' % invariant_string, 'mapping_class_invariant_lamination')
-			]
-		for label, tag in tagged_properties:
-			self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
-		
-		self.cache[mapping_class] = {}
-		
-		self.unsaved_work = True
+		if self.remove_mapping_class(name):
+			iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
+			self.mapping_classes[name] = mapping_class
+			self.mapping_classes[name_inverse] = mapping_class.inverse()
+			self.mapping_class_names[iid] = name
+			order = mapping_class.order()
+			order_string = 'Infinite' if order == 0 else str(order)
+			type_string = '?' if order == 0 else 'Periodic'
+			invariant_string = '?' if order == 0 else 'x'
+			
+			# Set up all the properties to appear under this label.
+			# We will also set up self.mapping_class_names to point each item under this to <name> too.
+			tagged_actions = [
+				('Apply', 'apply_mapping_class'),
+				('Apply inverse', 'apply_mapping_class_inverse'),
+				]
+			for label, tag in tagged_actions:
+				self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
+			
+			iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
+			tagged_properties = [
+				('Order: %s' % order_string, 'mapping_class_order'),
+				('Type: %s' % type_string, 'mapping_class_type'),
+				('Invariant lamination: %s' % invariant_string, 'mapping_class_invariant_lamination')
+				]
+			for label, tag in tagged_properties:
+				self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
+			
+			self.cache[mapping_class] = {}
+			self.treeview_mapping_classes.add(name)
+			
+			self.unsaved_work = True
 	
 	def remove_mapping_class(self, name):
-		if name in self.mapping_classes:
-			mapping_class = self.mapping_classes[name]
-			entry = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
-			self.treeview_objects.delete(*entry)
-			self.mapping_classes.pop(name)
-			self.cache.pop(mapping_class)
-			self.mapping_class_names = dict((iid, m_name) for iid, m_name in self.mapping_class_names.items() if m_name != name)
+		if name in self.treeview_mapping_classes:
+			if tkMessageBox.showwarning('Remove mapping class', 'Remove existing mapping class %s?' % name, type='yesno') == 'yes':
+				name_inverse = name.swapcase()
+				mapping_class = self.mapping_classes[name]
+				entry = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
+				self.treeview_objects.delete(*entry)
+				self.mapping_classes.pop(name)
+				self.mapping_classes.pop(name_inverse)
+				self.cache.pop(mapping_class)
+				self.mapping_class_names = dict((iid, m_name) for iid, m_name in self.mapping_class_names.items() if m_name != name)
+				self.treeview_mapping_classes.remove(name)
+			else:
+				return False
+		
+		return True
 	
 	def save(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')

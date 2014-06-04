@@ -1071,7 +1071,6 @@ class FlipperApp(object):
 			name = flipper.application.get_input('Name', 'New lamination name:', validate=self.valid_name)
 			if name is not None:
 				self.add_lamination(lamination, name)
-				self.destroy_lamination()
 	
 	def store_twist(self, lamination=None):
 		if self.is_complete():
@@ -1086,8 +1085,6 @@ class FlipperApp(object):
 				name = flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_twist(), name)
-					self.add_lamination(lamination, name)
-					self.destroy_lamination()
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is not a curve with punctured complementary regions.')
 	
@@ -1104,8 +1101,6 @@ class FlipperApp(object):
 				name = flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
 				if name is not None:
 					self.add_mapping_class(lamination.encode_halftwist(), name)
-					self.add_lamination(lamination, name)
-					self.destroy_lamination()
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot half-twist about this, it is not an essential curve bounding a pair of pants with a punctured complement.')
 	

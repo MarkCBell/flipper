@@ -97,6 +97,7 @@ class Lamination(object):
 					weights[2] + weights[0] - weights[1],
 					weights[0] + weights[1] - weights[2]]
 				for i in range(3):
+					# This isn't quite right. We should allow NumberFieldElements too.
 					if not isinstance(dual_weights_doubled[i], flipper.kernel.types.Integer_Type):
 						return False
 					

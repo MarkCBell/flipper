@@ -83,14 +83,16 @@ class FlipperApp(object):
 		
 		self.frame_draw = TK.Frame(self.parent)
 		###
-		# Now for some reason which I can't explain, we need this height=1 to prevent the command
+		# This needs takefocus set so that we can tell if it has been selected.
+		# Also, for some reason which I can't explain, we need this height=1 to prevent the command
 		# bar below from collapsing when the application is small.
-		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff')
+		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff', takefocus=True)
 		self.canvas.pack(fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
+		self.canvas.bind('<FocusOut>', self.canvas_focus_lost)
 		
 		self.frame_command = TK.Frame(self.parent)
 		###
@@ -261,8 +263,7 @@ class FlipperApp(object):
 		return True
 	
 	def add_lamination(self, lamination, name):
-		if name in self.laminations:
-			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name])
+		self.remove_lamination(name)
 		
 		iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
 		self.laminations[name] = lamination
@@ -280,9 +281,9 @@ class FlipperApp(object):
 		for label, tag in tagged_actions:
 			self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
 		
-		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt'])
+		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
 		tagged_properties = [
-			('Multicurve: %s' %multicurve_string, 'multicurve_lamination'),
+			('Multicurve: %s' % multicurve_string, 'multicurve_lamination'),
 			('Twistable: %s' % twistable_string, 'twist_lamination'),
 			('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
 			('Filling: %s' % filling_string, 'filling_lamination')
@@ -294,10 +295,19 @@ class FlipperApp(object):
 		
 		self.unsaved_work = True
 	
+	def remove_lamination(self, name):
+		if name in self.laminations:
+			lamination = self.laminations[name]
+			entry = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
+			self.treeview_objects.delete(*entry)
+			self.laminations.pop(name)
+			self.cache.pop(lamination)
+			self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
+	
 	def add_mapping_class(self, mapping_class, name):
 		name_inverse = name.swapcase()
-		if name in self.mapping_classes:
-			self.treeview_objects.delete(*[child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] in [name, name_inverse]])
+		self.remove_mapping_class(name)
+		self.remove_mapping_class(name_inverse)
 		
 		iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
 		self.mapping_classes[name] = mapping_class
@@ -317,7 +327,7 @@ class FlipperApp(object):
 		for label, tag in tagged_actions:
 			self.mapping_class_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
 		
-		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt'])
+		iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
 		tagged_properties = [
 			('Order: %s' % order_string, 'mapping_class_order'),
 			('Type: %s' % type_string, 'mapping_class_type'),
@@ -329,6 +339,15 @@ class FlipperApp(object):
 		self.cache[mapping_class] = {}
 		
 		self.unsaved_work = True
+	
+	def remove_mapping_class(self, name):
+		if name in self.mapping_classes:
+			mapping_class = self.mapping_classes[name]
+			entry = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
+			self.treeview_objects.delete(*entry)
+			self.mapping_classes.pop(name)
+			self.cache.pop(mapping_class)
+			self.mapping_class_names = dict((iid, m_name) for iid, m_name in self.mapping_class_names.items() if m_name != name)
 	
 	def save(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper files', '.flp'), ('all files', '.*')], title='Save Flipper File')
@@ -602,6 +621,9 @@ class FlipperApp(object):
 		self.canvas.tag_raise('edge_label')
 	
 	def select_object(self, selected_object):
+		# We can only ever select vertices, edges and curve_components.
+		assert(selected_object is None or \
+			isinstance(selected_object, (flipper.application.Vertex, flipper.application.Edge, flipper.application.CurveComponent)))
 		self.selected_object = selected_object
 		for x in self.vertices + self.edges + self.curve_components + self.train_track_blocks:
 			x.set_current_colour()
@@ -685,6 +707,7 @@ class FlipperApp(object):
 	
 	def destroy_vertex(self, vertex=None):
 		if vertex is None: vertex = self.vertices[-1]
+		if self.selected_object == vertex: self.select_object(None)
 		while True:
 			for edge in self.edges:
 				if edge[0] == vertex or edge[1] == vertex:
@@ -727,6 +750,7 @@ class FlipperApp(object):
 	
 	def destroy_edge(self, edge=None):
 		if edge is None: edge = self.edges[-1]
+		if self.selected_object == edge: self.select_object(None)
 		self.canvas.delete(edge.drawn)
 		for triangle in edge.in_triangles:
 			self.destroy_triangle(triangle)
@@ -802,6 +826,7 @@ class FlipperApp(object):
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
+		if self.selected_object == curve_component: self.select_object(None)
 		self.canvas.delete(curve_component.drawn)
 		self.curve_components.remove(curve_component)
 	
@@ -855,7 +880,7 @@ class FlipperApp(object):
 		elif self.options.label_edges == 'Geometric':
 			lamination = self.canvas_to_lamination()
 			for edge in self.edges:
-				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text='%0.4f' % lamination[edge.index], tag='edge_label', font=self.options.canvas_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
+				self.canvas.create_text((edge[0][0] + edge[1][0]) / 2, (edge[0][1] + edge[1][1]) / 2, text='%s' % lamination[edge.index], tag='edge_label', font=self.options.canvas_font, fill=DEFAULT_EDGE_LABEL_COLOUR)
 		elif self.options.label_edges == 'Algebraic':
 			pass  # !?! To do.
 		elif self.options.label_edges == 'None':
@@ -1209,6 +1234,7 @@ class FlipperApp(object):
 	
 	
 	def canvas_left_click(self, event):
+		self.canvas.focus_set()
 		shift_pressed = (event.state & BIT_SHIFT) == BIT_SHIFT
 		
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))
@@ -1291,17 +1317,29 @@ class FlipperApp(object):
 		if isinstance(self.selected_object, flipper.application.CurveComponent):
 			self.selected_object.move_point(-1, x, y)
 	
+	def canvas_focus_lost(self, event):
+		self.select_object(None)
+	
 	def parent_key_press(self, event):
 		key = event.keysym
+		focus = self.parent.focus_get()
 		if key in ('Delete', 'BackSpace'):
-			if isinstance(self.selected_object, flipper.application.Vertex):
-				self.destroy_vertex(self.selected_object)
-				self.select_object(None)
-			elif isinstance(self.selected_object, flipper.application.Edge):
-				self.destroy_edge(self.selected_object)
-				self.select_object(None)
-			elif isinstance(self.selected_object, flipper.application.CurveComponent):
-				self.canvas_right_click(event)
+			if focus == self.canvas:
+				if isinstance(self.selected_object, flipper.application.Vertex):
+					self.destroy_vertex(self.selected_object)
+					self.select_object(None)
+				elif isinstance(self.selected_object, flipper.application.Edge):
+					self.destroy_edge(self.selected_object)
+					self.select_object(None)
+				elif isinstance(self.selected_object, flipper.application.CurveComponent):
+					self.canvas_right_click(event)
+			elif focus == self.treeview_objects:
+				for iid in self.treeview_objects.selection():
+					tags = self.treeview_objects.item(iid, 'tags')
+					if 'lamination' in tags:
+						self.remove_lamination(self.lamination_names[iid])
+					elif 'mapping_class' in tags:
+						self.remove_mapping_class(self.mapping_class_names[iid])
 		elif key == 'Escape':
 			self.canvas_right_click(event)
 		elif key == 'F1':
@@ -1313,13 +1351,17 @@ class FlipperApp(object):
 		elif key == 'Next':
 			self.zoom_centre(0.95)
 		elif key == 'Up':
-			self.translate(0, -5)
+			if focus == self.canvas:
+				self.translate(0, -5)
 		elif key == 'Down':
-			self.translate(0, 5)
+			if focus == self.canvas:
+				self.translate(0, 5)
 		elif key == 'Left':
-			self.translate(-5, 0)
+			if focus == self.canvas:
+				self.translate(-5, 0)
 		elif key == 'Right':
-			self.translate(5, 0)
+			if focus == self.canvas:
+				self.translate(5, 0)
 	
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)

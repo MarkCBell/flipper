@@ -12,7 +12,7 @@ def main(n=100):
 		print('%d: %s' % (i, word), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()
-		mapping_class.NT_type()
+		print(' - ' + mapping_class.NT_type(), end='')
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))

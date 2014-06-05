@@ -316,7 +316,7 @@ class Lamination(object):
 		if a == ~c and a == ~d:
 			# This implies the underlying surface is S_{1,1}. As there is
 			# only one vertex, both endpoints of this edge must be labelled 0.
-			raise flipper.AssumptionError('Edge connects between two non-negatively labelled vertices.')
+			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Now the only remaining possibilities are:
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
@@ -326,8 +326,10 @@ class Lamination(object):
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
 		good_label, bad_label = max(vertex_labels), min(vertex_labels)
-		if bad_label >= 0:
-			raise flipper.AssumptionError('Edge connects between two non-negatively labelled vertices.')
+		# If we collapse together two real vertices (or a vertex with itself) then there is a loop
+		# dijoint to this lamination and so this is not filling.
+		if (good_label >= 0 and bad_label >= 0) or good_label == bad_label:
+			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Now figure out how the edges should be mapped.
 		far_triangles = [triangle for triangle in self.triangulation if e not in triangle and ~e not in triangle]

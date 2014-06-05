@@ -9,6 +9,7 @@ class Isometry(object):
 	def __init__(self, source_triangulation, target_triangulation, oriented_edge_map):
 		''' This represents an isometry from source_triangulation to target_triangulation. It is given
 		by a map taking each triangle to a triangle and a permutation (on 3 elements). '''
+		# !?! Put asserts here.
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta

@@ -314,7 +314,7 @@ class FlipperApp(object):
 	
 	def add_mapping_class(self, mapping_class, name):
 		name_inverse = name.swapcase()
-		if self.remove_mapping_class(name):
+		if self.remove_mapping_class(name) and self.remove_mapping_class(name_inverse):
 			iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
 			self.mapping_classes[name] = mapping_class
 			self.mapping_classes[name_inverse] = mapping_class.inverse()
@@ -392,7 +392,7 @@ class FlipperApp(object):
 	
 	def load(self, load_from=None):
 		''' Loads up some informations. If given no options opens a file dialog and
-		asks for a flipper (kernel) file. Alternatively can be passed the contents of 
+		asks for a flipper (kernel) file. Alternatively can be passed the contents of
 		a file, a file object or something that flipper.package can eat. '''
 		try:
 			if load_from is None:
@@ -406,7 +406,7 @@ class FlipperApp(object):
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
 			elif not isinstance(load_from, flipper.String_Type):
-				string_contents = flipper.package(load_from)
+				string_contents = flipper.depackage(load_from)
 			
 			try:
 				spec, version, data = pickle.loads(string_contents)
@@ -930,8 +930,10 @@ class FlipperApp(object):
 		self.current_lamination = None
 		self.laminations = {}
 		self.lamination_names = {}
+		self.treeview_laminations = set()
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
+		self.treeview_mapping_classes = set()
 		self.cache = {}
 		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
 			self.treeview_objects.delete(child)

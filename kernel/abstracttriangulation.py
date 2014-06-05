@@ -19,7 +19,7 @@ class AbstractTriangle(object):
 		self.indices = [norm(x) for x in self.labels]
 	
 	def __repr__(self):
-		return '(' + ','.join('%s%d:%s' % ('+' if x == y else '-', norm(x)) for x, y in zip(self.labels, self.indices)) + ')'
+		return '(' + ','.join('%s%d' % ('+' if x == y else '-', norm(x)) for x, y in zip(self.labels, self.indices)) + ')'
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
@@ -306,7 +306,7 @@ class AbstractTriangulation(object):
 						return None  # Map doesn't specify an isometry.
 				else:
 					edge_map[from_edge] = to_edge
-					to_process.put((~from_edge, ~to_edge))
+					to_process.put((from_edge, to_edge))
 		
 		return flipper.kernel.Isometry(self, other_triangulation, edge_map)
 	

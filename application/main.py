@@ -249,9 +249,9 @@ class FlipperApp(object):
 		return True
 	
 	def valid_isometry(self, strn):
-		# A isometry is valid if it matched 'num:num num:num num:num'.
-		if re.match(r'\d+:\d+ \d+:\d+ \d+:\d+', strn) is None:
-			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must be of the form "<num>:<num> <num>:<num> <num>:<num>".')
+		# A isometry is valid if it matched 'num:num num:num ...'.
+		if re.match(r'(\d+:\d+ ?)*', strn) is None:
+			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\d+:\d+ ?)*".')
 			return False
 		
 		return True

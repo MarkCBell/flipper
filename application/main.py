@@ -208,10 +208,10 @@ class FlipperApp(object):
 		self.current_lamination = None
 		self.laminations = {}
 		self.lamination_names = {}
-		self.treeview_laminations = set()
+		self.treeview_laminations = []
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
-		self.treeview_mapping_classes = set()
+		self.treeview_mapping_classes = []
 		# We will cache properties of laminations and mapping classes.
 		# The rule is that we will cache anything that we cannot compute in
 		# polynomial time.
@@ -293,7 +293,7 @@ class FlipperApp(object):
 				self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 			
 			self.cache[lamination] = {}
-			self.treeview_laminations.add(name)
+			self.treeview_laminations.append(name)
 			
 			self.unsaved_work = True
 	
@@ -373,10 +373,8 @@ class FlipperApp(object):
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
-				lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
-				mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-				laminations = dict([(name, self.laminations[name]) for name in lamination_names])
-				mapping_classes = dict([(name, self.mapping_classes[name]) for name in mapping_class_names])
+				laminations = dict([(name, self.laminations[name]) for name in self.treeview_laminations])
+				mapping_classes = dict([(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes])
 				cache = self.cache
 				canvas_objects = (vertices, edges)
 				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects, cache)
@@ -397,8 +395,8 @@ class FlipperApp(object):
 		try:
 			if load_from is None:
 				load_from = tkFileDialog.askopenfilename(
-					defaultextension='.flp', 
-					filetypes=[('flipper files', '.flp'), ('Flipper kernel files', '*.fpk'), ('all files', '.*')], 
+					defaultextension='.flp',
+					filetypes=[('flipper files', '.flp'), ('all files', '.*')],
 					title='Open flipper File')
 				if load_from == '':  # Cancelled the dialog.
 					return
@@ -406,7 +404,7 @@ class FlipperApp(object):
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
 			elif not isinstance(load_from, flipper.String_Type):
-				string_contents = flipper.depackage(load_from)
+				string_contents = flipper.package(load_from)
 			
 			try:
 				spec, version, data = pickle.loads(string_contents)
@@ -510,15 +508,13 @@ class FlipperApp(object):
 	
 	def export_kernel_file(self):
 		if self.is_complete():
-			path = tkFileDialog.asksaveasfilename(defaultextension='.fpk', filetypes=[('flipper kernel file', '.fpk'), ('all files', '.*')], title='Export Kernel File')
+			path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper kernel file', '.flp'), ('all files', '.*')], title='Export Kernel File')
 			if path != '':
 				try:
 					disk_file = open(path, 'w')
 					
-					lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
-					mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-					laminations = [(name, self.laminations[name]) for name in lamination_names]
-					mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
+					laminations = [(name, self.laminations[name]) for name in self.treeview_laminations]
+					mapping_classes = [(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes]
 					
 					example = flipper.package((self.abstract_triangulation, laminations, mapping_classes))
 					disk_file.write(example)
@@ -930,10 +926,10 @@ class FlipperApp(object):
 		self.current_lamination = None
 		self.laminations = {}
 		self.lamination_names = {}
-		self.treeview_laminations = set()
+		self.treeview_laminations = []
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
-		self.treeview_mapping_classes = set()
+		self.treeview_mapping_classes = []
 		self.cache = {}
 		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
 			self.treeview_objects.delete(child)

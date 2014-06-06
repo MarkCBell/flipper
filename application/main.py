@@ -48,7 +48,7 @@ BIT_SHIFT = 0x001
 # BIT_MB_2 = 0x200
 # BIT_MB_3 = 0x400
 
-DEFAULT_EDGE_LABEL_COLOUR = 'red'
+DEFAULT_EDGE_LABEL_COLOUR = 'black'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
@@ -343,7 +343,7 @@ class FlipperApp(object):
 				self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 			
 			self.cache[mapping_class] = {}
-			self.treeview_mapping_classes.add(name)
+			self.treeview_mapping_classes.append(name)
 			
 			self.unsaved_work = True
 	
@@ -373,8 +373,8 @@ class FlipperApp(object):
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
-				laminations = dict([(name, self.laminations[name]) for name in self.treeview_laminations])
-				mapping_classes = dict([(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes])
+				laminations = [(name, self.laminations[name]) for name in self.treeview_laminations]
+				mapping_classes = [(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes]
 				cache = self.cache
 				canvas_objects = (vertices, edges)
 				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects, cache)
@@ -485,11 +485,11 @@ class FlipperApp(object):
 			
 			self.abstract_triangulation = abstract_triangulation
 			
-			for name in laminations:
-				self.add_lamination(laminations[name], name)
+			for name, lamination in laminations:
+				self.add_lamination(lamination, name)
 			
-			for name in mapping_classes:
-				self.add_mapping_class(mapping_classes[name], name)
+			for name, mapping_class in mapping_classes:
+				self.add_mapping_class(mapping_class, name)
 			
 			if cache is not None:
 				self.cache = cache

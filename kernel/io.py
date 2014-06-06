@@ -12,7 +12,14 @@ def string_generator(n, skip=None):
 	alphabet = ascii_lowercase
 	k = n + len(skip)
 	p = int(log(k), len(alphabet)) + 1
-	return (''.join(letters) for i in range(1, p) for letters in product(alphabet, repeat=i) if ''.join(letters) not in skip)
+	results = []
+	for i in range(1, p+1):
+		for letters in product(alphabet, repeat=i):
+			word = ''.join(letters)
+			if word not in skip:
+				results.append(word)
+			if len(results) >= n:
+				return results
 
 def package(objects):
 	''' This packages an abstract triangulation, some laminations and mapping classes

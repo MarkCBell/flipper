@@ -271,10 +271,11 @@ class Encoding(object):
 	def invariant_lamination(self):
 		''' Returns a lamination (with entries in a NumberField) which is projectively invariant
 		under this mapping class. If it cannot find one then it raises a ComputationError.
-		Assumes that the mapping class is not periodic.
+		Assumes that the mapping class is pseudo-Anosov. If it is periodic it will discover this
+		if it is reducible it may discover this.
 		
-		The process starts with several curves on the surface and repeatedly applies the map until
-		they appear to projectively similar to a previous iteration. Finally it uses:
+		The process starts with a curve on the surface and repeatedly applies the map until
+		it appear to be projectively similar to a previous iteration. Finally it uses:
 			flipper.kernel.symboliccomputation.Perron_Frobenius_eigen()
 		to find the nearby projective fixed point.
 		
@@ -282,51 +283,80 @@ class Encoding(object):
 		100 iterations and a ComputationError is thrown then it's actually extremely likely that the
 		map was not pseudo-Anosov. '''
 		
+		# Suppose that f_1, ..., f_m, g_1, ..., g_n, t_1, ..., t_k, p is the Thurston decomposition of self.
+		# That is: f_i are pA on subsurfaces, g_i are periodic on subsurfaces, t_i are Dehn twist along the curve of
+		# the canonical curve system and p is a permutation of the subsurfaces.
+		# Additionally, let S_i be the subsurface corresponding to f_i, P_i correspond to g_i and A_i correspond to t_i.
+		# Finally, let x be a curve on the surface and define x_0 := x and x_i := self(x_{i-1}).
+		#
+		# The algorithm covers 3 cases:  (Note we reorder the subsurfaces for ease of notation.)
+		#  1) x meets at S_1, ..., S_m',
+		#  2) x meets no S_i but meets A_1, ..., A_k', and
+		#  3) x meets no S_i or A_i, that is x is contained in a P_1.
+		#
+		# In the first case, x_i will converge exponentially to the stable laminations of f_1, ..., f_m'.
+		# Here the convergence is so fast we need only a few iterations.
+		#
+		# In the second case x_i will converge linearly to c, the cores of A_1, ..., A_k'. To speed this up
+		# we note that x_i = i*c + O(1), so rescale x_i by 1/i, round and check if this is c.
+		#
+		# Finally, the third case happens if and only if x_i is periodic. In this case self must be
+		# periodic or reducible. We test for periodicity at the begining hence if we ever find a curve
+		# fixed by a power of self then we must reducible.
+		
 		assert(self.is_mapping_class())
-		if self.is_periodic():
+		if self.is_periodic():  # This is not needed but it provides a fast test.
 			raise flipper.AssumptionError('Mapping class is periodic.')
 		triangulation = self.source_triangulation
 		
-		curves = [[curve] for curve in triangulation.key_curves()]
+		curves = [triangulation.key_curves()[0]]
 		
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
 			A_sum, B_sum = sum(A), sum(B)
-			# print(max(abs(float(p) / A_sum - float(q) / B_sum) for p, q in zip(A, B)))
 			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
 		for i in range(50):
-			for curve_images in curves:
-				new_curve = self(curve_images[-1])
-				for j in range(1, min(triangulation.max_order, len(curve_images))+1):
-					old_curve = curve_images[-j]
-					if projective_difference(new_curve, old_curve, 1000):
-						average_curve = sum(curve_images[-j:])
-						partial_function = self.applied_function(average_curve)
-						action_matrix, condition_matrix = partial_function.action, partial_function.condition
-						try:
-							eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
-						except flipper.AssumptionError:
-							pass  # Largest eigenvalue was not real.
-						else:
-							# Test if the vector we found lies in the cone given by the condition matrix.
-							if condition_matrix.nonnegative_image(eigenvector):
-								# If it does then we have a projectively invariant lamintation.
-								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
-								if not invariant_lamination.is_empty():
-									# print('###', i, j, average_curve, '%0.3f' % eigenvector[0].number_field.lmbda)
+			new_curve = self(curves[-1])
+			
+			# Check if we have seen this curve before.
+			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
+				raise flipper.AssumptionError('Mapping class is reducible.')
+			
+			for j in range(1, min(triangulation.max_order, len(curves))+1):
+				old_curve = curves[-j]
+				if projective_difference(new_curve, old_curve, 1000):
+					average_curve = sum(curves[-j:])
+					partial_function = self.applied_function(average_curve)
+					action_matrix, condition_matrix = partial_function.action, partial_function.condition
+					try:
+						eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
+					except flipper.AssumptionError:
+						pass  # Largest eigenvalue was not real.
+					else:
+						# Test if the vector we found lies in the cone given by the condition matrix.
+						if condition_matrix.nonnegative_image(eigenvector):
+							# If it does then we have a projectively invariant lamintation.
+							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
+							if not invariant_lamination.is_empty():
+								# print('###', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
+								if invariant_lamination[0].number_field.lmbda == 1:
+									# print('###', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
+									raise flipper.AssumptionError('Mapping class is reducible.')
+								else:
 									return invariant_lamination
-				
-				denominator = i+1
-				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
-				small_curve = triangulation.lamination(vector, remove_peripheral=True)
-				if not small_curve.is_empty() and self(small_curve) == small_curve:
-					# print('???', i, 1, small_curve, 1)
-					# Remember to convert it to a lamination with NumberFieldElement entries.
-					QQ = flipper.kernel.NumberField()
-					return triangulation.lamination([QQ.element([x]) for x in small_curve])
-				
-				curve_images.append(new_curve)
+			
+			denominator = i+1
+			vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
+			new_curve = small_curve = triangulation.lamination(vector, remove_peripheral=True)
+			if not small_curve.is_empty():
+				for j in range(1, triangulation.max_order+1):
+					new_curve = self(new_curve)
+					if new_curve == small_curve:
+						# print('###', i, j, small_curve, '%0.3f' % 1)
+						raise flipper.AssumptionError('Mapping class is reducible.')
+			
+			curves.append(new_curve)
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
@@ -335,9 +365,12 @@ class Encoding(object):
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
+			try:
+				lamination = self.invariant_lamination()
+			except flipper.AssumptionError:
+				return NT_TYPE_REDUCIBLE
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 			# fails to find an invariant lamination.
-			lamination = self.invariant_lamination()
 			if lamination.is_filling():
 				return NT_TYPE_PSEUDO_ANOSOV
 			else:

@@ -6,32 +6,19 @@ import flipper
 
 def main(n=100):
 	times = {}
-	S = flipper.examples.abstracttriangulation.Example_S_2_1()
-	for i in range(n):
-		word = S.random_word(6)  # , negative=False)
-		#word = 'AEeadfaCEeCdEBfbCDFC'  # Word is reducible (reducing curve has weight ~ 6000).
-		#word = 'aFcE'  # 2 Dim eigenspace.
-		#word = 'aDefFecDBdFCcACDcCdF'  # 12 iterates.
-		#word = 'BcEC'  # Is reducible but (unlike BC) mixes every edge just a little so growth is super slow.
-		#word = 'ebbFaBDECFbBCFFbFeCa'
-		#word = 'daeaeFEdbEDaDf'  # First iteration has no real roots.
-		#word = 'fAAEffcedEafdDeFcDCe'  # Dividing by total steps is bad for this one.
-		#word = 'eeDcbeBbcdFfDBaDfDeF'  # Really slow. 4 iterations needed.
-		#word = 'fCbaAdDafeEdbcaabABb'
-		#word = 'baccabebededdccceeba'
-		#word = 'FacBcDBACfbDAbCAfEdb'
-		#word = 'bbdcecbcFA'  # Reducible with 2 pseudo-Anosov components which are swapped.
-		#word = 'FEFdFCBA'
-		#word = 'acdCccbBcf'
-		#word = 'ACBBaF'
-		#word = 'ECdEEEaEce'
-		#word = 'DCDfCaEd'
-		#word = 'BaEcCCeAbC'
-		print('%d: %s' % (i, word), end='')
+	surface = 'S_1_2'
+	S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+	for index in range(n):
+		word = S.random_word(30)  # , negative=False)
+		print('%d/%d: %s %s' % (index+1, n, surface, word), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()
-		if not mapping_class.is_periodic():
-			mapping_class.invariant_lamination()  # This assumes that the mapping class is not periodic.
+		try:
+			mapping_class.invariant_lamination()
+		except flipper.AssumptionError:
+			pass  # mapping_class is not pseudo-Anosov.
+		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
+		# fails to find an invariant lamination.
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))

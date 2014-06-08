@@ -29,6 +29,8 @@ def main(verbose=False):
 			mapping_class.invariant_lamination()  # This could fail with a ComputationError.
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
+	except flipper.AssumptionError:
+		pass  # mapping_class is not pseudo-Anosov.
 	except AssertionError:
 		return False
 	except flipper.ComputationError:

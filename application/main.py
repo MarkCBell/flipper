@@ -964,6 +964,8 @@ class FlipperApp(object):
 				
 				for index, double in meets:
 					vector[index] += (2 if double else 1) * curve.multiplicity
+				
+				curve.counted = True
 		
 		if all(isinstance(x, flipper.kernel.Integer_Type) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]

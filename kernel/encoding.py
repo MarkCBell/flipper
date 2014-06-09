@@ -335,7 +335,7 @@ class Encoding(object):
 						pass  # Largest eigenvalue was not real.
 					else:
 						# Test if the vector we found lies in the cone given by the condition matrix.
-						if condition_matrix.nonnegative_image(eigenvector):
+						if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 							# If it does then we have a projectively invariant lamintation.
 							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():

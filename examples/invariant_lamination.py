@@ -9,7 +9,7 @@ def main(n=100):
 	surface = 'S_1_2'
 	S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 	for index in range(n):
-		word = S.random_word(30)  # , negative=False)
+		word = S.random_word(50)  # , negative=False)
 		print('%d/%d: %s %s' % (index+1, n, surface, word), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()

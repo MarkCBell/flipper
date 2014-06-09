@@ -3,18 +3,19 @@ from __future__ import print_function
 
 import flipper
 
-def main(n=100):
+def main(surface, lower, upper, step=1, sample=100):
 	times = {}
-	S = flipper.examples.abstracttriangulation.Example_S_2_1()
-	for length in range(10, 20, 1):
+	S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+	for length in range(lower, upper, step):
 		count = 0
-		for i in range(n):
+		for i in range(sample):
 			mapping_class = S.mapping_class(length)
 			if mapping_class.NT_type() == flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
 				count += 1
-			print('\rLength: %d, Computed %d/%d - %0.1f%% pA' % (length, (i+1), n, float(count) * 100 / (i+1)), end='')
+			print('\rLength: %d, Computed %d/%d - %0.1f%% pA' % (length, (i+1), sample, float(count) * 100 / (i+1)), end='')
 		print('')
 
 if __name__ == '__main__':
-	main()
+	main('S_1_2', 27, 30, sample=500)
+	#main('S_2_1', 10, 20)
 

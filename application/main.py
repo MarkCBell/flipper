@@ -87,7 +87,7 @@ class FlipperApp(object):
 		# Also, for some reason which I can't explain, we need this height=1 to prevent the command
 		# bar below from collapsing when the application is small.
 		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff', takefocus=True)
-		self.canvas.pack(fill='both', expand=True)
+		self.canvas.pack(padx=3, pady=3, fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
 		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
@@ -250,8 +250,8 @@ class FlipperApp(object):
 	
 	def valid_isometry(self, strn):
 		# A isometry is valid if it matched 'num:num num:num ...'.
-		if re.match(r'(\d+:\d+ ?)*', strn) is None:
-			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\d+:\d+ ?)*".')
+		if re.match(r'(\d+:\d+ ?)*$', strn) is None:
+			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\d+:\d+ ?)*$".')
 			return False
 		
 		return True

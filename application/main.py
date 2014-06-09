@@ -1435,7 +1435,7 @@ class FlipperApp(object):
 				else:
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
 			except flipper.AssumptionError:
-				self.cache[mapping_class]['invariant_lamination'] = None:
+				self.cache[mapping_class]['invariant_lamination'] = None
 				self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination: x')
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')

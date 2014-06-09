@@ -1198,7 +1198,7 @@ class FlipperApp(object):
 					lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					# dilatation = mapping_class.dilatation(lamination)
 				except flipper.AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is periodic.' % composition)
+					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
 				except flipper.ComputationError:
 					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 				else:
@@ -1429,12 +1429,18 @@ class FlipperApp(object):
 				if 'invariant_lamination' not in self.cache[mapping_class]:
 					self.cache[mapping_class]['invariant_lamination'] = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					self.unsaved_work = True
-				self.treeview_objects.item(iid, text='Invariant lamination')
-				self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
+					self.treeview_objects.item(iid, text='Invariant lamination')
+				if self.cache[mapping_class]['invariant_lamination'] is not None:
+					self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
+				else:
+					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
 			except flipper.AssumptionError:
-				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is periodic.')
+				self.cache[mapping_class]['invariant_lamination'] = None:
+				self.unsaved_work = True
+				self.treeview_objects.item(iid, text='Invariant lamination: x')
+				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
 			except flipper.ComputationError:
-				tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
+				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
 		else:

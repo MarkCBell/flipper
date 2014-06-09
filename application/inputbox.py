@@ -48,6 +48,7 @@ class GetStringApp(object):
 		self.parent.transient(self.host_app_parent)  # Lock this window on top.
 		self.parent.grab_set()  # Make sure this window always has focus.
 		self.parent.update_idletasks()
+		self.host_app_parent.update_idletasks()
 	
 	def get_result(self):
 		self.parent.wait_window(self.parent)

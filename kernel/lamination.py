@@ -26,6 +26,10 @@ class Lamination(object):
 		# return '\n'.join(str([self[i] for i in triangle]) for triangle in self.triangulation)
 		return str(self.vector)
 	
+	def projective_string(self):
+		w = float(self.weight())
+		return str([float(x) / w for x in self])
+	
 	def __iter__(self):
 		return iter(self.vector)
 	

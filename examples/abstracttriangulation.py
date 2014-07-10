@@ -29,7 +29,7 @@ class ExampleSurface(object):
 		
 		h = self.triangulation.id_encoding()
 		for letter in word:
-			h = self.mapping_classes[letter] * h
+			h = h * self.mapping_classes[letter]
 		
 		return h
 

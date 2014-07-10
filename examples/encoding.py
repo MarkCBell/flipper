@@ -9,6 +9,7 @@ def main(n=100):
 	S = flipper.examples.abstracttriangulation.Example_S_2_1()
 	for i in range(n):
 		word = S.random_word(10)  # , negative=False)
+		# word = 'bAAffD' * i + 'abFFeDDDfCCaBfBaC' + 'dFFaaB' * i
 		print('%d: %s' % (i, word), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()

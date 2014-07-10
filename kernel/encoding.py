@@ -287,12 +287,12 @@ class Encoding(object):
 		# That is: f_i are pA on subsurfaces, g_i are periodic on subsurfaces, t_i are Dehn twist along the curve of
 		# the canonical curve system and p is a permutation of the subsurfaces.
 		# Additionally, let S_i be the subsurface corresponding to f_i, P_i correspond to g_i and A_i correspond to t_i.
-		# Finally, let x be a curve on the surface and define x_0 := x and x_i := self(x_{i-1}).
+		# Finally, let x_0 be a curve on the surface and define x_i := self(x_{i-1}).
 		#
 		# The algorithm covers 3 cases:  (Note we reorder the subsurfaces for ease of notation.)
-		#  1) x meets at S_1, ..., S_m',
-		#  2) x meets no S_i but meets A_1, ..., A_k', and
-		#  3) x meets no S_i or A_i, that is x is contained in a P_1.
+		#  1) x_0 meets at S_1, ..., S_m',
+		#  2) x_0 meets no S_i but meets A_1, ..., A_k', and
+		#  3) x_0 meets no S_i or A_i, that is x_0 is contained in a P_1.
 		#
 		# In the first case, x_i will converge exponentially to the stable laminations of f_1, ..., f_m'.
 		# Here the convergence is so fast we need only a few iterations.
@@ -314,47 +314,63 @@ class Encoding(object):
 		def projective_difference(A, B, error_reciprocal):
 			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
 			A_sum, B_sum = sum(A), sum(B)
-			return max(abs((p * B_sum) - q * A_sum) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
+			return max(abs((p * B_sum) - (q * A_sum)) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
 		for i in range(50):
 			new_curve = self(curves[-1])
+			# print(new_curve)
+			# print('begin:', new_curve.projective_string())
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
+				# print('WWW')
 				raise flipper.AssumptionError('Mapping class is reducible.')
 			
 			for j in range(1, min(triangulation.max_order, len(curves))+1):
 				old_curve = curves[-j]
 				if projective_difference(new_curve, old_curve, 1000):
 					average_curve = sum(curves[-j:])
-					partial_function = self.applied_function(average_curve)
+					partial_function = (self**j).applied_function(average_curve)
 					action_matrix, condition_matrix = partial_function.action, partial_function.condition
 					try:
 						eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
 					except flipper.AssumptionError:
 						pass  # Largest eigenvalue was not real.
 					else:
+							
 						# Test if the vector we found lies in the cone given by the condition matrix.
 						if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 							# If it does then we have a projectively invariant lamintation.
 							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():
-								# print('###', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
-								if invariant_lamination[0].number_field.lmbda == 1:
-									# print('###', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
-									raise flipper.AssumptionError('Mapping class is reducible.')
+								if j == 1:
+									if invariant_lamination[0].number_field.lmbda == 1:
+										# print('XXX')
+										raise flipper.AssumptionError('Mapping class is reducible.')
+									else:
+										# print('AAA', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
+										return invariant_lamination
 								else:
-									return invariant_lamination
+									if not invariant_lamination.projectively_equal(self(invariant_lamination)):
+										# print('YYY')
+										raise flipper.AssumptionError('Mapping class is reducible.')
+									else:
+										# We possibly could reconstruct something here but all the numbers are
+										# in the wrong number field. It's easier to just keep going.
+										pass
+										
 			
-			denominator = i+1
-			vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
-			new_curve = small_curve = triangulation.lamination(vector, remove_peripheral=True)
-			if not small_curve.is_empty():
-				for j in range(1, triangulation.max_order+1):
-					new_curve = self(new_curve)
-					if new_curve == small_curve:
-						# print('###', i, j, small_curve, '%0.3f' % 1)
-						raise flipper.AssumptionError('Mapping class is reducible.')
+			denominators = [min(new_curve) + 1, i + 1]  # Other strategies: (i // triangulation.max_order) + 1
+			for denominator in denominators:
+				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
+				new_small_curve = small_curve = triangulation.lamination(vector, remove_peripheral=True)
+				if not small_curve.is_empty():
+					for j in range(1, triangulation.max_order+1):
+						new_small_curve = self(new_small_curve)
+						if new_small_curve == small_curve:
+							# print('BBB', i, j, new_small_curve, '%0.3f' % 1)
+							# print('ZZZ')
+							raise flipper.AssumptionError('Mapping class is reducible.')
 			
 			curves.append(new_curve)
 		

@@ -319,7 +319,7 @@ class Encoding(object):
 		for i in range(50):
 			new_curve = self(curves[-1])
 			# print(new_curve)
-			# print('begin:', new_curve.projective_string())
+			# print(new_curve.projective_string())
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
@@ -328,7 +328,7 @@ class Encoding(object):
 			
 			for j in range(1, min(triangulation.max_order, len(curves))+1):
 				old_curve = curves[-j]
-				if projective_difference(new_curve, old_curve, 1000):
+				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
 					partial_function = (self**j).applied_function(average_curve)
 					action_matrix, condition_matrix = partial_function.action, partial_function.condition
@@ -337,7 +337,6 @@ class Encoding(object):
 					except flipper.AssumptionError:
 						pass  # Largest eigenvalue was not real.
 					else:
-							
 						# Test if the vector we found lies in the cone given by the condition matrix.
 						if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 							# If it does then we have a projectively invariant lamintation.
@@ -358,7 +357,6 @@ class Encoding(object):
 										# We possibly could reconstruct something here but all the numbers are
 										# in the wrong number field. It's easier to just keep going.
 										pass
-										
 			
 			denominators = [min(new_curve) + 1, i + 1]  # Other strategies: (i // triangulation.max_order) + 1
 			for denominator in denominators:

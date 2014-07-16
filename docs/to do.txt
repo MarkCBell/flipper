@@ -15,14 +15,13 @@ remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
 be able to (half) twist along all curves - construct chain
-add set accuracy to AlgebraicApproximation
-add support for Fractions to the number classes
 doc strings everywhere
 recheck ALL number theory bounds
-rewrite all tests and examples to a standard format
+completing the square
 
 ### Tests ###
 add more tests
 tests for every module
 switch to actual unit tests
+rewrite all tests and examples to a standard format
 

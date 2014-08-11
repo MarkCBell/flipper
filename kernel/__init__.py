@@ -1,6 +1,6 @@
 
 from . import abstracttriangulation
-from . import algebraicapproximation
+#from . import algebraicapproximation
 from . import algebraicnumber
 from . import encoding
 from . import error
@@ -22,8 +22,8 @@ from . import utilities
 # Set up shorter names for all of the different classes and some common constructors.
 AbstractTriangle = abstracttriangulation.AbstractTriangle
 AbstractTriangulation = abstracttriangulation.AbstractTriangulation
-AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 AlgebraicNumber = algebraicnumber.AlgebraicNumber
+AlgebraicApproximation = algebraicnumber.AlgebraicApproximation
 PartialFunction = encoding.PartialFunction
 PLFunction = encoding.PLFunction
 Encoding = encoding.Encoding
@@ -47,7 +47,7 @@ Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
 String_Type = types.String_Type
-height_int = algebraicapproximation.height_int
+height_int = algebraicnumber.height_int
 
 product = utilities.product
 

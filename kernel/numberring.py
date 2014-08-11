@@ -100,7 +100,7 @@ class NumberRingMonomial(object):
 		
 		if self._algebraic_approximation is None or self._accuracy < accuracy:
 			if self.is_one():
-				self._algebraic_approximation = flipper.kernel.algebraicapproximation.algebraic_approximation_from_int(1, degree=self.degree)
+				self._algebraic_approximation = flipper.kernel.algebraicnumber.algebraic_approximation_from_int(1, degree=self.degree)
 			else:
 				inter = flipper.kernel.product([gen.interval for gen, y in zip(N._generator_approxs, self) for i in range(y)])
 				generator_accuracy = accuracy + max(accuracy - inter.accuracy, 0)
@@ -212,22 +212,6 @@ class NumberRingElement(object):
 		
 		# Let:
 		N = self.number_ring
-		d = N.degree
-		# Let [I_i] := [\alpha_i.interval] and I := \alpha.interval = sum(a_i * I_i).
-		# As \alpha also lies in K = QQ(lambda) it also has degree at most d.
-		#
-		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) - sum(h(a_i)) [Interval.py L:13].
-		# As 
-		#	h(\alpha) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9]
-		# for \alpha to determine a unique algebraic number we need that:
-		#	acc(I) >= log(d) + h(\alpha).
-		# This is achieved if:
-		#	k - (d-1) - sum(h(a_i) >= log(d) + sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2).
-		# or equivalently that:
-		#	k >= 2 * sum(h(a_i)) + sum(h(\alpha_i)) + log(d) + (d-1) + (d-1) log(2).
-		#
-		# Therefore we start by setting the accuracy of each I_i to at least:
-		#	2 * (self.height + d).
 		accuracy_needed = int(self.height + self.degree) + 1  # This ensures the AlgebraicApproximation is well defined.
 		accuracy = max(accuracy, accuracy_needed)
 		
@@ -237,7 +221,6 @@ class NumberRingElement(object):
 			
 			self._accuracy = self._algebraic_approximation.accuracy
 			assert(self._accuracy >= accuracy)
-			# Now if accuracy was not None then self._accuracy >= accuracy.
 		
 		return self._algebraic_approximation
 	

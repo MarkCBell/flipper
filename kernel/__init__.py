@@ -1,6 +1,7 @@
 
 from . import abstracttriangulation
 from . import algebraicapproximation
+from . import algebraicnumber
 from . import encoding
 from . import error
 from . import interval
@@ -10,6 +11,7 @@ from . import lamination
 from . import layeredtriangulation
 from . import matrix
 from . import numberfield
+from . import numberring
 from . import permutation
 from . import polynomial
 from . import splittingsequence
@@ -21,6 +23,7 @@ from . import utilities
 AbstractTriangle = abstracttriangulation.AbstractTriangle
 AbstractTriangulation = abstracttriangulation.AbstractTriangulation
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
+AlgebraicNumber = algebraicnumber.AlgebraicNumber
 PartialFunction = encoding.PartialFunction
 PLFunction = encoding.PLFunction
 Encoding = encoding.Encoding
@@ -34,6 +37,7 @@ Lamination = lamination.Lamination
 LayeredTriangulation = layeredtriangulation.LayeredTriangulation
 Matrix = matrix.Matrix
 NumberField = numberfield.NumberField
+NumberRing = numberring.NumberRing
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
@@ -43,7 +47,9 @@ Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
 String_Type = types.String_Type
-log_height_int = algebraicapproximation.log_height_int
+height_int = algebraicapproximation.height_int
+
+product = utilities.product
 
 package = io.package
 depackage = io.depackage

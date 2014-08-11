@@ -118,7 +118,7 @@ class Encoding(object):
 				raise ValueError('Cannot compose Encodings over different triangulations.')
 			return Encoding(other.source_triangulation, self.target_triangulation, self.sequence + other.sequence)
 			# !?! Could do something like:
-			# return flipper.kernel.utilities.product(list(self) + [other.copy()])
+			# return flipper.kernel.product(list(self) + [other.copy()])
 		else:
 			return NotImplemented
 	def __pow__(self, k):

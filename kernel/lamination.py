@@ -291,7 +291,7 @@ class Lamination(object):
 			lamination = E(lamination)
 			encodings.append(E)
 		
-		return flipper.kernel.utilities.product(encodings)
+		return flipper.kernel.product(encodings)
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Returns this lamination on the triangulation obtained by collapsing edge edge_index.
@@ -413,7 +413,7 @@ class Lamination(object):
 				try:
 					if False:
 						curve = lamination.triangulation.regular_neighbourhood(edge_index)
-						pp_encoding = flipper.kernel.utilities.product(encodings[1:])
+						pp_encoding = flipper.kernel.product(encodings[1:])
 						curve_preimage = (pp_encoding.inverse())(curve)
 						for corner in curve_preimage.triangulation.corners:
 							if curve_preimage.triangulation.label_of_edge(corner.label) >= 0 and curve_preimage.is_bipod(corner):
@@ -448,10 +448,10 @@ class Lamination(object):
 							if None in encodings:
 								pp_encoding = None
 							else:
-								pp_encoding = flipper.kernel.utilities.product(encodings[:index+1])
+								pp_encoding = flipper.kernel.product(encodings[:index+1])
 								assert(pp_encoding.source_triangulation == self.triangulation)
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
-							p_encoding = flipper.kernel.utilities.product(encodings[index+1:])
+							p_encoding = flipper.kernel.product(encodings[index+1:])
 							p_flips = flips[index:]
 							
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)

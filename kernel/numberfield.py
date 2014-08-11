@@ -21,8 +21,8 @@ class NumberField(object):
 		self.polynomial_coefficients = self.polynomial.coefficients
 		self.degree = self.polynomial.degree
 		
-		self.log_height = self.polynomial.log_height
-		self.sum_log_height_powers = self.degree * self.degree * self.log_height / 2
+		self.height = self.polynomial.height
+		self.sum_height_powers = self.degree * self.degree * self.height / 2
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.current_accuracy = -1
@@ -36,9 +36,9 @@ class NumberField(object):
 	def lmbda_approximations(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
-			new_accuracy = max(2 * accuracy, int(self.degree * self.log_height + 10))
+			new_accuracy = max(2 * accuracy, int(self.degree * self.height + 10))
 			# We will compute a really accurate approximation of lmbda.
-			accuracy_needed = new_accuracy + 2 * self.degree * self.log_height + 10  # Check this !?!
+			accuracy_needed = new_accuracy + 2 * self.degree * self.height + 10  # Check this !?!
 			lmbda = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
 			# So that the accuracy of lmbda**i is at least new_accuracy.
 			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree+1)]
@@ -172,9 +172,9 @@ class NumberFieldElement(object):
 		#	k >= 2 * sum(h(a_i)) + sum(h(\alpha_i)) + log(d) + (d-1) + (d-1) log(2).
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
-		#	2 * (self.log_height + d).
-		log_height = sum(flipper.kernel.log_height_int(coefficient) for coefficient in self) + self.number_field.sum_log_height_powers + (self.number_field.degree-1) * log(2)
-		accuracy = max(accuracy, int(2 * log_height + d) + 1)
+		#	2 * (self.height + d).
+		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * log(2)
+		accuracy = max(accuracy, int(2 * height + d) + 1)
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
 			self._algebraic_approximation = flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))

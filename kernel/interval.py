@@ -21,6 +21,9 @@ import flipper
 class Interval(object):
 	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
+		assert(isinstance(lower, flipper.kernel.Integer_Type))
+		assert(isinstance(upper, flipper.kernel.Integer_Type))
+		assert(isinstance(precision, flipper.kernel.Integer_Type))
 		if lower > upper:
 			raise ValueError('Interval is empty.')
 		
@@ -30,12 +33,15 @@ class Interval(object):
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = float('inf') if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
+		
 	
 	def __repr__(self):
 		return self.approximate_string(6)
 	
 	def __float__(self):
 		return float(self.approximate_string(30)[:-1])
+	def __hash__(self):
+		return hash(self.tuple())
 	
 	def copy(self):
 		return Interval(self.lower, self.upper, self.precision)
@@ -59,8 +65,11 @@ class Interval(object):
 			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
 	def change_accuracy(self, new_accuracy):
 		assert(isinstance(new_accuracy, flipper.Integer_Type))
-		assert(new_accuracy <= self.accuracy)
-		return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
+		if self.accuracy == float('inf'):
+			return self
+		else:
+			assert(new_accuracy <= self.accuracy)
+			return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
 	def simplify(self):
 		d = self.precision - self.accuracy
 		if d > 1:
@@ -181,10 +190,6 @@ def interval_from_string(string):
 	x = int(i + r)
 	return Interval(x-1, x+1, len(r))
 
-def interval_from_int(integer, accuracy):
-	x = integer * 10**accuracy
-	return Interval(x-1, x+1, accuracy)
-
-def interval_from_fraction(numerator, accuracy):
-	return Interval(numerator-1, numerator+1, accuracy)
+def interval_from_int(integer):
+	return Interval(integer, integer, 0)
 

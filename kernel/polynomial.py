@@ -12,12 +12,12 @@ class Polynomial(object):
 	def __init__(self, coefficients):
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
-		self.height = max(max(abs(x) for x in self.coefficients), 1)
-		self.log_height = log(self.height)
+		height = max(max(abs(x) for x in self.coefficients), 1)
+		self.height = log(height)
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
 		self.accuracy = 0
 		
-		root_range = max(self.degree, 1) * self.height  # All roots of self must be in +/- this amount.
+		root_range = max(self.degree, 1) * height  # All roots of self must be in +/- this amount.
 		self.interval = flipper.kernel.Interval(-root_range, root_range, 0)
 	
 	def copy(self):
@@ -190,7 +190,7 @@ class Polynomial(object):
 	
 	def increase_accuracy(self, accuracy):
 		# You cannot set the accuracy to less than this:
-		accuracy = max(int(accuracy), int(log(max(self.degree, 1))) + 2 * int(self.log_height) + 20, 1)  # !?! Check this.
+		accuracy = max(int(accuracy), int(log(max(self.degree, 1))) + 2 * int(self.height) + 20, 1)  # !?! Check this.
 		if self.accuracy < accuracy:
 			self.interval = self.converge_iterate(self.interval, accuracy)
 			self.accuracy = self.interval.accuracy
@@ -200,7 +200,7 @@ class Polynomial(object):
 		# Returns an algebraic approximation of this polynomials leading root which has at least
 		# the requested accuracy.
 		self.increase_accuracy(accuracy)
-		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.log_height)
+		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
 	
 	def companion_matrix(self):
 		# Assumes that this polynomial is irreducible and monic.

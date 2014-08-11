@@ -1,12 +1,14 @@
 
 def product(iterable, start=1, left=True):
-	iterable = list(iterable)  # Shouldn't really do this.
-	if iterable:
-		value = iterable[0]
-		for item in iterable[1:]:
-			value = item * value if left else value * item
-	else:
-		value = start
+	value = None
+	for item in iterable:
+		if value is None:
+			value = item
+		elif left:
+			value = item * value
+		else:
+			value = value * item
+	if value is None: value = start
 	
 	return value
 

@@ -3,8 +3,8 @@ from __future__ import print_function
 
 import flipper
 
-algebraic_approximation_from_string = flipper.kernel.algebraicnumber.algebraic_approximation_from_string
-algebraic_approximation_from_integer = flipper.kernel.algebraicnumber.algebraic_approximation_from_integer
+algebraic_approximation_from_string = flipper.kernel.algebraicapproximation.algebraic_approximation_from_string
+algebraic_approximation_from_integer = flipper.kernel.algebraicapproximation.algebraic_approximation_from_integer
 
 def main():
 	# We acutally need quite a lot of accuracy in the given strings.

@@ -3,6 +3,8 @@ from importlib import import_module
 
 import flipper
 
+# !! Eventually change.
+
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
 #	compute the stable lamination exactly, and
 #	compute splitting sequences.
@@ -23,8 +25,6 @@ import flipper
 #		of L and a list of list of integers [[v_ij]] such that:
 #			v_i = sum(v_ij L**j).
 #		Throws a flipper.AssertionError if L is not real.
-# 
-# and a symbolic_libaray_name variable containing a string identifying the module. This is very useful for debugging.
 #
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
 
@@ -43,11 +43,8 @@ def load_library(library_name=None):
 
 def Perron_Frobenius_eigen(matrix, curve):
 	symbolic_computation_library = load_library()
-	eigenvalue_coefficients, eigenvector_coefficients = symbolic_computation_library.PF_eigen(matrix, curve)
-	eigenvalue_polynomial = flipper.kernel.Polynomial(eigenvalue_coefficients)
-	
-	N = flipper.kernel.NumberField(eigenvalue_polynomial)
-	eigenvector = [N.element(v) for v in eigenvector_coefficients]
-	
-	return eigenvector
+	if True:
+		return symbolic_computation_library.PF_eigen(matrix, curve)
+	else:
+		return symbolic_computation_library.PF_eigen2(matrix, curve)
 

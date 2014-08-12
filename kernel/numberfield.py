@@ -3,6 +3,8 @@ from math import log10 as log
 
 import flipper
 
+# !! Eventually remove.
+
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually
 # manipulate elements of ZZ[lambda]). This can even do multiplication of these 

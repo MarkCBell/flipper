@@ -2,10 +2,8 @@
 from functools import reduce
 
 import flipper
+# !! Eventually change.
 
-symbolic_libaray_name = 'dummy'
-
-# This is a duplicate of symboliccomputation_sage.
 def gram_schmidt(rows):
 	dot = flipper.kernel.matrix.dot
 	for i in range(len(rows)):
@@ -13,6 +11,12 @@ def gram_schmidt(rows):
 			a, b = dot(rows[i], rows[j]), dot(rows[j], rows[j])
 			rows[i] = [b * x - a * y for x, y in zip(rows[i], rows[j])]
 	return rows
+
+def project(vector, basis):
+	dot = flipper.kernel.matrix.dot
+	orthogonal_basis = gram_schmidt(basis)
+	linear_combination = [dot(vector, row) / dot(row, row) for row in orthogonal_basis]
+	return [sum(a * b[i] for a, b in zip(linear_combination, orthogonal_basis)) for i in range(len(vector))]
 
 def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
@@ -22,6 +26,7 @@ def PF_eigen(matrix, vector):
 	# We will calculate the eigenvector ourselves.
 	N = flipper.kernel.NumberField(eigenvalue_polynomial)
 	orthogonal_kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
+	# eigenvector = project(vector, orthogonal_kernel_basis)
 	dim_ker = len(orthogonal_kernel_basis)
 	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
 	product_lengths = [reduce(lambda x, y: x*y, [row_lengths[j] for j in range(dim_ker) if j != i], 1) for i in range(dim_ker)]

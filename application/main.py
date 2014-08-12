@@ -1197,7 +1197,7 @@ class FlipperApp(object):
 			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				try:
-					lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
+					dilatation, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					# dilatation = mapping_class.dilatation(lamination)
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
@@ -1429,7 +1429,8 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['invariant_lamination'] = flipper.application.apply_progression(mapping_class.invariant_lamination)
+					dilatation, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
+					self.cache[mapping_class]['invariant_lamination'] = lamination
 					self.unsaved_work = True
 					self.treeview_objects.item(iid, text='Invariant lamination')
 				if self.cache[mapping_class]['invariant_lamination'] is not None:

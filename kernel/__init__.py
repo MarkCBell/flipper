@@ -1,6 +1,6 @@
 
 from . import abstracttriangulation
-#from . import algebraicapproximation
+from . import algebraicapproximation
 from . import algebraicnumber
 from . import encoding
 from . import error
@@ -22,8 +22,8 @@ from . import utilities
 # Set up shorter names for all of the different classes and some common constructors.
 AbstractTriangle = abstracttriangulation.AbstractTriangle
 AbstractTriangulation = abstracttriangulation.AbstractTriangulation
-AlgebraicNumber = algebraicnumber.AlgebraicNumber
-AlgebraicApproximation = algebraicnumber.AlgebraicApproximation
+PolynomialRoot = algebraicnumber.PolynomialRoot
+AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 PartialFunction = encoding.PartialFunction
 PLFunction = encoding.PLFunction
 Encoding = encoding.Encoding
@@ -37,8 +37,9 @@ Lamination = lamination.Lamination
 LayeredTriangulation = layeredtriangulation.LayeredTriangulation
 Matrix = matrix.Matrix
 NumberField = numberfield.NumberField
-NumberRingMonomial = numberring.NumberRingMonomial
-NumberRingElement = numberring.NumberRingElement
+PolynomialRoot = algebraicnumber.PolynomialRoot
+AlgebraicMonomial = algebraicnumber.AlgebraicMonomial
+AlgebraicNumber = algebraicnumber.AlgebraicNumber
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence

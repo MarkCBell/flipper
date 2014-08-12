@@ -1,10 +1,19 @@
 
 from sage.all import Matrix, lcm, NumberField
-from flipper.kernel.symboliccomputation_dummy import gram_schmidt
+from flipper.kernel.symboliccomputation_dummy import project
 
 import flipper
+# !! Eventually change.
 
-symbolic_libaray_name = 'sage'
+def minpoly_coefficients(algebraic_number):
+	polynomial = algebraic_number.minpoly()
+	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
+	return [int(scale * x) for x in polynomial.coeffs()]
+
+def minpoly_coefficients2(algebraic_number):
+	polynomial = algebraic_number.polynomial()
+	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
+	return [int(scale * x) for x in polynomial.coeffs()]
 
 def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
@@ -15,20 +24,29 @@ def PF_eigen(matrix, vector):
 	if eigenvalue.imag() != 0:
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
-	polynomial = eigenvalue.minpoly()
-	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
-	eigenvalue_coefficients = [int(scale * x) for x in polynomial.coeffs()]
+	eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
 	
-	K = NumberField(polynomial, 'L', embedding=eigenvalue.n())
-	[lam] = K.gens()
+	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
+	eigenvector = project(vector, (M - lam).right_kernel_matrix().rows())
+	eigenvector_coefficients = [minpoly_coefficients2(entry) for entry in eigenvector]
 	
-	orthogonal_kernel_basis = gram_schmidt((M - lam).right_kernel_matrix().rows())
-	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
-	linear_combination = [dot(vector, row) / row_length for row, row_length in zip(orthogonal_kernel_basis, row_lengths)]
-	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
+	eigenvalue_polynomial = flipper.kernel.Polynomial(eigenvalue_coefficients)
+	N = flipper.kernel.NumberField(eigenvalue_polynomial)
+	return N.lmbda, [N.element(v) for v in eigenvector_coefficients]
+
+def PF_eigen2(matrix, vector):
+	algebraic_ring_element_from_info = flipper.kernel.algebraicnumber.algebraic_number_from_info
+	M = Matrix(matrix.rows)
 	
-	scale2 = abs(lcm([x.denominator() for v in eigenvector for x in v.polynomial().coeffs()]))
-	eigenvector_coefficients = [[int(scale2 * x) for x in v.polynomial().coeffs()] for v in eigenvector]
+	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
+	# Make sure that the eigenvalue that we've got is real.
+	if eigenvalue.imag() != 0:
+		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
-	return eigenvalue_coefficients, eigenvector_coefficients
+	flipper_eigenvalue = algebraic_ring_element_from_info(minpoly_coefficients(eigenvalue), str(eigenvalue.n(100)))  # !?! Check this 100.
+	
+	eigenvector = project(vector, (M - eigenvalue).right_kernel().basis())
+	flipper_eigenvector = [algebraic_ring_element_from_info(minpoly_coefficients(entry), str(entry.n(100))) for entry in eigenvector]  # Check.
+	
+	return flipper_eigenvalue, flipper_eigenvector
 

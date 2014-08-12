@@ -114,20 +114,6 @@ class Polynomial(object):
 	def rescale(self):
 		return Polynomial(flipper.kernel.matrix.rescale(self))
 	
-	def remove_factors(self, possible_factors):
-		# Returns self with all factors in possible_factors removed.
-		p = self.copy()
-		if not self.is_zero():
-			for q in possible_factors:
-				Q, R = p, Polynomial([0]), 
-				while R.is_zero():
-					p = Q
-					Q, R, _ = p.divmod(q)
-		return p
-	def simplify(self):
-		assert(False)
-		return self.remove_factors(cyclotomic_polynomials(self.degree))
-	
 	def signs_at_interval_endpoints(self, interval):
 		s1 = sum(coefficient * interval.lower**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))
 		s2 = sum(coefficient * interval.upper**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))
@@ -210,23 +196,4 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
-
-
-def cyclotomic_polynomials(n):
-	# Returns a list containing the first n cyclotomic polynomials.
-	
-	small_cyclotomic_polynomials = [Polynomial([0]),
-		Polynomial([-1, 1]), Polynomial([1, 1]), Polynomial([1, 1, 1]), Polynomial([1, 0, 1]),
-		Polynomial([1, 1, 1, 1, 1]), Polynomial([1, -1, 1]), Polynomial([1, 1, 1, 1, 1, 1, 1]),
-		Polynomial([1, 0, 0, 0, 1]), Polynomial([1, 0, 0, 1, 0, 0, 1]), Polynomial([1, -1, 1, -1, 1])
-		]
-	
-	for i in range(11, n+1):
-		p = Polynomial([-1] + [0]*(i-1) + [1])
-		for j in range(1, i):
-			if i % j == 0:
-				p = p // small_cyclotomic_polynomials[j]
-		small_cyclotomic_polynomials.append(p)
-	
-	return small_cyclotomic_polynomials[1:n+1]
 

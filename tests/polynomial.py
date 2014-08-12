@@ -6,7 +6,7 @@ import flipper
 def main():
 	f = flipper.kernel.Polynomial([-2, 0, 1])  # f = x^2 - 2.
 	try:
-		AA = f.algebraic_approximate_leading_root(10)
+		AA = f.algebraic_approximate_leading_root(10)  # !! Eventually change.
 		assert(AA * AA == 2)
 	except AssertionError:
 		return False

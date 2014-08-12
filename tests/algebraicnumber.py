@@ -8,9 +8,9 @@ algebraic_number_from_info = flipper.kernel.algebraicnumber.algebraic_number_fro
 
 def main(verbose=False):
 	start_time = time()
-	a = algebraic_number_from_info([-2, 0, 1], '1.41').as_ring_element()
-	b = algebraic_number_from_info([-3, 0, 1], '1.732').as_ring_element()
-	c = algebraic_number_from_info([-1001, 0, 1], '31.639').as_ring_element()
+	a = algebraic_number_from_info([-2, 0, 1], '1.41')  # sqrt(2).
+	b = algebraic_number_from_info([-3, 0, 1], '1.732')  # sqrt(3).
+	c = algebraic_number_from_info([-1001, 0, 1], '31.639')  # sqrt(1001).
 	
 	# Add more tests here.
 	try:

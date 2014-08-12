@@ -56,6 +56,9 @@ class AlgebraicNumber(object):
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
 
+def algebraic_number_from_info(coefficients, strn, degree=None):
+	return AlgebraicNumber(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval.interval_from_string(strn), degree)
+
 class AlgebraicApproximation(object):
 	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 
 	on the degree and height of the number to uniquely determine it. ''' 

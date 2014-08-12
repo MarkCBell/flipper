@@ -103,8 +103,8 @@ class NumberRingMonomial(object):
 				self._algebraic_approximation = flipper.kernel.algebraicnumber.algebraic_approximation_from_int(1, degree=self.degree)
 			else:
 				inter = flipper.kernel.product([gen.interval for gen, y in zip(N._generator_approxs, self) for i in range(y)])
-				generator_accuracy = accuracy + max(accuracy - inter.accuracy, 0)
-				self._algebraic_approximation = flipper.kernel.product([gen for gen, y in zip(N.algebraic_approximations(generator_accuracy), self) for i in range(y)])
+				generator_accuracy = accuracy + max(accuracy - inter.accuracy, 0)  # Recheck this!
+				self._algebraic_approximation = flipper.kernel.product([gen**y for gen, y in zip(N.algebraic_approximations(generator_accuracy), self)])
 			
 			self._accuracy = self._algebraic_approximation.accuracy
 			assert(self._accuracy >= accuracy)
@@ -206,8 +206,8 @@ class NumberRingElement(object):
 			return NotImplemented
 	
 	def algebraic_approximation(self, accuracy=0):
-		''' Returns an AlgebraicApproximation of this element which is correct to at least the 
-		requested accuracy. If no accuracy is given then accuracy will be chosen such that 
+		''' Returns an AlgebraicApproximation of this element which is correct to at least the
+		requested accuracy. If no accuracy is given then accuracy will be chosen such that
 		the approximation will determine a unique algebraic number. '''
 		
 		# Let:
@@ -216,7 +216,7 @@ class NumberRingElement(object):
 		accuracy = max(accuracy, accuracy_needed)
 		
 		if self._algebraic_approximation is None or self._accuracy < accuracy:
-			monomial_accuracy = accuracy + sum(flipper.kernel.height_int(self.co(term)) for term in self) + self.degree
+			monomial_accuracy = accuracy + sum(flipper.kernel.height_int(self.co(term)) for term in self) + 2 * self.degree  # Recheck this!
 			self._algebraic_approximation = sum(self.co(term) * term.algebraic_approximation(monomial_accuracy) for term in self)
 			
 			self._accuracy = self._algebraic_approximation.accuracy

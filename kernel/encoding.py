@@ -269,7 +269,7 @@ class Encoding(object):
 			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def invariant_lamination(self):
-		''' Returns a lamination (with entries in a NumberField) which is projectively invariant
+		''' Returns an algebraic number and lamination which is projectively invariant
 		under this mapping class. If it cannot find one then it raises a ComputationError.
 		Assumes that the mapping class is pseudo-Anosov. If it is periodic it will discover this
 		if it is reducible it may discover this.
@@ -318,12 +318,9 @@ class Encoding(object):
 		
 		for i in range(50):
 			new_curve = self(curves[-1])
-			# print(new_curve)
-			# print(new_curve.projective_string())
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
-				# print('WWW')
 				raise flipper.AssumptionError('Mapping class is reducible.')
 			
 			for j in range(1, min(triangulation.max_order, len(curves))+1):
@@ -333,7 +330,7 @@ class Encoding(object):
 					partial_function = (self**j).applied_function(average_curve)
 					action_matrix, condition_matrix = partial_function.action, partial_function.condition
 					try:
-						eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
+						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
 					except flipper.AssumptionError:
 						pass  # Largest eigenvalue was not real.
 					else:
@@ -343,15 +340,12 @@ class Encoding(object):
 							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 							if not invariant_lamination.is_empty():
 								if j == 1:
-									if invariant_lamination[0].number_field.lmbda == 1:
-										# print('XXX')
+									if eigenvalue == 1:
 										raise flipper.AssumptionError('Mapping class is reducible.')
 									else:
-										# print('AAA', i, j, '-', '%0.3f' % eigenvector[0].number_field.lmbda)
-										return invariant_lamination
+										return eigenvalue, invariant_lamination
 								else:
 									if not invariant_lamination.projectively_equal(self(invariant_lamination)):
-										# print('YYY')
 										raise flipper.AssumptionError('Mapping class is reducible.')
 									else:
 										# We possibly could reconstruct something here but all the numbers are
@@ -366,8 +360,6 @@ class Encoding(object):
 					for j in range(1, triangulation.max_order+1):
 						new_small_curve = self(new_small_curve)
 						if new_small_curve == small_curve:
-							# print('BBB', i, j, new_small_curve, '%0.3f' % 1)
-							# print('ZZZ')
 							raise flipper.AssumptionError('Mapping class is reducible.')
 			
 			curves.append(new_curve)
@@ -380,7 +372,7 @@ class Encoding(object):
 			return NT_TYPE_PERIODIC
 		else:
 			try:
-				lamination = self.invariant_lamination()
+				eigenvalue, lamination = self.invariant_lamination()
 			except flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
@@ -418,8 +410,7 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
-		dilatation = lamination[0].number_field.lmbda
+		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.

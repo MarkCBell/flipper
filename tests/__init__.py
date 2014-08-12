@@ -7,6 +7,7 @@
 
 from . import abstracttriangulation
 from . import algebraicapproximation
+from . import algebraicnumber
 from . import encoding
 from . import interval
 from . import lamination
@@ -15,3 +16,4 @@ from . import matrix
 from . import numberfield
 from . import permutation
 from . import polynomial
+

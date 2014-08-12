@@ -31,20 +31,20 @@ def height_int(number):
 	return log(max(abs(number), 1))
 
 class AlgebraicNumber(object):
-	def __init__(self, polynomial, interval, degree=None):
+	def __init__(self, polynomial, interval):
 		# Assumes that polynomial has exactly one root in interval.
 		assert(isinstance(polynomial, flipper.kernel.Polynomial))
 		assert(isinstance(interval, flipper.kernel.Interval))
 		self.polynomial = polynomial
 		self.interval = interval
-		self.degree = degree if degree is not None else self.polynomial.degree
+		self.degree = self.polynomial.degree
 		self.height = self.polynomial.height + 2 * log(self.degree)
 		
 		if self.polynomial.num_roots(self.interval) != 1:
 			raise flipper.AssumptionError('%d roots in interval, not one.' % self.polynomial.num_roots(self.interval))
 	
 	def __repr__(self):
-		return '%s' % str(self.interval)
+		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	
 	def algebraic_approximation(self, accuracy=0):
 		
@@ -55,17 +55,23 @@ class AlgebraicNumber(object):
 			self.interval = self.polynomial.converge_iterate(self.interval, accuracy)
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
+	
+	def as_ring_monomial(self):
+		return flipper.kernel.NumberRingMonomial([self])
+	
+	def as_ring_element(self):
+		return flipper.kernel.NumberRingElement({self.as_ring_monomial(): 1})
 
-def algebraic_number_from_info(coefficients, strn, degree=None):
-	return AlgebraicNumber(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval.interval_from_string(strn), degree)
+def algebraic_number_from_info(coefficients, strn):
+	return AlgebraicNumber(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval.interval_from_string(strn))
 
 class AlgebraicApproximation(object):
 	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 
-	on the degree and height of the number to uniquely determine it. ''' 
+	on the degree and height of the number to uniquely determine it. '''
 	def __init__(self, interval, degree, height):
 		''' This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-		by an interval with contains the number, an upper bound on the degree of the field extension in which this number lives and an
-		upper bound on the log height of this number. '''
+		by an interval with contains the number, an upper bound on the degree of the field extension in which this 
+		number lives and an upper bound on the height of this number. '''
 		self.interval = interval
 		self.degree = degree
 		self.accuracy = self.interval.accuracy
@@ -76,7 +82,7 @@ class AlgebraicApproximation(object):
 		# An algebraic approximation is good if it is known to more places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.accuracy < self.accuracy_needed:
-			raise flipper.kernel.error.ApproximationError('An algebraic number with degree at most %d and height at most %f requires an interval with accuracy at least %d not %d.' % (self.degree, self.height, self.accuracy_needed, self.accuracy))
+			raise flipper.kernel.ApproximationError('An algebraic number with degree at most %d and height at most %0.3f requires an interval with accuracy at least %d not %d.' % (self.degree, self.height, self.accuracy_needed, self.accuracy))
 	
 	def __repr__(self):
 		return repr((self.interval, self.degree, self.height))
@@ -96,7 +102,7 @@ class AlgebraicApproximation(object):
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval + other.interval, self.degree, self.height + other.height + log(2))
+			return AlgebraicApproximation(self.interval + other.interval, self.degree * other.degree, self.height + other.height + log(2))
 		elif isinstance(other, flipper.kernel.Integer_Type):
 			return AlgebraicApproximation(self.interval + other, self.degree, self.height + height_int(other) + log(2))
 		else:
@@ -105,7 +111,7 @@ class AlgebraicApproximation(object):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval - other.interval, self.degree, self.height + other.height + log(2))
+			return AlgebraicApproximation(self.interval - other.interval, self.degree * other.degree, self.height + other.height + log(2))
 		elif isinstance(other, flipper.kernel.Integer_Type):
 			return AlgebraicApproximation(self.interval - other, self.degree, self.height + height_int(other) + log(2))
 		else:
@@ -114,7 +120,7 @@ class AlgebraicApproximation(object):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval * other.interval, self.degree, self.height + other.height)
+			return AlgebraicApproximation(self.interval * other.interval, self.degree * other.degree, self.height + other.height)
 		elif isinstance(other, flipper.kernel.Integer_Type):
 			return AlgebraicApproximation(self.interval * other, self.degree, self.height + height_int(other))
 		else:
@@ -123,7 +129,7 @@ class AlgebraicApproximation(object):
 		return self * other
 	def __pow__(self, power):
 		if power == 0:
-			return algebraic_approximation_from_int(1, self.degree)
+			return algebraic_approximation_from_integer(1)
 		if power > 0:
 			sqrt = self**(power//2)
 			square = sqrt * sqrt
@@ -133,7 +139,7 @@ class AlgebraicApproximation(object):
 				return square
 	def __div__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval / other.interval, self.degree, self.height + other.height)
+			return AlgebraicApproximation(self.interval / other.interval, self.degree * other.degree, self.height + other.height)
 		elif isinstance(other, flipper.kernel.Integer_Type):
 			return AlgebraicApproximation(self.interval / other, self.degree, self.height + height_int(other))
 		else:
@@ -144,7 +150,7 @@ class AlgebraicApproximation(object):
 		if isinstance(other, flipper.kernel.Integer_Type):
 			return AlgebraicApproximation(other / self.interval, self.degree, self.height + height_int(other))
 		else:
-			return NotImplemented  # !?!
+			return NotImplemented
 	def __rtruediv__(self, other):
 		return self.__rdiv__(other)
 	
@@ -175,9 +181,6 @@ class AlgebraicApproximation(object):
 def algebraic_approximation_from_string(string, degree, height):
 	return AlgebraicApproximation(flipper.kernel.interval.interval_from_string(string), degree, height)
 
-def algebraic_approximation_from_int(integer, degree=1):
-	return AlgebraicApproximation(flipper.kernel.interval.interval_from_int(integer), degree, 1)
-
-def algebraic_approximation_from_fraction(numerator, accuracy, degree, height):
-	return AlgebraicApproximation(flipper.kernel.interval.interval_from_fraction(numerator, accuracy), degree, height)
+def algebraic_approximation_from_integer(integer):
+	return AlgebraicApproximation(flipper.kernel.interval.interval_from_int(integer), 1, 1)
 

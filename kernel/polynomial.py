@@ -125,6 +125,7 @@ class Polynomial(object):
 					Q, R, _ = p.divmod(q)
 		return p
 	def simplify(self):
+		assert(False)
 		return self.remove_factors(cyclotomic_polynomials(self.degree))
 	
 	def signs_at_interval_endpoints(self, interval):
@@ -196,13 +197,13 @@ class Polynomial(object):
 			self.accuracy = self.interval.accuracy
 			assert(self.accuracy >= accuracy)  # Let's just make sure.
 	
-	def algebraic_approximate_leading_root(self, accuracy):
+	def algebraic_approximate_leading_root(self, accuracy):  # !! Eventually remove.
 		# Returns an algebraic approximation of this polynomials leading root which has at least
 		# the requested accuracy.
 		self.increase_accuracy(accuracy)
 		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
 	
-	def companion_matrix(self):
+	def companion_matrix(self):  # !! Eventually remove.
 		# Assumes that this polynomial is irreducible and monic.
 		if not self.is_monic():
 			raise flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')

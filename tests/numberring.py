@@ -3,13 +3,14 @@ from __future__ import print_function
 from time import time
 
 import flipper
+
 algebraic_number_from_info = flipper.kernel.algebraicnumber.algebraic_number_from_info
+
 def main(verbose=False):
 	start_time = time()
-	x = algebraic_number_from_info([-2, 0, 1], '1.41')
-	y = algebraic_number_from_info([-3, 0, 1], '1.732')
-	z = algebraic_number_from_info([-1001, 0, 1], '31.639')
-	[a, b, c] = flipper.kernel.NumberRing([x, y, z]).basis()
+	a = algebraic_number_from_info([-2, 0, 1], '1.41').as_ring_element()
+	b = algebraic_number_from_info([-3, 0, 1], '1.732').as_ring_element()
+	c = algebraic_number_from_info([-1001, 0, 1], '31.639').as_ring_element()
 	
 	# Add more tests here.
 	try:

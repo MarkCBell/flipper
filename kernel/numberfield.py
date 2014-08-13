@@ -100,7 +100,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a+b for a, b in zip(self, other)])
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] + other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -111,7 +111,7 @@ class NumberFieldElement(object):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot subtract elements of different number fields.')
 			return NumberFieldElement(self.number_field, [a-b for a, b in zip(self, other)])
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return NumberFieldElement(self.number_field, [self.linear_combination[0] - other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
@@ -125,7 +125,7 @@ class NumberFieldElement(object):
 				raise TypeError('Cannot multiply elements of different number fields.')
 			
 			return self.number_field.element(self.multiplicative_matrix() * other.linear_combination)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return self.number_field.element([a * other for a in self])
 		else:
 			return NotImplemented

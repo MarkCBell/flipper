@@ -21,9 +21,9 @@ import flipper
 class Interval(object):
 	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
-		assert(isinstance(lower, flipper.kernel.Integer_Type))
-		assert(isinstance(upper, flipper.kernel.Integer_Type))
-		assert(isinstance(precision, flipper.kernel.Integer_Type))
+		assert(isinstance(lower, flipper.Integer_Type))
+		assert(isinstance(upper, flipper.Integer_Type))
+		assert(isinstance(precision, flipper.Integer_Type))
 		if lower > upper:
 			raise ValueError('Interval is empty.')
 		
@@ -55,7 +55,7 @@ class Interval(object):
 	def tuple(self):
 		return (self.lower, self.upper, self.precision)
 	def change_denominator(self, new_denominator):
-		assert(isinstance(new_denominator, flipper.kernel.Integer_Type))
+		assert(isinstance(new_denominator, flipper.Integer_Type))
 		d = new_denominator - self.precision
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
@@ -79,7 +79,7 @@ class Interval(object):
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return self.lower < other * 10**self.precision < self.upper
 		else:
 			return NotImplemented
@@ -99,7 +99,7 @@ class Interval(object):
 			new_lower = P.lower + Q.lower
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -112,7 +112,7 @@ class Interval(object):
 			new_lower = P.lower - Q.upper
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -124,7 +124,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -151,7 +151,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			values = [self.lower // other, self.upper // other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -159,7 +159,7 @@ class Interval(object):
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __rdiv__(self, other):
-		if isinstance(other, flipper.kernel.Integer_Type):
+		if isinstance(other, flipper.Integer_Type):
 			# !?! RECHECK THIS!
 			return interval_from_int(other, self.precision) / self
 		else:

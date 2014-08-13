@@ -967,7 +967,7 @@ class FlipperApp(object):
 				
 				curve.counted = True
 		
-		if all(isinstance(x, flipper.kernel.Integer_Type) and x % 2 == 0 for x in vector):
+		if all(isinstance(x, flipper.Integer_Type) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]
 		else:
 			vector = [i / 2 for i in vector]

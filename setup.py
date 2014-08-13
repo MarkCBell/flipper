@@ -42,6 +42,33 @@ class TestCommand(Command):
 			else:
 				print('\tAll tests passed.')
 
+# So we can access all of the profiling suite just by doing 'python setup.py profile'
+class ProfileCommand(Command):
+	description = 'Runs all tests in the tests directory.'
+	user_options = []
+	
+	def initialize_options(self):
+		pass
+	
+	def finalize_options(self):
+		pass
+	
+	def run(self):
+		''' Runs all of the tests in the tests directory. '''
+		profile_module = importlib.import_module('flipper.profiles')
+		try:
+			profile_module = importlib.import_module('flipper.profiles')
+		except ImportError:
+			print('flipper module unavailable, install by running: \n>>> python setup.py install [--user]')
+		else:
+			for profile_name in dir(profile_module):
+				if not profile_name.startswith('_') and profile_name != 'flipper':
+					profile = importlib.import_module('flipper.profiles.%s' % profile_name)
+					print('Running %s profile...' % profile_name)
+					print('\tRan in %0.3fs' % profile.main())
+			
+			print('Finished profiling.')
+
 setup(
 	name='flipper',
 	version=flipper_version,
@@ -52,7 +79,14 @@ setup(
 	packages=['flipper'],
 	package_dir={'flipper': ''},
 	# Remember to update these if the directory structure changes.
-	package_data={'flipper': ['application/*.py', 'application/icon/*', 'application/docs/*', 'examples/*.py', 'kernel/*.py', 'tests/*.py', 'profile/*.py', 'docs/*', 'version.py']},
-	cmdclass={'test': TestCommand}
+	package_data={'flipper':
+		['application/*.py', 'application/icon/*', 'application/docs/*',
+		'examples/*.py',
+		'kernel/*.py',
+		'tests/*.py',
+		'profiles/*.py',
+		'docs/*',
+		'version.py']},
+	cmdclass={'test': TestCommand, 'profile': ProfileCommand}
 	)
 

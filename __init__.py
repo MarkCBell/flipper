@@ -3,6 +3,7 @@
 import flipper.kernel
 import flipper.examples
 import flipper.tests
+import flipper.profiles
 import flipper.version
 
 # Set up really short names for the most commonly used classes and functions by users.

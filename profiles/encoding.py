@@ -2,6 +2,7 @@
 from __future__ import print_function
 from time import time
 import cProfile
+import pstats
 
 import flipper
 
@@ -40,7 +41,7 @@ def main():
 	return time() - start_time
 
 if __name__ == '__main__':
-	cProfile.run('main()', 'foo', sort='time')
-	import pstats
-	p = pstats.Stats('foo').sort_stats('time').print_stats(20)
+	# pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callers(20)
+	# pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callees(20)
+	pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_stats(20)
 

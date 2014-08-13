@@ -43,8 +43,6 @@ def load_library(library_name=None):
 
 def Perron_Frobenius_eigen(matrix, curve):
 	symbolic_computation_library = load_library()
-	if True:
-		return symbolic_computation_library.PF_eigen(matrix, curve)
-	else:
-		return symbolic_computation_library.PF_eigen2(matrix, curve)
+	return symbolic_computation_library.PF_eigen(matrix, curve)
+	return symbolic_computation_library.PF_eigen2(matrix, curve)
 

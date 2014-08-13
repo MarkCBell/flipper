@@ -300,12 +300,13 @@ class Matrix(object):
 			return Matrix(new_rows + non_rows + neg_rows).discard_column(index)
 	
 	def nontrivial_polytope2(self):
+		# This is currently wrong!
 		A = self.copy()
 		A = A.basic_simplify()
 		while A.height > 1:
 			A = A.FM_eliminate()
 			A = A.basic_simplify()
-		return any(x > 0 for x in A[0])
+		return any(x >= 0 for x in A[0])
 	
 	def find_edge_vector(self):
 		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or 

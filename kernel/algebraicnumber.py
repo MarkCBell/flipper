@@ -15,8 +15,8 @@ class PolynomialRoot(object):
 		assert(isinstance(interval, flipper.kernel.Interval))
 		self.polynomial = polynomial
 		self.interval = interval
-		self.degree = self.polynomial.degree
-		self.height = self.polynomial.height + 2 * log(self.degree)
+		self.log_degree = self.polynomial.log_degree
+		self.height = self.polynomial.height + 2 * self.log_degree
 		
 		if self.polynomial.num_roots(self.interval) != 1:
 			raise flipper.AssumptionError('Interval does not determine unique root of polynomial.')
@@ -25,14 +25,14 @@ class PolynomialRoot(object):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	
 	def algebraic_approximation(self, accuracy=0):
+		accuracy_needed = int(self.height) + int(self.log_degree) + 2
+		accuracy_required = max(accuracy, accuracy_needed)
 		
-		accuracy_needed = int(self.height) + int(log(self.degree)) + 2
-		accuracy = max(accuracy, accuracy_needed)
+		if self.interval.accuracy < accuracy_required:
+			print('poly', accuracy, accuracy_required, self.interval.accuracy)
+			self.interval = self.polynomial.converge_iterate(self.interval, accuracy_required)
 		
-		if self.interval.accuracy < accuracy:
-			self.interval = self.polynomial.converge_iterate(self.interval, accuracy)
-		
-		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
+		return flipper.kernel.AlgebraicApproximation(self.interval, self.log_degree, self.height)
 	
 	def as_algebraic_monomial(self):
 		return flipper.kernel.AlgebraicMonomial([self])
@@ -47,7 +47,7 @@ class AlgebraicMonomial(object):
 		assert(isinstance(terms, (list, tuple)))
 		assert(all(isinstance(term, flipper.kernel.PolynomialRoot) for term in terms))
 		self.terms = tuple(sorted(terms))
-		self.degree = flipper.kernel.product(term.degree for term in self)  # Switch to log degree?
+		self.log_degree = sum(term.log_degree for term in self)
 		self.height = sum(term.height for term in self)
 		self._algebraic_approximation = None
 		self._accuracy = -1
@@ -77,19 +77,20 @@ class AlgebraicMonomial(object):
 		requested accuracy. If no accuracy is given then accuracy will be chosen such that
 		the approximation will determine a unique algebraic number. '''
 		# Let:
-		accuracy_needed = int(self.height) + int(log(self.degree)) + 2  # This ensures the AlgebraicApproximation is well defined.
-		accuracy = max(accuracy, accuracy_needed)
+		accuracy_needed = int(self.height) + int(self.log_degree) + 2  # This ensures the AlgebraicApproximation is well defined.
+		accuracy_required = max(accuracy, accuracy_needed)
 		
-		if self._algebraic_approximation is None or self._accuracy < accuracy:
+		if self._algebraic_approximation is None or self._accuracy < accuracy_required:
 			if self.is_one():
 				self._algebraic_approximation = flipper.kernel.algebraicapproximation.algebraic_approximation_from_integer(1)
 			else:
 				inter = flipper.kernel.product([term.interval for term in self])
-				term_accuracy = accuracy + max(accuracy - inter.accuracy, 0)  # Recheck this!
+				term_accuracy = accuracy_required + max(accuracy_required - inter.accuracy, 0)  # Recheck this!
+				print('monomial', accuracy, accuracy_required, term_accuracy)
 				self._algebraic_approximation = flipper.kernel.product([term.algebraic_approximation(term_accuracy) for term in self])
 			
 			self._accuracy = self._algebraic_approximation.accuracy
-			assert(self._accuracy >= accuracy)
+			assert(self._accuracy >= accuracy_required)
 		
 		return self._algebraic_approximation
 
@@ -98,10 +99,10 @@ class AlgebraicNumber(object):
 	def __init__(self, terms):
 		assert(isinstance(terms, dict))
 		assert(all(isinstance(term, AlgebraicMonomial) for term in terms))
-		assert(all(isinstance(terms[term], flipper.kernel.Integer_Type) for term in terms))
+		assert(all(isinstance(terms[term], flipper.Integer_Type) for term in terms))
 		assert(len(set(terms)) == len(terms))  # Check for repeated terms.
-		self.terms = terms
-		self.degree = flipper.kernel.product([term.degree for term in self])
+		self.terms = dict((term, terms[term]) for term in terms if terms[term] != 0)
+		self.log_degree = sum(term.log_degree for term in self)
 		self.height = sum(flipper.kernel.height_int(self.co(term)) + term.height + 1 for term in self)
 		self._algebraic_approximation = None
 		self._accuracy = -1
@@ -122,7 +123,7 @@ class AlgebraicNumber(object):
 	def __add__(self, other):
 		if isinstance(other, AlgebraicNumber):
 			return AlgebraicNumber(dict((term, self.co(term) + other.co(term)) for term in self.common_terms(other)))
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return self + other * AlgebraicNumber({AlgebraicMonomial([]): 1})
 		else:
 			return NotImplemented
@@ -131,7 +132,7 @@ class AlgebraicNumber(object):
 	def __sub__(self, other):
 		if isinstance(other, AlgebraicNumber):
 			return AlgebraicNumber(dict((term, self.co(term) - other.co(term)) for term in self.common_terms(other)))
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return self - other * AlgebraicNumber({AlgebraicMonomial([]): 1})
 		else:
 			return NotImplemented
@@ -140,7 +141,7 @@ class AlgebraicNumber(object):
 	def __mul__(self, other):
 		if isinstance(other, AlgebraicNumber):
 			return sum(AlgebraicNumber(dict((term1 * term2, self.co(term1) * other.co(term2)) for term2 in other)) for term1 in self)
-		elif isinstance(other, flipper.kernel.Integer_Type):
+		elif isinstance(other, flipper.Integer_Type):
 			return AlgebraicNumber(dict((term, other * self.co(term)) for term in self))
 		else:
 			return NotImplemented
@@ -183,15 +184,16 @@ class AlgebraicNumber(object):
 		the approximation will determine a unique algebraic number. '''
 		
 		# Let:
-		accuracy_needed = int(self.height) + int(log(self.degree)) + 2  # This ensures the AlgebraicApproximation is well defined.
-		accuracy = max(accuracy, accuracy_needed)
+		accuracy_needed = int(self.height) + int(self.log_degree) + 2  # This ensures the AlgebraicApproximation is well defined.
+		accuracy_required = max(accuracy, accuracy_needed)
 		
-		if self._algebraic_approximation is None or self._accuracy < accuracy:
-			monomial_accuracy = accuracy + sum(flipper.kernel.height_int(self.co(term)) for term in self) + 2 * int(log(self.degree)) + 1  # Recheck this!
+		if self._algebraic_approximation is None or self._accuracy < accuracy_required:
+			monomial_accuracy = accuracy_required + int(sum(flipper.kernel.height_int(self.co(term)) + 1 for term in self) + 2 * int(self.log_degree))  # Recheck this!
+			print('alg', accuracy, accuracy_required, monomial_accuracy)
 			self._algebraic_approximation = sum(self.co(term) * term.algebraic_approximation(monomial_accuracy) for term in self)
 			
 			self._accuracy = self._algebraic_approximation.accuracy
-			assert(self._accuracy >= accuracy)
+			assert(self._accuracy >= accuracy_required)
 		
 		return self._algebraic_approximation
 	

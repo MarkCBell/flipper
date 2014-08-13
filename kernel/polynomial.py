@@ -15,6 +15,7 @@ class Polynomial(object):
 		height = max(max(abs(x) for x in self.coefficients), 1)
 		self.height = log(height)
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
+		self.log_degree = log(max(self.degree, 1))
 		self.accuracy = 0
 		
 		root_range = max(self.degree, 1) * height  # All roots of self must be in +/- this amount.
@@ -60,7 +61,7 @@ class Polynomial(object):
 			return Polynomial([self[0] - other] + self.coefficients[1:])
 	
 	def __mul__(self, other):
-		if isinstance(other, flipper.kernel.Integer_Type):
+		if isinstance(other, flipper.Integer_Type):
 			return Polynomial([a * other for a in self])
 	def __rmull__(self, other):
 		return self * other
@@ -187,7 +188,7 @@ class Polynomial(object):
 		# Returns an algebraic approximation of this polynomials leading root which has at least
 		# the requested accuracy.
 		self.increase_accuracy(accuracy)
-		return flipper.kernel.AlgebraicApproximation(self.interval, self.degree, self.height)
+		return flipper.kernel.AlgebraicApproximation(self.interval, self.log_degree, self.height)
 	
 	def companion_matrix(self):  # !! Eventually remove.
 		# Assumes that this polynomial is irreducible and monic.

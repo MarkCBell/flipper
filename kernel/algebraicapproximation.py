@@ -144,5 +144,5 @@ def algebraic_approximation_from_string(string, degree, height):
 	return AlgebraicApproximation(flipper.kernel.interval.interval_from_string(string), log(max(degree, 1)), height)
 
 def algebraic_approximation_from_integer(integer):
-	return AlgebraicApproximation(flipper.kernel.interval.interval_from_int(integer), 0, 1)
+	return AlgebraicApproximation(flipper.kernel.interval.interval_from_integer(integer), 0, 1)
 

@@ -161,7 +161,7 @@ class Interval(object):
 	def __rdiv__(self, other):
 		if isinstance(other, flipper.Integer_Type):
 			# !?! RECHECK THIS!
-			return interval_from_int(other, self.precision) / self
+			return interval_from_integer(other, self.precision) / self
 		else:
 			return NotImplemented
 	def __rtruediv__(self, other):
@@ -190,6 +190,6 @@ def interval_from_string(string):
 	x = int(i + r)
 	return Interval(x-1, x+1, len(r))
 
-def interval_from_int(integer):
+def interval_from_integer(integer):
 	return Interval(integer, integer, 0)
 

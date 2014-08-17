@@ -17,6 +17,7 @@ class Polynomial(object):
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)
 		self.log_degree = log(max(self.degree, 1))
 		self.accuracy = 0
+		self._chain = None  # Stores the Sturm chain associated to this polynomial.
 		
 		root_range = max(self.degree, 1) * height  # All roots of self must be in +/- this amount.
 		self.interval = flipper.kernel.Interval(-root_range, root_range, 0)
@@ -44,7 +45,7 @@ class Polynomial(object):
 		return self.coefficients[item]
 	
 	def is_zero(self):
-		return all(coefficient == 0 for coefficient in self)
+		return not any(self)
 	
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
@@ -121,29 +122,29 @@ class Polynomial(object):
 		return (-1 if s1 < 0 else 0 if s1 == 0 else +1), (-1 if s2 < 0 else 0 if s2 == 0 else +1)
 	
 	def sturm_chain(self):
-		f1 = self
-		f2 = self.derivative()
-		sturm_chain = [f1, f2]
-		while not sturm_chain[-1].is_zero():
-			sturm_chain.append(-(sturm_chain[-2] % sturm_chain[-1]).rescale())
+		if self._chain is None:
+			f1 = self
+			f2 = self.derivative()
+			self._chain = [f1, f2]
+			while self._chain[-1]:
+				self._chain.append(-(self._chain[-2] % self._chain[-1]).rescale())
 		
-		return sturm_chain
+		return self._chain
 	
-	def num_roots(self, interval, chain=None):
+	def num_roots(self, interval):
 		''' Returns the number of roots of self in the interior of the given interval. '''
-		if chain is None: chain = self.sturm_chain()
+		chain = self.sturm_chain()
 		
 		lower_signs, upper_signs = zip(*[f.signs_at_interval_endpoints(interval) for f in chain])
 		lower_non_zero_signs = [x for x in lower_signs if x != 0]
 		upper_non_zero_signs = [x for x in upper_signs if x != 0]
-		lower_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]))
-		upper_sign_changes = sum(1 if x * y < 0 else 0 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]))
+		lower_sign_changes = sum(1 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]) if x * y < 0)
+		upper_sign_changes = sum(1 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]) if x * y < 0)
 		return lower_sign_changes - upper_sign_changes
 	
-	def subdivide_iterate(self, interval, chain=None):
-		if chain is None: chain = self.sturm_chain()
+	def subdivide_iterate(self, interval):
 		try:
-			return [I for I in interval.subdivide() if self.num_roots(I, chain) > 0][-1]
+			return [I for I in interval.subdivide() if self.num_roots(I) > 0][-1]
 		except IndexError:
 			raise flipper.AssumptionError('Polynomial has no real roots.')
 	
@@ -162,7 +163,6 @@ class Polynomial(object):
 		return L.intersect(interval)  # This can throw a ValueError if the intersection is empty.
 	
 	def converge_iterate(self, interval, accuracy):
-		chain = None
 		while interval.accuracy <= accuracy:
 			old_accuracy = interval.accuracy
 			try:
@@ -170,11 +170,11 @@ class Polynomial(object):
 			except (ZeroDivisionError, ValueError):
 				pass
 			
+			# This is guranteed to give us at lease 1 more d.p. of accuracy.
 			if interval.accuracy == old_accuracy:
-				if chain is None: chain = self.sturm_chain()
-				interval = self.subdivide_iterate(interval, chain)
+				interval = self.subdivide_iterate(interval)
 		
-		return interval
+		return interval.simplify()
 	
 	def increase_accuracy(self, accuracy):
 		# You cannot set the accuracy to less than this:
@@ -197,4 +197,47 @@ class Polynomial(object):
 		
 		scale = -1 if self[-1] == 1 else 1
 		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
+
+class PolynomialRoot(object):
+	def __init__(self, polynomial, interval):
+		# Assumes that polynomial has exactly one root in interval.
+		assert(isinstance(polynomial, flipper.kernel.Polynomial))
+		assert(isinstance(interval, flipper.kernel.Interval))
+		self.polynomial = polynomial
+		self.interval = interval
+		self.degree = self.polynomial.degree
+		self.log_degree = self.polynomial.log_degree
+		self.height = self.polynomial.height + 2 * self.log_degree
+		
+		if self.polynomial.num_roots(self.interval) != 1:
+			raise flipper.AssumptionError('Interval does not determine unique root of polynomial.')
+	
+	def __repr__(self):
+		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
+	
+	def interval_approximation(self, accuracy=0):
+		''' Returns an interval containing this number correct to the requested accuracy. '''
+		accuracy_required = max(accuracy, 0)
+		if self.interval.accuracy < accuracy_required:
+			self.interval = self.polynomial.converge_iterate(self.interval, accuracy_required)
+			assert(self.interval.accuracy >= accuracy_required)
+			self.interval = self.interval.change_accuracy(accuracy_required)
+		
+		return self.interval
+	
+	def algebraic_approximation(self, accuracy=0):
+		accuracy_needed = int(self.height) + int(self.log_degree) + 2  # This ensures the AlgebraicApproximation is well defined.
+		accuracy_required = max(accuracy, accuracy_needed)
+		
+		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(accuracy_required), self.log_degree, self.height)
+	
+	def as_algebraic_monomial(self):
+		return flipper.kernel.AlgebraicMonomial([self])
+	
+	def as_algebraic_number(self):
+		return flipper.kernel.AlgebraicNumber({self.as_algebraic_monomial(): 1}, height=self.height)
+
+def polynomial_root_from_info(coefficients, strn):
+	interval_from_string = flipper.kernel.interval.interval_from_string
+	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), interval_from_string(strn))
 

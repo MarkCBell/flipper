@@ -34,6 +34,8 @@ class Interval(object):
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = float('inf') if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
 		
+		self.log_bound = log(max(abs(self.upper), abs(self.lower), 1)) - self.precision
+		
 	
 	def __repr__(self):
 		return self.approximate_string(6)

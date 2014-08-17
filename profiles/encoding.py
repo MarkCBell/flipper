@@ -10,7 +10,7 @@ NT_TYPE_PERIODIC = flipper.kernel.encoding.NT_TYPE_PERIODIC
 NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
-def main():
+def main(verbose=False):
 	start_time = time()
 	# Add more tests here.
 	tests = [
@@ -29,7 +29,7 @@ def main():
 	
 	try:
 		for surface, word, mapping_class_type in tests:
-			print(word)
+			if verbose: print(word)
 			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			mapping_class = S.mapping_class(word)
 			assert(mapping_class.NT_type() == mapping_class_type)
@@ -41,7 +41,9 @@ def main():
 	return time() - start_time
 
 if __name__ == '__main__':
+	# main()
+	# print(main(verbose=True))
 	# pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callers(20)
 	# pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callees(20)
-	pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_stats(20)
+	pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('cumtime').print_stats(30)
 

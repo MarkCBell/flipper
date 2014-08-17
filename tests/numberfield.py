@@ -8,7 +8,7 @@ def main():
 	# !?! TO DO.
 	
 	try:
-		f = flipper.kernel.Polynomial([-2, 0, 1])  # x^2 - 2.
+		f = flipper.kernel.polynomial.polynomial_root_from_info([-2, 0, 1], '1.41')  # sqrt(2).
 		N = flipper.kernel.NumberField(f)  # QQ(sqrt(2)).
 		x = N.lmbda  # sqrt(2)
 		assert(x * x == 2)

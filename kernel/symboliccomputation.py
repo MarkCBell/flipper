@@ -1,7 +1,4 @@
 
-from importlib import import_module
-
-import flipper
 
 # !! Eventually change.
 
@@ -28,12 +25,16 @@ import flipper
 #
 # You can provide your own library so long as it provides this function. Just add its name to the list and dictionary below.
 
+import flipper
+
+from importlib import import_module
+
 ### Add new libraries here ###
 load_order = ['sage', 'dummy']
 libraries = {'sage': 'symboliccomputation_sage', 'dummy': 'symboliccomputation_dummy'}
 
-def load_library(library_name=None):
-	for library in ([library_name] + load_order) if library_name in libraries else load_order:
+def load_library():
+	for library in load_order:
 		try:
 			return import_module('flipper.kernel.' + libraries[library])
 		except ImportError:

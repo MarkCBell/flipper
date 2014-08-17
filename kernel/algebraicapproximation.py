@@ -1,8 +1,4 @@
 
-import flipper
-
-from math import log10 as log
-
 # This module is designed for manipulating approximations of real algebraic numbers via intervals.
 
 # Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
@@ -26,6 +22,11 @@ from math import log10 as log
 
 # Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can 
 # therefore determine if x_0 > x_1 by determining if (x_0 - x_1) > 0.
+
+import flipper
+
+from math import log10 as log
+log_2 = log(2)
 
 class AlgebraicApproximation(object):
 	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 
@@ -64,18 +65,18 @@ class AlgebraicApproximation(object):
 	# These all assume that other lies in the same field extension of QQ.
 	def __add__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval + other.interval, self.log_degree + other.log_degree, self.height + other.height + log(2))
+			return AlgebraicApproximation(self.interval + other.interval, self.log_degree + other.log_degree, self.height + other.height + log_2)
 		elif isinstance(other, flipper.Integer_Type):
-			return AlgebraicApproximation(self.interval + other, self.log_degree, self.height + flipper.kernel.height_int(other) + log(2))
+			return AlgebraicApproximation(self.interval + other, self.log_degree, self.height + flipper.kernel.height_int(other) + log_2)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
 		if isinstance(other, AlgebraicApproximation):
-			return AlgebraicApproximation(self.interval - other.interval, self.log_degree + other.log_degree, self.height + other.height + log(2))
+			return AlgebraicApproximation(self.interval - other.interval, self.log_degree + other.log_degree, self.height + other.height + log_2)
 		elif isinstance(other, flipper.Integer_Type):
-			return AlgebraicApproximation(self.interval - other, self.log_degree, self.height + flipper.kernel.height_int(other) + log(2))
+			return AlgebraicApproximation(self.interval - other, self.log_degree, self.height + flipper.kernel.height_int(other) + log_2)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):

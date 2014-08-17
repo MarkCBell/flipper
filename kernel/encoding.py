@@ -377,6 +377,13 @@ class Encoding(object):
 				return NT_TYPE_REDUCIBLE
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 			# fails to find an invariant lamination.
+			#import cProfile, pstats
+			#pr = cProfile.Profile()
+			#pr.enable()
+			#X = lamination.is_filling()
+			#pr.disable()
+			#pstats.Stats(pr).strip_dirs().sort_stats('cumtime').print_stats(30)
+			#if X:
 			if lamination.is_filling():
 				return NT_TYPE_PSEUDO_ANOSOV
 			else:

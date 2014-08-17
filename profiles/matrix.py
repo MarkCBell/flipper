@@ -7,7 +7,7 @@ import pstats
 
 import flipper
 
-def main(n=1000, k=100, p=3, q=5):
+def main(verbose=False, n=1000, k=100, p=3, q=5):
 	# This realyl should be a deterministic test.
 	start_time = time()
 	for i in range(n):
@@ -15,7 +15,7 @@ def main(n=1000, k=100, p=3, q=5):
 		a = M.nontrivial_polytope()
 		b = M.nontrivial_polytope2()
 		if a != b:
-			print(M)
+			if verbose: print(M)
 			assert(False)
 	return time() - start_time
 

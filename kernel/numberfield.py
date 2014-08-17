@@ -1,8 +1,4 @@
 
-from math import log10 as log
-
-import flipper
-
 # !! Eventually remove.
 
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
@@ -14,22 +10,28 @@ import flipper
 # This requires the numbers to be given as a linear combinations of 
 # 1, lambda, ..., lambda^{d-1}. Currently only Sage can do this.
 
+import flipper
+
+from math import log10 as log
+log_2 = log(2)
+
 class NumberField(object):
 	''' This represents a number field QQ(lambda). '''
-	def __init__(self, polynomial=None):
-		if polynomial is None: polynomial = flipper.kernel.Polynomial([-1, 1])
+	def __init__(self, polynomial_root=None):
+		if polynomial_root is None: polynomial_root = flipper.kernel.polynomialpolynomial_root_from_info([-1, 1], '1.00')
+		assert(isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
+		self.polynomial_root = polynomial_root
 		
-		self.polynomial = polynomial
-		self.polynomial_coefficients = self.polynomial.coefficients
-		self.degree = self.polynomial.degree
+		self.height = self.polynomial_root.height
+		self.degree = self.polynomial_root.degree
 		
-		self.height = self.polynomial.height
 		self.sum_height_powers = self.degree * self.degree * self.height / 2
+		self.polynomial = self.polynomial_root.polynomial
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
 		self.current_accuracy = -1
 		# A list of approximations of lambda^0, ..., lambda^(d-1).
-		# Note we need one more power for if this is QQ to make the increase accuracy code nicer. 
+		# Note we need one more power for if this is QQ to make the increase accuracy code nicer.
 		self._algebraic_approximations = self.lmbda_approximations(10)
 		
 		self.one = self.element([1])
@@ -40,8 +42,8 @@ class NumberField(object):
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			new_accuracy = max(2 * accuracy, int(self.degree * self.height + 10))
 			# We will compute a really accurate approximation of lmbda.
-			accuracy_needed = new_accuracy + 2 * self.degree * self.height + 10  # Check this !?!
-			lmbda = self.polynomial.algebraic_approximate_leading_root(accuracy_needed)
+			accuracy_needed = new_accuracy + int(2 * self.degree * self.height) + 10  # Check this !?!
+			lmbda = self.polynomial_root.algebraic_approximation(accuracy_needed)
 			# So that the accuracy of lmbda**i is at least new_accuracy.
 			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree+1)]
 			self._algebraic_approximations = [AA.change_accuracy(new_accuracy) for AA in self._algebraic_approximations]
@@ -175,7 +177,7 @@ class NumberFieldElement(object):
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	2 * (self.height + d).
-		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * log(2)
+		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * log_2
 		accuracy = max(accuracy, int(2 * height + d) + 1)
 		
 		if self._algebraic_approximation is None or self.current_accuracy < accuracy:

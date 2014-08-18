@@ -13,8 +13,8 @@ class AlgebraicMonomial(object):
 	''' This represents a product of algebraic numbers. '''
 	def __init__(self, terms, height=None):
 		''' Takes a list of PolynomialRoots and produces the '''
-		assert(isinstance(terms, (list, tuple)))
 		assert(all(isinstance(term, flipper.kernel.PolynomialRoot) for term in terms))
+		
 		self.terms = tuple(sorted(terms))
 		self.log_degree = sum(term.log_degree for term in self)
 		if height is None: height = float('inf')
@@ -86,7 +86,9 @@ class AlgebraicNumber(object):
 		assert(isinstance(terms, dict))
 		assert(all(isinstance(term, AlgebraicMonomial) for term in terms))
 		assert(all(isinstance(terms[term], flipper.Integer_Type) for term in terms))
+		assert(height is None or isinstance(height, flipper.Number_Type))
 		assert(len(set(terms)) == len(terms))  # Check for repeated terms.
+		
 		self.terms = dict((term, terms[term]) for term in terms if terms[term] != 0)
 		self.log_degree = sum(term.log_degree for term in self)
 		if height is None: height = float('inf')

@@ -11,6 +11,7 @@ flipper.AbstractTriangulation = flipper.kernel.AbstractTriangulation
 
 flipper.Integer_Type = flipper.kernel.Integer_Type
 flipper.String_Type = flipper.kernel.String_Type
+flipper.Number_Type = flipper.kernel.Number_Type
 
 flipper.AbortError = flipper.kernel.AbortError
 flipper.ApproximationError = flipper.kernel.ApproximationError

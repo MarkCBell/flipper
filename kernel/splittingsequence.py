@@ -4,6 +4,12 @@ import flipper
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an AbstractTriangulation. '''
 	def __init__(self, initial_lamination, preperiodic, periodic, isometries, periodic_flips):
+		assert(isinstance(initial_lamination, flipper.kernel.Lamination))
+		assert(preperiodic is None or isinstance(preperiodic, flipper.kernel.Encoding))
+		assert(isinstance(periodic, flipper.kernel.Encoding))
+		assert(all(isinstance(isom, flipper.kernel.Isometry) for isom in isometries))
+		assert(all(isinstance(flip, flipper.Integer_Type) for flip in periodic_flips))
+		
 		self.initial_lamination = initial_lamination
 		self.preperiodic = preperiodic
 		self.periodic = periodic

@@ -16,10 +16,11 @@ from math import log10 as log
 log_2 = log(2)
 
 class NumberField(object):
-	''' This represents a number field QQ(lambda). '''
+	''' This represents a number field QQ(lambda). Additionally NumberField() returns QQ. '''
 	def __init__(self, polynomial_root=None):
+		assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
+		
 		if polynomial_root is None: polynomial_root = flipper.kernel.polynomialpolynomial_root_from_info([-1, 1], '1.00')
-		assert(isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
 		self.polynomial_root = polynomial_root
 		
 		self.height = self.polynomial_root.height

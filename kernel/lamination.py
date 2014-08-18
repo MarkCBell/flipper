@@ -8,9 +8,13 @@ class Lamination(object):
 	If remove_peripheral is True then the Lamination is allowed to rescale its weights (by a factor of 2) in order
 	to remove any peripheral components. '''
 	def __init__(self, triangulation, vector, remove_peripheral=False):
+		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
+		assert(all(isinstance(entry, object) for entry in vector))
+		assert(isinstance(remove_peripheral, bool))
+		assert(flipper.kernel.matrix.nonnegative(vector))
+		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
-		assert(flipper.kernel.matrix.nonnegative(vector))
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
 			peripheral = dict((vertex, min(vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index] for corner in vertex)) for vertex in self.triangulation.vertices)
@@ -296,9 +300,9 @@ class Lamination(object):
 	def collapse_trivial_weight(self, edge_index):
 		''' Returns this lamination on the triangulation obtained by collapsing edge edge_index.
 		Assumes that:
-			self.triangulation is not S_{0,3},
-			the given edge does not connect between two real vertices, (with non-negative label), and
-			edge_index is the only edge of weight 0. '''
+			- self.triangulation is not S_{0,3},
+			- the given edge does not connect between two real vertices, (with non-negative label), and
+			- edge_index is the only edge of weight 0. '''
 		
 		if self[edge_index] != 0:
 			raise flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
@@ -367,7 +371,7 @@ class Lamination(object):
 		new_vector = [[self[j] for j in edge_replacement if edge_replacement[j] == i][0] for i in range(zeta)]
 		vertex_labelling_map = dict((edge_replacement[i], vertex_replacement(self.triangulation.label_of_edge(i))) for triangle in far_triangles for i in triangle.labels)
 		
-		return Lamination(flipper.AbstractTriangulation(new_labels, vertex_labelling_map), new_vector)
+		return flipper.kernel.AbstractTriangulation(new_labels, vertex_labelling_map).lamination(new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None, _good_tripods=None):
 		''' Returns the splitting sequence associated to this laminations.

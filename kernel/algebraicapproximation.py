@@ -33,8 +33,12 @@ class AlgebraicApproximation(object):
 	on the degree and height of the number to uniquely determine it. '''
 	def __init__(self, interval, log_degree, height):
 		''' This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-		by an interval with contains the number, an upper bound on the degree of the field extension in which this 
-		number lives and an upper bound on the height of this number. '''
+		by an interval with contains the number, an upper bound on the log of the degree of the field extension in 
+		which this number lives and an upper bound on the height of this number. '''
+		assert(isinstance(interval, flipper.kernel.Interval))
+		assert(isinstance(log_degree, flipper.kernel.Number_Type))
+		assert(isinstance(height, flipper.kernel.Number_Type))
+		
 		self.interval = interval
 		self.log_degree = log_degree
 		self.accuracy = self.interval.accuracy

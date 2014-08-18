@@ -7,7 +7,9 @@ import flipper
 class Permutation(object):
 	''' This represents a permutation in Sym(n). '''
 	def __init__(self, permutation):
+		assert(all(isinstance(entry, flipper.Integer_Type) for entry in permutation))
 		assert(set(permutation) == set(range(len(permutation))))
+		
 		self.permutation = tuple(permutation)
 	def __str__(self):
 		return str(self.permutation)

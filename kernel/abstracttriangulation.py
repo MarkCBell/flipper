@@ -14,6 +14,8 @@ class AbstractTriangle(object):
 	''' This represents a triangle in a trianglulation of a punctured surface. '''
 	def __init__(self, labels):
 		''' A Triangle is specified by giving the labels on its edges, ordered anticlockwise. '''
+		assert(isinstance(labels, (list, tuple)))
+		
 		# Edges are ordered anti-clockwise.
 		self.labels = list(labels)
 		self.indices = [norm(x) for x in self.labels]
@@ -32,6 +34,10 @@ class AbstractTriangle(object):
 class Corner(object):
 	''' A corner of a triangulation is a triangle along with a side number (the side opposite this corner). '''
 	def __init__(self, triangulation, triangle, side):
+		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(triangle, AbstractTriangle))
+		assert(isinstance(side, flipper.Integer_Type))
+		
 		self.triangulation = triangulation
 		self.triangle = triangle
 		self.side = side
@@ -409,4 +415,8 @@ class AbstractTriangulation(object):
 		
 		T = flipper.AbstractTriangulation(new_labels, vertex_labelling_map)
 		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
+
+# !?! Add abstract_triangulation_from_info(??)
+def abstract_triangulation_from_info():
+	pass
 

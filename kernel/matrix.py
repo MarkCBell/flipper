@@ -41,6 +41,9 @@ def dot(a, b):
 class Matrix(object):
 	''' This represents a matrix. '''
 	def __init__(self, data):
+		assert(isinstance(data, (list, tuple)))
+		assert(all(isinstance(row, (list, tuple)) for row in data))
+		
 		self.rows = [list(row) for row in data]
 		self.height = len(self.rows)
 		self.width = len(self.rows[0]) if self.height > 0 else 0

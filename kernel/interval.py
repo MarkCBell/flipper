@@ -24,8 +24,7 @@ class Interval(object):
 		assert(isinstance(lower, flipper.Integer_Type))
 		assert(isinstance(upper, flipper.Integer_Type))
 		assert(isinstance(precision, flipper.Integer_Type))
-		if lower > upper:
-			raise ValueError('Interval is empty.')
+		if lower > upper: raise ValueError('Interval is empty.')
 		
 		self.lower = lower
 		self.upper = upper

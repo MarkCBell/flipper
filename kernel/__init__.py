@@ -48,6 +48,7 @@ Id_Matrix = matrix.Id_Matrix
 Zero_Matrix = matrix.Zero_Matrix
 Integer_Type = types.Integer_Type
 String_Type = types.String_Type
+Number_Type = types.Number_Type
 height_int = algebraicnumber.height_int
 
 product = utilities.product

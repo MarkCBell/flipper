@@ -14,6 +14,9 @@ class PartialFunction(object):
 		''' This represents a partial linear function from RR^m to RR^n.
 		The function is defined on the subset where condition*vector >= 0, or everywhere if condition
 		is None. Attempting to apply the function to a point not in the domain will raise a TypeError. '''
+		assert(isinstance(action, flipper.kernel.Matrix))
+		assert(condition is None or isinstance(condition, flipper.kernel.Matrix))
+		
 		self.action = action
 		self.condition = condition if condition is not None else flipper.kernel.Empty_Matrix()
 	
@@ -29,8 +32,11 @@ class PartialFunction(object):
 class PLFunction(object):
 	''' This represent the piecewise-linear map from RR^m to RR^n. '''
 	def __init__(self, partial_functions, inverse_partial_functions=None):
+		assert(all(isinstance(function, PartialFunction) for function in partial_functions))
+		assert(inverse_partial_functions is None or all(isinstance(function, PartialFunction) for function in inverse_partial_functions))
+		assert(len(partial_functions) > 0)
+		
 		self.partial_functions = partial_functions
-		assert(len(self.partial_functions) > 0)
 		self.inverse_partial_functions = inverse_partial_functions if inverse_partial_functions is not None else []
 	
 	def __iter__(self):
@@ -71,9 +77,11 @@ class Encoding(object):
 	def __init__(self, source_triangulation, target_triangulation, sequence):
 		''' This represents a map between two AbstractTriagulations. It is given by a sequence
 		of PLFunctions whose composition is the action on the edge weights. '''
-		self.sequence = sequence
-		assert(all(isinstance(x, PLFunction) for x in self.sequence))
+		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(all(isinstance(x, PLFunction) for x in sequence))
 		
+		self.sequence = sequence
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta

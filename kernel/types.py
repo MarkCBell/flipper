@@ -8,7 +8,9 @@ import sys
 if sys.version_info >= (3, 0):
 	Integer_Type = (int,)
 	String_Type = str
+	Number_Type = (int, float)
 else:
 	Integer_Type = (int, long)
 	String_Type = str
+	Number_Type = (int, long, float)
 

@@ -10,6 +10,8 @@ class Polynomial(object):
 	self.algebraic_approximate_leading_root() which returns an AlgebraicApproximation of the largest real
 	root or raises an AssumptionError if there are none. '''
 	def __init__(self, coefficients):
+		assert(all(isinstance(coefficient, flipper.Integer_Type) for coefficient in coefficients))  # Should this be Number_Type?
+		
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
 		height = max(max(abs(x) for x in self.coefficients), 1)
@@ -203,6 +205,7 @@ class PolynomialRoot(object):
 		# Assumes that polynomial has exactly one root in interval.
 		assert(isinstance(polynomial, flipper.kernel.Polynomial))
 		assert(isinstance(interval, flipper.kernel.Interval))
+		
 		self.polynomial = polynomial
 		self.interval = interval
 		self.degree = self.polynomial.degree

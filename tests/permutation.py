@@ -1,12 +1,15 @@
 
 from __future__ import print_function
-from itertools import product
+from itertools import product, permutations
 
 import flipper
 
-def main(n=4):
+def all_permutations(n):
+	return [flipper.kernel.Permutation(perm) for perm in permutations(range(n), n)]
+
+def main(verbose=False, n=4):
 	# Get some example permutations.
-	all_perms = flipper.kernel.permutation.all_permutations(n)
+	all_perms = all_permutations(n)
 	
 	try:
 		# Check that there are the same number of odd and even permutations.
@@ -21,5 +24,5 @@ def main(n=4):
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
 

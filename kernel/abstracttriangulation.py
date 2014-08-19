@@ -153,7 +153,7 @@ class AbstractTriangulation(object):
 		self._marking_matrices = None
 	
 	def __repr__(self):
-		return '{' + ' '.join(str(triangle) for triangle in self) + '}'
+		return str(list(self))
 	def __iter__(self):
 		return iter(self.triangles)
 	def copy(self):
@@ -450,7 +450,7 @@ class AbstractTriangulation(object):
 		T = flipper.AbstractTriangulation(triangles)
 		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
 
-def abstract_triangulation_from_info(all_labels):
+def abstract_triangulation_helper(all_labels):
 	# We should assert a load of stuff here first. !?!
 	zeta = len(all_labels) * 3 // 2
 	

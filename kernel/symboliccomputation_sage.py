@@ -30,12 +30,10 @@ def PF_eigen(matrix, vector):
 	
 	eigenvalue_polynomial = flipper.kernel.Polynomial(eigenvalue_coefficients)
 	d = sum(abs(x) for x in eigenvalue_polynomial)
-	polynomial_root = flipper.kernel.polynomial.polynomial_root_from_info(eigenvalue_coefficients, str(eigenvalue.n(digits=d)))
-	N = flipper.kernel.NumberField(polynomial_root)
+	N = flipper.kernel.number_field_helper(eigenvalue_coefficients, str(eigenvalue.n(digits=d)))
 	return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 
 def PF_eigen2(matrix, vector):
-	algebraic_ring_element_from_info = flipper.kernel.algebraicnumber.algebraic_number_from_info
 	M = Matrix(matrix.rows)
 	
 	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
@@ -43,7 +41,8 @@ def PF_eigen2(matrix, vector):
 	if eigenvalue.imag() != 0:
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
-	flipper_eigenvalue = algebraic_ring_element_from_info(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))  # !?! Check this 100.
+	# !?! Check this 100.
+	flipper_eigenvalue = flipper.kernel.algebraic_number_helper(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))
 	
 	K = NumberField(eigenvalue.minpoly(), 'x')
 	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()

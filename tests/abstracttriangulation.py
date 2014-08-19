@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import flipper
 
-def main():
+def main(verbose=False):
 	try:
 		S = flipper.examples.abstracttriangulation.Example_S_1_1()
 		T = S.triangulation
@@ -11,6 +11,7 @@ def main():
 		
 		# Check that every triangulation is isometric to itself.
 		for example in flipper.examples.abstracttriangulation.SURFACES:
+			if verbose: print('Checking: %s' % example)
 			S = flipper.examples.abstracttriangulation.SURFACES[example]()
 			T = S.triangulation
 			assert(T.is_isometric_to(T))
@@ -20,5 +21,5 @@ def main():
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
 

@@ -29,7 +29,7 @@ class TestCommand(Command):
 				if not test_name.startswith('_') and test_name != 'flipper':
 					test = importlib.import_module('flipper.tests.%s' % test_name)
 					print('Running %s test...' % test_name)
-					result = test.main()
+					result = test.main(verbose=False)
 					print('\tPassed' if result else '\tFAILED')
 					if not result:
 						failed_tests.append(test_name)

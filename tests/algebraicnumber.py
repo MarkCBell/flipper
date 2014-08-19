@@ -5,13 +5,13 @@ import cProfile
 
 import flipper
 
-algebraic_number_from_info = flipper.kernel.algebraicnumber.algebraic_number_from_info
+algebraic_number_helper = flipper.kernel.algebraic_number_helper
 
 def main(verbose=False):
 	start_time = time()
-	a = algebraic_number_from_info([-2, 0, 1], '1.41')  # sqrt(2).
-	b = algebraic_number_from_info([-3, 0, 1], '1.732')  # sqrt(3).
-	c = algebraic_number_from_info([-1001, 0, 1], '31.639')  # sqrt(1001).
+	a = algebraic_number_helper([-2, 0, 1], '1.41')  # sqrt(2).
+	b = algebraic_number_helper([-3, 0, 1], '1.732')  # sqrt(3).
+	c = algebraic_number_helper([-1001, 0, 1], '31.639')  # sqrt(1001).
 	
 	# Add more tests here.
 	try:

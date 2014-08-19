@@ -4,7 +4,8 @@ from random import randint
 
 import flipper
 
-def main(n=1000, k=100):
+def main(verbose=False, n=1000, k=100):
+	# !?! Make this test deterministic.
 	try:
 		for _ in range(n):
 			M = flipper.kernel.Matrix([[randint(-k, k) for _ in range(3)] for _ in range(5)])
@@ -15,4 +16,5 @@ def main(n=1000, k=100):
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
+

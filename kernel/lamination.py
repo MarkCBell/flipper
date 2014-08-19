@@ -17,7 +17,7 @@ class Lamination(object):
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
-			peripheral = dict((vertex, min(vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index] for corner in vertex)) for vertex in self.triangulation.vertices)
+			peripheral = dict((vertex, min(vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index] for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
 			# If there is any remove it.
 			if any(peripheral.values()):
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
@@ -98,8 +98,8 @@ class Lamination(object):
 		''' Decides if this lamination is a multicurve. '''
 		if self == self.triangulation.empty_lamination(): return False
 		
-		for vertex in self.triangulation.vertices:
-			for corner in vertex:
+		for corner_class in self.triangulation.corner_classes:
+			for corner in corner_class:
 				weights = [self.vector[index] for index in corner.triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0],
 					weights[2] + weights[0] - weights[1],
@@ -308,8 +308,8 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
 		
 		# This relies on knowing how squares are returned.
-		a, b, c, d = self.triangulation.find_labels_of_square_about_edge(edge_index)  # Get the square about it.
-		e = edge_index  # Shorter name.
+		a, b, c, d = self.triangulation.find_edges_of_square_about_edge(edge_index)  # Get the square about it.
+		e = self.triangulation.edge_lookup[edge_index]
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == ~b or c == ~d:
@@ -330,48 +330,66 @@ class Lamination(object):
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
 		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
-		vertex_labels = [self.triangulation.label_of_vertex(vertex) for vertex in self.triangulation.vertices_of_edge(e)]
+		near_vertices = e.source_vertex, e.target_vertex
+		
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
-		good_label, bad_label = max(vertex_labels), min(vertex_labels)
+		if near_vertices[0].label <= near_vertices[1].label:
+			good_vertex, bad_vertex = near_vertices[1], near_vertices[0]
+		else:
+			good_vertex, bad_vertex = near_vertices[0], near_vertices[1]
+		
 		# If we collapse together two real vertices (or a vertex with itself) then there is a loop
 		# dijoint to this lamination and so this is not filling.
-		if (good_label >= 0 and bad_label >= 0) or good_label == bad_label:
+		if (good_vertex.label >= 0 and bad_vertex.label >= 0) or good_vertex == bad_vertex:
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
+		# Figure out how the vertices should be mapped.
+		vertex_map = dict()
+		for vertex in self.triangulation.vertices:
+			if vertex != good_vertex and vertex != bad_vertex:
+				vertex_map[vertex] = flipper.kernel.AbstractVertex(vertex.label)
+		vertex_map[good_vertex] = flipper.kernel.AbstractVertex(vertex.label)
+		vertex_map[bad_vertex] = vertex_map[good_vertex]
+		
 		# Now figure out how the edges should be mapped.
-		far_triangles = [triangle for triangle in self.triangulation if e not in triangle and ~e not in triangle]
-		far_edges = [i for i in range(self.zeta) if i not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]]
-		# There is nothing to do for edges that are far away.
-		edge_map = [(i, index) for index, i in enumerate(far_edges)] + [(~i, ~index) for index, i in enumerate(far_edges)]
+		edge_count = 0
+		edge_map = dict()
+		for edge in self.triangulation.edges:
+			if edge.is_positive() and edge not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]:
+				edge_map[edge] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+				edge_map[~edge] = ~edge_map[edge]
+				edge_count += 1
 		
-		zeta = len(far_edges)
 		if a == ~c:  # Collapsing an annulus.
-			edge_map.append((~b, zeta))
-			edge_map.append((~d, ~zeta))
+			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~d] = ~edge_map[~b]
+			edge_count += 1
 		elif b == ~d:  # An annulus in the other direction.
-			edge_map.append((~a, zeta))
-			edge_map.append((~c, ~zeta))
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~c] = ~edge_map[~a]
+			edge_count += 1
 		elif a == ~d:  #Collapsing a bigon.
-			edge_map.append((~b, zeta))
-			edge_map.append((~c, ~zeta))
+			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~c] = ~edge_map[~b]
+			edge_count += 1
 		elif b == ~c:  # A bigon in the other direction.
-			edge_map.append((~a, zeta))
-			edge_map.append((~d, ~zeta))
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~d] = ~edge_map[~a]
+			edge_count += 1
 		else:  # No identification.
-			edge_map.append((~a, zeta))
-			edge_map.append((~b, ~zeta))
-			edge_map.append((~c, zeta+1))
-			edge_map.append((~d, ~(zeta+1)))
-		zeta = len(edge_map) // 2
-		edge_replacement = dict(edge_map)
-		vertex_replacement = lambda x: x if x != bad_label else good_label
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~b] = ~edge_map[~a]
+			edge_count += 1
+			edge_map[~c] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~d] = ~edge_map[~c]
+			edge_count += 1
 		
-		new_labels = [[edge_replacement[i] for i in triangle.labels] for triangle in far_triangles]
-		new_vector = [[self[j] for j in edge_replacement if edge_replacement[j] == i][0] for i in range(zeta)]
-		vertex_labelling_map = dict((edge_replacement[i], vertex_replacement(self.triangulation.label_of_edge(i))) for triangle in far_triangles for i in triangle.labels)
+		new_triangles = [flipper.kernel.AbstractTriangle([edge_map[edge] for edge in triangle.edges]) for triangle in self.triangulation if e not in triangle and ~e not in triangle]
 		
-		return flipper.kernel.AbstractTriangulation(new_labels, vertex_labelling_map).lamination(new_vector)
+		new_vector = [[self[edge.index] for edge in self.triangulation.edges if edge not in [a,b,c,d,e,~e] and edge_map[edge].index == i][0] for i in range(edge_count)]
+		
+		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None, _good_tripods=None):
 		''' Returns the splitting sequence associated to this laminations.
@@ -415,23 +433,6 @@ class Lamination(object):
 			if lamination[edge_index] == 0:
 				lamination.collapse_trivial_weight(edge_index)
 				try:
-					if False:
-						curve = lamination.triangulation.regular_neighbourhood(edge_index)
-						pp_encoding = flipper.kernel.product(encodings[1:])
-						curve_preimage = (pp_encoding.inverse())(curve)
-						for corner in curve_preimage.triangulation.corners:
-							if curve_preimage.triangulation.label_of_edge(corner.label) >= 0 and curve_preimage.is_bipod(corner):
-								new_pp_encoding = curve_preimage.repeatedly_open_bipod(corner)
-								new_lamination = new_pp_encoding(punctured_self)
-								splitting = new_lamination.splitting_sequence()
-								pp_encoding = splitting.preperiodic
-								p_encoding = splitting.periodic
-								isometries = splitting.isometries
-								p_flips = splitting.periodic_flips
-								
-								return flipper.kernel.SplittingSequence(self, pp_encoding * new_pp_encoding * puncture_encoding, p_encoding, p_laminations, p_flips)
-					
-					
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the encoding or flip so we'll just stick in a None.

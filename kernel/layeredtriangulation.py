@@ -262,7 +262,8 @@ class Triangulation3(object):
 						label += 1
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
-			T = flipper.AbstractTriangulation(edge_labels)
+			# T = flipper.AbstractTriangulation(edge_labels)
+			T = flipper.abstract_triangulation_from_info(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -521,9 +522,10 @@ class LayeredTriangulation(object):
 		
 		# Now identify each the type of each cusp.
 		real_cusps = [None] * closed_triangulation.num_cusps
-		for vertex in self.upper_triangulation.vertices:
-			label = self.upper_triangulation.label_of_vertex(vertex) >= 0
-			for corner in vertex:
+		for corner_class in self.upper_triangulation.corner_classes:
+			vertex = corner_class[0].vertex
+			label = vertex.label >= 0
+			for corner in corner_class:
 				tetrahedron, permutation = fibre_immersion[corner.triangle]
 				if real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] is None:
 					real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] = label
@@ -533,12 +535,12 @@ class LayeredTriangulation(object):
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
-			for vertex in self.upper_triangulation.vertices:
-				corner = vertex[0]
+			for corner_class in self.upper_triangulation.corner_classes:
+				corner = corner_class[0]
 				tetra, perm = fibre_immersion[corner.triangle]
 				if tetra.cusp_indices[perm[corner.side]] == index:
 					fibre_path = []
-					for corner in vertex:
+					for corner in corner_class:
 						tetra, perm = fibre_immersion[corner.triangle]
 						fibre_path.append((tetra, perm[corner.side], perm[3]))
 					fibre_slopes[index] = closed_triangulation.slope(fibre_path)

@@ -50,8 +50,8 @@ def main(verbose=False):
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except flipper.ComputationError:
 		return False  # Mapping class is probably reducible.
-	except AssertionError:
-		return False
+	#except AssertionError:
+	#	return False
 	
 	return True
 

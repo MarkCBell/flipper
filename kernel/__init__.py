@@ -20,6 +20,8 @@ from . import types
 from . import utilities
 
 # Set up shorter names for all of the different classes and some common constructors.
+AbstractVertex = abstracttriangulation.AbstractVertex
+AbstractEdge = abstracttriangulation.AbstractEdge
 AbstractTriangle = abstracttriangulation.AbstractTriangle
 AbstractTriangulation = abstracttriangulation.AbstractTriangulation
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
@@ -50,6 +52,9 @@ Integer_Type = types.Integer_Type
 String_Type = types.String_Type
 Number_Type = types.Number_Type
 height_int = algebraicnumber.height_int
+
+
+abstract_triangulation_from_info = abstracttriangulation.abstract_triangulation_from_info
 
 product = utilities.product
 

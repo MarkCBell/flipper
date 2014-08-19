@@ -44,7 +44,6 @@ def PF_eigen2(matrix, vector):
 	# !?! Check this 100.
 	flipper_eigenvalue = flipper.kernel.algebraic_number_helper(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))
 	
-	K = NumberField(eigenvalue.minpoly(), 'x')
 	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
 	eigenvector = project(vector, (M - lam).right_kernel().basis())
 	norm = sum(eigenvector)

@@ -108,12 +108,13 @@ class AbstractTriangulation(object):
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges if edge]
 		self.vertices = list(set(vertex for triangle in self for vertex in triangle.vertices))
-		# This is going to fail layered triangulation which thinks vertices are lists of corners ordered ANTI-CLOCKWISE about the vertex.
 		self.corners = [Corner(triangle, index) for triangle in self for index in range(3)]
 		
 		self.num_triangles = len(self.triangles)
 		self.zeta = self.num_triangles * 3 // 2  # This is the number of edges in the triangulation.
 		self.num_vertices = len(self.vertices)
+		assert(all(any(edge.label == i for edge in self.edges) for i in range(self.zeta)))
+		assert(all(any(edge.label == ~i for edge in self.edges) for i in range(self.zeta)))
 		
 		self.triangle_lookup = dict((edge.label, triangle) for triangle in self for edge in triangle.edges)
 		self.edge_lookup = dict((edge.label, edge) for edge in self.edges)
@@ -121,6 +122,7 @@ class AbstractTriangulation(object):
 		self.vertex_lookup = dict((corner.label, corner.vertex) for corner in self.corners)
 		assert(all(i in self.edge_lookup and ~i in self.edge_lookup for i in range(self.zeta)))
 		
+		# This is going to fail layered triangulation which thinks vertices are lists of corners ordered ANTI-CLOCKWISE about the vertex.
 		self.corner_classes = [[corner for corner in self.corners if corner.vertex == vertex] for vertex in self.vertices]
 		
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.

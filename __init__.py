@@ -8,6 +8,7 @@ import flipper.version
 
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.AbstractTriangulation = flipper.kernel.AbstractTriangulation
+flipper.abstract_triangulation_from_info = flipper.kernel.abstract_triangulation_from_info
 
 flipper.Integer_Type = flipper.kernel.Integer_Type
 flipper.String_Type = flipper.kernel.String_Type

@@ -428,6 +428,7 @@ class Encoding(object):
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
 			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
+			print(splitting.periodic_flips)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:

@@ -27,7 +27,6 @@ class Lamination(object):
 		return Lamination(self.triangulation, list(self.vector))
 	
 	def __repr__(self):
-		# return '\n'.join(str([self[i] for i in triangle]) for triangle in self.triangulation)
 		return str(self.vector)
 	
 	def projective_string(self):

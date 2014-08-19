@@ -262,7 +262,7 @@ class Triangulation3(object):
 						label += 1
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
-			T = flipper.kernel.abstract_triangulation_from_info(edge_labels)
+			T = flipper.kernel.abstract_triangulation_helper(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()
@@ -347,6 +347,26 @@ class Triangulation3(object):
 		
 		return s
 
+def permutation_from_pair(a, to_a, b, to_b):
+	''' Returns the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
+	
+	image = [None] * 4
+	image[a] = to_a
+	image[b] = to_b
+	c, d = set(range(4)).difference([a, b])
+	to_c, to_d = set(range(4)).difference([to_a, to_b])
+	
+	X1 = {a: to_a, b: to_b, c: to_c, d: to_d}
+	X2 = {a: to_a, b: to_b, c: to_d, d: to_c}
+	P1 = flipper.kernel.Permutation([X1[i] for i in range(4)])
+	P2 = flipper.kernel.Permutation([X2[i] for i in range(4)])
+	if not P1.is_even():
+		return P1
+	elif not P2.is_even():
+		return P2
+	else:
+		raise ValueError('Does not represent a gluing.')
+
 # A class to represent a layered triangulation over a surface specified by a flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
 	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. ''' 
@@ -401,8 +421,8 @@ class LayeredTriangulation(object):
 		object_B.unglue(3)
 		
 		# Do some gluings.
-		new_glue_perm_A = flipper.kernel.permutation.permutation_from_mapping(4, [(0, down_perm_A[perm_A[side_A]]), (2, down_perm_A[perm_A[3]])], even=False)
-		new_glue_perm_B = flipper.kernel.permutation.permutation_from_mapping(4, [(2, down_perm_B[perm_B[side_B]]), (0, down_perm_B[perm_A[3]])], even=False)
+		new_glue_perm_A = permutation_from_pair(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[perm_A[3]])
+		new_glue_perm_B = permutation_from_pair(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[perm_B[3]])
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		

@@ -1,5 +1,5 @@
 
-from itertools import permutations, combinations
+from itertools import combinations
 
 import flipper
 
@@ -60,15 +60,4 @@ def Id_Permutation(n):
 
 def cyclic_permutation(cycle, n):
 	return Permutation([(cycle + i) % n for i in range(n)])
-
-def all_permutations(n):
-	return [Permutation(perm) for perm in permutations(range(n), n)]
-
-def permutation_from_mapping(n, mapping, even):
-	# assert(False)
-	for P in all_permutations(n):
-		if P.is_even() == even and all(P[source] == target for (source, target) in mapping):
-			return P
-	
-	raise TypeError('Not a valid permutation.')
 

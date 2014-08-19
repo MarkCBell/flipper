@@ -54,8 +54,13 @@ Number_Type = types.Number_Type
 height_int = algebraicnumber.height_int
 norm = abstracttriangulation.norm
 
-
-abstract_triangulation_from_info = abstracttriangulation.abstract_triangulation_from_info
+# Functions that help with construction.
+abstract_triangulation_helper = abstracttriangulation.abstract_triangulation_helper
+algebraic_approximation_helper = algebraicapproximation.algebraic_approximation_helper
+polynomial_root_helper = polynomial.polynomial_root_helper
+algebraic_number_helper = algebraicnumber.algebraic_number_helper
+interval_helper = interval.interval_helper
+number_field_helper = numberfield.number_field_helper
 
 product = utilities.product
 

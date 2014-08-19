@@ -4,15 +4,15 @@ from math import log10 as log
 from itertools import product
 
 import flipper
-interval_from_string = flipper.kernel.interval.interval_from_string
+interval_helper = flipper.kernel.interval.interval_helper
 
-def main():
-	w = interval_from_string('0.10')
-	x = interval_from_string('10000.0')
-	y = interval_from_string('1.14571')
-	z = interval_from_string('1.00000')
-	a = interval_from_string('-1.200000')
-	b = interval_from_string('1.4142135623')
+def main(verbose=False):
+	w = interval_helper('0.10')
+	x = interval_helper('10000.0')
+	y = interval_helper('1.14571')
+	z = interval_helper('1.00000')
+	a = interval_helper('-1.200000')
+	b = interval_helper('1.4142135623')
 	
 	# Check:
 	#	acc(I + J) >= min(acc(I), acc(J)) - 1,
@@ -32,4 +32,5 @@ def main():
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
+

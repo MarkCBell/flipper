@@ -3,14 +3,14 @@ from __future__ import print_function
 
 import flipper
 
-algebraic_approximation_from_string = flipper.kernel.algebraicapproximation.algebraic_approximation_from_string
+algebraic_approximation_helper = flipper.kernel.algebraic_approximation_helper
 algebraic_approximation_from_integer = flipper.kernel.algebraicapproximation.algebraic_approximation_from_integer
 
-def main():
+def main(verbose=False):
 	# We acutally need quite a lot of accuracy in the given strings.
-	x = algebraic_approximation_from_string('1.4142135623730951', 2, 2)
-	y = algebraic_approximation_from_string('1.41421356237309', 2, 2)
-	z = algebraic_approximation_from_string('1.000000', 2, 2)
+	x = algebraic_approximation_helper('1.4142135623730951', 2, 2)
+	y = algebraic_approximation_helper('1.41421356237309', 2, 2)
+	z = algebraic_approximation_helper('1.000000', 2, 2)
 	w = algebraic_approximation_from_integer(1)
 	
 	try:
@@ -32,4 +32,5 @@ def main():
 	return True
 
 if __name__ == '__main__':
-	print(main())
+	print(main(verbose=True))
+

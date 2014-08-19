@@ -221,6 +221,6 @@ class AlgebraicNumber(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def algebraic_number_from_info(coefficients, strn):
-	return flipper.kernel.polynomial.polynomial_root_from_info(coefficients, strn).as_algebraic_number()
+def algebraic_number_helper(coefficients, strn):
+	return flipper.kernel.polynomial_root_helper(coefficients, strn).as_algebraic_number()
 

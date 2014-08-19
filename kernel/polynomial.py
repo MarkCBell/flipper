@@ -240,7 +240,6 @@ class PolynomialRoot(object):
 	def as_algebraic_number(self):
 		return flipper.kernel.AlgebraicNumber({self.as_algebraic_monomial(): 1}, height=self.height)
 
-def polynomial_root_from_info(coefficients, strn):
-	interval_from_string = flipper.kernel.interval.interval_from_string
-	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), interval_from_string(strn))
+def polynomial_root_helper(coefficients, strn):
+	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval_helper(strn))
 

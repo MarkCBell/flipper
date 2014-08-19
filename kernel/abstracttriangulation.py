@@ -219,7 +219,7 @@ class AbstractTriangulation(object):
 		new_edge = AbstractEdge(A.vertex, B.vertex, edge_index)
 		
 		a, b, c, d = self.find_edges_of_square_about_edge(edge_index)
-		A2 = AbstractTriangle([ new_edge, d, a])
+		A2 = AbstractTriangle([new_edge, d, a])
 		B2 = AbstractTriangle([~new_edge, b, c])
 		
 		unchanged_triangles = [triangle for triangle in self if triangle != A.triangle and triangle != B.triangle]

@@ -85,14 +85,14 @@ class Tetrahedron(object):
 	
 	def snappy_string(self):
 		s = ''
-		s += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-		s += ' %s %s %s %s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
-		s += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
+		s += '%4d %4d %4d %4d\n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
+		s += '%4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
+		s += '%4d %4d %4d %4d\n' % tuple(self.cusp_indices)
 		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
-		s += ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n'
+		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
-		s += ' 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0\n'
-		s += ' 0.000000000000 0.000000000000\n'
+		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
+		s += '  0.000000000000 0.000000000000\n'
 		return s
 
 class Triangulation3(object):
@@ -262,8 +262,7 @@ class Triangulation3(object):
 						label += 1
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
-			# T = flipper.AbstractTriangulation(edge_labels)
-			T = flipper.abstract_triangulation_from_info(edge_labels)
+			T = flipper.kernel.abstract_triangulation_from_info(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()

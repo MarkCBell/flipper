@@ -46,7 +46,5 @@ class SplittingSequence(object):
 		return [self.bundle(isometry_number) for isometry_number in range(len(self.isometries))]
 	
 	def snappy_manifolds(self, name='flipper triangulation'):
-		for isometry_number in range(len(self.isometries)):
-			self.snappy_manifold(isometry_number, name)
 		return [self.snappy_manifold(isometry_number, name) for isometry_number in range(len(self.isometries))]
 

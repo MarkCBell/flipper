@@ -196,7 +196,3 @@ class NumberFieldElement(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def number_field_from_integers(integers):
-	N = NumberField()
-	return [N.element([integer]) for integer in integers]
-

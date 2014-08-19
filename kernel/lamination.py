@@ -36,9 +36,13 @@ class Lamination(object):
 	def __iter__(self):
 		return iter(self.vector)
 	
-	def __getitem__(self, index):
-		index = max(index, ~index)
-		return self.vector[index]
+	def __getitem__(self, item):
+		if isinstance(item, flipper.Integer_Type):
+			return self.vector[flipper.kernel.norm(item)]
+		elif isinstance(item, flipper.kernel.AbstractEdge):
+			return self.vector[item.index]
+		else:
+			return NotImplemented
 	
 	def __len__(self):
 		return self.zeta
@@ -97,19 +101,16 @@ class Lamination(object):
 		''' Decides if this lamination is a multicurve. '''
 		if self == self.triangulation.empty_lamination(): return False
 		
+		# This isn't quite right. We should allow NumberFieldElements too.
+		if not all(isinstance(entry, flipper.Integer_Type) for entry in self): return False
+		
 		for corner_class in self.triangulation.corner_classes:
 			for corner in corner_class:
-				weights = [self.vector[index] for index in corner.triangle]
+				weights = [self[edge] for edge in corner.triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0],
 					weights[2] + weights[0] - weights[1],
 					weights[0] + weights[1] - weights[2]]
-				for i in range(3):
-					# This isn't quite right. We should allow NumberFieldElements too.
-					if not isinstance(dual_weights_doubled[i], flipper.kernel.types.Integer_Type):
-						return False
-					
-					if dual_weights_doubled[i] % 2 != 0:  # Is odd.
-						return False
+				if any(dual_weight % 2 != 0 for dual_weight in dual_weights_doubled): return False
 		
 		return True
 	
@@ -121,7 +122,7 @@ class Lamination(object):
 		# a curve which meets each edge either:
 		#	once (in which case it meets exactly 2 of them), or
 		#	0 or 2 times.
-		# The latter case happens iff a component of S - \gamma has no punctures.
+		# The latter case happens if and only if a component of S - \gamma has no punctures.
 		
 		if not self.is_multicurve():
 			raise flipper.AssumptionError('Can only conjugate multicurves to be short.')
@@ -273,7 +274,11 @@ class Lamination(object):
 	
 	def is_tripod(self, triangle):
 		''' Returns if the lamination looks like a tripod in this triangle. '''
-		return all(self[triangle[i]] + self[triangle[i+1]] > self[triangle[i+2]] for i in range(3))
+		weights = [self[edge] for edge in triangle]
+		dual_weights_doubled = [weights[1] + weights[2] - weights[0],
+					weights[2] + weights[0] - weights[1],
+					weights[0] + weights[1] - weights[2]]
+		return all(dual_weight > 0 for dual_weight in dual_weights_doubled)
 	
 	def tripod_regions(self):
 		''' Returns a list of all triangles in which this lamination looks like a tripod. '''
@@ -348,7 +353,7 @@ class Lamination(object):
 		for vertex in self.triangulation.vertices:
 			if vertex != good_vertex and vertex != bad_vertex:
 				vertex_map[vertex] = flipper.kernel.AbstractVertex(vertex.label)
-		vertex_map[good_vertex] = flipper.kernel.AbstractVertex(vertex.label)
+		vertex_map[good_vertex] = flipper.kernel.AbstractVertex(good_vertex.label)
 		vertex_map[bad_vertex] = vertex_map[good_vertex]
 		
 		# Now figure out how the edges should be mapped.
@@ -361,32 +366,32 @@ class Lamination(object):
 				edge_count += 1
 		
 		if a == ~c:  # Collapsing an annulus.
-			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~b]
 			edge_count += 1
 		elif b == ~d:  # An annulus in the other direction.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~a]
 			edge_count += 1
 		elif a == ~d:  #Collapsing a bigon.
-			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~b]
 			edge_count += 1
 		elif b == ~c:  # A bigon in the other direction.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~a]
 			edge_count += 1
 		else:  # No identification.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~b] = ~edge_map[~a]
 			edge_count += 1
-			edge_map[~c] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+			edge_map[~c] = flipper.kernel.AbstractEdge(vertex_map[c.target_vertex], vertex_map[c.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~c]
 			edge_count += 1
 		
 		new_triangles = [flipper.kernel.AbstractTriangle([edge_map[edge] for edge in triangle.edges]) for triangle in self.triangulation if e not in triangle and ~e not in triangle]
 		
-		new_vector = [[self[edge.index] for edge in self.triangulation.edges if edge not in [a,b,c,d,e,~e] and edge_map[edge].index == i][0] for i in range(edge_count)]
+		new_vector = [[self[edge] for edge in self.triangulation.edges if edge not in [a,b,c,d,e,~e] and edge_map[edge].index == i][0] for i in range(edge_count)]
 		
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
@@ -401,13 +406,13 @@ class Lamination(object):
 		we punctured too many triangles to begin with.
 		
 		This requires the entries to be NumberFieldElements (over the same
-		NumberField).
+		NumberField) or AlgebraicNumbers.
 		
 		This assumes that the lamination is filling. If not then it will
 		discover this. '''
 		
 		# Check if the lamination is obviously non-filling.
-		if any(v == 0 for v in self.vector):
+		if any(v == 0 for v in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# If not given, puncture all the triangles where the lamination is a tripod.

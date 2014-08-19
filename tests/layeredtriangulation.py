@@ -36,7 +36,7 @@ def main(verbose=False):
 		]
 	
 	twister_tests = [
-		('S_1_1', 'aB')
+		#('S_1_1', 'aB')
 		]
 	
 	try:

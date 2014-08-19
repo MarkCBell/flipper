@@ -65,10 +65,7 @@ class AbstractTriangle(object):
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
 	def __iter__(self):
-		return iter(self.indices)
-	
-	def __getitem__(self, index):
-		return self.indices[index % 3]
+		return iter(self.edges)
 	
 	def __contains__(self, item):
 		return item in self.edges
@@ -90,6 +87,31 @@ class Corner(object):
 		self.label = self.labels[0]
 		self.index = self.indices[0]
 		self.vertex = self.triangle.vertices[self.side]
+	
+	def __repr__(self):
+		return str((self.triangle, self.side))
+
+def order_corner_class(corner_class2):
+	# This orders the corner class anti-clockwise about the vertex.
+	corner_class = list(corner_class2)
+	ordered_class = [corner_class.pop()]
+	while corner_class:
+		for corner in corner_class:
+			if corner.edges[2] == ~ordered_class[-1].edges[1]:
+				ordered_class.append(corner)
+				corner_class.remove(corner)
+				break
+		else:
+			print(corner_class2)
+			assert(False)
+	
+	if not (ordered_class[0].edges[2] == ~ordered_class[-1].edges[1]):
+		print(corner_class2)
+		print(ordered_class)
+	
+	assert(ordered_class[0].edges[2] == ~ordered_class[-1].edges[1])
+	
+	return ordered_class
 
 # Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
 # of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
@@ -122,8 +144,8 @@ class AbstractTriangulation(object):
 		self.vertex_lookup = dict((corner.label, corner.vertex) for corner in self.corners)
 		assert(all(i in self.edge_lookup and ~i in self.edge_lookup for i in range(self.zeta)))
 		
-		# This is going to fail layered triangulation which thinks vertices are lists of corners ordered ANTI-CLOCKWISE about the vertex.
-		self.corner_classes = [[corner for corner in self.corners if corner.vertex == vertex] for vertex in self.vertices]
+		# This is going to fail layered triangulation which thinks are ordered ANTI-CLOCKWISE about the vertex.
+		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
 		self.max_order = 6 - 4 * self.Euler_characteristic  # The maximum order of a periodic mapping class.
@@ -136,8 +158,6 @@ class AbstractTriangulation(object):
 		return iter(self.triangles)
 	def copy(self):
 		return AbstractTriangulation(self.triangles)
-	#def __getitem__(self, index):
-	#	return self.triangles[index]
 	
 	def face_matrix(self):
 		assert(False)

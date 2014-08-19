@@ -52,6 +52,7 @@ Integer_Type = types.Integer_Type
 String_Type = types.String_Type
 Number_Type = types.Number_Type
 height_int = algebraicnumber.height_int
+norm = abstracttriangulation.norm
 
 
 abstract_triangulation_from_info = abstracttriangulation.abstract_triangulation_from_info

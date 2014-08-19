@@ -9,7 +9,6 @@ NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main(verbose=False):
-	start_time = time()
 	# Add more tests here.
 	tests = [
 		('S_1_1', 'a', NT_TYPE_REDUCIBLE),
@@ -33,10 +32,9 @@ def main(verbose=False):
 			assert(mapping_class.NT_type() == mapping_class_type)
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
-	#except AssertionError:
-	#	return False
+	except AssertionError:
+		return False
 	
-	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':

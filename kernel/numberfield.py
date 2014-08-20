@@ -3,11 +3,11 @@
 
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually
-# manipulate elements of ZZ[lambda]). This can even do multiplication of these 
+# manipulate elements of ZZ[lambda]). This can even do multiplication of these
 # elements without having to drop to an AlgebraicApproximation and so is significantly
-# faster that the previous way of doing this sort of calculation. 
+# faster that the previous way of doing this sort of calculation.
 
-# This requires the numbers to be given as a linear combinations of 
+# This requires the numbers to be given as a linear combinations of
 # 1, lambda, ..., lambda^{d-1}. Currently only Sage can do this.
 
 import flipper
@@ -156,8 +156,8 @@ class NumberFieldElement(object):
 		return not self.is_positive() and not self.is_negative()
 	
 	def algebraic_approximation(self, accuracy=0):
-		''' Returns an AlgebraicApproximation of this element which is correct to at least the 
-		requested accuracy. If no accuracy is given then accuracy will be chosen such that 
+		''' Returns an AlgebraicApproximation of this element which is correct to at least the
+		requested accuracy. If no accuracy is given then accuracy will be chosen such that
 		the approximation will determine a unique algebraic number. '''
 		
 		# Let:
@@ -167,7 +167,7 @@ class NumberFieldElement(object):
 		# As \alpha also lies in K = QQ(lambda) it also has degree at most d.
 		#
 		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) - sum(h(a_i)) [Interval.py L:13].
-		# As 
+		# As
 		#	h(\alpha) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9]
 		# for \alpha to determine a unique algebraic number we need that:
 		#	acc(I) >= log(d) + h(\alpha).

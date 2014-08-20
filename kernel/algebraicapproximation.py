@@ -4,14 +4,14 @@
 # Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
 # h(f) := log(max(|a_n|)) to be its height and deg(f) := n to be its degree.
 #
-# Let K be a number field and x_0 \in K be an algebraic number. We define h(x_0) := h(minpoly(x_0)) to be its the height 
+# Let K be a number field and x_0 \in K be an algebraic number. We define h(x_0) := h(minpoly(x_0)) to be its the height
 # and deg(x_0) := deg(minpoly(x_0)) to be its degree.
 
 # We use the following facts:
 #	1a) For x_0, x_1 \in K, h(x_0 +/- x_1) <= h(x_0) + h(x_1) + 1,
 #	 b) h(x_0 * x_1) <= h(x_0) + h(x_1) and
 #	 c) h(1 / x_0) == h(x_0) [Waldschmidt "Diophantine approximation on linear algebraic groups", Property 3.3].
-#	2) If 0 != x_0 \in K is a root of f(x) = a_n x^n + ... + a_0 then 
+#	2) If 0 != x_0 \in K is a root of f(x) = a_n x^n + ... + a_0 then
 #		|x_0| >= 1 / sum(|a_i / a_0|) [Basu et al. "Algorithms in Real Algebraic Geometry", Lemma 10.3].
 
 # An immediate consequence of 1) is that if x_0 \in K is a root of f \in ZZ[x] then h(x_0) <= h(f) + 2 \deg(f).
@@ -20,7 +20,7 @@
 #	-log(1 / sum(|a_i / a_0|)) = log(sum(|a_i / a_0|)) <= log(sum(|a_i|)) <= log(deg(x_0) * H(f)) <= log(deg(x_0)) + h(x_0)
 # then it uniquely determines an algebraic number.
 
-# Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can 
+# Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can
 # therefore determine if x_0 > x_1 by determining if (x_0 - x_1) > 0.
 
 import flipper
@@ -29,11 +29,11 @@ from math import log10 as log
 log_2 = log(2)
 
 class AlgebraicApproximation(object):
-	''' This represents an algebraic number. It uses an interval, which is sufficiently small based 
+	''' This represents an algebraic number. It uses an interval, which is sufficiently small based
 	on the degree and height of the number to uniquely determine it. '''
 	def __init__(self, interval, log_degree, height):
 		''' This class uses a sufficiently small interval to represent an algebraic number exactly. It is specified
-		by an interval with contains the number, an upper bound on the log of the degree of the field extension in 
+		by an interval with contains the number, an upper bound on the log of the degree of the field extension in
 		which this number lives and an upper bound on the height of this number. '''
 		assert(isinstance(interval, flipper.kernel.Interval))
 		assert(isinstance(log_degree, flipper.kernel.Number_Type))

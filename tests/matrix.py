@@ -5,6 +5,8 @@ from random import randint
 import flipper
 
 def main(verbose=False, n=1000, k=100):
+	if verbose: print('Running matrix tests.')
+	
 	# !?! Make this test deterministic.
 	try:
 		for _ in range(n):

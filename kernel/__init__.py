@@ -11,7 +11,6 @@ from . import lamination
 from . import layeredtriangulation
 from . import matrix
 from . import numberfield
-from . import numberring
 from . import permutation
 from . import polynomial
 from . import splittingsequence

@@ -8,6 +8,8 @@ def all_permutations(n):
 	return [flipper.kernel.Permutation(perm) for perm in permutations(range(n), n)]
 
 def main(verbose=False, n=4):
+	if verbose: print('Running permutation tests.')
+	
 	# Get some example permutations.
 	all_perms = all_permutations(n)
 	

@@ -48,6 +48,7 @@ class Options(object):
 		self.line_size = 2
 		self.dot_size = 3
 		
+		# Set it so that self.update() will be called whenever these variables are changed.
 		self.render_lamination_var.trace('w', self.update)
 		self.show_internals_var.trace('w', self.update)
 		self.label_edges_var.trace('w', self.update)

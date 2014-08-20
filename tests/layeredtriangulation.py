@@ -22,6 +22,8 @@ def test(surface, word, target):
 		assert(M.is_isometric_to(target))
 
 def main(verbose=False):
+	if verbose: print('Running layered triangulation tests.')
+	
 	if snappy is None:  # !?! Should also check that the version is > 1.3.2 so that twister exists.
 		print('SnapPy required but unavailable, tests skipped.')
 		return True

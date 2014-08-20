@@ -11,8 +11,6 @@ def minpoly_coefficients(algebraic_number):
 	return [int(scale * x) for x in polynomial.coeffs()]
 
 def PF_eigen(matrix, vector):
-	dot = flipper.kernel.matrix.dot
-	
 	M = Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
 	# Make sure that the eigenvalue that we've got is real.
@@ -24,7 +22,6 @@ def PF_eigen(matrix, vector):
 	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
 	eigenvector = project(vector, (M - lam).right_kernel().basis())
 	
-	eigenvector_coefficients = [list(entry.polynomial().coeffs()) for entry in eigenvector]
 	scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coeffs()]))
 	eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coeffs()] for entry in eigenvector]
 	
@@ -49,7 +46,8 @@ def PF_eigen2(matrix, vector):
 	norm = sum(eigenvector)
 	eigenvector = [entry / norm for entry in eigenvector]
 	
-	flipper_eigenvector = [algebraic_ring_element_from_info(minpoly_coefficients(entry), str(entry.n(digits=100))) for entry in eigenvector]  # Check.
+	# and check this 100 too.
+	flipper_eigenvector = [flipper.kernel.algebraic_number_helper(minpoly_coefficients(entry), str(entry.n(digits=100))) for entry in eigenvector]
 	
 	return flipper_eigenvalue, flipper_eigenvector
 

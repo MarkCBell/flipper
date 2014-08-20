@@ -1,14 +1,13 @@
 
 from __future__ import print_function
-from time import time
-import cProfile
 
 import flipper
 
 algebraic_number_helper = flipper.kernel.algebraic_number_helper
 
 def main(verbose=False):
-	start_time = time()
+	if verbose: print('Running algebraic number tests.')
+	
 	a = algebraic_number_helper([-2, 0, 1], '1.41')  # sqrt(2).
 	b = algebraic_number_helper([-3, 0, 1], '1.732')  # sqrt(3).
 	c = algebraic_number_helper([-1001, 0, 1], '31.639')  # sqrt(1001).
@@ -25,7 +24,6 @@ def main(verbose=False):
 	except AssertionError:
 		return False
 	
-	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':

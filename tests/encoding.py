@@ -1,6 +1,5 @@
 
 from __future__ import print_function
-from time import time
 
 import flipper
 
@@ -9,6 +8,8 @@ NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main(verbose=False):
+	if verbose: print('Running encoding tests.')
+	
 	# Add more tests here.
 	tests = [
 		('S_1_1', 'a', NT_TYPE_REDUCIBLE),

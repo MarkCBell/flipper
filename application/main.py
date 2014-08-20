@@ -251,7 +251,7 @@ class FlipperApp(object):
 	def valid_isometry(self, strn):
 		# A isometry is valid if it matched 'num:num num:num ...'.
 		if re.match(r'(\d+:\d+ ?)*$', strn) is None:
-			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\d+:\d+ ?)*$".')
+			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\\d+:\\d+ ?)*$".')
 			return False
 		
 		return True
@@ -1197,8 +1197,7 @@ class FlipperApp(object):
 			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				try:
-					dilatation, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
-					# dilatation = mapping_class.dilatation(lamination)
+					_, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
 				except flipper.ComputationError:
@@ -1429,7 +1428,7 @@ class FlipperApp(object):
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
 				if 'invariant_lamination' not in self.cache[mapping_class]:
-					dilatation, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
+					_, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
 					self.cache[mapping_class]['invariant_lamination'] = lamination
 					self.unsaved_work = True
 					self.treeview_objects.item(iid, text='Invariant lamination')

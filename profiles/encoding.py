@@ -11,6 +11,8 @@ NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main(verbose=False):
+	if verbose: print('Running encoding profile.')
+	
 	start_time = time()
 	# Add more tests here.
 	tests = [

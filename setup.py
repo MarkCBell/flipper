@@ -84,13 +84,15 @@ setup(
 	package_dir={'flipper': ''},
 	# Remember to update these if the directory structure changes.
 	package_data={'flipper':
-		['application/*.py', 'application/icon/*', 'application/docs/*',
+		['kernel/*.py',
+		'censuses/*.py',
 		'examples/*.py',
-		'kernel/*.py',
 		'tests/*.py',
 		'profiles/*.py',
+		'version.py',
+		'application/*.py', 'application/icon/*', 'application/docs/*',
 		'docs/*',
-		'version.py']},
+		'censuses/*.dat']},
 	cmdclass={'test': TestCommand, 'profile': ProfileCommand}
 	)
 

@@ -1,8 +1,5 @@
 
-from functools import reduce
-
 import flipper
-import flipper.application
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
@@ -207,7 +204,7 @@ class Encoding(object):
 		# advances to the next index according to the lex ordering.
 		
 		sizes = [len(encoding) for encoding in self][::-1]
-		sizes_mul = [reduce(lambda x, y: x*y, sizes[i:], 1) for i in range(len(sizes))]
+		sizes_mul = [flipper.kernel.product(sizes[i:]) for i in range(len(sizes))]
 		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
 		
 		def jump_index(indices):
@@ -380,7 +377,7 @@ class Encoding(object):
 			return NT_TYPE_PERIODIC
 		else:
 			try:
-				eigenvalue, lamination = self.invariant_lamination()
+				_, lamination = self.invariant_lamination()
 			except flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()

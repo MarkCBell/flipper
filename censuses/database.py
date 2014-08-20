@@ -1,8 +1,8 @@
 
 import os
 
-def from_database(file_name):
-	for line in open(os.path.join(os.path.dirname(__file__), file_name)):
+def load(file_name):
+	for line in open(os.path.join(os.path.dirname(__file__), file_name + '.dat')):
 		line = line.strip()
 		if '#' in line:
 			line = line[:line.find('#')]

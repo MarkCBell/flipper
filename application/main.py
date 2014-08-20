@@ -432,7 +432,7 @@ class FlipperApp(object):
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 					canvas_objects = [vertices, edges]
 				else:
-					# There isn't a good one here so create a triangulation ourselves. 
+					# There isn't a good one here so create a triangulation ourselves.
 					# We will place n triangles in k x k square there may be a few unused slots
 					# at the end.
 					n = abstract_triangulation.num_triangles
@@ -443,7 +443,7 @@ class FlipperApp(object):
 					k = int(sqrt(n)) + 1
 					cell_size = r / k
 					r = cell_size / 2
-					x_0, y_0 = (w / 2, h / 2) 
+					x_0, y_0 = (w / 2, h / 2)
 					
 					vertices = []
 					edges = []

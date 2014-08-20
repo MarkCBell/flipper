@@ -433,7 +433,7 @@ class Lamination(object):
 			laminations.append(lamination)
 			flips.append(edge_index)
 			
-			# Check if we have created any edges of weight 0. 
+			# Check if we have created any edges of weight 0.
 			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
 				lamination.collapse_trivial_weight(edge_index)

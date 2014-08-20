@@ -194,7 +194,7 @@ class Encoding(object):
 	def is_reducible(self, log_progress=None):
 		''' This determines if the induced action of self on V the space of laminations on T
 		has a fixed point satisfying:
-			face_matrix.v >= 0 and marking_matrix.v >= 0 
+			face_matrix.v >= 0 and marking_matrix.v >= 0
 		for some marking_matrix in marking_matrices. '''
 		# We now use Ben's branch and bound approach. It's much better.
 		assert(self.is_mapping_class())
@@ -471,7 +471,7 @@ class Encoding(object):
 			#		
 			#		print('####')
 				for isom in splitting.closing_isometries:
-					# Note: Until algebraic intersection numbers are done, this equality 
+					# Note: Until algebraic intersection numbers are done, this equality
 					# isn't strong enought if the underlying surface is S_1_1 or S_0_4.
 					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 						splitting.closing_isometry = isom

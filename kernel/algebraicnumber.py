@@ -27,7 +27,6 @@ class AlgebraicMonomial(object):
 	
 	def __repr__(self):
 		return 'product of roots of: \n' + '\n'.join(str(term.polynomial) for term in self)
-		return str(float(self))
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	def __iter__(self):
@@ -101,7 +100,6 @@ class AlgebraicNumber(object):
 	def __repr__(self):
 		return ' + '.join('%d*x_%d' % (self.co(term), i) for i, term in enumerate(self)) + '\nwhere:\n' + \
 			'\n'.join('x_%d := %s' % (i, term) for i, term in enumerate(self))
-		return str(float(self))
 	def __iter__(self):
 		return iter(self.terms)
 	def __len__(self):

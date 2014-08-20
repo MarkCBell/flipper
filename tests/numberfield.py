@@ -4,6 +4,7 @@ from __future__ import print_function
 import flipper
 
 def main(verbose=False):
+	if verbose: print('Running number field tests.')
 	
 	# !?! TO DO.
 	

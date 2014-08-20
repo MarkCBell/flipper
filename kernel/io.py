@@ -42,7 +42,7 @@ def package(objects):
 	unnamed_laminations, unnamed_mapping_classes = [], []
 	lamination_names, mapping_class_names = set(), set()
 	for item in objects:
-		if isinstance(item, flipper.AbstractTriangulation):
+		if isinstance(item, flipper.kernel.AbstractTriangulation):
 			if triangulation is not None:
 				raise ValueError('Only one triangulation may be given.')
 			triangulation = item
@@ -52,8 +52,8 @@ def package(objects):
 			unnamed_mapping_classes.append(item)
 		elif isinstance(item, (list, tuple)) and len(item) == 2:
 			name, item2 = item
-			if isinstance(name, flipper.types.String_Type):
-				if isinstance(item2, flipper.AbstractTriangulation):
+			if isinstance(name, flipper.String_Type):
+				if isinstance(item2, flipper.kernel.AbstractTriangulation):
 					if triangulation is not None:
 						raise ValueError('Only one triangulation may be given.')
 					triangulation = item2
@@ -90,11 +90,11 @@ def package(objects):
 		else:
 			raise ValueError('A triangulation, Lamination or Encoding must be given.')
 	
-	if any(lamination.triangulation != triangulation for lamination in laminations.values()):
+	if any(lamination.triangulation != triangulation for name, lamination in laminations):
 		raise ValueError('All laminations must be on the same abstract triangulations.')
-	if any(mapping_class.source_triangulation != triangulation for mapping_class in mapping_classes.values()):
+	if any(mapping_class.source_triangulation != triangulation for name, mapping_class in mapping_classes):
 		raise ValueError('All mapping classes must go from the same abstract triangulations.')
-	if any(mapping_class.target_triangulation != triangulation for mapping_class in mapping_classes.values()):
+	if any(mapping_class.target_triangulation != triangulation for name, mapping_class in mapping_classes):
 		raise ValueError('All mapping classes must go to the same abstract triangulations.')
 	else:
 		raise ValueError('Must be an abstract triangulation or a pair.')

@@ -1,6 +1,5 @@
 
 import flipper
-import flipper.application
 
 class Lamination(object):
 	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
@@ -293,7 +292,7 @@ class Lamination(object):
 		while not lamination.is_tripod_free():
 			bipod_edges = [triangle[side] for triangle, side in lamination.triangulation.corners if lamination.is_bipod((triangle, side))]
 			edge_index = max(bipod_edges, key=lambda i: lamination[i])
-			edge_index = int(input('Edge to flip'))
+			edge_index = int(raw_input('Edge to flip'))
 			
 			E = lamination.triangulation.encode_flip(edge_index)
 			lamination = E(lamination)
@@ -389,13 +388,15 @@ class Lamination(object):
 			edge_map[~d] = ~edge_map[~c]
 			edge_count += 1
 		
-		new_triangles = [flipper.kernel.AbstractTriangle([edge_map[edge] for edge in triangle.edges]) for triangle in self.triangulation if e not in triangle and ~e not in triangle]
+		triples = [[edge_map[edge] for edge in triangle] for triangle in self.triangulation if e not in triangle and ~e not in triangle]
+		new_triangles = [flipper.kernel.AbstractTriangle(triple) for triple in triples]
 		
-		new_vector = [[self[edge] for edge in self.triangulation.edges if edge not in [a,b,c,d,e,~e] and edge_map[edge].index == i][0] for i in range(edge_count)]
+		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
+		new_vector = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
 		
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
-	def splitting_sequence(self, target_dilatation=None, _good_tripods=None):
+	def splitting_sequence(self, target_dilatation=None):
 		''' Returns the splitting sequence associated to this laminations.
 		This is the list of edges of maximal weight until you reach a
 		periodic sequence (with required dilatation if given).
@@ -417,7 +418,7 @@ class Lamination(object):
 		
 		# If not given, puncture all the triangles where the lamination is a tripod.
 		puncture_encoding = self.triangulation.encode_puncture_triangles(self.tripod_regions())
-		lamination = punctured_self = puncture_encoding(self)
+		lamination = puncture_encoding(self)
 		
 		laminations = [lamination]
 		flips = []

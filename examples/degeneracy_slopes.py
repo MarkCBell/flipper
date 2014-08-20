@@ -1,14 +1,12 @@
 
 from __future__ import print_function
-
 from time import time
 
 import flipper
 import snappy
-from database import from_database
 
 def main():
-	for surface, word, target in from_database('census_monodromies'):
+	for surface, word, target in flipper.censuses.load('census_monodromies'):
 		print(target, word)
 		start_time = time()
 		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)

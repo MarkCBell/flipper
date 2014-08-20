@@ -159,14 +159,6 @@ class Interval(object):
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
-	def __rdiv__(self, other):
-		if isinstance(other, flipper.Integer_Type):
-			# !?! RECHECK THIS!
-			return interval_from_integer(other, self.precision) / self
-		else:
-			return NotImplemented
-	def __rtruediv__(self, other):
-		return self.__rdiv__(other)
 	def midpoint(self, magnitude):
 		m = (10**magnitude) * (self.lower + self.upper) // 2
 		return Interval(m-1, m+1, self.precision+magnitude)

@@ -226,7 +226,7 @@ class Matrix(object):
 		# Returns a matrix in which the row with given index has been replaced by the given vector.
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)])
 	def solve(self, target):
-		# Returns an x such that self*x == target*k for some k \in ZZ. 
+		# Returns an x such that self*x == target*k for some k \in ZZ.
 		assert(self.width == self.height)
 		A = self.transpose()
 		d = A.determinant()

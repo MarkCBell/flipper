@@ -7,6 +7,8 @@ import flipper
 interval_helper = flipper.kernel.interval.interval_helper
 
 def main(verbose=False):
+	if verbose: print('Running interval tests.')
+	
 	w = interval_helper('0.10')
 	x = interval_helper('10000.0')
 	y = interval_helper('1.14571')

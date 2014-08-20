@@ -1,11 +1,11 @@
 
 from __future__ import print_function
-from time import time
 
 import flipper
 
 def main(verbose=False):
-	start_time = time()
+	if verbose: print('Running lamination tests.')
+	
 	# Add more tests here.
 	tests = [
 		('S_1_1', 'a'),
@@ -36,9 +36,8 @@ def main(verbose=False):
 	except flipper.ComputationError:
 		return False
 	
-	if verbose: print('Time taken: %0.3fs' % (time() - start_time))
 	return True
 
 if __name__ == '__main__':
-	print(main(verbose=True, timings=True))
+	print(main(verbose=True))
 

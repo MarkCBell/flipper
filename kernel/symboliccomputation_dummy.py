@@ -1,6 +1,4 @@
 
-from functools import reduce
-
 import flipper
 # !! Eventually change.
 
@@ -29,7 +27,7 @@ def PF_eigen(matrix, vector):
 	# eigenvector = project(vector, orthogonal_kernel_basis)
 	dim_ker = len(orthogonal_kernel_basis)
 	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
-	product_lengths = [reduce(lambda x, y: x*y, [row_lengths[j] for j in range(dim_ker) if j != i], 1) for i in range(dim_ker)]
+	product_lengths = [flipper.kernel.product([row_lengths[j] for j in range(dim_ker) if j != i]) for i in range(dim_ker)]
 	linear_combination = [dot(vector, row) * product_length for row, product_length in zip(orthogonal_kernel_basis, product_lengths)]
 	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
 	eigenvector_coefficients = [x.linear_combination for x in eigenvector]

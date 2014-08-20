@@ -1,7 +1,6 @@
 
 import flipper
 import snappy
-from database import from_database
 
 def test(splitting, N):
 	for M in splitting.snappy_manifolds():
@@ -14,7 +13,7 @@ def test(splitting, N):
 	return False
 
 def main():
-	for surface, word in from_database('knot_monodromies'):
+	for surface, word in flipper.censuses.load('knot_monodromies'):
 		print(surface, word)
 		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 		mapping_class = S.mapping_class(word)

@@ -68,7 +68,12 @@ class AbstractTriangle(object):
 		return iter(self.edges)
 	
 	def __contains__(self, item):
-		return item in self.edges
+		if isinstance(item, AbstractEdge):
+			return item in self.edges
+		elif isinstance(item, AbstractVertex):
+			return item in self.vertices
+		else:
+			return NotImplemented
 
 class Corner(object):
 	''' A corner of a triangulation is a triangle along with a side number (the side opposite this corner). '''
@@ -156,6 +161,15 @@ class AbstractTriangulation(object):
 		return str(list(self))
 	def __iter__(self):
 		return iter(self.triangles)
+	def __contains__(self, item):
+		if isinstance(item, AbstractVertex):
+			return item in self.vertices
+		elif isinstance(item, AbstractEdge):
+			return item in self.edges
+		elif isinstance(item, AbstractTriangle):
+			return item in self.triangles
+		else:
+			return NotImplemented
 	def copy(self):
 		return AbstractTriangulation(self.triangles)
 	
@@ -176,22 +190,26 @@ class AbstractTriangulation(object):
 	
 	def vertices_of_edge(self, edge_index):
 		# Returns the two vertices at the ends of this edge.
+		# Refactor out?
 		return [self.edge_lookup[edge_index].source_vertex, self.edge_lookup[~edge_index].source_vertex]
 	
 	def triangles_of_edge(self, edge_index):
 		# Returns the two triangles containing this edge.
+		# Refactor out?
 		return [self.triangle_lookup[edge_index], self.triangle_lookup[~edge_index]]
 	
 	def corner_of_edge(self, edge_index):
 		# Return the corner opposite this edge.
+		# Refactor out?
 		return self.corner_lookup[edge_index]
 	
 	def corner_class_of_vertex(self, vertex):
 		# Returns the corner class containing this vertex.
+		# Refactor out?
 		for cc in self.corner_classes:
 			if cc[0].vertex == vertex:
 				return cc
-		raise ValueError('!?!')
+		raise ValueError('Given vertex does not correspond to a corner class.')
 	
 	def is_flippable(self, edge_index):
 		# An edge is flippable iff it lies in two distinct triangles.
@@ -447,7 +465,7 @@ class AbstractTriangulation(object):
 			else:
 				triangles.append(triangle)
 		
-		T = flipper.AbstractTriangulation(triangles)
+		T = flipper.kernel.AbstractTriangulation(triangles)
 		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
 
 def abstract_triangulation_helper(all_labels):

@@ -18,8 +18,8 @@ class SplittingSequence(object):
 		self.num_isometries = len(self.isometries)
 		self.closing_isometry = self.isometries[0] if self.num_isometries == 1 else None
 	
-	def dilatation(self):
-		return float(self.laminations[0].weight()) / float(self.laminations[-1].weight())
+	#def dilatation(self):
+	#	return float(self.laminations[0].weight()) / float(self.laminations[-1].weight())
 	
 	def bundle(self, isometry_number=None):
 		L = flipper.kernel.LayeredTriangulation(self.periodic.source_triangulation)

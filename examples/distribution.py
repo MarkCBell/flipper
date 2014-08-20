@@ -4,7 +4,6 @@ from __future__ import print_function
 import flipper
 
 def main(surface, lower, upper, step=1, sample=100):
-	times = {}
 	S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 	for length in range(lower, upper, step):
 		count = 0

@@ -31,9 +31,7 @@ def main():
 		('S_2_1', 'BaEcCCeAbC')
 		]
 	
-	conjugator = 'abDeFa' * 3
 	for index, (surface, word) in enumerate(examples):
-		#word = conjugator + word + conjugator[::-1].swapcase()
 		print('%d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
 		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 		mapping_class = S.mapping_class(word)

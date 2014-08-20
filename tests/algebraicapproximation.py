@@ -7,6 +7,8 @@ algebraic_approximation_helper = flipper.kernel.algebraic_approximation_helper
 algebraic_approximation_from_integer = flipper.kernel.algebraicapproximation.algebraic_approximation_from_integer
 
 def main(verbose=False):
+	if verbose: print('Running algebraic approximation tests.')
+	
 	# We acutally need quite a lot of accuracy in the given strings.
 	x = algebraic_approximation_helper('1.4142135623730951', 2, 2)
 	y = algebraic_approximation_helper('1.41421356237309', 2, 2)

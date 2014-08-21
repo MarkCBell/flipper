@@ -458,10 +458,10 @@ class Lamination(object):
 							if None in encodings:
 								pp_encoding = None
 							else:
-								pp_encoding = flipper.kernel.product(encodings[:index+1])
+								pp_encoding = flipper.kernel.product(encodings[:index+1], start=self.triangulation.id_encoding())
 								assert(pp_encoding.source_triangulation == self.triangulation)
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
-							p_encoding = flipper.kernel.product(encodings[index+1:])
+							p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
 							p_flips = flips[index:]
 							
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)

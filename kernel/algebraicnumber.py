@@ -48,13 +48,8 @@ class AlgebraicMonomial(object):
 		
 		accuracy_required = max(accuracy, 0)
 		if self._interval is None or self._interval_accuracy < accuracy_required:
-			if any(self):
-				# inter = flipper.kernel.product([term.interval_approximation() for term in self])
-				# term_accuracy = accuracy_required + max(accuracy_required - inter.accuracy, 0)
-				term_accuracy = accuracy_required + max(int(sum(term.interval.log_bound + 1 for term in self)), 0) + 1
-				self._interval = flipper.kernel.product([term.interval_approximation(term_accuracy) for term in self])
-			else:
-				self._interval = flipper.kernel.interval.interval_from_integer(1)
+			term_accuracy = accuracy_required + max(int(sum(term.interval.log_bound + 1 for term in self)), 0) + 1
+			self._interval = flipper.kernel.product([term.interval_approximation(term_accuracy) for term in self], start=flipper.kernel.interval.interval_from_integer(1))
 			
 			self._interval = self._interval.change_accuracy(accuracy_required)
 			self._interval_accuracy = self._interval.accuracy

@@ -181,7 +181,7 @@ class Interval(object):
 def interval_helper(string):
 	i, r = string.split('.') if '.' in string else (string, '')
 	x = int(i + r)
-	return Interval(x-1, x+1, len(r))
+	return Interval(x-10, x+10, len(r))
 
 def interval_from_integer(integer):
 	return Interval(integer, integer, 0)

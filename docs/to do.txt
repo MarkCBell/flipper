@@ -8,20 +8,21 @@ update examples in application/examples/
 ### Documentation ###
 more documentation
 documentation for kernel - sphinx?
+check docstrings using pylint
 
 ### Kernel ###
 make polynomials squarefree - polynomial gcd
+make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
 be able to (half) twist along all curves - construct chain
-doc strings everywhere
 recheck ALL number theory bounds
 completing the square
 
 ### Tests ###
 add more tests
 tests for every module
-switch to actual unit tests
-rewrite all tests and examples to a standard format
+
+add better profiling to see speedup progress
 

@@ -196,7 +196,9 @@ class PolynomialRoot(object):
 		self.height = self.polynomial.height + 2 * self.log_degree
 		
 		if self.polynomial.num_roots(self.interval) != 1:
-			raise flipper.AssumptionError('Interval does not determine unique root of polynomial.')
+			print(self.polynomial.num_roots(self.interval))
+			print(self.interval)
+			raise flipper.ApproximationError('Interval does not determine unique root of polynomial.')
 	
 	def __repr__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)

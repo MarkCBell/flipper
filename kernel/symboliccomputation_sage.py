@@ -32,7 +32,6 @@ def PF_eigen(matrix, vector):
 
 def PF_eigen2(matrix, vector):
 	M = Matrix(matrix.rows)
-	
 	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
 	# Make sure that the eigenvalue that we've got is real.
 	if eigenvalue.imag() != 0:

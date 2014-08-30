@@ -93,6 +93,7 @@ class AlgebraicNumber(object):
 		self._interval_accuracy = -1
 	
 	def __repr__(self):
+		return str(float(self))
 		return ' + '.join('%d*x_%d' % (self.co(term), i) for i, term in enumerate(self)) + '\nwhere:\n' + \
 			'\n'.join('x_%d := %s' % (i, term) for i, term in enumerate(self))
 	def __iter__(self):

@@ -10,9 +10,9 @@ def main(verbose=False):
 	if verbose: print('Running algebraic approximation tests.')
 	
 	# We acutally need quite a lot of accuracy in the given strings.
-	x = algebraic_approximation_helper('1.4142135623730951', 2, 2)
-	y = algebraic_approximation_helper('1.41421356237309', 2, 2)
-	z = algebraic_approximation_helper('1.000000', 2, 2)
+	x = algebraic_approximation_helper('1.4142135623730950488016887242096980785696718753769480', 2, 2)
+	y = algebraic_approximation_helper('1.4142135623730950488016887242096980', 2, 2)
+	z = algebraic_approximation_helper('1.000000000000', 2, 2)
 	w = algebraic_approximation_from_integer(1)
 	
 	try:

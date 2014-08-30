@@ -30,13 +30,12 @@ import flipper
 from importlib import import_module
 
 ### Add new libraries here ###
-load_order = ['sage', 'dummy']
-libraries = {'sage': 'symboliccomputation_sage', 'dummy': 'symboliccomputation_dummy'}
+libraries = ['symboliccomputation_sage', 'symboliccomputation_dummy']
 
 def load_library():
-	for library in load_order:
+	for library in libraries:
 		try:
-			return import_module('flipper.kernel.' + libraries[library])
+			return import_module('flipper.kernel.' + library)
 		except ImportError:
 			pass
 	
@@ -45,5 +44,5 @@ def load_library():
 def Perron_Frobenius_eigen(matrix, curve):
 	symbolic_computation_library = load_library()
 	return symbolic_computation_library.PF_eigen(matrix, curve)
-	# return symbolic_computation_library.PF_eigen2(matrix, curve)
+	#return symbolic_computation_library.PF_eigen2(matrix, curve)
 

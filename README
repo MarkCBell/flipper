@@ -1,7 +1,7 @@
 
-Flipper is a program for computing the action of mapping classes on 
-laminations on punctured surfaces using ideal triangulation coordinates. 
-Eventually it will also be able to construct the canonical triangulation 
+Flipper is a program for computing the action of mapping classes on
+laminations on punctured surfaces using ideal triangulation coordinates.
+Eventually it will also be able to construct the canonical triangulation
 of the surface bundle associated to pseudo-Anosov mapping class.
 
 Flipper is available from:
@@ -13,11 +13,11 @@ You can download the latest version directly from:
 Alternatively, you can clone the mercurial repository directly:
 	hg clone https://bitbucket.org/mark_bell/flipper
 
-For more information about installing and using flipper see "A users guide to 
+For more information about installing and using flipper see "A users guide to
 flipper" located at:
 	./application/docs/flipper.pdf
 
-If you find flipper useful in your research, please consider citing it. A 
+If you find flipper useful in your research, please consider citing it. A
 suggested reference is:
 	Mark Bell. flipper (Computer Software).
 	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version number used>>.

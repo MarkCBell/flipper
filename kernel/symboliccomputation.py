@@ -1,5 +1,4 @@
 
-
 # !! Eventually change.
 
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
@@ -11,7 +10,7 @@
 # have an interface to SymPy but this turned out to be extremely unreliable, there were 9x9
 # invertible matrices for which it could only find 1 eigenvalue!
 #
-# There is also a dummy library which has a basic implementation of the gram schmidt 
+# There is also a dummy library which has a basic implementation of the gram schmidt
 # orthonormalisation process that other libraries may be able to make use of.
 #
 # Each library provides one function:

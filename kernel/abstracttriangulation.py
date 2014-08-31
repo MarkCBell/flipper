@@ -308,7 +308,7 @@ class AbstractTriangulation(object):
 			else:
 				break  # If there are no more to add then our tree is maximal
 		
-		# Generators are given by edges not in the tree or the dual tree (along with some segment 
+		# Generators are given by edges not in the tree or the dual tree (along with some segment
 		# in the dual tree to make it into a loop).
 		dual_tree_indices = [edge_index for edge_index in range(self.zeta) if dual_tree[edge_index]]
 		homology_generators = []

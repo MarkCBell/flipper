@@ -10,7 +10,7 @@ import flipper
 # For an integer x let log+(x) := log(max(abs(x), 1)) and for an interval I
 # let log+(I) := max(log+(I.lower), log+(I.upper), I.precision) - I.precision.
 
-# Suppose that x is an integer and that I and J are intervals and that 
+# Suppose that x is an integer and that I and J are intervals and that
 # m := min(acc(I), acc(J)).
 # Then we obtain the following bounds:
 #	acc(I + J) >= m - 1,

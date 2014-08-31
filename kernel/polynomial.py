@@ -3,10 +3,10 @@ from math import log10 as log
 
 import flipper
 
-# This class represents an integral polynomial. In various places we will assume that it is 
+# This class represents an integral polynomial. In various places we will assume that it is
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
 class Polynomial(object):
-	''' This represents a polynomial in one variable. The most important method of this is 
+	''' This represents a polynomial in one variable. The most important method of this is
 	self.algebraic_approximate_leading_root() which returns an AlgebraicApproximation of the largest real
 	root or raises an AssumptionError if there are none. '''
 	def __init__(self, coefficients):
@@ -81,7 +81,7 @@ class Polynomial(object):
 		# Returns polynomials Q, R and an integer k such that k*self == Q * other + R.
 		# If self and other are integral, by Gauss' lemma if other | self then k == 1.
 		if isinstance(other, Polynomial):
-			if other.is_zero(): 
+			if other.is_zero():
 				raise ZeroDivisionError
 			
 			Q = Polynomial([0])
@@ -89,11 +89,11 @@ class Polynomial(object):
 			k = 1
 			while R.degree >= other.degree:
 				# Now if other | self then Gauss' lemma says this condition will always fail.
-				if R[-1] % other[-1] != 0: 
+				if R[-1] % other[-1] != 0:
 					R = R * other[-1]
 					Q = Q * other[-1]
 					k = k * other[-1]
-				scale = R[-1] // other[-1]  
+				scale = R[-1] // other[-1]
 				Q = Q + (Polynomial([1]).shift(R.degree - other.degree) * scale)
 				R = R - (other.shift(R.degree - other.degree) * scale)
 			return Q, R, k

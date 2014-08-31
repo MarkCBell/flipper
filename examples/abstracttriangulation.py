@@ -75,7 +75,7 @@ def Example_S_2_1():
 	e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
 	f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
 	
-	return ExampleSurface(T, [a, b, c, d, e, f], 
+	return ExampleSurface(T, [a, b, c, d, e, f],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
@@ -92,14 +92,14 @@ def Example_S_3_1():
 	g = T.lamination([0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0])
 	h = T.lamination([0, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
 	
-	return ExampleSurface(T, [a, b, c, d, e, f, g, h], 
+	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
 
 def Example_12():
 	# A 12-gon:
-	T = flipper.abstract_triangulation_helper([[6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0], 
+	T = flipper.abstract_triangulation_helper([[6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0],
 		[14, ~1, ~13], [~14, 15, ~2], [~15, 16, ~3], [~16, 17, ~4], [~6, ~5, ~17]])
 	
 	a = T.lamination([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])

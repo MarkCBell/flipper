@@ -14,18 +14,18 @@ class SplitButton(TK.Frame):
 	def __init__(self, parent, commands, **options):
 		''' A SplitButton is a button with an additional
 		drop down menu of other commands.
-
+		
 		It is initalised by passing a list of pairs of the form:
-		(label, command). The first item in this list is 
+		(label, command). The first item in this list is
 		used as the main function of the button and others are
-		added to the drop down menu, this must be provided. 
-
+		added to the drop down menu, this must be provided.
+		
 		Additional options for the underlying Frame can also be
 		passed in. '''
 		
 		# Initalise.
 		TK.Frame.__init__(self, parent, **options)
-
+		
 		# Setup controls.
 		if len(commands) == 0:
 			raise TypeError('At least one label and command must be provided.')
@@ -38,11 +38,11 @@ class SplitButton(TK.Frame):
 		self._more['menu'] = self._menu
 		self._main.grid(column=0, row=0, sticky='nsew')
 		self._more.grid(column=1, row=0, sticky='nsew', pady=1)
-
+		
 		# Add each command to the menu.
 		for label, command in commands[1:]:
 			self._menu.add_command(label=label, command=command)
-
+		
 		# Make it resizable with 75% of the size going to the button.
 		self.columnconfigure(0, weight=3)
 		self.columnconfigure(1, weight=1)
@@ -73,6 +73,7 @@ class Meter(TK.Frame):
 			set(value, text) -- updates the widget's value and the displayed text;
 								if value is omitted it defaults to 0.0 , text defaults to None .
 		'''
+		
 		TK.Frame.__init__(self, master, bg=bg, width=width, height=height, *args, **kw)
 		self._value = value
 		
@@ -102,7 +103,7 @@ class Meter(TK.Frame):
 		value = min(max(value, 0.0), 1.0)
 		if self._canv.winfo_width() * abs(self._value - value) > 1 or text is not None:  # Only bother updating if there has been a noticeable change.
 			self._value = value
-			if text is None: 
+			if text is None:
 				text = '%0.1f%%' % (100 * value)  # If no text is specified use the default percentage string.
 			textcolour = 'black' if value < 0.5 else 'white'
 			self._canv.coords(self._rect, self._canv.winfo_width() * lower_value, 0, self._canv.winfo_width() * value, self._canv.winfo_height())

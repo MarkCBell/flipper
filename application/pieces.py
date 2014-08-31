@@ -152,7 +152,7 @@ class Triangle(DrawableObject):
 		self.default_colour = self.colour = DEFAULT_TRIANGLE_COLOUR
 		self.edges = edges
 		
-		# We reorder the vertices to guarantee that the vertices are cyclically ordered anticlockwise in the plane. 
+		# We reorder the vertices to guarantee that the vertices are cyclically ordered anticlockwise in the plane.
 		d10, d20 = self[1] - self[0], self[2] - self[0]
 		if d10[0]*d20[1] - d10[1]*d20[0] > 0: self.vertices = [self[0], self[2], self[1]]
 		# Now we reorder the edges such that edges[i] does not meet vertices[i].

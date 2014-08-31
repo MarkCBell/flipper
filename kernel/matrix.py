@@ -123,7 +123,7 @@ class Matrix(object):
 		A = self.copy()
 		for i in range(1, self.width-1):
 			A = self * (A - (A.trace() // i))
-		return A - (A.trace() // (self.width-1)) 
+		return A - (A.trace() // (self.width-1))
 	def transpose(self):
 		# Returns self^{T}.
 		return Matrix(list(zip(*self.rows)))
@@ -172,7 +172,7 @@ class Matrix(object):
 		
 		return scale * A[self.width-1][self.width-1]
 	def char_poly(self):
-		# Based off of the Faddeev-Leverrier method. 
+		# Based off of the Faddeev-Leverrier method.
 		# See: http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html
 		assert(self.width == self.height)
 		# We will actually compute det(\lambdaI - self). Then at the
@@ -183,7 +183,7 @@ class Matrix(object):
 			p[i] = -A.trace() // i
 			# If we were smarter we would skip this on the final iteration.
 			A = self * (A + p[i])
-		# Actually now A / pi == A^{-1}. 
+		# Actually now A / pi == A^{-1}.
 		sign = +1 if self.width % 2 == 0 else -1
 		return flipper.kernel.Polynomial(p[::-1]) * sign
 	
@@ -253,7 +253,7 @@ class Matrix(object):
 		R = set(tuple(rescale(row)) for row in self if nontrivial(row))
 		R_width = self.width
 		A = Id_Matrix(self.width)
-		# We repeatedly search for a pair of antipodal rows in self and use them to eliminate 
+		# We repeatedly search for a pair of antipodal rows in self and use them to eliminate
 		# one variable. This frequently occurs in the reducibility problem.
 		while R_width > 1:
 			for R1, R2 in find_antipodal(R):
@@ -293,7 +293,7 @@ class Matrix(object):
 		neg_rows = [row for row in self if row[index] < 0]
 		non_rows = [row for row in self if row[index] == 0]
 		if len(neg_rows) == 0:
-			# Problem is trivially solvable by (0 ... 0 1 0 ... 0) 
+			# Problem is trivially solvable by (0 ... 0 1 0 ... 0)
 			return Matrix([[1]])
 		elif len(pos_rows) == 0:
 			# Problem is independent of x_index.
@@ -312,8 +312,8 @@ class Matrix(object):
 		return any(x >= 0 for x in A[0])
 	
 	def find_edge_vector(self):
-		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or 
-		None if none exists. Note: if self is empty then considers self as a map 
+		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or
+		None if none exists. Note: if self is empty then considers self as a map
 		from RR^0 --> RR^0 and so returns None. '''
 		# !?! To do: Redo this using the simplex method / ellipsoid method and presolving.
 		
@@ -324,7 +324,7 @@ class Matrix(object):
 		
 		if R.width == 0:
 			return B * ([1]*B.width)
-		elif R.width == 1: 
+		elif R.width == 1:
 			if R.nonnegative_image([1]):
 				return B * [1]
 		elif R.width > 1:
@@ -346,7 +346,7 @@ class Matrix(object):
 	
 	def nontrivial_polytope(self):
 		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial,
-		i.e. not just {0}. Note: As with self.find_edge_vector() we consider the 
+		i.e. not just {0}. Note: As with self.find_edge_vector() we consider the
 		empty matrix as a map RR^0 --> RR^0 and so return False. '''
 		
 		certificate = self.find_edge_vector()

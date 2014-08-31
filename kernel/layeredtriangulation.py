@@ -302,7 +302,7 @@ class Triangulation3(object):
 		return cusps
 	
 	def slope(self, path):
-		# Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes. 
+		# Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes.
 		# Assumes that the meridian and longitude on this cusp have been set.
 		
 		# These are the algebraic intersection numbers between the path and the meridian and longitude.
@@ -316,7 +316,7 @@ class Triangulation3(object):
 		return (meridian_copies, longitude_copies)
 	
 	def slope_TEMPS(self):
-		# Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes. 
+		# Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
 		# Assumes that the meridian and longitude on this cusp have been set.
 		
 		# See Triangulation3.slope(path).
@@ -369,7 +369,7 @@ def permutation_from_pair(a, to_a, b, to_b):
 
 # A class to represent a layered triangulation over a surface specified by a flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
-	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. ''' 
+	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. '''
 	def __init__(self, abstract_triangulation):
 		assert(isinstance(abstract_triangulation, flipper.kernel.AbstractTriangulation))
 		

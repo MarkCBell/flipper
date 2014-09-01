@@ -4,7 +4,7 @@ from distutils.core import setup, Command
 import importlib
 
 # Get the correct version.
-from version import flipper_version
+from versions import version
 
 # So we can access all of the test suite just by doing 'python setup.py test'
 class TestCommand(Command):
@@ -75,7 +75,7 @@ class ProfileCommand(Command):
 
 setup(
 	name='flipper',
-	version=flipper_version,
+	version=str(version),
 	description='flipper',
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',

@@ -62,8 +62,6 @@ class Options(object):
 		
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
 		self.zoom_fraction = 0.9 # Must be in (0, 1)
-		
-		self.version = flipper.version.flipper_version
 	
 	def update(self, *args):
 		self.render_lamination = str(self.render_lamination_var.get())

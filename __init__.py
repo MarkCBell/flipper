@@ -5,7 +5,7 @@ import flipper.censuses
 import flipper.examples
 import flipper.tests
 import flipper.profiles
-import flipper.version
+import flipper.versions
 
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.abstract_triangulation_helper = flipper.kernel.abstract_triangulation_helper
@@ -21,4 +21,6 @@ flipper.ComputationError = flipper.kernel.ComputationError
 
 flipper.package = flipper.kernel.package
 flipper.depackage = flipper.kernel.depackage
+
+flipper.version = flipper.versions.version
 

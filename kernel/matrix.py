@@ -1,7 +1,7 @@
 
 from itertools import combinations, groupby, product
 from fractions import gcd
-from functools import reduce
+from functools import reduce as freduce
 
 import flipper
 
@@ -26,7 +26,7 @@ def find_one(v):
 	return -1
 
 def rescale(v):
-	c = max(abs(reduce(gcd, v)), 1)  # Avoid a possible division by 0.
+	c = max(abs(freduce(gcd, v)), 1)  # Avoid a possible division by 0.
 	return [x // c for x in v]
 
 def nonnegative(v):

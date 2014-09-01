@@ -100,7 +100,7 @@ def package(objects):
 		raise ValueError('Must be an abstract triangulation or a pair.')
 	
 	spec = 'A flipper kernel file.'
-	version = flipper.version.flipper_version
+	version = flipper.version
 	
 	data = (triangulation, laminations, mapping_classes)
 	return pickle.dumps((spec, version, data))
@@ -110,7 +110,7 @@ def depackage(packaged_objects):
 	(spec, version, data) = pickle.loads(packaged_objects)
 	if spec != 'A flipper kernel file.':
 		raise ValueError('Not a valid specification.')
-	if flipper.version.version_tuple(version) != flipper.version.version_tuple(flipper.version.flipper_version):
+	if version != flipper.version:
 		raise ValueError('Wrong version of flipper.')
 	
 	[triangulation, laminations, mapping_classes] = data

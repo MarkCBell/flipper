@@ -369,7 +369,7 @@ class FlipperApp(object):
 		if path != '':
 			try:
 				spec = 'A flipper file.'
-				version = self.options.version
+				version = flipper.version
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				abstract_triangulation = self.abstract_triangulation
@@ -410,7 +410,7 @@ class FlipperApp(object):
 				spec, version, data = pickle.loads(string_contents)
 			except AttributeError:
 				raise ValueError('Not a valid flipper file.')
-			if flipper.version.version_tuple(version) != flipper.version.version_tuple(self.options.version):
+			if version != flipper.version:
 				raise ValueError('Wrong version of flipper.')
 			if spec == 'A flipper file.':
 				load_objects = data
@@ -496,7 +496,7 @@ class FlipperApp(object):
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
-			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % self.options.version)
+			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.version)
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -552,7 +552,7 @@ class FlipperApp(object):
 		os.system(command + ' ' + disk_file)
 	
 	def show_about(self):
-		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % self.options.version)
+		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % flipper.version)
 	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:

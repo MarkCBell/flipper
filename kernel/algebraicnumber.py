@@ -94,8 +94,8 @@ class AlgebraicNumber(object):
 	
 	def __repr__(self):
 		return str(float(self))
-		return ' + '.join('%d*x_%d' % (self.co(term), i) for i, term in enumerate(self)) + '\nwhere:\n' + \
-			'\n'.join('x_%d := %s' % (i, term) for i, term in enumerate(self))
+		# return ' + '.join('%d*x_%d' % (self.co(term), i) for i, term in enumerate(self)) + '\nwhere:\n' + \
+		#	'\n'.join('x_%d := %s' % (i, term) for i, term in enumerate(self))
 	def __iter__(self):
 		return iter(self.terms)
 	def __len__(self):

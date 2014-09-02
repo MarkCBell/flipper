@@ -31,11 +31,10 @@ def main(verbose=False):
 			if verbose: print(word)
 			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
 			mapping_class = S.mapping_class(word)
-			assert(mapping_class.NT_type() == mapping_class_type)
+			if mapping_class.NT_type() != mapping_class_type:
+				return False
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
-	except AssertionError:
-		return False
 	
 	return True
 

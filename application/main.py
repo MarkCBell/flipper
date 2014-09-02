@@ -10,13 +10,11 @@ try:
 	import Tkinter as TK
 	import tkFileDialog
 	import tkMessageBox
-	# import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.filedialog as tkFileDialog
 		import tkinter.messagebox as tkMessageBox
-		# import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 

@@ -159,7 +159,7 @@ class Interval(object):
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
-	def midpoint(self, magnitude):
+	def midpoint(self, magnitude=10):
 		m = (10**magnitude) * (self.lower + self.upper) // 2
 		return Interval(m-1, m+1, self.precision+magnitude)
 	def intersect(self, other):
@@ -178,11 +178,8 @@ class Interval(object):
 
 #### Some special Intervals we know how to build.
 
-def interval_helper(string):
+def interval_from_string(string):
 	i, r = string.split('.') if '.' in string else (string, '')
 	x = int(i + r)
 	return Interval(x-10, x+10, len(r))
-
-def interval_from_integer(integer):
-	return Interval(integer, integer, 0)
 

@@ -55,8 +55,8 @@ class AbstractTriangle(object):
 		
 		# Edges are ordered anti-clockwise.
 		self.edges = edges
-		self.labels = [edge.label for edge in self.edges]
-		self.indices = [norm(x) for x in self.labels]
+		self.labels = [edge.label for edge in self]
+		self.indices = [edge.index for edge in self]
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
 	
 	def __repr__(self):
@@ -75,7 +75,7 @@ class AbstractTriangle(object):
 		else:
 			return NotImplemented
 
-class Corner(object):
+class AbstractCorner(object):
 	''' A corner of a triangulation is a triangle along with a side number (the side opposite this corner). '''
 	def __init__(self, triangle, side):
 		assert(isinstance(triangle, AbstractTriangle))
@@ -96,27 +96,6 @@ class Corner(object):
 	def __repr__(self):
 		return str((self.triangle, self.side))
 
-def order_corner_class(corner_class2):
-	# This orders the corner class anti-clockwise about the vertex.
-	corner_class = list(corner_class2)
-	ordered_class = [corner_class.pop()]
-	while corner_class:
-		for corner in corner_class:
-			if corner.edges[2] == ~ordered_class[-1].edges[1]:
-				ordered_class.append(corner)
-				corner_class.remove(corner)
-				break
-		else:
-			print(corner_class2)
-			assert(False)
-	
-	if not (ordered_class[0].edges[2] == ~ordered_class[-1].edges[1]):
-		print(corner_class2)
-		print(ordered_class)
-	
-	assert(ordered_class[0].edges[2] == ~ordered_class[-1].edges[1])
-	
-	return ordered_class
 
 # Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
 # of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
@@ -127,18 +106,21 @@ class AbstractTriangulation(object):
 	def __init__(self, triangles):
 		''' An abstract triangulation is a collection of abstract triangles and is given by a list of triples
 		each of which specifies a triangle.
-		We label one side of an edge with x and its other side with ~x := -x-1. '''
+		We label one side of an edge with x and its other side with ~x := -x-1.
+		!?! OUT OF DATE. '''
 		assert(isinstance(triangles, (list, tuple)))
 		assert(all(isinstance(triangle, AbstractTriangle) for triangle in triangles))
 		
 		self.triangles = triangles
 		
-		self.edges = [edge for triangle in self for edge in triangle.edges if edge]
+		self.edges = [edge for triangle in self for edge in triangle.edges]
+		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
 		self.vertices = list(set(vertex for triangle in self for vertex in triangle.vertices))
-		self.corners = [Corner(triangle, index) for triangle in self for index in range(3)]
+		self.corners = [AbstractCorner(triangle, index) for triangle in self for index in range(3)]
 		
 		self.num_triangles = len(self.triangles)
-		self.zeta = self.num_triangles * 3 // 2  # This is the number of edges in the triangulation.
+		self.zeta = len(self.oriented_edges)
+		assert(self.zeta == self.num_triangles * 3 // 2)
 		self.num_vertices = len(self.vertices)
 		assert(all(any(edge.label == i for edge in self.edges) for i in range(self.zeta)))
 		assert(all(any(edge.label == ~i for edge in self.edges) for i in range(self.zeta)))
@@ -149,7 +131,24 @@ class AbstractTriangulation(object):
 		self.vertex_lookup = dict((corner.label, corner.vertex) for corner in self.corners)
 		assert(all(i in self.edge_lookup and ~i in self.edge_lookup for i in range(self.zeta)))
 		
-		# This is going to fail layered triangulation which thinks are ordered ANTI-CLOCKWISE about the vertex.
+		# Ensure that each corner class is ordered ANTI-CLOCKWISE about the vertex.
+		# This orders the corner class anti-clockwise about the vertex.
+		def order_corner_class(corner_class):
+			corner_class = list(corner_class)
+			ordered_class = [corner_class.pop()]
+			while corner_class:
+				for corner in corner_class:
+					if corner.edges[2] == ~ordered_class[-1].edges[1]:
+						ordered_class.append(corner)
+						corner_class.remove(corner)
+						break
+				else:
+					raise ValueError('Corners do not close up about vertex.')
+			
+			if ordered_class[0].edges[2] != ~ordered_class[-1].edges[1]:
+				raise ValueError('Corners do not close up about vertex.')
+			
+			return ordered_class
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
@@ -168,6 +167,8 @@ class AbstractTriangulation(object):
 			return item in self.edges
 		elif isinstance(item, AbstractTriangle):
 			return item in self.triangles
+		elif isinstance(item, AbstractCorner):
+			return item in self.corners
 		else:
 			return NotImplemented
 	def copy(self):
@@ -468,7 +469,7 @@ class AbstractTriangulation(object):
 		T = flipper.kernel.AbstractTriangulation(triangles)
 		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
 
-def abstract_triangulation_helper(all_labels):
+def abstract_triangulation(all_labels):
 	# We should assert a load of stuff here first. !?!
 	zeta = len(all_labels) * 3 // 2
 	

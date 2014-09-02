@@ -4,17 +4,18 @@ from math import log10 as log
 from itertools import product
 
 import flipper
-interval_helper = flipper.kernel.interval.interval_helper
+
+interval = flipper.kernel.interval_from_string
 
 def main(verbose=False):
 	if verbose: print('Running interval tests.')
 	
-	w = interval_helper('0.10')
-	x = interval_helper('10000.0')
-	y = interval_helper('1.14571')
-	z = interval_helper('1.00000')
-	a = interval_helper('-1.200000')
-	b = interval_helper('1.4142135623')
+	w = interval('0.10')
+	x = interval('10000.0')
+	y = interval('1.14571')
+	z = interval('1.00000')
+	a = interval('-1.200000')
+	b = interval('1.4142135623')
 	
 	# Check:
 	#	acc(I + J) >= min(acc(I), acc(J)) - 1,

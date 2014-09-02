@@ -7,6 +7,8 @@ import snappy
 
 def main():
 	for surface, word, target in flipper.censuses.load('census_monodromies'):
+		surface, word, target = 'S_2_1', 'aabacdf', 'm112'
+		
 		print(target, word)
 		start_time = time()
 		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)

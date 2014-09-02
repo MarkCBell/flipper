@@ -76,11 +76,11 @@ class Lamination(object):
 	
 	def all_isometries(self, other):
 		assert(isinstance(other, Lamination))
-		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other == isometry(self)]
+		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other == isometry.encode()(self)]
 	
 	def all_projective_isometries(self, other):
 		assert(isinstance(other, Lamination))
-		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other.projectively_equal(isometry(self))]
+		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other.projectively_equal(isometry.encode()(self))]
 	
 	def projectively_equal(self, other):
 		assert(isinstance(other, Lamination))
@@ -247,7 +247,6 @@ class Lamination(object):
 		# #-----------#     #-----------#
 		
 		edge = corner.label
-		print(edge, ~edge)
 		left, right = corner.labels[1], corner.labels[2]
 		encoding = self.triangulation.encode_flip(edge)
 		new_lamination = encoding(self)

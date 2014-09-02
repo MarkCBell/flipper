@@ -20,7 +20,7 @@ class NumberField(object):
 	def __init__(self, polynomial_root=None):
 		assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
 		
-		if polynomial_root is None: polynomial_root = flipper.kernel.polynomial_root_helper([-1, 1], '1.00')
+		if polynomial_root is None: polynomial_root = flipper.kernel.polynomial_root([-1, 1], '1.00')
 		self.polynomial_root = polynomial_root
 		
 		self.height = self.polynomial_root.height
@@ -196,6 +196,6 @@ class NumberFieldElement(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def number_field_helper(coefficients, strn):
-	return flipper.kernel.NumberField(flipper.kernel.polynomial_root_helper(coefficients, strn))
+def number_field(coefficients, strn):
+	return flipper.kernel.NumberField(flipper.kernel.polynomial_root(coefficients, strn))
 

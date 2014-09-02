@@ -49,7 +49,7 @@ class AlgebraicMonomial(object):
 		accuracy_required = max(accuracy, 0)
 		if self._interval is None or self._interval_accuracy < accuracy_required:
 			term_accuracy = accuracy_required + max(int(sum(term.interval.log_bound + 1 for term in self)), 0) + 1
-			self._interval = flipper.kernel.product([term.interval_approximation(term_accuracy) for term in self], start=flipper.kernel.interval.interval_from_integer(1))
+			self._interval = flipper.kernel.product([term.interval_approximation(term_accuracy) for term in self], start=flipper.kernel.Interval(1, 1, 0))
 			
 			self._interval = self._interval.change_accuracy(accuracy_required)
 			self._interval_accuracy = self._interval.accuracy
@@ -177,12 +177,9 @@ class AlgebraicNumber(object):
 		
 		accuracy_required = max(accuracy, 0)
 		if self._interval is None or self._interval_accuracy < accuracy_required:
-			if any(self):
-				monomial_accuracy = accuracy_required + int(max(flipper.kernel.height_int(self.co(term)) for term in self)) + len(self) + 1
-				
-				self._interval = sum(self.co(term) * term.interval_approximation(monomial_accuracy) for term in self)
-			else:
-				self._interval = flipper.kernel.interval.interval_from_integer(0)
+			monomial_accuracy = accuracy_required + int(sum(flipper.kernel.height_int(self.co(term)) for term in self)) + len(self) + 1
+			
+			self._interval = sum([self.co(term) * term.interval_approximation(monomial_accuracy) for term in self], flipper.kernel.Interval(0, 0, 0))
 			
 			self._interval = self._interval.change_accuracy(accuracy_required)
 			self._interval_accuracy = self._interval.accuracy
@@ -215,6 +212,6 @@ class AlgebraicNumber(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def algebraic_number_helper(coefficients, strn):
-	return flipper.kernel.polynomial_root_helper(coefficients, strn).as_algebraic_number()
+def algebraic_number(coefficients, strn):
+	return AlgebraicNumber({AlgebraicMonomial([flipper.kernel.polynomial_root(coefficients, strn)]): 1})
 

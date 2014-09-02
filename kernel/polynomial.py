@@ -196,9 +196,7 @@ class PolynomialRoot(object):
 		self.height = self.polynomial.height + 2 * self.log_degree
 		
 		if self.polynomial.num_roots(self.interval) != 1:
-			print(self.polynomial.num_roots(self.interval))
-			print(self.interval)
-			raise flipper.ApproximationError('Interval does not determine unique root of polynomial.')
+			raise flipper.ApproximationError('Interval contains %d roots, not one.' % self.polynomial.num_roots(self.interval))
 	
 	def __repr__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
@@ -218,13 +216,7 @@ class PolynomialRoot(object):
 		accuracy_required = max(accuracy, accuracy_needed)
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(accuracy_required), self.log_degree, self.height)
-	
-	def as_algebraic_monomial(self):
-		return flipper.kernel.AlgebraicMonomial([self])
-	
-	def as_algebraic_number(self):
-		return flipper.kernel.AlgebraicNumber({self.as_algebraic_monomial(): 1}, height=self.height)
 
-def polynomial_root_helper(coefficients, strn):
-	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval_helper(strn))
+def polynomial_root(coefficients, strn):
+	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval_from_string(strn))
 

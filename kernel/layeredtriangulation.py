@@ -44,7 +44,8 @@ class Tetrahedron(object):
 		return str(self.label)
 	
 	def __str__(self):
-		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to) #, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
+		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)
+		# return 'Label: %s, Gluings: %s, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
 	
 	def glue(self, side, target, permutation):
 		if self.glued_to[side] is None:
@@ -262,7 +263,7 @@ class Triangulation3(object):
 						label += 1
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
-			T = flipper.kernel.abstract_triangulation_helper(edge_labels)
+			T = flipper.kernel.abstract_triangulation(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()

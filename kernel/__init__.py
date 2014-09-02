@@ -23,6 +23,7 @@ AbstractVertex = abstracttriangulation.AbstractVertex
 AbstractEdge = abstracttriangulation.AbstractEdge
 AbstractTriangle = abstracttriangulation.AbstractTriangle
 AbstractTriangulation = abstracttriangulation.AbstractTriangulation
+AbstractCorner = abstracttriangulation.AbstractCorner
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 PartialFunction = encoding.PartialFunction
 PLFunction = encoding.PLFunction
@@ -54,12 +55,12 @@ height_int = algebraicnumber.height_int
 norm = abstracttriangulation.norm
 
 # Functions that help with construction.
-abstract_triangulation_helper = abstracttriangulation.abstract_triangulation_helper
-algebraic_approximation_helper = algebraicapproximation.algebraic_approximation_helper
-polynomial_root_helper = polynomial.polynomial_root_helper
-algebraic_number_helper = algebraicnumber.algebraic_number_helper
-interval_helper = interval.interval_helper
-number_field_helper = numberfield.number_field_helper
+abstract_triangulation = abstracttriangulation.abstract_triangulation
+algebraic_approximation = algebraicapproximation.algebraic_approximation
+polynomial_root = polynomial.polynomial_root
+algebraic_number = algebraicnumber.algebraic_number
+interval_from_string = interval.interval_from_string  # Careful - don't overwrite kernel.interval.
+number_field = numberfield.number_field
 
 product = utilities.product
 

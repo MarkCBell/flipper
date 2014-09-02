@@ -3,22 +3,19 @@ from __future__ import print_function
 
 import flipper
 
-algebraic_approximation_helper = flipper.kernel.algebraic_approximation_helper
-algebraic_approximation_from_integer = flipper.kernel.algebraicapproximation.algebraic_approximation_from_integer
+algebraic_approximation = flipper.kernel.algebraic_approximation
 
 def main(verbose=False):
 	if verbose: print('Running algebraic approximation tests.')
 	
 	# We acutally need quite a lot of accuracy in the given strings.
-	x = algebraic_approximation_helper('1.4142135623730950488016887242096980785696718753769480', 2, 2)
-	y = algebraic_approximation_helper('1.4142135623730950488016887242096980', 2, 2)
-	z = algebraic_approximation_helper('1.000000000000', 2, 2)
-	w = algebraic_approximation_from_integer(1)
+	x = algebraic_approximation('1.4142135623730950488016887242096980785696718753769480', 2, 2)
+	y = algebraic_approximation('1.4142135623730950488016887242096980', 2, 2)
+	z = algebraic_approximation('1.000000000000', 2, 2)
 	
 	try:
 		assert(x == y)
 		assert(z != y)
-		assert(z == w)
 		assert(x + y == x + x)
 		assert(x * x == 2)
 		assert(y * y == 2)

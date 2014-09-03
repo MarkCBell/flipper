@@ -60,7 +60,7 @@ class AbstractTriangle(object):
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
 	
 	def __repr__(self):
-		return str(tuple(self.edges))
+		return str(tuple(self.edges))  # + '--' + str(list(self.vertices))
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.
@@ -92,6 +92,7 @@ class AbstractCorner(object):
 		self.label = self.labels[0]
 		self.index = self.indices[0]
 		self.vertex = self.triangle.vertices[self.side]
+		self.edge = self.edges[0]
 	
 	def __repr__(self):
 		return str((self.triangle, self.side))
@@ -172,7 +173,12 @@ class AbstractTriangulation(object):
 		else:
 			return NotImplemented
 	def copy(self):
-		return AbstractTriangulation(self.triangles)
+		nv = dict((vertex, AbstractVertex(vertex.label)) for vertex in self.vertices)
+		ne = dict((edge, AbstractEdge(nv[edge.source_vertex], nv[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
+		for edge in self.oriented_edges:
+			ne[~edge] = ~ne[edge]
+		new_triangles = [AbstractTriangle([ne[edge] for edge in triangle]) for triangle in self]
+		return AbstractTriangulation(new_triangles)
 	
 	def face_matrix(self):
 		assert(False)
@@ -211,6 +217,14 @@ class AbstractTriangulation(object):
 			if cc[0].vertex == vertex:
 				return cc
 		raise ValueError('Given vertex does not correspond to a corner class.')
+	
+	def opposite_corner(self, corner):
+		# Returns the corner opposite this one.
+		return self.corner_of_edge(~(corner.label))
+	
+	def rotate_corner(self, corner):
+		# Returns the corner obtained by rotating this one one click anti-clockwise.
+		return self.corner_of_edge(corner.labels[1])
 	
 	def is_flippable(self, edge_index):
 		# An edge is flippable iff it lies in two distinct triangles.
@@ -349,42 +363,40 @@ class AbstractTriangulation(object):
 		
 		return homology_generators
 	
-	def extend_isometry(self, other_triangulation, source_edge, target_edge):
-		''' Returns the isometry from this triangulation to other which sends
-		source_edge to target_edge or None if no such edge exists. '''
-		edge_map = {}
-		to_process = Queue()
-		to_process.put((source_edge, target_edge))
-		while not to_process.empty():
-			from_edge, to_edge = to_process.get()
-			consequences = []
-			consequences.append((from_edge, to_edge))
-			consequences.append((~from_edge, ~to_edge))
-			from_corner = self.corner_of_edge(from_edge)
-			to_corner = other_triangulation.corner_of_edge(to_edge)
-			
-			consequences.append((from_corner.labels[1], to_corner.labels[1]))
-			consequences.append((from_corner.labels[2], to_corner.labels[2]))
-			
-			for from_edge, to_edge in consequences:
-				if from_edge in edge_map:
-					if to_edge != edge_map[from_edge]:
-						return None  # Map doesn't specify an isometry.
-				else:
-					edge_map[from_edge] = to_edge
-					to_process.put((from_edge, to_edge))
-		
-		return flipper.kernel.Isometry(self, other_triangulation, edge_map)
-	
-	def all_isometries(self, other_triangulation):
+	def all_isometries(self, other, respect_vertex_labels=True):
 		''' Returns a list of all orientation preserving isometries from self to other_triangulation. '''
+		assert(isinstance(other, AbstractTriangulation))
+		
 		source_cc = min(self.corner_classes, key=len)
-		targets = [corner.label for target_cc in other_triangulation.corner_classes for corner in target_cc if len(target_cc) == len(source_cc)]
+		target_corners = [corner for target_cc in other.corner_classes for corner in target_cc if len(target_cc) == len(source_cc)]
 		
-		source_edge = source_cc[0].label
-		isometries = [self.extend_isometry(other_triangulation, source_edge, target_edge) for target_edge in targets]
-		isometries = [isom for isom in isometries if isom is not None]  # Discard any bad ones that we tried to create.
+		source_corner = source_cc[0]
+		isometries = []
+		for target_corner in target_corners:
+			corner_map = {}
+			to_process = Queue()
+			to_process.put((source_corner, target_corner))
+			while not to_process.empty():
+				from_corner, to_corner = to_process.get()
+				new_from_corner, new_to_corner = self.opposite_corner(from_corner), other.opposite_corner(to_corner)
+				if new_from_corner in corner_map:
+					if new_to_corner != corner_map[new_from_corner]:
+						break
+				else:
+					corner_map[new_from_corner] = new_to_corner
+					to_process.put((new_from_corner, new_to_corner))
+				
+				new_from_corner, new_to_corner = self.rotate_corner(from_corner), other.rotate_corner(to_corner)
+				if new_from_corner in corner_map:
+					if new_to_corner != corner_map[new_from_corner]:
+						break
+				else:
+					corner_map[new_from_corner] = new_to_corner
+					to_process.put((new_from_corner, new_to_corner))
+			else:
+				isometries.append(flipper.kernel.Isometry(self, other, corner_map))
 		
+		if respect_vertex_labels: isometries = [isom for isom in isometries if all((vertex.label >= 0) == (isom.vertex_map[vertex].label >= 0) for vertex in self.vertices)]
 		return isometries
 	
 	def is_isometric_to(self, other):

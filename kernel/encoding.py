@@ -20,6 +20,20 @@ class PartialFunction(object):
 	def __str__(self):
 		return '%s\n%s' % (self.action, self.condition)
 	
+	def __eq__(self, other):
+		if isinstance(other, PartialFunction):
+			return self.action == other.action and self.condition == other.condition
+		else:
+			return NotImplemented
+	def __ne__(self, other):
+		return not (self == other)
+	
+	def __mul__(self, other):
+		if isinstance(other, PartialFunction):
+			return PartialFunction(self.action * other.action, other.condition.join(self.condition * other.action))
+		else:
+			return NotImpelmented
+	
 	def __call__(self, other):
 		if self.condition.nonnegative_image(other):
 			return self.action * other
@@ -44,6 +58,15 @@ class PLFunction(object):
 		return len(self.partial_functions)
 	def __getitem__(self, index):
 		return self.partial_functions[index]
+	
+	def __mul__(self, other):
+		if isinstance(other, PLFunction):
+			partial_functions = [func1 * func2 for func1 in self for func2 in other]
+			inverse_partial_functions = [func2 * func1 for func1 in self.inverse_partial_functions for func2 in other.inverse_partial_functions]
+			return PLFunction(partial_functions, inverse_partial_functions)
+		else:
+			return NotImpelmented
+	
 	def __call__(self, other):
 		for function in self.partial_functions:
 			try:
@@ -76,7 +99,22 @@ class Encoding(object):
 		of PLFunctions whose composition is the action on the edge weights. '''
 		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
-		assert(all(isinstance(x, PLFunction) for x in sequence))
+		assert(all(isinstance(function, PLFunction) for function in sequence))
+		
+		# Collapse away the PLFunctions of length 1 (the ones with no branching).
+		new_sequence = []
+		current = None
+		for function in sequence:
+			if current is None:
+				current = function
+			else:
+				current = current * function
+			if len(current) > 1:
+				new_sequence.append(current)
+				current = None
+		if current is not None:
+			new_sequence.append(current)
+		sequence = new_sequence
 		
 		self.sequence = sequence
 		self.source_triangulation = source_triangulation
@@ -138,16 +176,25 @@ class Encoding(object):
 	def inverse(self):
 		return Encoding(self.target_triangulation, self.source_triangulation, [A.inverse() for A in reversed(self)])
 	
-	def applied_function(self, lamination):
-		''' Returns the partial function that will be applied to the lamination. '''
+	def find_indices(self, lamination, count_all=True):
+		''' Returns a list of indices describing the cell this lamination lies in. '''
 		
 		vector = lamination.vector
 		indices = []
 		for A in reversed(self):
-			indices.append(A.applied_index(vector))
+			if count_all or len(A) > 1: indices.append(A.applied_index(vector))  # We might not record ones with no choice.
 			vector = A(vector)
 		
-		return self.expand_indices(indices)
+		return indices
+	
+	def find_indices_compressed(self, lamination):
+		return flipper.kernel.utilities.change_base(int(''.join(map(str, self.find_indices(lamination, count_all=False))), 2))
+	
+	def applied_function(self, lamination):
+		''' Returns the partial function that will be applied to the lamination. '''
+		
+		return self.expand_indices(self.find_indices(lamination))
+	
 	
 	def expand_indices(self, indices):
 		''' Given indices = [a_0, ..., a_k] this returns the partial function of
@@ -285,7 +332,7 @@ class Encoding(object):
 		to find the nearby projective fixed point.
 		
 		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
-		100 iterations and a ComputationError is thrown then it's actually extremely likely that the
+		many iterations and a ComputationError is thrown then it's actually extremely likely that the
 		map was not pseudo-Anosov. '''
 		
 		# Suppose that f_1, ..., f_m, g_1, ..., g_n, t_1, ..., t_k, p is the Thurston decomposition of self.
@@ -321,6 +368,8 @@ class Encoding(object):
 			A_sum, B_sum = sum(A), sum(B)
 			return max(abs((p * B_sum) - (q * A_sum)) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
+		# We will remember the cells we've tested to avoid recalculating their eigenvectors again.
+		tested_cells = []
 		for i in range(50):
 			new_curve = self(curves[-1])
 			
@@ -328,34 +377,41 @@ class Encoding(object):
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
 				raise flipper.AssumptionError('Mapping class is reducible.')
 			
-			for j in range(1, min(triangulation.max_order, len(curves))+1):
-				old_curve = curves[-j]
+			curves.append(new_curve)
+			for j in range(1, min(triangulation.max_order, len(curves))):
+				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
+					# print('%s - %d' % (self.find_indices_compressed(average_curve), i))
 					partial_function = (self**j).applied_function(average_curve)
-					action_matrix, condition_matrix = partial_function.action, partial_function.condition
-					try:
-						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
-					except flipper.AssumptionError:
-						pass  # Largest eigenvalue was not real.
-					else:
-						# Test if the vector we found lies in the cone given by the condition matrix.
-						if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-							# If it does then we have a projectively invariant lamintation.
-							invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
-							if not invariant_lamination.is_empty():
-								if j == 1:
-									if eigenvalue == 1:
-										raise flipper.AssumptionError('Mapping class is reducible.')
+					if partial_function not in tested_cells:
+						tested_cells.append(partial_function)
+						action_matrix, condition_matrix = partial_function.action, partial_function.condition
+						try:
+							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
+						except flipper.AssumptionError:
+							pass  # Largest eigenvalue was not real.
+						else:
+							# Test if the vector we found lies in the cone given by the condition matrix.
+							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
+							# but this is much faster.
+							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+								# If it does then we have a projectively invariant lamintation.
+								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
+								if not invariant_lamination.is_empty():
+									if j == 1:
+										if eigenvalue == 1:
+											raise flipper.AssumptionError('Mapping class is reducible.')
+										else:
+											return eigenvalue, invariant_lamination
 									else:
-										return eigenvalue, invariant_lamination
-								else:
-									if not invariant_lamination.projectively_equal(self(invariant_lamination)):
-										raise flipper.AssumptionError('Mapping class is reducible.')
-									else:
-										# We possibly could reconstruct something here but all the numbers are
-										# in the wrong number field. It's easier to just keep going.
-										pass
+										if not invariant_lamination.projectively_equal(self(invariant_lamination)):
+											raise flipper.AssumptionError('Mapping class is reducible.')
+										else:
+											# We possibly could reconstruct something here but all the numbers are
+											# in the wrong number field. It's easier to just keep going.
+											pass
+					break
 			
 			denominators = [min(new_curve) + 1, i + 1]  # Other strategies: (i // triangulation.max_order) + 1
 			for denominator in denominators:
@@ -366,8 +422,6 @@ class Encoding(object):
 						new_small_curve = self(new_small_curve)
 						if new_small_curve == small_curve:
 							raise flipper.AssumptionError('Mapping class is reducible.')
-			
-			curves.append(new_curve)
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
@@ -382,13 +436,6 @@ class Encoding(object):
 				return NT_TYPE_REDUCIBLE
 			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 			# fails to find an invariant lamination.
-			#import cProfile, pstats
-			#pr = cProfile.Profile()
-			#pr.enable()
-			#X = lamination.is_filling()
-			#pr.disable()
-			#pstats.Stats(pr).strip_dirs().sort_stats('cumtime').print_stats(30)
-			#if X:
 			if lamination.is_filling():
 				return NT_TYPE_PSEUDO_ANOSOV
 			else:

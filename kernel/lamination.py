@@ -510,7 +510,7 @@ class Lamination(object):
 		
 		# Find the correct isometry to take us back.
 		# !?! TO DO.
-		map_back = [isom for isom in short_lamination.triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
+		map_back = [isom for isom in short_lamination.triangulation.all_isometries(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
 		T = map_back * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
@@ -555,7 +555,7 @@ class Lamination(object):
 		new_triangulation = short_lamination.triangulation
 		
 		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.edge_map[e1] == e2 and isom.edge_map[e2] == bottom and isom.edge_map[bottom] == e1 and all(isom.edge_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
+		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == bottom and isom.index_map[bottom] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
 		T = map_back * forwards3 * forwards2 * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation

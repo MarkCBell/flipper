@@ -23,6 +23,7 @@ completing the square
 ### Tests ###
 add more tests
 tests for every module
+remove asserts from tests
 
 add better profiling to see speedup progress
 

@@ -206,12 +206,12 @@ class Triangulation3(object):
 		# See SnapPy/kernel_code/intersection_numbers.c for how to do this.
 		
 		# Convention:
-		# B
-		# ^
-		# |
+		#    B
+		#    ^
+		#    |
 		# ---+---> A
-		# |
-		# |
+		#    |
+		#    |
 		# has intersection +1.
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
@@ -528,6 +528,9 @@ class LayeredTriangulation(object):
 			B, perm_B = core_lower_map[target_triangle]
 			if forwards[A] in closed_triangulation:
 				forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
+		
+		# There should now be no unglued faces.
+		assert(all(tetra.glued_to[side] is not None for tetra in closed_triangulation for side in range(4)))
 		
 		# Construct an immersion of the fibre surface into the closed bundle.
 		fibre_immersion = dict()

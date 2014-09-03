@@ -1,11 +1,15 @@
 
 import os
 
-def load(file_name):
+def load(file_name, test=None):
+	# !?! This is not safe.
 	for line in open(os.path.join(os.path.dirname(__file__), file_name + '.dat')):
 		line = line.strip()
 		if '#' in line:
 			line = line[:line.find('#')]
+		
 		if line:
-			yield line.strip().split('\t')
+			data = line.strip().split('\t')
+			if test is None or test(data):
+				yield data
 

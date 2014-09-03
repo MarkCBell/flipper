@@ -10,7 +10,7 @@ def main():
 	
 	examples = [
 		('S_2_1', 'AEeadfaCEeCdEBfbCDFC'),  # Cannot estimate!
-		('S_2_1', 'abDeFaabDeFaabDeFaAEeadfaCEeCdEBfbCDFCAfEdBAAfEdBAAfEdBA'),  # Reducing curve [4, 12, 20, 44, 24, 40, 28, 44, 32]
+		('S_2_1', 'abDeFaabDeFaabDeFaAEeadfaCEeCdEBfbCDFCAfEdBAAfEdBAAfEdBA'),  # Reducing curve [4, 12, 20, 44, 24, 40, 28, 44, 32] - slow!
 		('S_2_1', 'aFcE'),  # Dim 2 eigenspace
 		('S_2_1', 'AEeadfaCEeCdEBfbCDFC'),  # Word is reducible (reducing curve has weight ~ 6000).
 		('S_2_1', 'aDefFecDBdFCcACDcCdF'),  # 12 iterates?
@@ -28,15 +28,14 @@ def main():
 		('S_2_1', 'ACBBaF'),
 		('S_2_1', 'ECdEEEaEce'),
 		('S_2_1', 'DCDfCaEd'),
-		('S_2_1', 'BaEcCCeAbC')
+		('S_2_1', 'BaEcCCeAbC'),
+		('S_3_1', 'abcdeGh')  # Takes ~12 iterations to converge!
 		]
 	
 	for index, (surface, word) in enumerate(examples):
 		print('%d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
-		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+		S = flipper.examples.template(surface)
 		mapping_class = S.mapping_class(word)
-		# mapping_class2 = S.mapping_class(conjugator)
-		# mapping_class = mapping_class2 * mapping_class * mapping_class2.inverse()
 		t = time()
 		try:
 			mapping_class.invariant_lamination()
@@ -48,6 +47,7 @@ def main():
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / len(examples)))
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
+	print('Total time: %0.3f' % sum(times.values()))
 
 if __name__ == '__main__':
 	main()

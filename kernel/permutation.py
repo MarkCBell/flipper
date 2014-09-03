@@ -13,6 +13,8 @@ class Permutation(object):
 		self.permutation = tuple(permutation)
 	def __str__(self):
 		return str(self.permutation)
+	def __repr__(self):
+		return self.compressed_string()
 	def compressed_string(self):
 		return ''.join(str(p) for p in self.permutation)
 	def __iter__(self):

@@ -10,16 +10,16 @@ import flipper
 RANDOM_WORD_LENGTH = 10
 
 def test(surface, word, target):
-	S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+	S = flipper.examples.template(surface)
 	splitting = S.mapping_class(word).splitting_sequence()
 	# if splitting.closing_isometry is None or surface == 'S_1_1' or surface == 'S_0_4':
 	if splitting.closing_isometry is None or surface == 'S_1_1' or surface == 'S_0_4':
 		# we just have to try all of them.
 		Ms = splitting.snappy_manifolds()
-		assert(any(M.is_isometric_to(target) for M in Ms))
+		return any(M.is_isometric_to(target) for M in Ms)
 	else:
 		M = splitting.snappy_manifold()
-		assert(M.is_isometric_to(target))
+		return M.is_isometric_to(target)
 
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')
@@ -44,16 +44,16 @@ def main(verbose=False):
 	try:
 		for surface, word, target_manifold in tests:
 			if verbose: print(word)
-			test(surface, word, snappy.Manifold(target_manifold))
+			if not test(surface, word, snappy.Manifold(target_manifold)):
+				return False
 		for surface, word in twister_tests:
 			if verbose: print(word)
-			test(surface, word, snappy.twister.Surface(surface).bundle(word))
+			if not test(surface, word, snappy.twister.Surface(surface).bundle(word)):
+				return False
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except flipper.ComputationError:
 		return False  # Mapping class is probably reducible.
-	except AssertionError:
-		return False
 	
 	return True
 

@@ -3,6 +3,8 @@ import flipper
 # !! Eventually change.
 
 def gram_schmidt(rows):
+	rows = [list(row) for row in rows]
+	
 	dot = flipper.kernel.matrix.dot
 	for i in range(len(rows)):
 		for j in range(i):

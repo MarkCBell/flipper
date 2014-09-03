@@ -132,6 +132,8 @@ class AlgebraicApproximation(object):
 		return (self - other).is_negative()
 	def __eq__(self, other):
 		return (self - other).is_zero()
+	def __ne__(self, other):
+		return not (self == other)
 	def __gt__(self, other):
 		return (self - other).is_positive()
 	def __ne__(self, other):

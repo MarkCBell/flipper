@@ -24,7 +24,7 @@ def main(verbose=False):
 	try:
 		for surface, word in tests:
 			if verbose: print(word)
-			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+			S = flipper.examples.template(surface)
 			mapping_class = S.mapping_class(word)
 			mapping_class.invariant_lamination()  # This could fail with a ComputationError.
 	except ImportError:

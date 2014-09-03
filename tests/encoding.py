@@ -29,7 +29,7 @@ def main(verbose=False):
 	try:
 		for surface, word, mapping_class_type in tests:
 			if verbose: print(word)
-			S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+			S = flipper.examples.template(surface)
 			mapping_class = S.mapping_class(word)
 			if mapping_class.NT_type() != mapping_class_type:
 				return False

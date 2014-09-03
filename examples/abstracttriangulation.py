@@ -66,14 +66,14 @@ def Example_S_1_2():
 
 def Example_S_2_1():
 	# S_2_1 and its standard (Twister) curves:
-	T = flipper.abstract_triangulation([[1, 2, 4], [5, 3, 0], [~2, 6, ~1], [~3, ~0, 7], [~4, ~5, 8], [~7, ~8, ~6]])
+	T = flipper.abstract_triangulation([[0, 4, 1], [5, ~4, ~3], [2, ~5, 6], [7, ~6, ~2], [3, ~7, 8], [~0, ~8, ~1]])
 	
-	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0])
-	b = T.lamination([0, 0, 1, 0, 1, 0, 1, 0, 1])
-	c = T.lamination([1, 0, 0, 0, 0, 1, 0, 1, 1])
-	d = T.lamination([0, 1, 1, 1, 0, 1, 2, 1, 1])
-	e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
-	f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
+	a = T.lamination([0, 1, 1, 0, 1, 1, 2, 1, 1])
+	b = T.lamination([0, 1, 0, 1, 1, 0, 0, 0, 1])
+	c = T.lamination([1, 0, 0, 1, 1, 0, 0, 0, 1])
+	d = T.lamination([0, 1, 1, 1, 1, 0, 1, 2, 1])
+	e = T.lamination([0, 1, 1, 1, 1, 2, 1, 0, 1])
+	f = T.lamination([0, 0, 1, 0, 0, 0, 1, 0, 0])
 	
 	return ExampleSurface(T, [a, b, c, d, e, f],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
@@ -136,13 +136,15 @@ def Example_36():
 	
 	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
-# We also provide a dictionary to allow quick lookup of an example by name.
-SURFACES = {'S_1_1': Example_S_1_1,
-			'S_1_2': Example_S_1_2,
-			'S_2_1': Example_S_2_1,
-			'S_3_1': Example_S_3_1,
-			'E_12': Example_12,
-			'E_24': Example_24,
-			'E_36': Example_36
-			}
+def template(surface):
+	surfaces = {
+		'S_1_1': Example_S_1_1,
+		'S_1_2': Example_S_1_2,
+		'S_2_1': Example_S_2_1,
+		'S_3_1': Example_S_3_1,
+		'E_12': Example_12,
+		'E_24': Example_24,
+		'E_36': Example_36
+		}
+	return surfaces[surface]()
 

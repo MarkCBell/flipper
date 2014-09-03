@@ -34,7 +34,7 @@ class AlgebraicMonomial(object):
 	def __eq__(self, other):
 		return self.terms == other.terms
 	def __ne__(self, other):
-		return self.terms != other.terms
+		return not (self == other)
 	def __mul__(self, other):
 		if isinstance(other, AlgebraicMonomial):
 			return AlgebraicMonomial(list(self) + list(other), height=self.height+other.height)

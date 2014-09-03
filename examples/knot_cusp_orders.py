@@ -15,7 +15,7 @@ def test(splitting, N):
 def main():
 	for surface, word in flipper.censuses.load('knot_monodromies'):
 		print(surface, word)
-		S = flipper.examples.abstracttriangulation.SURFACES[surface]()
+		S = flipper.examples.template(surface)
 		mapping_class = S.mapping_class(word)
 		splitting_sequence = mapping_class.splitting_sequence()
 		lamination = splitting_sequence.laminations[0]

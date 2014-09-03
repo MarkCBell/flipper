@@ -12,3 +12,5 @@ from . import distribution
 from . import hard_invariant_lamination
 from . import knot_cusp_orders
 
+template = abstracttriangulation.template
+

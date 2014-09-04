@@ -1,33 +1,42 @@
 
+from __future__ import print_function
+from time import time
+
 import flipper
 import snappy
 
-def test(splitting, N):
-	for M in splitting.snappy_manifolds():
+def stratum(splitting):
+	lamination = splitting.initial_lamination
+	stratum_orders = lamination.stratum_orders()
+	vertex_orders = [stratum_orders[vertex] for vertex in lamination.triangulation.vertices]
+	real_vertex_orders = [stratum_orders[vertex] for vertex in lamination.triangulation.vertices if vertex.label >= 0]
+	return vertex_orders, real_vertex_orders
+
+def test(splittings, M):
+	for splitting in splittings:
+		N = splitting.snappy_manifold()
 		for _ in range(300):
 			M.randomize()
 			N.randomize()
-			if M.is_isometric_to(N):
-				return True
+			try:
+				if M.is_isometric_to(N):
+					return True
+			except RuntimeError:
+				pass
 	
 	return False
 
-def main():
-	for surface, word in flipper.censuses.load('knot_monodromies'):
-		print(surface, word)
-		S = flipper.examples.template(surface)
-		mapping_class = S.mapping_class(word)
-		splitting_sequence = mapping_class.splitting_sequence()
-		lamination = splitting_sequence.laminations[0]
-		cusp_stratum_orders = lamination.puncture_stratum_orders()
-		corner_classes = lamination.triangulation.corner_classes
-		cusp_numbers = [[triangle.corner_labels[side] for triangle, side in corner_class][0] for corner_class in corner_classes]
-		real_cusp_orders = [stratum_order for number, stratum_order in zip(cusp_numbers, cusp_stratum_orders) if number == 0]
-		print(real_cusp_orders)
-		print(cusp_stratum_orders)
-		N = snappy.twister.Surface(surface).bundle(word)
-		print(test(splitting_sequence, N))
+def main(verbose=False):
+	for surface, word, target in flipper.censuses.load('knot_monodromies'):
+		print('Buiding: %s over %s (target %s).' % (word, surface, target))
+		start_time = time()
+		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequence()
+		print('\tAll: %s, Real: %s' % stratum(splittings[0]))
+		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
+		if not test(splittings, M):
+			print('Could not match %s on %s' % (word, surface))
+		if verbose: print('\tComputed in %f' % (time() - start_time))
 
 if __name__ == '__main__':
-	main()
+	main(verbose=True)
 

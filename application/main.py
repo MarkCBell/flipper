@@ -454,8 +454,8 @@ class FlipperApp(object):
 					
 					# Add in the edges.
 					for i, j in product(range(n), range(3)):
-						edge_number = abstract_triangulation[i][j]
-						[glued_to] = [3*a + b for a, b in product(range(n), range(3)) if abstract_triangulation[a][b] == edge_number and (a, b) != (i, j)]
+						edge_number = abstract_triangulation[i][j].index
+						[glued_to] = [3*a + b for a, b in product(range(n), range(3)) if abstract_triangulation[a][b].index == edge_number and (a, b) != (i, j)]
 						edge_info = (3*i + j, 3*i + ((j+1) % 3), edge_number, glued_to)
 						edges.append(edge_info)
 					canvas_objects = [vertices, edges]
@@ -493,7 +493,7 @@ class FlipperApp(object):
 				self.cache = cache
 			
 			self.unsaved_work = False
-		except (IndexError, ValueError):
+		except AssertionError:  # (IndexError, ValueError):
 			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.version)
 	
 	def export_image(self):
@@ -528,12 +528,9 @@ class FlipperApp(object):
 		if self.is_complete() and self.return_slot is not None:
 			lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
 			mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-			laminations = dict([(name, self.laminations[name]) for name in lamination_names])
-			mapping_classes = dict([(name, self.mapping_classes[name]) for name in mapping_class_names])
-			if len(laminations) > 0 or len(mapping_classes) > 0:
-				self.return_slot[0] = (laminations, mapping_classes)
-			else:
-				self.return_slot[0] = self.abstract_triangulation
+			laminations = [(name, self.laminations[name]) for name in lamination_names]
+			mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
+			self.return_slot[0] = [self.abstract_triangulation] + laminations +  mapping_classes
 		
 		if self.initialise():
 			self.parent.quit()
@@ -910,7 +907,7 @@ class FlipperApp(object):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		labels = [[triangle.edges[side].index if triangle[side+1] == triangle.edges[side][0] else ~triangle.edges[side].index for side in range(3)] for triangle in self.triangles]
-		self.abstract_triangulation = flipper.abstract_triangulation_helper(labels)
+		self.abstract_triangulation = flipper.abstract_triangulation(labels)
 		self.current_lamination = self.abstract_triangulation.empty_lamination()
 		self.create_edge_labels()
 		self.menubar.entryconfig('Lamination', state='normal')

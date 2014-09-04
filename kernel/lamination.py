@@ -16,9 +16,14 @@ class Lamination(object):
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
-			peripheral = dict((vertex, min(vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index] for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
+			
+			def dual_weight(corner):
+				return vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index]
+			
+			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
 			# If there is any remove it.
 			if any(peripheral.values()):
+				# Really should be vector[i] - sum(peripheral[x]) / 2 but we can't do division in a ring.
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 	
@@ -219,10 +224,11 @@ class Lamination(object):
 		a, b, c, d = self.triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
 	
-	def puncture_stratum_orders(self):
-		''' Returns a list of the number of stratum exiting each cusp. This is the
-		number of bipods incident to the cusp. '''
-		return [sum(1 for corner in vertex if self.is_bipod(corner)) for vertex in self.triangulation.vertices]
+	def stratum_orders(self):
+		''' Returns a dictionary mapping each vertex of the underlying triangulaton to
+		the number of stratum exiting it. This is the number of bipods incident to the vertex. '''
+		triangulation = self.triangulation
+		return dict((vertex, sum(1 for corner in triangulation.corner_class_of_vertex(vertex) if self.is_bipod(corner))) for vertex in triangulation.vertices)
 	
 	def is_bipod(self, corner):
 		''' Returns if the lamination looks like a bipod with respect to this corner. '''
@@ -396,8 +402,8 @@ class Lamination(object):
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
 	def splitting_sequence(self, target_dilatation=None):
-		''' Returns the splitting sequence associated to this laminations.
-		This is the list of edges of maximal weight until you reach a
+		''' Returns a list of splitting sequence associated to this lamination.
+		This is the flips the edges of maximal weight until you reach a
 		periodic sequence (with required dilatation if given).
 		
 		The splitting sequence will have self.preperiodic_encoding set to
@@ -465,10 +471,8 @@ class Lamination(object):
 							
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)
 							assert(p_encoding.target_triangulation == lamination.triangulation)
-							assert(all(isom.source_triangulation == lamination.triangulation for isom in isometries))
-							assert(all(isom.target_triangulation == old_lamination.triangulation for isom in isometries))
 							
-							return flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, isometries, p_flips)
+							return [flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)

@@ -8,10 +8,11 @@ import flipper
 
 def string_generator(n, skip=None):
 	if skip is None: skip = []
+	n = max(n, 1)
 	
 	alphabet = ascii_lowercase
 	k = n + len(skip)
-	p = int(log(k), len(alphabet)) + 1
+	p = int(log(k) / log(len(alphabet))) + 1
 	results = []
 	for i in range(1, p+1):
 		for letters in product(alphabet, repeat=i):
@@ -46,7 +47,7 @@ def package(objects):
 			if triangulation is not None:
 				raise ValueError('Only one triangulation may be given.')
 			triangulation = item
-		if isinstance(item, flipper.kernel.Lamination):
+		elif isinstance(item, flipper.kernel.Lamination):
 			unnamed_laminations.append(item)
 		elif isinstance(item, flipper.kernel.Encoding):
 			unnamed_mapping_classes.append(item)
@@ -74,7 +75,7 @@ def package(objects):
 			else:
 				raise ValueError('Item must be named by a string.')
 		else:
-			raise ValueError('Each item given must be a Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+			raise ValueError('Each item given must be an AbstractTriangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
 	
 	for name, lamination in zip(string_generator(len(unnamed_laminations), lamination_names), unnamed_laminations):
 		laminations.append((name, lamination))
@@ -96,8 +97,6 @@ def package(objects):
 		raise ValueError('All mapping classes must go from the same abstract triangulations.')
 	if any(mapping_class.target_triangulation != triangulation for name, mapping_class in mapping_classes):
 		raise ValueError('All mapping classes must go to the same abstract triangulations.')
-	else:
-		raise ValueError('Must be an abstract triangulation or a pair.')
 	
 	spec = 'A flipper kernel file.'
 	version = flipper.version

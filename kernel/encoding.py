@@ -471,68 +471,56 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
-			splitting = lamination.splitting_sequence(target_dilatation=dilatation)
+			splittings = lamination.splitting_sequence(target_dilatation=dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
-			# We might need to do more work to get the closing isometry.
-			#if splitting.closing_isometry is None:
+			# There might be more work to do here. We should choose only one of the splittings.
 			if False:
-				# If we installed too many punctures by default then
-				# the preperiodic encoding wont make it through.
-				print('Finding closer')
-				if splitting.preperiodic is None:
-					print('RECOMPUTING')
-					# So we have to do it again with fewer.
-					initial_triangulation = splitting.laminations[0].triangulation
-					surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
-					tripods = lamination.tripod_regions()
-					real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
-					print(len(tripods), surviving_punctures)
-					puncture_encoding = lamination.triangulation.encode_puncture_triangles(real_tripods)
-					lamination = puncture_encoding(lamination)
-					remove_tripods = lamination.remove_tripod_regions()
-					lamination = remove_tripods(lamination)
-					splitting = lamination.splitting_sequence(target_dilatation=dilatation) # , puncture_first=real_tripods)
-					print(splitting.flips)
-				
-				# Find the correct isometry (isom) which completes the square (pentagon?).
-				# Remember: The periodic goes in the _opposite_ direction to self so the
-				# diagram looks like this:
-				#
-				#   T ------------ self^{-1} ------------> T
-				#    \                                      \
-				#  preperiodic                            preperiodic
-				#      \                                      \
-				#       V                                      V
-				#       T' --- periodic ---> T'' --- isom ---> T'
-				#
-				preperiodic, periodic = splitting.preperiodic, splitting.periodic
-				preperiodic = preperiodic * remove_tripods * puncture_encoding
-				
-			#	for curve in self.source_triangulation.key_curves():
-			#		print(curve)
-			#		print((preperiodic * self.inverse()**100 * curve).weight())
-			#		for isom in splitting.closing_isometries:
-			#			print(((isom.encode() * periodic)**100 * preperiodic * curve).weight())
-			#		
-			#		print('####')
-				for isom in splitting.closing_isometries:
-					# Note: Until algebraic intersection numbers are done, this equality
-					# isn't strong enought if the underlying surface is S_1_1 or S_0_4.
-					if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
-						splitting.closing_isometry = isom
+				c = 0
+				for splitting in splittings:
+					# If we installed too many punctures by default then the preperiodic encoding wont make it through.
+					if splitting.preperiodic is None:
+						print('COULDNT CHECK')
+						c = -1
 						break
-				else:
-					print('FAILED')
-					
-			#		print(dilatation)
-			#		print(self.dilatation(lamination))
-			#		for isom in splitting.closing_isometries:
-			#			print(isom.permutation())
-			#			print(1 / (isom.encode() * periodic).dilatation(conj_lamination))
-			#		for isom in self.source_triangulation.all_isometries(self.source_triangulation):
-			#			print(isom.permutation())
-			#		assert(False)  # There was no way to close the square!?
-			return splitting
+						
+						# So we have to do it again with fewer.
+						initial_triangulation = splitting.laminations[0].triangulation
+						surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
+						tripods = lamination.tripod_regions()
+						real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
+						print(len(tripods), surviving_punctures)
+						puncture_encoding = lamination.triangulation.encode_puncture_triangles(real_tripods)
+						lamination = puncture_encoding(lamination)
+						remove_tripods = lamination.remove_tripod_regions()
+						lamination = remove_tripods(lamination)
+						splitting = lamination.splitting_sequence(target_dilatation=dilatation) # , puncture_first=real_tripods)
+						print(splitting.flips)
+					else:
+						
+						# Find the correct isometry (isom) which completes the square (pentagon?).
+						# Remember: The periodic goes in the _opposite_ direction to self so the
+						# diagram looks like this:
+						#
+						#   T ------------ self^{-1} ------------> T
+						#    \                                      \
+						#  preperiodic                            preperiodic
+						#      \                                      \
+						#       V                                      V
+						#       T' --- periodic ---> T'' --- isom ---> T'
+						#
+						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry
+						
+						#print('???????????????????')
+						#for curve in self.source_triangulation.key_curves():
+						#	print(curve)
+						#	print((preperiodic * self.inverse()**100)(curve).weight())
+						#	print(((isom.encode() * periodic)**100 * preperiodic)(curve).weight())
+						#	print('####')
+						if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
+							c += 1
+				print('!!! %d closers' % c)
+				assert(c != 0)
+			return splittings
 

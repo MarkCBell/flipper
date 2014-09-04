@@ -67,6 +67,9 @@ class AbstractTriangle(object):
 	def __iter__(self):
 		return iter(self.edges)
 	
+	def __getitem__(self, index):
+		return self.edges[index]
+	
 	def __contains__(self, item):
 		if isinstance(item, AbstractEdge):
 			return item in self.edges
@@ -161,6 +164,8 @@ class AbstractTriangulation(object):
 		return str(list(self))
 	def __iter__(self):
 		return iter(self.triangles)
+	def __getitem__(self, index):
+		return self.triangles[index]
 	def __contains__(self, item):
 		if isinstance(item, AbstractVertex):
 			return item in self.vertices

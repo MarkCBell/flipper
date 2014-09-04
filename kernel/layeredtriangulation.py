@@ -371,15 +371,22 @@ def permutation_from_pair(a, to_a, b, to_b):
 # A class to represent a layered triangulation over a surface specified by a flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
 	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. '''
-	def __init__(self, abstract_triangulation):
-		assert(isinstance(abstract_triangulation, flipper.kernel.AbstractTriangulation))
+	def __init__(self, triangulation, flip_indices, isometry):
+		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(flip_indices, (list, tuple)))
+		assert(all(isinstance(edge_index, flipper.Integer_Type) for edge_index in flip_indices))
+		assert(isinstance(isometry, flipper.kernel.Isometry))
 		
-		self.lower_triangulation = abstract_triangulation.copy()
-		self.upper_triangulation = abstract_triangulation.copy()
-		self.core_triangulation = Triangulation3(2 * abstract_triangulation.num_triangles)
+		self.triangulation = triangulation
+		self.flip_indices = flip_indices
+		self.isometry = isometry
 		
-		lower_tetrahedra = self.core_triangulation.tetrahedra[:abstract_triangulation.num_triangles]
-		upper_tetrahedra = self.core_triangulation.tetrahedra[abstract_triangulation.num_triangles:]
+		self.lower_triangulation = self.triangulation.copy()
+		self.upper_triangulation = self.triangulation.copy()
+		self.core_triangulation = Triangulation3(2 * self.triangulation.num_triangles)
+		
+		lower_tetrahedra = self.core_triangulation.tetrahedra[:self.triangulation.num_triangles]
+		upper_tetrahedra = self.core_triangulation.tetrahedra[self.triangulation.num_triangles:]
 		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
 			lower.glue(3, upper, flipper.kernel.Permutation((0, 2, 1, 3)))
 		
@@ -387,6 +394,9 @@ class LayeredTriangulation(object):
 		# Each is a dictionary sending each AbstractTriangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
 		self.lower_map = dict((lower, (lower_tetra, flipper.kernel.Permutation((0, 1, 2, 3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
 		self.upper_map = dict((upper, (upper_tetra, flipper.kernel.Permutation((0, 2, 1, 3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
+		
+		self.flips(self.flip_indices)
+		self.closed_triangulation = self.close(self.isometry)
 	
 	def __repr__(self):
 		s = 'Core tri:\n'
@@ -458,12 +468,8 @@ class LayeredTriangulation(object):
 		for edge_index in sequence:
 			self.flip(edge_index)
 	
-	def upper_lower_isometries(self):
-		# Returns a list of all isometries that can currently be used to close the layered triangulation
-		# up into a bundle.
-		return self.upper_triangulation.all_isometries(self.lower_triangulation)
-	
 	def close(self, isometry):
+		isometry = isometry.adapt(self.upper_triangulation, self.lower_triangulation)
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()
 		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
@@ -569,7 +575,7 @@ class LayeredTriangulation(object):
 					fibre_slopes[index] = closed_triangulation.slope(fibre_path)
 					break
 			else:
-				assert(False)
+				raise RuntimeError('No vertex was mapped to this cusp.')
 		
 		# Compute degeneracy slopes.
 		degeneracy_slopes = [None] * closed_triangulation.num_cusps

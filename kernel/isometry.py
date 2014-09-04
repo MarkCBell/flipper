@@ -33,9 +33,6 @@ class Isometry(object):
 			self.label_map == other.label_map
 	def __ne__(self, other):
 		return not (self == other)
-	def equivalent(self, other):
-		assert(isinstance(other, Isometry))
-		return self.label_map == other.label_map
 	def __iter__(self):
 		return iter(self.label_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
@@ -65,6 +62,10 @@ class Isometry(object):
 			return Isometry(other.source_triangulation, self.target_triangulation, dict((edge, self[other[edge]]) for edge in other))
 		else:
 			return NotImplemented
+	def adapt(self, new_source_triangulation, new_target_triangulation):
+		assert(isinstance(new_source_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(new_target_triangulation, flipper.kernel.AbstractTriangulation))
+		return [isom for isom in new_source_triangulation.all_isometries(new_target_triangulation) if isom.label_map == self.label_map][0]
 	def triangle_image(self, triangle):
 		corner = self.target_triangulation.corner_of_edge(self.label_map[triangle.labels[0]])
 		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))

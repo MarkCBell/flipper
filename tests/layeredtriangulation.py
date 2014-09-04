@@ -11,15 +11,8 @@ RANDOM_WORD_LENGTH = 10
 
 def test(surface, word, target):
 	S = flipper.examples.template(surface)
-	splitting = S.mapping_class(word).splitting_sequence()
-	# if splitting.closing_isometry is None or surface == 'S_1_1' or surface == 'S_0_4':
-	if splitting.closing_isometry is None or surface == 'S_1_1' or surface == 'S_0_4':
-		# we just have to try all of them.
-		Ms = splitting.snappy_manifolds()
-		return any(M.is_isometric_to(target) for M in Ms)
-	else:
-		M = splitting.snappy_manifold()
-		return M.is_isometric_to(target)
+	splittings = S.mapping_class(word).splitting_sequence()
+	return any(splitting.snappy_manifold().is_isometric_to(target) for splitting in splittings)
 
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')

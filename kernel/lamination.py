@@ -469,6 +469,9 @@ class Lamination(object):
 							p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
 							p_flips = flips[index:]
 							
+							print('preperiodic: %d' % index)
+							print('periodic: %d' % (len(laminations) - index))
+							
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)
 							assert(p_encoding.target_triangulation == lamination.triangulation)
 							
@@ -563,4 +566,37 @@ class Lamination(object):
 		T = map_back * forwards3 * forwards2 * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
+	
+	def geometric_intersection(self, lamination):
+		''' Returns the gemetric intersection number between this lamination and the given one.
+		Assumes that self is a twistable lamination. '''
+		assert(isinstance(lamination, Lamination))
+		
+		if not self.is_twistable():
+			raise flipper.AssumptionError('Can only compute geometric intersection number between a twistable curve and a lamination.')
+		
+		conjugator = self.conjugate_short()
+		
+		short = conjugator(self)
+		short_lamination = conjugator(lamination)
+		triangulation = short.triangulation
+		
+		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]
+		# We might need to swap these edge indices so we have a good frame of reference.
+		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
+		
+		a, b, c, d = triangulation.find_edges_of_square_about_edge(e1)
+		e = e1
+		
+		x = (short_lamination[a] + short_lamination[b] - short_lamination[e]) // 2
+		y = (short_lamination[b] + short_lamination[e] - short_lamination[a]) // 2
+		z = (short_lamination[e] + short_lamination[a] - short_lamination[b]) // 2
+		x2 = (short_lamination[c] + short_lamination[d] - short_lamination[e]) // 2
+		y2 = (short_lamination[d] + short_lamination[e] - short_lamination[c]) // 2
+		z2 = (short_lamination[e] + short_lamination[c] - short_lamination[d]) // 2
+		
+		intersection_number = short_lamination[a] - 2 * min(x, y2, z)
+		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
+		
+		return intersection_number
 

@@ -441,7 +441,6 @@ class Lamination(object):
 			# Check if we have created any edges of weight 0.
 			# It is enough to just check edge_index.
 			if lamination[edge_index] == 0:
-				lamination.collapse_trivial_weight(edge_index)
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination = lamination.collapse_trivial_weight(edge_index)
@@ -468,9 +467,6 @@ class Lamination(object):
 								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
 							p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
 							p_flips = flips[index:]
-							
-							print('preperiodic: %d' % index)
-							print('periodic: %d' % (len(laminations) - index))
 							
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)
 							assert(p_encoding.target_triangulation == lamination.triangulation)

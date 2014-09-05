@@ -156,6 +156,7 @@ class AbstractTriangulation(object):
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
 		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
+		self.genus = (2 - self.Euler_characteristic - self.num_vertices) // 2
 		self.max_order = 6 - 4 * self.Euler_characteristic  # The maximum order of a periodic mapping class.
 		self._face_matrix = None
 		self._marking_matrices = None
@@ -484,7 +485,9 @@ class AbstractTriangulation(object):
 				triangles.append(triangle)
 		
 		T = flipper.kernel.AbstractTriangulation(triangles)
-		return flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
+		E = flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
+		
+		return E
 
 def abstract_triangulation(all_labels):
 	# We should assert a load of stuff here first. !?!

@@ -3,8 +3,7 @@
 # Mainly used for running tests on.
 
 from random import choice
-from string import ascii_lowercase, ascii_uppercase
-# !?! Possible concern: ascii_lower/uppercase is too short.
+from string import ascii_lowercase, ascii_uppercase  # !?! Possible concern: ascii_lower/uppercase is too short.
 
 import flipper
 
@@ -79,7 +78,46 @@ def Example_S_2_1():
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
+def Example_S_2_1b():
+	''' Nathans origional version - broken somehow. '''
+	T = flipper.abstract_triangulation([[1, 2, 4], [5, 3, 0], [~2, 6, ~1], [~3, ~0, 7], [~4, ~5, 8], [~7, ~8, ~6]])
+	
+	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0])
+	b = T.lamination([0, 0, 1, 0, 1, 0, 1, 0, 1])
+	c = T.lamination([1, 0, 0, 0, 0, 1, 0, 1, 1])
+	d = T.lamination([0, 1, 1, 1, 0, 1, 2, 1, 1])
+	e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
+	f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
+	
+	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f]] for x in [a,b,c,d,e,f]]))
+	
+	return ExampleSurface(T, [a, b, c, d, e, f],
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist()])
+
 def Example_S_3_1():
+	T = flipper.abstract_triangulation([[0, 6, 1], [7, ~6, ~5], [8, 2, ~7], [9, ~8, ~4], [10, 3, ~9], [11, ~10, ~3],
+		[12, 4, ~11], [13, ~12, ~2], [14, 5, ~13], [~0, ~14, ~1]])
+	
+	a = T.lamination([0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1])
+	b = T.lamination([0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 0])
+	c = T.lamination([0, 0, 1, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0])
+	d = T.lamination([0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0])
+	e = T.lamination([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
+	f = T.lamination([1, 1, 1, 0, 1, 1, 2, 1, 0, 1, 1, 1, 2, 1, 0])
+	g = T.lamination([1, 1, 1, 0, 1, 1, 0, 1, 2, 1, 1, 1, 0, 1, 2])
+	h = T.lamination([1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 2])
+	
+	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
+	
+	f.encode_twist()
+	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist(),
+		g.encode_twist(), h.encode_twist()])
+
+def Example_S_3_1b():
+	''' Nathans origional version - broken somehow. '''
 	T = flipper.abstract_triangulation([[1, 2, 5], [0, 6, 3], [4, ~1, 7], [~3, 8, ~2], [9, ~5, ~6],
 									[10, ~0, ~9], [~10, ~7, ~8], [11, 12, ~4], [~12, 14, 13], [~13, ~11, ~14]])
 	
@@ -91,6 +129,8 @@ def Example_S_3_1():
 	f = T.lamination([0, 1, 1, 1, 2, 0, 1, 1, 0, 1, 1, 2, 2, 2, 2])
 	g = T.lamination([0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0])
 	h = T.lamination([0, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
+	
+	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
 	
 	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
@@ -141,7 +181,9 @@ def template(surface):
 		'S_1_1': Example_S_1_1,
 		'S_1_2': Example_S_1_2,
 		'S_2_1': Example_S_2_1,
+		'S_2_1b': Example_S_2_1b,  # Broken.
 		'S_3_1': Example_S_3_1,
+		'S_3_1b': Example_S_3_1b,  # Broken.
 		'E_12': Example_12,
 		'E_24': Example_24,
 		'E_36': Example_36

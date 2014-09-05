@@ -22,21 +22,18 @@ def test(splittings, M):
 def main(verbose=False):
 	unmatched = []
 	for surface, word, target in flipper.censuses.load('census_monodromies'):
-		#surface, word, target = 'S_3_1', 'aaabacbdef', 's148'  # ERROR.
-		for i in range(10):
-			surface, word, target = 'S_3_1', 'Ghabacbdce', 's194'  # Slow ~50s.
-			word = word[i:] + word[:i]
-			#surface, word, target = 'S_3_1', 'abcdeGh', 's451'  # Slow ~66s.
-			#surface, word, target = 'S_2_1', 'abCDEf', 'm160'  # No closers??
-			print('Buiding: %s over %s (target %s).' % (word, surface, target))
-			start_time = time()
-			M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
-			print('%d flips' % len(flipper.examples.template(surface).mapping_class(word)))
-			splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequence()
-			if not test(splittings, M):
-				print('Could not match %s on %s' % (word, surface))
-				unmatched.append((surface, word, target))
-			if verbose: print('\tComputed in %f' % (time() - start_time))
+		#surface, word, target = 'S_3_1', 'Ghabacbdce', 's194'  # Slow ~50s.
+		#surface, word, target = 'S_3_1', 'abcdeGh', 's451'  # Slow ~66s.
+		#surface, word, target = 'S_2_1', 'abCDEf', 'm160'  # No closers??
+		#surface, word, target = 'S_2_1', 'abCDE', 'v2099'  # No closers??
+		print('Buiding: %s over %s (target %s).' % (word, surface, target))
+		start_time = time()
+		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
+		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequence()
+		if not test(splittings, M):
+			print('Could not match %s on %s' % (word, surface))
+			unmatched.append((surface, word, target))
+		if verbose: print('\tComputed in %f' % (time() - start_time))
 	
 	if unmatched:
 		print('Unable to match:')

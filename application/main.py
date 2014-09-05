@@ -129,7 +129,7 @@ class FlipperApp(object):
 		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
 		self.laminationmenu.add_command(label='Store', command=self.store_lamination, accelerator='%s+L' % COMMAND_MODIFIER, font=app_font)
 		self.laminationmenu.add_command(label='Tighten', command=self.tighten_lamination, font=app_font)
-		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator='F5', font=app_font)
+		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator='%s+D' % COMMAND_MODIFIER, font=app_font)
 		self.menubar.add_cascade(label='Lamination', menu=self.laminationmenu, state='disabled', font=app_font)
 		
 		self.mappingclassmenu = TK.Menu(self.menubar, tearoff=0)
@@ -184,6 +184,7 @@ class FlipperApp(object):
 		self.parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
 		self.parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
 		self.parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
+		self.parent.bind('<%s-d>' % COMMAND_MODIFIER_BINDING, lambda event: self.destroy_lamination())
 		self.parent.bind('<%s-l>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_lamination())
 		self.parent.bind('<%s-t>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_twist())
 		self.parent.bind('<%s-h>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_halftwist())
@@ -1209,24 +1210,21 @@ class FlipperApp(object):
 					try:
 						disk_file = open(path, 'w')
 						try:
-							splitting = mapping_class.splitting_sequence()
+							splittings = mapping_class.splitting_sequence()
 						except flipper.AssumptionError:
 							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
 						except flipper.ComputationError:
 							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
 						else:
 							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-							M = splitting.bundle(0, composition)
-							disk_file.write(M.snappy_string())
-							description = 'It was built using the first of %d isometries.\n' % len(splitting.closing_isometries) + \
-							'It has %d cusp(s) with the following properties (in order):\n' % M.num_cusps + \
-							'Cusp types: %s\n' % M.cusp_types + \
-							'Fibre slopes: %s\n' % M.fibre_slopes + \
-							'Degeneracy slopes: %s\n' % M.degeneracy_slopes + \
-							'To build this bundle I had to create some artificial punctures,\n' + \
-							'these are the ones with puncture type 1.\n' + \
-							'You should fill them with their fibre slope to get\n' + \
-							'the manifold you were expecting.'
+							splitting = splittings[0]
+							bundle = splitting.bundle()
+							disk_file.write(splitting.bundle().snappy_string())
+							description = 'It was built using the first of %d isometries.\n' % len(splittings) + \
+							'It has %d cusp(s) with the following properties (in order):\n' % bundle.num_cusps + \
+							'Real types: %s\n' % bundle.real_cusps + \
+							'Fibre slopes: %s\n' % bundle.fibre_slopes + \
+							'Degeneracy slopes: %s\n' % bundle.degeneracy_slopes
 							tkMessageBox.showinfo('Bundle', description)
 					except IOError:
 						tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
@@ -1348,8 +1346,6 @@ class FlipperApp(object):
 			self.canvas_right_click(event)
 		elif key == 'F1':
 			self.show_help()
-		elif key == 'F5':
-			self.destroy_lamination()
 		elif key == 'Prior':
 			self.zoom_centre(1.05)
 		elif key == 'Next':

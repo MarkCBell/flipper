@@ -1,6 +1,5 @@
 
 from sage.all import Matrix, lcm, NumberField
-from math import log10 as log
 from flipper.kernel.symboliccomputation_dummy import project
 
 import flipper
@@ -12,9 +11,8 @@ def minpoly_coefficients(algebraic_number):
 	return [int(scale * x) for x in polynomial.coeffs()]
 
 def approximate(number, accuracy):
-	lost = log(max(1, abs(number.n(digits=2))))  # Apparently we can't get less than 2 digits of precision.
 	s = str(number.n(digits=1))
-	i, r = s.split('.') if '.' in s else (s, '')
+	i, _ = s.split('.') if '.' in s else (s, '')
 	s2 = str(number.n(digits=len(i)+accuracy))
 	i2, r2 = s2.split('.') if '.' in s2 else (s2, '')
 	return i2 + '.' + r2[:accuracy]

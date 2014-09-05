@@ -4,20 +4,28 @@ from time import time
 
 import flipper
 
-def main(n=100):
-	times = {}
-	S = flipper.examples.abstracttriangulation.Example_S_2_1()
-	for i in range(n):
-		word = S.random_word(10)  # , negative=False)
-		# word = 'bAAffD' * i + 'abFFeDDDfCCaBfBaC' + 'dFFaaB' * i
-		print('%d: %s' % (i, word), end='')
+def main():
+	S = flipper.examples.abstracttriangulation.Example_S_1_2()
+	words = ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa']
+	
+	times = []
+	num_trials = len(words)
+	for word in words:
+		print(word)
 		mapping_class = S.mapping_class(word)
-		t = time()
-		print(' - ' + mapping_class.NT_type(), end='')
-		times[word] = time() - t
-		print(', Time: %0.3f' % times[word])
-	print('Average time: %0.3f' % (sum(times.values()) / n))
-	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
+		start_time = time()
+		try:
+			# If this computation fails it will throw a ComputationError - the map was probably reducible.
+			print(' -- %s.' % mapping_class.NT_type())
+		except ImportError:
+			print(' Cannot determine without a symbolic library.')
+		except flipper.ComputationError:
+			print(' ~~ Probably reducible.')
+		print('      (Time: %0.4fs)' % (time() - start_time))
+		times.append(time() - start_time)
+	
+	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
+
 
 if __name__ == '__main__':
 	main()

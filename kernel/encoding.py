@@ -32,7 +32,7 @@ class PartialFunction(object):
 		if isinstance(other, PartialFunction):
 			return PartialFunction(self.action * other.action, other.condition.join(self.condition * other.action))
 		else:
-			return NotImpelmented
+			return NotImplemented
 	
 	def __call__(self, other):
 		if self.condition.nonnegative_image(other):
@@ -65,7 +65,7 @@ class PLFunction(object):
 			inverse_partial_functions = [func2 * func1 for func1 in self.inverse_partial_functions for func2 in other.inverse_partial_functions]
 			return PLFunction(partial_functions, inverse_partial_functions)
 		else:
-			return NotImpelmented
+			return NotImplemented
 	
 	def __call__(self, other):
 		for function in self.partial_functions:
@@ -188,7 +188,7 @@ class Encoding(object):
 		return indices
 	
 	def find_indices_compressed(self, lamination):
-		return flipper.kernel.utilities.change_base(int(''.join(map(str, self.find_indices(lamination, count_all=False))), 2))
+		return flipper.kernel.utilities.change_base(int(''.join(str(x) for x in self.find_indices(lamination, count_all=False)), 2))
 	
 	def applied_function(self, lamination):
 		''' Returns the partial function that will be applied to the lamination. '''

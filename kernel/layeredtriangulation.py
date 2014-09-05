@@ -187,6 +187,9 @@ class Triangulation3(object):
 				tetrahedron.cusp_indices[side] = index
 		
 		self.num_cusps = len(vertex_classes)
+		self.real_cusps = [False] * self.num_cusps
+		self.fibre_slopes = [(0, 0)] * self.num_cusps
+		self.degeneracy_slopes = [(0, 0)] * self.num_cusps
 		
 		return vertex_classes
 	
@@ -328,7 +331,7 @@ class Triangulation3(object):
 		
 		return (meridian_copies, longitude_copies)
 	
-	def snappy_string(self, name='flipper triangulation'):
+	def snappy_string(self, name='flipper triangulation', filled=True):
 		if not self.is_closed(): raise flipper.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
@@ -340,7 +343,11 @@ class Triangulation3(object):
 		s += 'CS_unknown\n'
 		s += '\n'
 		s += '%d 0\n' % self.num_cusps
-		s += ' torus 0.000000000000 0.000000000000\n' * self.num_cusps
+		for i in range(self.num_cusps):
+			if filled and not self.real_cusps[i]:
+				s += ' torus %0.12f %0.12f\n' % self.fibre_slopes[i]
+			else:
+				s += ' torus 0.000000000000 0.000000000000\n'
 		s += '\n'
 		s += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:

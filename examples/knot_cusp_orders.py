@@ -14,7 +14,7 @@ def stratum(splitting):
 
 def test(splittings, M):
 	for splitting in splittings:
-		N = splitting.snappy_manifold()
+		N = snappy.Manifold(splitting.bundle().snappy_string())
 		for _ in range(300):
 			M.randomize()
 			N.randomize()

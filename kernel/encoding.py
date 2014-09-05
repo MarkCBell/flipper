@@ -498,7 +498,6 @@ class Encoding(object):
 						splitting = lamination.splitting_sequence(target_dilatation=dilatation) # , puncture_first=real_tripods)
 						print(splitting.flips)
 					else:
-						
 						# Find the correct isometry (isom) which completes the square (pentagon?).
 						# Remember: The periodic goes in the _opposite_ direction to self so the
 						# diagram looks like this:
@@ -512,15 +511,24 @@ class Encoding(object):
 						#
 						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry
 						
-						#print('???????????????????')
-						#for curve in self.source_triangulation.key_curves():
-						#	print(curve)
-						#	print((preperiodic * self.inverse()**100)(curve).weight())
-						#	print(((isom.encode() * periodic)**100 * preperiodic)(curve).weight())
-						#	print('####')
+						print('???????????????????')
+						print(len(self))
+						print(preperiodic.target_triangulation)
+						for curve in self.source_triangulation.key_curves():
+							print(curve)
+							print((preperiodic * self.inverse())(curve))
+							print((isom.encode() * periodic * preperiodic)(curve))
+							print('####')
 						if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
 							c += 1
 				print('!!! %d closers' % c)
+				if c == 0:
+					print ('!!!!!!!!!!!!!!!!!!!')
+					print ('!!!!!!!!!!!!!!!!!!!')
+					print ('!!!!!!!!!!!!!!!!!!!')
+					print ('!!!!!!!!!!!!!!!!!!!')
+					print ('!!!!!!!!!!!!!!!!!!!')
+					
 				assert(c != 0)
 			return splittings
 

@@ -68,8 +68,8 @@ class NumberField(object):
 class NumberFieldElement(object):
 	''' This represents an element of a number field. You shouldn't create NumberFieldElements directly but instead
 	should use NumberField.element() which creates an element in that number field. '''
-	def __init__(self, number_field, linear_combination):
-		self.number_field = number_field
+	def __init__(self, field, linear_combination):
+		self.number_field = field
 		if len(linear_combination) < self.number_field.degree:
 			linear_combination = linear_combination + [0] * (self.number_field.degree - len(linear_combination))
 		elif len(linear_combination) > self.number_field.degree:

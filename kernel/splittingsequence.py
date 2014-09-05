@@ -18,16 +18,9 @@ class SplittingSequence(object):
 		self.source_triangulation = self.periodic.source_triangulation
 		self.target_triangulation = self.periodic.target_triangulation
 	
+	def dilatation(self):
+		return float(self.periodic(self.initial_lamination).weight()) / float(self.initial_lamination.weight())
+	
 	def bundle(self):
 		return flipper.kernel.LayeredTriangulation(self.source_triangulation, self.periodic_flips, self.isometry).closed_triangulation
-	
-	def snappy_manifold(self, name='flipper triangulation'):
-		import snappy
-		B = self.bundle()
-		#print(B.real_cusps, B.fibre_slopes)
-		M = snappy.Manifold(B.snappy_string(name))
-		for index, (real_cusp, fibre_slope) in enumerate(zip(B.real_cusps, B.fibre_slopes)):
-			if not real_cusp: M.dehn_fill(fibre_slope, index)
-		
-		return M
 

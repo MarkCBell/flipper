@@ -12,7 +12,7 @@ RANDOM_WORD_LENGTH = 10
 def test(surface, word, target):
 	S = flipper.examples.template(surface)
 	splittings = S.mapping_class(word).splitting_sequence()
-	return any(splitting.snappy_manifold().is_isometric_to(target) for splitting in splittings)
+	return any(snappy.Manifold(splitting.bundle().snappy_string()).is_isometric_to(target) for splitting in splittings)
 
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')

@@ -471,6 +471,7 @@ class Lamination(object):
 							assert(p_encoding.source_triangulation == old_lamination.triangulation)
 							assert(p_encoding.target_triangulation == lamination.triangulation)
 							
+							return [flipper.kernel.SplittingSequence(old_lamination, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
 							return [flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)

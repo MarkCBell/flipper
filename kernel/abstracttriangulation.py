@@ -453,6 +453,12 @@ class AbstractTriangulation(object):
 		
 		return flipper.kernel.Encoding(self, new_triangulation, [flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
 	
+	def encode_flips(self, edge_indices):
+		h = self.id_encoding()
+		for edge_index in edge_indices:
+			h = h.target_triangulation.encode_flip(edge_index) * h
+		return h
+	
 	def encode_puncture_triangles(self, to_puncture):
 		''' Returns an encoding from this triangulation to one in which each triangle
 		on the list to_puncture has been punctured, that is the triangulation obtained
@@ -498,6 +504,8 @@ def abstract_triangulation(all_labels):
 			for i in range(3):
 				if labels[i] == value:
 					return (labels, i)
+		print(value, all_labels)
+		assert(False)
 	
 	unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
 	vertex_classes = []

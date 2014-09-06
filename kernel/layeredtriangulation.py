@@ -6,7 +6,6 @@
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
 from itertools import permutations, combinations, product
-from copy import deepcopy
 try:
 	from Queue import Queue
 except ImportError: # Python 3
@@ -120,7 +119,7 @@ class Triangulation3(object):
 					forwards[tetrahedron].glue(side, forwards[neighbour], permutation)
 			
 			forwards[tetrahedron].cusp_indices = list(tetrahedron.cusp_indices)
-			forwards[tetrahedron].peripheral_curves = deepcopy(tetrahedron.peripheral_curves)
+			forwards[tetrahedron].peripheral_curves = [[list(tetrahedron.peripheral_curves[curve_type][side]) for side in range(4)] for curve_type in PERIPHERAL_TYPES]
 			forwards[tetrahedron].edge_labels = dict(tetrahedron.edge_labels)
 			forwards[tetrahedron].vertex_labels = tetrahedron.vertex_labels
 		

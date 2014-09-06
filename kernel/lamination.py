@@ -580,7 +580,7 @@ class Lamination(object):
 		triangulation = short.triangulation
 		for i in range(triangulation.zeta):
 			RN = triangulation.regular_neighbourhood(i)
-			if short * RN.weight()  == RN * short.weight():
+			if short * RN.weight() == RN * short.weight():
 				return short_lamination[i]
 		
 		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]

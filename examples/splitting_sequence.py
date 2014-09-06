@@ -10,9 +10,7 @@ def main():
 	for surface, word in tests:
 		print(word)
 		start_time = time()
-		S = flipper.examples.template(surface)
-		mapping_class = S.mapping_class(word)
-		mapping_class.splitting_sequence()
+		flipper.examples.template(surface).mapping_class(word).splitting_sequences()
 		print('Computed in %f' % (time() - start_time))
 
 if __name__ == '__main__':

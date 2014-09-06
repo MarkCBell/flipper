@@ -1,4 +1,6 @@
 
+from itertools import product
+
 import flipper
 
 NT_TYPE_PERIODIC = 'Periodic'
@@ -454,24 +456,19 @@ class Encoding(object):
 		
 		return float(new_lamination.weight()) / float(lamination.weight())
 	
-	def splitting_sequence(self):
-		''' Returns the (unique) splitting sequence associated to this mapping class.
+	def splitting_sequences(self, take_roots=False):
+		''' Returns a list of splitting sequences associated to this mapping class.
+		Eventually this should return the unique splitting sequence associated, in which
+		case the name might change.
 		
-		If the mapping class is not on S_{1,1} or S_{0,4} then then splitting
-		sequence will have a unique closing isometry set. To do this the algorithm may
-		occasionally need to perform a second round of lamination.splitting_sequence().
-		However this is only done when the mapping class has a symmetry and its
-		stable lamination has fewer singularities than we could initally see.
-		
-		Assumes that the mapping class is pseudo-Anosov. If not then it will
-		discover this. '''
+		Assumes that the mapping class is pseudo-Anosov - this will be discovered. '''
 		
 		assert(self.is_mapping_class())
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
-			splittings = lamination.splitting_sequence(target_dilatation=dilatation)
+			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		else:
@@ -483,20 +480,7 @@ class Encoding(object):
 					if splitting.preperiodic is None:
 						print('COULDNT CHECK')
 						c = -1
-						break
-						
-						# So we have to do it again with fewer.
-						initial_triangulation = splitting.laminations[0].triangulation
-						surviving_punctures = set([label for triangle in initial_triangulation for label in triangle.corner_labels])
-						tripods = lamination.tripod_regions()
-						real_tripods = [tripods[i-1] for i in surviving_punctures if i > 0]
-						print(len(tripods), surviving_punctures)
-						puncture_encoding = lamination.triangulation.encode_puncture_triangles(real_tripods)
-						lamination = puncture_encoding(lamination)
-						remove_tripods = lamination.remove_tripod_regions()
-						lamination = remove_tripods(lamination)
-						splitting = lamination.splitting_sequence(target_dilatation=dilatation) # , puncture_first=real_tripods)
-						print(splitting.flips)
+						# !?! TO DO.
 					else:
 						# Find the correct isometry (isom) which completes the square (pentagon?).
 						# Remember: The periodic goes in the _opposite_ direction to self so the
@@ -509,7 +493,20 @@ class Encoding(object):
 						#       V                                      V
 						#       T' --- periodic ---> T'' --- isom ---> T'
 						#
-						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry
+						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
+						
+						curves = self.source_triangulation.key_curves()
+						print('#########################')
+						for c1, c2 in product(curves, curves):
+							top1 = self(c1)
+							top2 = c2
+							bottom1 = isom(periodic(preperiodic(c1)))
+							bottom2 = preperiodic(c2)
+							i1 = top1.geometric_intersection(top2)
+							i2 =bottom1.geometric_intersection(bottom2)
+							print(i1 == i2)
+							if i1 != i2:
+								break
 						
 						print('???????????????????')
 						print(len(self))
@@ -517,9 +514,9 @@ class Encoding(object):
 						for curve in self.source_triangulation.key_curves():
 							print(curve)
 							print((preperiodic * self.inverse())(curve))
-							print((isom.encode() * periodic * preperiodic)(curve))
+							print((isom * periodic * preperiodic)(curve))
 							print('####')
-						if preperiodic * self.inverse() == isom.encode() * periodic * preperiodic:
+						if preperiodic * self.inverse() == isom * periodic * preperiodic:
 							c += 1
 				print('!!! %d closers' % c)
 				if c == 0:

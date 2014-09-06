@@ -1,6 +1,7 @@
 
 # Some standard example surfaces with mapping classes defined on them.
-# Mainly used for running tests on.
+# Mainly used for running tests on. These can be accessed through
+# the template(SURFACE) function.
 
 from random import choice
 from string import ascii_lowercase, ascii_uppercase  # !?! Possible concern: ascii_lower/uppercase is too short.

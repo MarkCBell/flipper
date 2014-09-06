@@ -19,8 +19,6 @@ except ImportError:  # Python 3.
 	except ImportError:
 		raise ImportError('Ttk not available.')
 
-import flipper
-
 RENDER_LAMINATION_FULL = 'Full'
 RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'
 RENDER_LAMINATION_C_TRAIN_TRACK = 'Compressed train track'

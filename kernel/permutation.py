@@ -1,9 +1,10 @@
 
+''' Represents a permutation on N elements. '''
+
 from itertools import combinations
 
 import flipper
 
-# Represents a permutation on N elements.
 class Permutation(object):
 	''' This represents a permutation in Sym(n). '''
 	def __init__(self, permutation):

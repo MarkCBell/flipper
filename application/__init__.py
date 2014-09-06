@@ -1,4 +1,6 @@
 
+''' The flipper GUI application. '''
+
 from . import main
 from . import pieces
 from . import options

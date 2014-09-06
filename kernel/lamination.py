@@ -401,7 +401,7 @@ class Lamination(object):
 		
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
-	def splitting_sequence(self, target_dilatation=None):
+	def splitting_sequences(self, target_dilatation=None):
 		''' Returns a list of splitting sequence associated to this lamination.
 		This is the flips the edges of maximal weight until you reach a
 		periodic sequence (with required dilatation if given).
@@ -472,7 +472,6 @@ class Lamination(object):
 							assert(p_encoding.target_triangulation == lamination.triangulation)
 							
 							return [flipper.kernel.SplittingSequence(old_lamination, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
-							return [flipper.kernel.SplittingSequence(self, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)
@@ -481,7 +480,7 @@ class Lamination(object):
 	
 	def is_filling(self):
 		try:
-			self.splitting_sequence()
+			self.splitting_sequences()
 		except flipper.AssumptionError:
 			return False
 		else:
@@ -568,6 +567,7 @@ class Lamination(object):
 		''' Returns the gemetric intersection number between this lamination and the given one.
 		Assumes that self is a twistable lamination. '''
 		assert(isinstance(lamination, Lamination))
+		assert(lamination.triangulation == self.triangulation)
 		
 		if not self.is_twistable():
 			raise flipper.AssumptionError('Can only compute geometric intersection number between a twistable curve and a lamination.')
@@ -576,7 +576,12 @@ class Lamination(object):
 		
 		short = conjugator(self)
 		short_lamination = conjugator(lamination)
+		
 		triangulation = short.triangulation
+		for i in range(triangulation.zeta):
+			RN = triangulation.regular_neighbourhood(i)
+			if short * RN.weight()  == RN * short.weight():
+				return short_lamination[i]
 		
 		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.

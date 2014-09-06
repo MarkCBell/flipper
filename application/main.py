@@ -1,4 +1,6 @@
 
+''' The main window of the flipper GUI application. '''
+
 import re
 import os
 import sys
@@ -1210,16 +1212,16 @@ class FlipperApp(object):
 					try:
 						disk_file = open(path, 'w')
 						try:
-							splittings = mapping_class.splitting_sequence()
+							splittings = mapping_class.splitting_sequences()
 						except flipper.AssumptionError:
-							tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Cannot build bundle, %s is not pseudo-Anosov.' % composition)
 						except flipper.ComputationError:
-							tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
+							tkMessageBox.showwarning('Lamination', 'Could not build bundle, %s is probably reducible.' % composition)
 						else:
 							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 							splitting = splittings[0]
 							bundle = splitting.bundle()
-							disk_file.write(splitting.bundle().snappy_string())
+							disk_file.write(bundle.snappy_string())
 							description = 'It was built using the first of %d isometries.\n' % len(splittings) + \
 							'It has %d cusp(s) with the following properties (in order):\n' % bundle.num_cusps + \
 							'Real types: %s\n' % bundle.real_cusps + \

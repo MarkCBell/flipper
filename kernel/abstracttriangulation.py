@@ -408,6 +408,15 @@ class AbstractTriangulation(object):
 	def is_isometric_to(self, other):
 		return isinstance(other, AbstractTriangulation) and len(self.all_isometries(other)) > 0
 	
+	def find_isometry(self, other_triangulation, edge_from_label, edge_to_label):
+		''' Returns the isometry from this triangulation to other_triangulation that sends edge_from_label to
+		to edge_to_label. Assumes that this defines a unique isometry. '''
+		isometries = [isom for isom in self.all_isometries(other_triangulation) if isom.label_map[edge_from_label] == edge_to_label]
+		if len(isometries) != 1:
+			raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine a unique isometry.')
+		else:
+			return isometries[0]
+	
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector, remove_peripheral=False):
 		return flipper.kernel.Lamination(self, vector, remove_peripheral)
@@ -458,6 +467,10 @@ class AbstractTriangulation(object):
 		for edge_index in edge_indices:
 			h = h.target_triangulation.encode_flip(edge_index) * h
 		return h
+	
+	def encode_flips_and_close(self, edge_indices, edge_from_label, edge_to_label):
+		E = self.encode_flips(edge_indices)
+		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def encode_puncture_triangles(self, to_puncture):
 		''' Returns an encoding from this triangulation to one in which each triangle

@@ -41,7 +41,7 @@ class NumberField(object):
 	def lmbda_approximations(self, accuracy):
 		if self.current_accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
-			accuracy_needed = 4 * int(self.degree * self.degree * self.height)
+			accuracy_needed = 4 * int(self.degree * self.degree * self.height) + 1
 			accuracy_required = accuracy + accuracy_needed
 			# We will compute a really accurate approximation of lmbda.
 			lmbda = self.polynomial_root.algebraic_approximation(accuracy_required)

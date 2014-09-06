@@ -6,9 +6,8 @@ import flipper
 # This class represents an integral polynomial. In various places we will assume that it is
 # irreducible and / or monic. We use this as an efficient way of representing an algebraic number.
 class Polynomial(object):
-	''' This represents a polynomial in one variable. The most important method of this is
-	self.algebraic_approximate_leading_root() which returns an AlgebraicApproximation of the largest real
-	root or raises an AssumptionError if there are none. '''
+	''' This represents a polynomial in one variable. It is capable of determining the
+	number of roots it has in a given interval by using a Sturm chain. '''
 	def __init__(self, coefficients):
 		assert(all(isinstance(coefficient, flipper.Integer_Type) for coefficient in coefficients))  # Should this be Number_Type?
 		
@@ -141,39 +140,11 @@ class Polynomial(object):
 		upper_sign_changes = sum(1 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]) if x * y < 0)
 		return lower_sign_changes - upper_sign_changes
 	
-	def subdivide_iterate(self, interval):
-		try:
-			return [I for I in interval.subdivide() if self.num_roots(I) > 0][-1]
-		except IndexError:
-			raise flipper.AssumptionError('Polynomial has no real roots.')
-	
 	def is_monic(self):
 		return abs(self[-1]) == 1
 	
 	def derivative(self):
 		return Polynomial([a * index for index, a in enumerate(self)][1:])
-	
-	def NR_iterate(self, interval):
-		# For why this works see: http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html
-		# Start by building a really tiny interval containing the midpoint of this one.
-		J = interval.midpoint(10)
-		K = J - self(J) / self.derivative()(interval)  # Apply the interval NR step. Could throw a ZeroDivisionError.
-		L = K.change_denominator(2 * K.accuracy)  # Stop the precision from blowing up too much.
-		return L.intersect(interval)  # This can throw a ValueError if the intersection is empty.
-	
-	def converge_iterate(self, interval, accuracy):
-		while interval.accuracy <= accuracy:
-			old_accuracy = interval.accuracy
-			try:
-				interval = self.NR_iterate(interval)
-			except (ZeroDivisionError, ValueError):
-				pass
-			
-			# This is guranteed to give us at lease 1 more d.p. of accuracy.
-			if interval.accuracy == old_accuracy:
-				interval = self.subdivide_iterate(interval)
-		
-		return interval.simplify()
 	
 	def companion_matrix(self):  # !! Eventually remove.
 		# Assumes that this polynomial is irreducible and monic.
@@ -184,6 +155,7 @@ class Polynomial(object):
 		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
 
 class PolynomialRoot(object):
+	''' This represents a single root of a polynomial. '''
 	def __init__(self, polynomial, interval):
 		# Assumes that polynomial has exactly one root in interval.
 		assert(isinstance(polynomial, flipper.kernel.Polynomial))
@@ -201,11 +173,40 @@ class PolynomialRoot(object):
 	def __repr__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	
+	def subdivide_iterate(self):
+		roots = [I for I in self.interval.subdivide() if self.polynomial.num_roots(I) > 0]
+		assert(len(roots) == 1)
+		return roots[0]
+	
+	def NR_iterate(self):
+		''' Applies one step of the Newton-Raphson (interval) iteration algorithm to self.interval.
+		For a description of this variant of the algorithm and an explanation why this works see: 
+			http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html '''
+		
+		J = self.interval.midpoint(10)  # Start by building a really tiny interval containing the midpoint of this one.
+		K = J - self.polynomial(J) / self.polynomial.derivative()(self.interval)  # Apply the interval NR step. This can throw a ZeroDivisionError.
+		L = K.change_denominator(2 * K.accuracy)  # Stop the precision from blowing up too much.
+		return L.intersect(self.interval)  # This can throw a ValueError if the intersection is empty.
+	
+	def converge_iterate(self, accuracy):
+		while self.interval.accuracy <= accuracy:
+			old_accuracy = self.interval.accuracy
+			try:
+				self.interval = self.NR_iterate()
+			except (ZeroDivisionError, ValueError):
+				pass
+			
+			# This is guranteed to give us at lease 1 more d.p. of accuracy.
+			if self.interval.accuracy == old_accuracy:
+				self.interval = self.subdivide_iterate()
+		
+		self.interval = self.interval.simplify()
+	
 	def interval_approximation(self, accuracy=0):
 		''' Returns an interval containing this number correct to the requested accuracy. '''
 		accuracy_required = max(accuracy, 0)
 		if self.interval.accuracy < accuracy_required:
-			self.interval = self.polynomial.converge_iterate(self.interval, accuracy_required)
+			self.converge_iterate(accuracy_required)
 			assert(self.interval.accuracy >= accuracy_required)
 			self.interval = self.interval.change_accuracy(accuracy_required)
 		

@@ -1,4 +1,6 @@
 
+''' The flipper kernel. '''
+
 from . import abstracttriangulation
 from . import algebraicapproximation
 from . import algebraicnumber

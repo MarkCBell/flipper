@@ -71,7 +71,7 @@ class ProgressApp(object):
 			self.parent.destroy()
 	
 	def apply(self, function, args=None, indeterminant=True):
-		# If we are expecting the function to report its progress then check it has a 'progression' arguement.
+		# If we are expecting the function to report its progress then check it has a 'log_progress' argument.
 		if not indeterminant and not 'log_progress' in inspect.getargspec(function).args:
 			indeterminant = True
 		

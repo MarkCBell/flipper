@@ -1,5 +1,6 @@
 
 from math import log10 as log
+from fractions import gcd
 
 import flipper
 
@@ -13,8 +14,7 @@ class Polynomial(object):
 		
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
-		height = max(max(abs(x) for x in self.coefficients), 1)
-		self.height = log(height)
+		self.height = log(max(max(abs(x) for x in self.coefficients), 1))
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)  # The zero polynomial has degree -1.
 		self.log_degree = log(max(self.degree, 1))
 		self.accuracy = 0
@@ -62,6 +62,8 @@ class Polynomial(object):
 	def __mul__(self, other):
 		if isinstance(other, flipper.Integer_Type):
 			return Polynomial([a * other for a in self])
+		else:
+			return NotImplemented
 	def __rmull__(self, other):
 		return self * other
 	
@@ -121,9 +123,8 @@ class Polynomial(object):
 	
 	def sturm_chain(self):
 		if self._chain is None:
-			f1 = self
-			f2 = self.derivative()
-			self._chain = [f1, f2]
+			f = self // gcd(self, self.derivative())
+			self._chain = [f, f.derivative()]
 			while self._chain[-1]:
 				self._chain.append(-(self._chain[-2] % self._chain[-1]).rescale())
 		
@@ -139,6 +140,27 @@ class Polynomial(object):
 		lower_sign_changes = sum(1 for x, y in zip(lower_non_zero_signs, lower_non_zero_signs[1:]) if x * y < 0)
 		upper_sign_changes = sum(1 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]) if x * y < 0)
 		return lower_sign_changes - upper_sign_changes
+	
+	def primitive_roots(self):
+		''' Returns a list of PolynomialRoots, one for each root of self with multiplicity one. '''
+		k = int(self.height + self.log_degree) + 1
+		interval = flipper.kernel.Interval(-10**k, 10**k, 0)
+		
+		results = []
+		to_check = [interval]
+		for i in range(2*k):
+			new_to_check = []
+			for interval in to_check:
+				num_roots = self.num_roots(interval)
+				if num_roots > 1:
+					new_to_check.extend(interval.subdivide())
+				elif num_roots == 1:
+					results.append(PolynomialRoot(self, interval))
+				else:  # num_roots == 0.
+					pass  # So discard this interval.
+			to_check = new_to_check
+		
+		return results
 	
 	def is_monic(self):
 		return abs(self[-1]) == 1
@@ -174,8 +196,9 @@ class PolynomialRoot(object):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	
 	def subdivide_iterate(self):
+		''' Subdivides self.interval and returns the (unique) interval containing a root of self.polynomial. '''
 		roots = [I for I in self.interval.subdivide() if self.polynomial.num_roots(I) > 0]
-		assert(len(roots) == 1)
+		assert(len(roots) == 1)  # What if a root occurs at the end of an interval? It would have to be rational.
 		return roots[0]
 	
 	def NR_iterate(self):

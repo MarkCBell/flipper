@@ -398,7 +398,7 @@ class Encoding(object):
 							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
 							# but this is much faster.
 							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-								# If it does then we have a projectively invariant lamintation.
+								# If it does then we have a projectively invariant lamination.
 								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
 								if not invariant_lamination.is_empty():
 									if j == 1:
@@ -503,7 +503,7 @@ class Encoding(object):
 							bottom1 = isom(periodic(preperiodic(c1)))
 							bottom2 = preperiodic(c2)
 							i1 = top1.geometric_intersection(top2)
-							i2 =bottom1.geometric_intersection(bottom2)
+							i2 = bottom1.geometric_intersection(bottom2)
 							print(i1 == i2)
 							if i1 != i2:
 								break

@@ -21,10 +21,14 @@ def project(vector, basis):
 def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
 	eigenvalue_polynomial = matrix.char_poly()  # This may not be irreducible.
-	eigenvalue_coefficients = eigenvalue_polynomial.coefficients
+	roots = eigenvalue_polynomial.primitive_roots()
+	if len(roots) == 0:
+		raise flipper.AssumptionError('Matrix is not PF, no primitive eigenvalues.')
+	
+	dominant_eigenvalue = max(roots, key=lambda x: x.algebraic_approximation(30))
 	
 	# We will calculate the eigenvector ourselves.
-	N = flipper.kernel.NumberField(eigenvalue_polynomial)  # !?! This is out of date.
+	N = flipper.kernel.NumberField(dominant_eigenvalue)  # !?! This is out of date.
 	orthogonal_kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
 	# eigenvector = project(vector, orthogonal_kernel_basis)
 	dim_ker = len(orthogonal_kernel_basis)
@@ -34,5 +38,4 @@ def PF_eigen(matrix, vector):
 	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
 	eigenvector_coefficients = [x.linear_combination for x in eigenvector]
 	
-	return eigenvalue_coefficients, eigenvector_coefficients
-
+	return N.lmbda, [N.element(entry) for entry in eigenvector_coefficients]

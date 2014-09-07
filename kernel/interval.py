@@ -37,6 +37,7 @@ class Interval(object):
 		
 	
 	def __repr__(self):
+		return str(self.tuple())
 		return self.approximate_string(6)
 	
 	def __float__(self):

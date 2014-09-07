@@ -36,7 +36,7 @@ class NumberField(object):
 		self._algebraic_approximations = self.lmbda_approximations(10)
 		
 		self.one = self.element([1])
-		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])
+		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])  # lambda is a Python keyword.
 	
 	def lmbda_approximations(self, accuracy):
 		if self.current_accuracy < accuracy:

@@ -1,5 +1,5 @@
 
-# This module is replicates the ring of real algebraic numbers.
+# This module replicates the ring of real algebraic numbers.
 
 import flipper
 
@@ -15,7 +15,9 @@ class AlgebraicMonomial(object):
 		''' Takes a list of PolynomialRoots and produces the '''
 		assert(all(isinstance(term, flipper.kernel.PolynomialRoot) for term in terms))
 		
-		self.terms = tuple(sorted(terms))
+		# We could record self.terms as tuple(sorted(terms)) but to make this work in Python 3
+		# we would have to add comparison operators to PolynomialRoot.
+		self.terms = tuple(terms)
 		self.log_degree = sum(term.log_degree for term in self)
 		if height is None: height = float('inf')
 		self.height = min(height, sum(term.height for term in self))

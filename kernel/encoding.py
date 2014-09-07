@@ -1,7 +1,7 @@
 
-from itertools import product
-
 import flipper
+
+from itertools import product
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'

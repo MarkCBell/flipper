@@ -587,7 +587,7 @@ class Lamination(object):
 		# We might need to swap these edge indices so we have a good frame of reference.
 		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		
-		a, b, c, d = triangulation.find_edges_of_square_about_edge(e1)
+		a, b, c, d = triangulation.find_indicies_of_square_about_edge(e1)
 		e = e1
 		
 		x = (short_lamination[a] + short_lamination[b] - short_lamination[e]) // 2

@@ -1,6 +1,4 @@
 
-# !! Eventually change.
-
 # Exact symbolic calculations using types representing algebraic numbers. This is used to:
 #	compute the stable lamination exactly, and
 #	compute splitting sequences.
@@ -28,7 +26,7 @@ import flipper
 
 from importlib import import_module
 
-### Add new libraries here ###
+### Add new libraries here in order ###
 libraries = ['symboliccomputation_sage', 'symboliccomputation_dummy']
 
 def load_library():

@@ -1,10 +1,10 @@
 
+import flipper
+
 import pickle
 from string import ascii_lowercase
 from itertools import product
 from math import log
-
-import flipper
 
 def string_generator(n, skip=None):
 	if skip is None: skip = []

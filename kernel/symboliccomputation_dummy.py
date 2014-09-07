@@ -1,6 +1,5 @@
 
 import flipper
-# !! Eventually change.
 
 def gram_schmidt(rows):
 	rows = [list(row) for row in rows]
@@ -21,21 +20,19 @@ def project(vector, basis):
 def PF_eigen(matrix, vector):
 	dot = flipper.kernel.matrix.dot
 	eigenvalue_polynomial = matrix.char_poly()  # This may not be irreducible.
-	roots = eigenvalue_polynomial.primitive_roots()
+	roots = eigenvalue_polynomial.roots()
 	if len(roots) == 0:
 		raise flipper.AssumptionError('Matrix is not PF, no primitive eigenvalues.')
 	
 	dominant_eigenvalue = max(roots, key=lambda x: x.algebraic_approximation(30))
 	
 	# We will calculate the eigenvector ourselves.
-	N = flipper.kernel.NumberField(dominant_eigenvalue)  # !?! This is out of date.
+	N = flipper.kernel.NumberField(dominant_eigenvalue)
 	orthogonal_kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
-	# eigenvector = project(vector, orthogonal_kernel_basis)
+	# Can't do division so can't do: eigenvector = project(vector, orthogonal_kernel_basis)
 	dim_ker = len(orthogonal_kernel_basis)
 	row_lengths = [dot(row, row) for row in orthogonal_kernel_basis]
 	product_lengths = [flipper.kernel.product([row_lengths[j] for j in range(dim_ker) if j != i]) for i in range(dim_ker)]
 	linear_combination = [dot(vector, row) * product_length for row, product_length in zip(orthogonal_kernel_basis, product_lengths)]
-	eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]
-	eigenvector_coefficients = [x.linear_combination for x in eigenvector]
 	
-	return N.lmbda, [N.element(entry) for entry in eigenvector_coefficients]
+	return N.lmbda, [sum(a * n[i] for a, n in zip(linear_combination, orthogonal_kernel_basis)) for i in range(matrix.width)]

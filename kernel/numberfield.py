@@ -1,14 +1,12 @@
 
-# !! Eventually remove.
-
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually
 # manipulate elements of ZZ[lambda]). This can even do multiplication of these
 # elements without having to drop to an AlgebraicApproximation and so is significantly
 # faster that the previous way of doing this sort of calculation.
-
+#
 # This requires the numbers to be given as a linear combinations of
-# 1, lambda, ..., lambda^{d-1}. Currently only Sage can do this.
+# 1, lambda, ..., lambda^{d-1}. Currently Sage is much better at doing this than we are.
 
 import flipper
 

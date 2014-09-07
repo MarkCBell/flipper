@@ -1,9 +1,8 @@
 
+import flipper
+
 from sage.all import Matrix, lcm, NumberField
 from flipper.kernel.symboliccomputation_dummy import project
-
-import flipper
-# !! Eventually change.
 
 def minpoly_coefficients(algebraic_number):
 	polynomial = algebraic_number.minpoly()

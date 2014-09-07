@@ -5,13 +5,13 @@
 # Warning: LayeredTriangulation3 modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
+import flipper
+
 from itertools import permutations, combinations, product
 try:
 	from Queue import Queue
 except ImportError: # Python 3
 	from queue import Queue
-
-import flipper
 
 # Edge veerings:
 VEERING_UNKNOWN = None

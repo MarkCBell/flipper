@@ -1,9 +1,9 @@
 
+import flipper
+
 from itertools import combinations, groupby, product
 from fractions import gcd
 from functools import reduce as freduce
-
-import flipper
 
 def antipodal(v, w):
 	# Returns if v & w are antipodal vectors.

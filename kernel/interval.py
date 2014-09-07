@@ -1,7 +1,7 @@
 
-from math import log10 as log
-
 import flipper
+
+from math import log10 as log
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
@@ -34,10 +34,8 @@ class Interval(object):
 		self.accuracy = float('inf') if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
 		
 		self.log_bound = log(max(abs(self.upper), abs(self.lower), 1)) - self.precision
-		
 	
 	def __repr__(self):
-		return str(self.tuple())
 		return self.approximate_string(6)
 	
 	def __float__(self):

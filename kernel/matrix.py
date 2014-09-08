@@ -365,12 +365,18 @@ class Matrix(object):
 #### Some special Matrices we know how to build.
 
 def id_matrix(dim):
+	''' Return the identity matrix of given dimension. '''
+	
 	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)])
 
 def zero_matrix(width, height=None):
+	''' Return the zero matrix of given dimensions. '''
+	
 	if height is None: height = width
 	return Matrix([[0] * width for _ in range(height)])
 
 def empty_matrix():
+	''' Return the empty matrix. '''
+	
 	return Matrix([])
 

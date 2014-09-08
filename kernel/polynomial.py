@@ -3,7 +3,7 @@
 
 Provides two classes: Polynomial and PolynomialRoot. 
 
-There is also a helper function polynomial_root. '''
+There is also a helper function: polynomial_root. '''
 
 import flipper
 
@@ -12,8 +12,10 @@ from fractions import gcd
 from itertools import izip_longest
 
 class Polynomial(object):
-	''' This represents an integral polynomial in one variable. It is capable of determining the
-	number of roots it has in a given interval by using a Sturm chain. '''
+	''' This represents an integral polynomial in one variable. 
+	
+	It is specified by a list of coefficients. It is capable of determining
+	the number of roots it has in a given interval by using a Sturm chain. '''
 	def __init__(self, coefficients):
 		assert(all(isinstance(coefficient, flipper.Integer_Type) for coefficient in coefficients))  # Should this be Number_Type?
 		
@@ -224,7 +226,7 @@ class Polynomial(object):
 		( Id |           ) 
 		where V is the vector of coefficients of this polynomial.
 		
-		Assumes that this polynomial is monic - this will be discovered. '''
+		Assumes (and checks) that this polynomial is monic. '''
 		
 		if not self.is_monic():
 			raise flipper.AssumptionError('Cannot construct companion matrix for non monic polynomial.')
@@ -233,9 +235,13 @@ class Polynomial(object):
 		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
 
 class PolynomialRoot(object):
-	''' This represents a single root of a polynomial. '''
+	''' This represents a single root of a polynomial. 
+	
+	It is specified by a Polynomial and an Interval. 
+	
+	The interval must contain exactly one root of the polynomial. If
+	not an ApproximationError will be raised. '''
 	def __init__(self, polynomial, interval):
-		# This raises an ApproximationError if the polynomial does not have a unique root in the given interval - this will be discovered.
 		assert(isinstance(polynomial, flipper.kernel.Polynomial))
 		assert(isinstance(interval, flipper.kernel.Interval))
 		
@@ -245,6 +251,7 @@ class PolynomialRoot(object):
 		self.log_degree = self.polynomial.log_degree
 		self.height = self.polynomial.height + 2 * self.log_degree
 		
+		# Check that self.polynomial has exactly one root in self.interval.
 		if self.polynomial.num_roots(self.interval) != 1:
 			raise flipper.ApproximationError('Interval contains %d roots, not one.' % self.polynomial.num_roots(self.interval))
 	

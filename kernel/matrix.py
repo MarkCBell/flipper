@@ -1,4 +1,10 @@
 
+''' A module for representing and manipulating matrices.
+
+Provides one class: Matrix.
+
+There are also helper functions: Id_Matrix(dim), Zero_Matrix and Empty_Matrix. '''
+
 import flipper
 
 from itertools import combinations, groupby, product
@@ -89,8 +95,8 @@ class Matrix(object):
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == 0 or self.width == len(other))
-			otherT = other.transpose()
-			return Matrix([[dot(a, b) for b in otherT] for a in self])
+			other_transpose = other.transpose()
+			return Matrix([[dot(a, b) for b in other_transpose] for a in self])
 		elif isinstance(other, list):  # other is a vector.
 			assert(self.width == 0 or self.width == len(other))
 			return [dot(row, other) for row in self]
@@ -285,19 +291,17 @@ class Matrix(object):
 		R = [row for row in R if not all(r >= 0 for r in row)]
 		return Matrix(R), A
 	
-	def FM_eliminate(self, index=0):
-		''' Returns the matric obtained by using Fourier-Motzkin elimination
+	def fourier_motzkin_eliminate(self, index=0):
+		''' Return the matrix obtained by using Fourier-Motzkin elimination
 		on this matrix. '''
 		
 		pos_rows = [row for row in self if row[index] > 0]
 		neg_rows = [row for row in self if row[index] < 0]
 		non_rows = [row for row in self if row[index] == 0]
-		if len(neg_rows) == 0:
-			# Problem is trivially solvable by (0 ... 0 1 0 ... 0)
+		if len(neg_rows) == 0:  # Problem is trivially solvable by (0 ... 0 1 0 ... 0)
 			return Matrix([[1]])
 		elif len(pos_rows) == 0:
-			# Problem is independent of x_index.
-			return self.discard_column(index)
+			return self.discard_column(index)  # Problem is independent of x_index.
 		else:
 			new_rows = [[r1[index] * y - r2[index] * x for x, y in zip(r1, r2)] for r1, r2 in product(pos_rows, neg_rows)]
 			return Matrix(new_rows + non_rows + neg_rows).discard_column(index)
@@ -307,15 +311,16 @@ class Matrix(object):
 		A = self.copy()
 		A = A.basic_simplify()
 		while A.height > 1:
-			A = A.FM_eliminate()
+			A = A.fourier_motzkin_eliminate()
 			A = A.basic_simplify()
 		return any(x >= 0 for x in A[0])
 	
 	def find_edge_vector(self):
-		''' Returns a non-trivial vector in the polytope given by self*x >= 0 or
-		None if none exists. Note: if self is empty then considers self as a map
-		from RR^0 --> RR^0 and so returns None. '''
-		# !?! To do: Redo this using the simplex method / ellipsoid method and presolving.
+		''' Return a non-trivial vector in the polytope given by self * x >= 0 or None if none exists.
+		
+		Note: if self is empty then considers self as a map from RR^0 --> RR^0 and so returns None. '''
+		
+		# !?! To do: Redo this using the simplex method / ellipsoid method and pre-solving.
 		
 		if self.is_empty():
 			return None
@@ -323,7 +328,7 @@ class Matrix(object):
 		R, B = self.simplify()  # Reduce to a simpler problem.
 		
 		if R.width == 0:
-			return B * ([1]*B.width)
+			return B * ([1] * B.width)
 		elif R.width == 1:
 			if R.nonnegative_image([1]):
 				return B * [1]
@@ -337,17 +342,21 @@ class Matrix(object):
 					if nontrivial(v):
 						if not nonnegative(v): v = [-x for x in v]  # Might need to flip v.
 						if nonnegative(v) and R.nonnegative_image(v):
-							return B*v
+							return B * v
 		
 		# Polytope is trivial.
 		return None
+	
 	def check_nontrivial_polytope(self, certificate):
 		return nonnegative(certificate) and nontrivial(certificate) and self.nonnegative_image(certificate)
 	
 	def nontrivial_polytope(self):
-		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial,
-		i.e. not just {0}. Note: As with self.find_edge_vector() we consider the
-		empty matrix as a map RR^0 --> RR^0 and so return False. '''
+		''' Determines if the polytope given by self*x >= 0, x >= 0 is non-trivial.
+		
+		A polytope is trivial if it is just {0}.
+		
+		Note: As with self.find_edge_vector() we consider the empty matrix
+		as a map RR^0 --> RR^0 and so return False. '''
 		
 		certificate = self.find_edge_vector()
 		if certificate is not None: assert(self.check_nontrivial_polytope(certificate))

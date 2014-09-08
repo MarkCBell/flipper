@@ -1,4 +1,10 @@
 
+''' A module for representing and manipulating intervals.
+
+Provides one class: Interval. 
+
+There is also a helper function: interval_from_string. '''
+
 import flipper
 
 from math import log10 as log
@@ -44,18 +50,28 @@ class Interval(object):
 		return hash(self.tuple())
 	
 	def copy(self):
+		''' Return a copy of this interval. '''
+		
 		return Interval(self.lower, self.upper, self.precision)
 	
 	def approximate_string(self, accuracy=None):
+		''' Return a string approximating the centre of this interval. '''
+		
 		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
 		I = self.change_denominator(accuracy)
 		v = (I.lower + I.upper) // 2
 		s = str(v).zfill(accuracy + (2 if v < 0 else 1))
 		return '%s.%s?' % (s[:-I.precision], s[-I.precision:])
 	def tuple(self):
+		''' Return the triple describing this interval. '''
+		
 		return (self.lower, self.upper, self.precision)
+	
 	def change_denominator(self, new_denominator):
+		''' Return a this interval over a new denominator. '''
+		
 		assert(isinstance(new_denominator, flipper.Integer_Type))
+		
 		d = new_denominator - self.precision
 		if d > 0:
 			return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
@@ -64,18 +80,26 @@ class Interval(object):
 		elif d < 0:
 			return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
 	def change_accuracy(self, new_accuracy):
+		''' Return a new interval with the given accuracy.
+		
+		The new_accuracy must be at most self.accuracy. '''
+		
 		assert(isinstance(new_accuracy, flipper.Integer_Type))
+		
 		if self.accuracy == float('inf'):
 			return self
 		else:
 			assert(new_accuracy <= self.accuracy)
 			return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
 	def simplify(self):
+		''' Return a simpler interval with the same accuracy. '''
+		
 		d = self.precision - self.accuracy
 		if d > 1:
 			return self.change_denominator(self.accuracy-1)
 		else:
 			return self
+	
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
@@ -141,12 +165,10 @@ class Interval(object):
 				return self * square
 			else:
 				return square
-	
 	def __div__(self, other):
 		if isinstance(other, Interval):
 			if 0 in other:
 				raise ZeroDivisionError  # Denominator contains 0.
-			# !?! RECHECK THIS!
 			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
@@ -158,14 +180,26 @@ class Interval(object):
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
+	
 	def midpoint(self, magnitude=10):
+		''' Return a smaller interval containing the midpoint of this interval. '''
+		
+		assert(isinstance(magnitude, flipper.Integer_Type))
+		
 		m = (10**magnitude) * (self.lower + self.upper) // 2
 		return Interval(m-1, m+1, self.precision+magnitude)
 	def intersect(self, other):
+		''' Return the intersection of this interval with other. '''
+		
+		assert(isinstance(other, Interval))
+		
 		common_precision = max(self.precision, other.precision)
 		P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 		return Interval(max(P.lower, Q.lower), min(P.upper, Q.upper), common_precision)
+	
 	def subdivide(self):
+		''' Return a list of smaller intervals covering this interval. '''
+		
 		d = self.upper - self.lower
 		if d > 1:
 			k = 1 + d // 10
@@ -178,6 +212,8 @@ class Interval(object):
 #### Some special Intervals we know how to build.
 
 def interval_from_string(string):
+	''' A short way of constructing Intervals from a string. '''
+	
 	i, r = string.split('.') if '.' in string else (string, '')
 	x = int(i + r)
 	return Interval(x-10, x+10, len(r))

@@ -1,4 +1,8 @@
 
+''' A module for representing a splitting sequence of abstract triangulations.
+
+Provides one class: SplittingSequence. '''
+
 import flipper
 
 class SplittingSequence(object):
@@ -12,15 +16,17 @@ class SplittingSequence(object):
 		
 		self.initial_lamination = initial_lamination
 		self.preperiodic = preperiodic  # Unused.
-		self.periodic = periodic  # Sort of unused.
+		self.periodic = periodic  # Unused.
 		self.isometry = isometry
 		self.periodic_flips = periodic_flips
-		self.source_triangulation = self.periodic.source_triangulation
-		self.target_triangulation = self.periodic.target_triangulation
 	
 	def dilatation(self):
+		''' Return the dilatation of the corresponding mapping class (as a float). '''
+		
 		return float(self.periodic(self.initial_lamination).weight()) / float(self.initial_lamination.weight())
 	
 	def bundle(self):
-		return flipper.kernel.LayeredTriangulation(self.source_triangulation, self.periodic_flips, self.isometry).closed_triangulation
+		''' Return the corresponding veering layered triangulation of the corresponding mapping torus. '''
+		
+		return flipper.kernel.LayeredTriangulation(self.initial_lamination.triangulation, self.periodic_flips, self.isometry).closed_triangulation
 

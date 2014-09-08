@@ -1,11 +1,18 @@
 
+''' A module for representing laminations on AbstractTriangulations.
+
+Provides one class: Lamination. '''
+
 import flipper
 
 class Lamination(object):
-	''' This represents a lamination on an abstract triangluation. You shouldn't create laminations directly
-	but instead should use AbstractTriangulation.lamination() which creates a lamination on that triangulation.
-	If remove_peripheral is True then the Lamination is allowed to rescale its weights (by a factor of 2) in order
-	to remove any peripheral components. '''
+	''' This represents a lamination on an abstract triangulation. 
+	
+	You shouldn't create laminations directly but instead should use 
+	AbstractTriangulation.lamination() which creates a lamination on that 
+	triangulation. If remove_peripheral is True then the Lamination is 
+	allowed to rescale its weights (by a factor of 2) in order to remove 
+	any peripheral components. '''
 	def __init__(self, triangulation, vector, remove_peripheral=False):
 		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
 		assert(all(isinstance(entry, object) for entry in vector))
@@ -16,7 +23,6 @@ class Lamination(object):
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
-			
 			def dual_weight(corner):
 				return vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index]
 			
@@ -578,11 +584,6 @@ class Lamination(object):
 		short_lamination = conjugator(lamination)
 		
 		triangulation = short.triangulation
-		for i in range(triangulation.zeta):
-			RN = triangulation.regular_neighbourhood(i)
-			if short * RN.weight() == RN * short.weight():
-				return short_lamination[i]
-		
 		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
 		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1

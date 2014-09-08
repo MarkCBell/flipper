@@ -1,4 +1,8 @@
 
+''' A module for representing and manipulating maps between AbstractTriangulations.
+
+Provides two classes: PartialFunction, PLFunction and Encoding. '''
+
 import flipper
 
 from itertools import product
@@ -8,11 +12,12 @@ NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
 class PartialFunction(object):
-	''' This represents a linear function from a subset of RR^m to RR^n. '''
+	''' This represents a linear function from a subset of RR^m to RR^n.
+	
+	The function is defined on the subset where self.condition * vector >= 0,
+	or everywhere if self.condition is None. Attempting to apply the function
+	to a point not in the domain will raise a TypeError. '''
 	def __init__(self, action, condition=None):
-		''' This represents a partial linear function from RR^m to RR^n.
-		The function is defined on the subset where condition*vector >= 0, or everywhere if condition
-		is None. Attempting to apply the function to a point not in the domain will raise a TypeError. '''
 		assert(isinstance(action, flipper.kernel.Matrix))
 		assert(condition is None or isinstance(condition, flipper.kernel.Matrix))
 		
@@ -323,19 +328,21 @@ class Encoding(object):
 			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def invariant_lamination(self):
-		''' Returns an algebraic number and lamination which is projectively invariant
-		under this mapping class. If it cannot find one then it raises a ComputationError.
-		Assumes that the mapping class is pseudo-Anosov. If it is periodic it will discover this
-		if it is reducible it may discover this.
+		''' Return a rescaling constant and projectively invariant lamination. 
 		
-		The process starts with a curve on the surface and repeatedly applies the map until
-		it appear to be projectively similar to a previous iteration. Finally it uses:
-			flipper.kernel.symboliccomputation.Perron_Frobenius_eigen()
+		Assumes that the mapping class is pseudo-Anosov.
+		
+		To find this we start with a curve on the surface and repeatedly apply
+		the map until it appear to be projectively similar to a previous iteration.
+		Finally it uses:
+			flipper.kernel.symboliccomputation.perron_frobenius_eigen()
 		to find the nearby projective fixed point.
 		
-		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails to converge after
-		many iterations and a ComputationError is thrown then it's actually extremely likely that the
-		map was not pseudo-Anosov. '''
+		If it cannot find one then it raises a ComputationError.
+		
+		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails 
+		to converge after many iterations and a ComputationError is thrown then it's
+		actually extremely likely that the map was not pseudo-Anosov. '''
 		
 		# Suppose that f_1, ..., f_m, g_1, ..., g_n, t_1, ..., t_k, p is the Thurston decomposition of self.
 		# That is: f_i are pA on subsurfaces, g_i are periodic on subsurfaces, t_i are Dehn twist along the curve of
@@ -390,7 +397,7 @@ class Encoding(object):
 						tested_cells.append(partial_function)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
-							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(action_matrix, average_curve)
+							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.perron_frobenius_eigen(action_matrix, average_curve)
 						except flipper.AssumptionError:
 							pass  # Largest eigenvalue was not real.
 						else:
@@ -446,8 +453,7 @@ class Encoding(object):
 	def dilatation(self, lamination):
 		''' Returns the dilatation of this mapping class on the given lamination.
 		
-		Assumes that the given lamination is projectively invariant. If not then
-		it will discover this. '''
+		Assumes (and checks) that the given lamination is projectively invariant. '''
 		
 		assert(self.is_mapping_class())
 		new_lamination = self(lamination)
@@ -461,7 +467,7 @@ class Encoding(object):
 		Eventually this should return the unique splitting sequence associated, in which
 		case the name might change.
 		
-		Assumes that the mapping class is pseudo-Anosov - this will be discovered. '''
+		Assumes (and checks) that the mapping class is pseudo-Anosov. '''
 		
 		assert(self.is_mapping_class())
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.

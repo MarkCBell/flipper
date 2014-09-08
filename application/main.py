@@ -697,9 +697,9 @@ class FlipperApp(object):
 	def show_surface_information(self):
 		if self.is_complete():
 			num_marked_points = self.abstract_triangulation.num_vertices
-			Euler_characteristic = self.abstract_triangulation.Euler_characteristic
-			genus = (2 - Euler_characteristic - num_marked_points) // 2
-			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus, num_marked_points, Euler_characteristic))
+			euler_characteristic = self.abstract_triangulation.euler_characteristic
+			genus = (2 - euler_characteristic - num_marked_points) // 2
+			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus, num_marked_points, euler_characteristic))
 		else:
 			tkMessageBox.showwarning('Surface information', 'Cannot compute information about an incomplete surface.')
 	

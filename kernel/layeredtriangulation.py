@@ -1,4 +1,8 @@
 
+''' A module for representing triangulations of 3--manifolds.
+
+Provides three classes: Tetrahedron, Triangulation3 and LayeredTriangulation. '''
+
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 
@@ -49,15 +53,15 @@ class Tetrahedron(object):
 	def glue(self, side, target, permutation):
 		if self.glued_to[side] is None:
 			assert(self.glued_to[side] is None)
-			assert(target.glued_to[permutation[side]] is None)
+			assert(target.glued_to[permutation(side)] is None)
 			assert(not permutation.is_even())
 			
 			self.glued_to[side] = (target, permutation)
-			target.glued_to[permutation[side]] = (self, permutation.inverse())
+			target.glued_to[permutation(side)] = (self, permutation.inverse())
 			
 			# Move across the edge veerings too.
 			for a, b in combinations(VERTICES_MEETING[side], 2):
-				x, y = permutation[a], permutation[b]
+				x, y = permutation(a), permutation(b)
 				my_edge_veering = self.get_edge_label(a, b)
 				his_edge_veering = target.get_edge_label(x, y)
 				if my_edge_veering == VEERING_UNKNOWN and his_edge_veering != VEERING_UNKNOWN:
@@ -72,7 +76,7 @@ class Tetrahedron(object):
 	def unglue(self, side):
 		if self.glued_to[side] is not None:
 			other, perm = self.glued_to[side]
-			other.glued_to[perm[side]] = None
+			other.glued_to[perm(side)] = None
 			self.glued_to[side] = None
 	
 	def get_edge_label(self, a, b):
@@ -84,16 +88,16 @@ class Tetrahedron(object):
 		self.edge_labels[(a, b)] = value
 	
 	def snappy_string(self):
-		s = ''
-		s += '%4d %4d %4d %4d\n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-		s += '%4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
-		s += '%4d %4d %4d %4d\n' % tuple(self.cusp_indices)
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
-		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-		s += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
-		s += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-		s += '  0.000000000000 0.000000000000\n'
-		return s
+		strn = ''
+		strn += '%4d %4d %4d %4d\n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
+		strn += '%4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
+		strn += '%4d %4d %4d %4d\n' % tuple(self.cusp_indices)
+		strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
+		strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
+		strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
+		strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
+		strn += '  0.000000000000 0.000000000000\n'
+		return strn
 
 class Triangulation3(object):
 	''' This represents triangulation, that is a collection of tetrahedra. '''
@@ -172,7 +176,7 @@ class Triangulation3(object):
 				for side in VERTICES_MEETING[current_side]:
 					if current_tetrahedron.glued_to[side] is not None:
 						neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
-						neighbour_side = permutation[current_side]
+						neighbour_side = permutation(current_side)
 						neighbour_vertex = neighbour_tetrahedron, neighbour_side
 						if neighbour_vertex in remaining_vertices:
 							to_explore.put(neighbour_vertex)
@@ -198,7 +202,7 @@ class Triangulation3(object):
 			for side in range(4):
 				for other in VERTICES_MEETING[side]:
 					neighbour_tetrahedron, permutation = tetrahedron.glued_to[other]
-					neighbour_side, neighbour_other = permutation[side], permutation[other]
+					neighbour_side, neighbour_other = permutation(side), permutation(other)
 					cusp_pairing[(tetrahedron, side, other)] = (neighbour_tetrahedron, neighbour_side, neighbour_other)
 		
 		return cusp_pairing
@@ -286,7 +290,7 @@ class Triangulation3(object):
 							current_tetrahedron.peripheral_curves[peripheral_type][current_side][arrive] += 1
 							current_tetrahedron.peripheral_curves[peripheral_type][current_side][leave] -= 1
 							next_tetrahedron, perm = current_tetrahedron.glued_to[leave]
-							current_tetrahedron, current_side, arrive = next_tetrahedron, perm[current_side], perm[leave]
+							current_tetrahedron, current_side, arrive = next_tetrahedron, perm(current_side), perm(leave)
 							break
 			
 			# Compute the algebraic intersection number between the longitude and meridian we just installed.
@@ -334,25 +338,25 @@ class Triangulation3(object):
 		if not self.is_closed(): raise flipper.AssumptionError('Layered triangulation is not closed.')
 		# First make sure that all of the labellings are good.
 		self.reindex()
-		s = ''
-		s += '% Triangulation3\n'
-		s += '%s\n' % name
-		s += 'not_attempted 0.0\n'
-		s += 'oriented_manifold\n'
-		s += 'CS_unknown\n'
-		s += '\n'
-		s += '%d 0\n' % self.num_cusps
+		strn = ''
+		strn += '% Triangulation3\n'
+		strn += '%s\n' % name
+		strn += 'not_attempted 0.0\n'
+		strn += 'oriented_manifold\n'
+		strn += 'CS_unknown\n'
+		strn += '\n'
+		strn += '%d 0\n' % self.num_cusps
 		for i in range(self.num_cusps):
 			if filled and not self.real_cusps[i]:
-				s += ' torus %0.12f %0.12f\n' % self.fibre_slopes[i]
+				strn += ' torus %0.12f %0.12f\n' % self.fibre_slopes[i]
 			else:
-				s += ' torus 0.000000000000 0.000000000000\n'
-		s += '\n'
-		s += '%d\n' % self.num_tetrahedra
+				strn += ' torus 0.000000000000 0.000000000000\n'
+		strn += '\n'
+		strn += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:
-			s += tetrahedra.snappy_string() + '\n'
+			strn += tetrahedra.snappy_string() + '\n'
 		
-		return s
+		return strn
 
 def permutation_from_pair(a, to_a, b, to_b):
 	''' Returns the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
@@ -365,12 +369,12 @@ def permutation_from_pair(a, to_a, b, to_b):
 	
 	X1 = {a: to_a, b: to_b, c: to_c, d: to_d}
 	X2 = {a: to_a, b: to_b, c: to_d, d: to_c}
-	P1 = flipper.kernel.Permutation([X1[i] for i in range(4)])
-	P2 = flipper.kernel.Permutation([X2[i] for i in range(4)])
-	if not P1.is_even():
-		return P1
-	elif not P2.is_even():
-		return P2
+	perm1 = flipper.kernel.Permutation([X1[i] for i in range(4)])
+	perm2 = flipper.kernel.Permutation([X2[i] for i in range(4)])
+	if not perm1.is_even():
+		return perm1
+	elif not perm2.is_even():
+		return perm2
 	else:
 		raise ValueError('Does not represent a gluing.')
 
@@ -405,13 +409,13 @@ class LayeredTriangulation(object):
 		self.closed_triangulation = self.close(self.isometry)
 	
 	def __repr__(self):
-		s = 'Core tri:\n'
-		s += '\n'.join(str(tetra) for tetra in self.core_triangulation)
-		s += '\nUpper tri:\n' + str(self.upper_triangulation)
-		s += '\nLower tri:\n' + str(self.lower_triangulation)
-		s += '\nUpper map: ' + str(self.upper_map)
-		s += '\nLower map: ' + str(self.lower_map)
-		return s
+		strn = 'Core tri:\n'
+		strn += '\n'.join(str(tetra) for tetra in self.core_triangulation)
+		strn += '\nUpper tri:\n' + str(self.upper_triangulation)
+		strn += '\nLower tri:\n' + str(self.lower_triangulation)
+		strn += '\nUpper map: ' + str(self.upper_map)
+		strn += '\nLower map: ' + str(self.lower_map)
+		return strn
 	
 	def flip(self, edge_index):
 		# MEGA WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
@@ -431,15 +435,15 @@ class LayeredTriangulation(object):
 		object_A, perm_A = self.upper_map[A]
 		object_B, perm_B = self.upper_map[B]
 		
-		below_A, down_perm_A = object_A.glued_to[perm_A[3]]
-		below_B, down_perm_B = object_B.glued_to[perm_A[3]]
+		below_A, down_perm_A = object_A.glued_to[perm_A(3)]
+		below_B, down_perm_B = object_B.glued_to[perm_A(3)]
 		
 		object_A.unglue(3)
 		object_B.unglue(3)
 		
 		# Do some gluings.
-		new_glue_perm_A = permutation_from_pair(0, down_perm_A[perm_A[side_A]], 2, down_perm_A[perm_A[3]])
-		new_glue_perm_B = permutation_from_pair(2, down_perm_B[perm_B[side_B]], 0, down_perm_B[perm_B[3]])
+		new_glue_perm_A = permutation_from_pair(0, down_perm_A(perm_A(side_A)), 2, down_perm_A(perm_A(3)))
+		new_glue_perm_B = permutation_from_pair(2, down_perm_B(perm_B(side_B)), 0, down_perm_B(perm_B(3)))
 		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
 		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
 		
@@ -539,7 +543,7 @@ class LayeredTriangulation(object):
 			A, perm_A = core_upper_map[source_triangle]
 			B, perm_B = core_lower_map[target_triangle]
 			if forwards[A] in closed_triangulation:
-				forwards[A].glue(perm_A[3], forwards[B], perm_B * perm * perm_A.inverse())
+				forwards[A].glue(perm_A(3), forwards[B], perm_B * perm * perm_A.inverse())
 		
 		# There should now be no unglued faces.
 		assert(all(tetra.glued_to[side] is not None for tetra in closed_triangulation for side in range(4)))
@@ -562,10 +566,10 @@ class LayeredTriangulation(object):
 			label = vertex.label >= 0
 			for corner in corner_class:
 				tetrahedron, permutation = fibre_immersion[corner.triangle]
-				if real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] is None:
-					real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] = label
+				if real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] is None:
+					real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] = label
 				else:
-					assert(real_cusps[tetrahedron.cusp_indices[permutation[corner.side]]] == label)
+					assert(real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] == label)
 		
 		# Compute longitude slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
@@ -573,11 +577,11 @@ class LayeredTriangulation(object):
 			for corner_class in self.upper_triangulation.corner_classes:
 				corner = corner_class[0]
 				tetra, perm = fibre_immersion[corner.triangle]
-				if tetra.cusp_indices[perm[corner.side]] == index:
+				if tetra.cusp_indices[perm(corner.side)] == index:
 					fibre_path = []
 					for corner in corner_class:
 						tetra, perm = fibre_immersion[corner.triangle]
-						fibre_path.append((tetra, perm[corner.side], perm[3]))
+						fibre_path.append((tetra, perm(corner.side), perm(3)))
 					fibre_slopes[index] = closed_triangulation.slope(fibre_path)
 					break
 			else:

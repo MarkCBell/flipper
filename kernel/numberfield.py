@@ -1,4 +1,10 @@
 
+''' A module for representing and manipulating elements of number fields.
+
+Provides two classes: NumberField and NumberFieldElement.
+
+There is also a helper function: number_field. '''
+
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually
 # manipulate elements of ZZ[lambda]). This can even do multiplication of these
@@ -11,7 +17,9 @@
 import flipper
 
 from math import log10 as log
-log_2 = log(2)
+
+LOG_2 = log(2)
+HASH_DENOMINATOR = 30
 
 class NumberField(object):
 	''' This represents a number field QQ(lambda). Additionally NumberField() returns QQ. '''
@@ -28,27 +36,28 @@ class NumberField(object):
 		self.polynomial = self.polynomial_root.polynomial
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
-		self.current_accuracy = -1
-		# A list of approximations of lambda^0, ..., lambda^(d-1).
-		# Note we need one more power for if this is QQ to make the increase accuracy code nicer.
-		self._algebraic_approximations = self.lmbda_approximations(10)
+		self._algebraic_approximations = None  # A list of approximations of lambda^0, ..., lambda^(d-1).
+		self.accuracy = -1
 		
 		self.one = self.element([1])
 		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])  # lambda is a Python keyword.
 	
 	def lmbda_approximations(self, accuracy):
-		if self.current_accuracy < accuracy:
+		''' Return approximations of lmbda^0, ..., lmbda^(degree-1) to the given accuracy. '''
+		
+		if self._algebraic_approximations is None or self.accuracy < accuracy:
 			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
 			accuracy_needed = 4 * int(self.degree * self.degree * self.height) + 1
 			accuracy_required = accuracy + accuracy_needed
 			# We will compute a really accurate approximation of lmbda.
 			lmbda = self.polynomial_root.algebraic_approximation(accuracy_required)
 			# So that the accuracy of lmbda**i is at least new_accuracy.
-			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree+1)]
+			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree)]
+			# Put them over a common denominator to make maths with them faster.
 			largest_precision = max(AA.interval.precision for AA in self._algebraic_approximations)
 			self._algebraic_approximations = [AA.change_denominator(largest_precision) for AA in self._algebraic_approximations]
-			self.current_accuracy = min(AA.interval.accuracy for AA in self._algebraic_approximations)
-			assert(self.current_accuracy >= accuracy)
+			self.accuracy = min(AA.interval.accuracy for AA in self._algebraic_approximations)
+			assert(self.accuracy >= accuracy)
 		
 		return self._algebraic_approximations
 	
@@ -58,9 +67,13 @@ class NumberField(object):
 		return self.polynomial == other.polynomial
 	
 	def element(self, linear_combination):
+		''' Return a new element of this number field. '''
+		
 		return NumberFieldElement(self, linear_combination)
 	
 	def is_QQ(self):
+		''' Return if this number field is QQ. '''
+		
 		return self.degree == 1
 
 class NumberFieldElement(object):
@@ -78,7 +91,7 @@ class NumberFieldElement(object):
 		# Let \alpha := sum(a_i * \alpha_i).
 		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
 		self._algebraic_approximation = None
-		self.current_accuracy = -1
+		self.accuracy = -1
 	
 	def __repr__(self):
 		return str(float(self.algebraic_approximation()))
@@ -89,7 +102,7 @@ class NumberFieldElement(object):
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	def __bool__(self):
-		return not self.is_zero()
+		return self != 0
 	def __nonzero__(self):  # For Python2.
 		return self.__bool__()
 	
@@ -118,6 +131,8 @@ class NumberFieldElement(object):
 	def __rsub__(self, other):
 		return -(self - other)
 	def multiplicative_matrix(self):
+		''' Return the matrix describing how this element acts on lmbda^0, ..., lmbda^(degree-1). '''
+		
 		return sum(a * matrix for a, matrix in zip(self, self.number_field.companion_matrices))
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
@@ -133,24 +148,22 @@ class NumberFieldElement(object):
 		return self * other
 	
 	def __lt__(self, other):
-		return (self - other).is_negative()
+		return (self - other).sign() == -1
 	def __eq__(self, other):
-		return (self - other).is_zero()
+		return (self - other).sign() == 0
 	def __ne__(self, other):
-		return not (self - other).is_zero()
+		return not (self == other)
 	def __gt__(self, other):
-		return (self - other).is_positive()
+		return (self - other).sign() == +1
 	def __le__(self, other):
 		return self < other or self == other
 	def __ge__(self, other):
 		return self > other or self == other
 	
-	def is_positive(self):
-		return self.algebraic_approximation().is_positive()
-	def is_negative(self):
-		return self.algebraic_approximation().is_negative()
-	def is_zero(self):
-		return not self.is_positive() and not self.is_negative()
+	def sign(self):
+		''' Return the sign of this algebraic number. '''
+		
+		return self.algebraic_approximation().sign()
 	
 	def algebraic_approximation(self, accuracy=0):
 		''' Returns an AlgebraicApproximation of this element which is correct to at least the
@@ -175,24 +188,27 @@ class NumberFieldElement(object):
 		#
 		# Therefore we start by setting the accuracy of each I_i to at least:
 		#	2 * (self.height + d).
-		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * log_2
+		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * LOG_2
 		accuracy = max(accuracy, int(2 * height + d) + 1)
 		
-		if self._algebraic_approximation is None or self.current_accuracy < accuracy:
+		if self._algebraic_approximation is None or self.accuracy < accuracy:
 			self._algebraic_approximation = flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))
-			self.current_accuracy = self._algebraic_approximation.interval.accuracy
-			# Now if accuracy was not None then self.current_accuracy >= accuracy.
+			self.accuracy = self._algebraic_approximation.interval.accuracy
+			# Now if accuracy was not None then self.accuracy >= accuracy.
 		
 		return self._algebraic_approximation
 	
 	def algebraic_hash_ratio(self, other):
+		''' Return a hashable object representing this algebraic number / other. '''
+		
 		# !?! RECHEK THIS AGAINST interval.py.
-		HASH_DENOMINATOR = 30
 		
 		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
 def number_field(coefficients, strn):
+	''' A short way of constructing a NumberField from a list of coefficients and a string. '''
+	
 	return flipper.kernel.NumberField(flipper.kernel.polynomial_root(coefficients, strn))
 

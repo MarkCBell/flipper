@@ -1,11 +1,13 @@
 
-''' This module provides pieces for building an abstract triangulation of a punctured surface.
+''' A module for representing an abstract triangulation of a punctured surface.
 
-There are AbstractVertices, and from these AbstractEdges can be built, and from these 
-AbstractTriangles and be built, and from these AbstractTriangulations can be built.
+Provides two classes: AbstractVertex, AbstractEdge, AbstractTriangle, Corner and AbstractTriangulation.
+	An AbstractVertex is a singleton.
+	An AbstractEdge is an ordered pair of AbstractVertices.
+	An AbstractTriangle is an ordered triple of AbstractEdges
+	An AbstractTriangulation is a collection of AbstractTriangles.
 
-However most users will just use the abstract_triangulation helper function to construct
-an AbstractTriangulation directly from a list of triples of edge numbers. '''
+There is also a helper function: abstract_triangulation. '''
 
 import flipper
 
@@ -163,9 +165,9 @@ class AbstractTriangulation(object):
 			return ordered_class
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
-		self.Euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
-		self.genus = (2 - self.Euler_characteristic - self.num_vertices) // 2
-		self.max_order = 6 - 4 * self.Euler_characteristic  # The maximum order of a periodic mapping class.
+		self.euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
+		self.genus = (2 - self.euler_characteristic - self.num_vertices) // 2
+		self.max_order = 6 - 4 * self.euler_characteristic  # The maximum order of a periodic mapping class.
 		self._face_matrix = None
 		self._marking_matrices = None
 	
@@ -186,12 +188,17 @@ class AbstractTriangulation(object):
 			return item in self.corners
 		else:
 			return NotImplemented
+	
 	def copy(self):
-		nv = dict((vertex, AbstractVertex(vertex.label)) for vertex in self.vertices)
-		ne = dict((edge, AbstractEdge(nv[edge.source_vertex], nv[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
+		''' Return a new copy of this AbstractTriangulation. 
+		
+		Note: This preserves both vertex and edge labels. '''
+		
+		new_vertices = dict((vertex, AbstractVertex(vertex.label)) for vertex in self.vertices)
+		new_edges = dict((edge, AbstractEdge(new_vertices[edge.source_vertex], new_vertices[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
 		for edge in self.oriented_edges:
-			ne[~edge] = ~ne[edge]
-		new_triangles = [AbstractTriangle([ne[edge] for edge in triangle]) for triangle in self]
+			new_edges[~edge] = ~new_edges[edge]
+		new_triangles = [AbstractTriangle([new_edges[edge] for edge in triangle]) for triangle in self]
 		return AbstractTriangulation(new_triangles)
 	
 	def face_matrix(self):
@@ -210,22 +217,26 @@ class AbstractTriangulation(object):
 		return self._marking_matrices
 	
 	def vertices_of_edge(self, edge_index):
-		# Returns the two vertices at the ends of this edge.
+		''' Return the two vertices at the ends of the given edge. '''
+		
 		# Refactor out?
 		return [self.edge_lookup[edge_index].source_vertex, self.edge_lookup[~edge_index].source_vertex]
 	
 	def triangles_of_edge(self, edge_index):
-		# Returns the two triangles containing this edge.
+		''' Return the two triangles containing the given edge. '''
+		
 		# Refactor out?
 		return [self.triangle_lookup[edge_index], self.triangle_lookup[~edge_index]]
 	
 	def corner_of_edge(self, edge_index):
-		# Return the corner opposite this edge.
+		''' Return the corner opposite the given edge. '''
+		
 		# Refactor out?
 		return self.corner_lookup[edge_index]
 	
 	def corner_class_of_vertex(self, vertex):
-		# Returns the corner class containing this vertex.
+		''' Return the corner class containing the given vertex. '''
+		
 		# Refactor out?
 		for cc in self.corner_classes:
 			if cc[0].vertex == vertex:
@@ -233,21 +244,30 @@ class AbstractTriangulation(object):
 		raise ValueError('Given vertex does not correspond to a corner class.')
 	
 	def opposite_corner(self, corner):
-		# Returns the corner opposite this one.
+		''' Return the corner opposite the given corner. '''
+		
 		return self.corner_of_edge(~(corner.label))
 	
 	def rotate_corner(self, corner):
-		# Returns the corner obtained by rotating this one one click anti-clockwise.
+		''' Return the corner obtained by rotating the given corner one click anti-clockwise. '''
+		
 		return self.corner_of_edge(corner.labels[1])
 	
 	def is_flippable(self, edge_index):
-		# An edge is flippable iff it lies in two distinct triangles.
+		''' Return if the given edge is flippable.
+		
+		An edge is flippable if and only if it lies in two distinct triangles. '''
+		
 		return self.triangle_lookup[edge_index] != self.triangle_lookup[~edge_index]
 	
 	def flip_edge(self, edge_index):
-		# Returns a new triangulation obtained by flipping the edge of index edge.
+		''' Return a new triangulation obtained by flipping the given edge. 
+		
+		The chosen edge must be flippable. '''
+		
 		assert(self.is_flippable(edge_index))
 		
+		# Use the following for reference:
 		# #-----------#     #-----------#
 		# |     a    /|     |\          |
 		# |         / |     | \         |
@@ -262,17 +282,21 @@ class AbstractTriangulation(object):
 		# |/    c     |     |          \|
 		# #-----------#     #-----------#
 		
-		A, B = self.corner_lookup[edge_index], self.corner_lookup[~edge_index]
-		new_edge = AbstractEdge(A.vertex, B.vertex, edge_index)
+		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
+		new_edge = AbstractEdge(corner_A.vertex, corner_B.vertex, edge_index)
 		
 		a, b, c, d = self.find_edges_of_square_about_edge(edge_index)
-		A2 = AbstractTriangle([new_edge, d, a])
-		B2 = AbstractTriangle([~new_edge, b, c])
+		triangle_A2 = AbstractTriangle([new_edge, d, a])
+		triangle_B2 = AbstractTriangle([~new_edge, b, c])
 		
-		unchanged_triangles = [triangle for triangle in self if triangle != A.triangle and triangle != B.triangle]
-		return AbstractTriangulation(unchanged_triangles + [A2, B2])
+		unchanged_triangles = [triangle for triangle in self if triangle != corner_A.triangle and triangle != corner_B.triangle]
+		return AbstractTriangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
 	def find_edges_of_square_about_edge(self, edge_index):
+		''' Return the four edges around the given edge. 
+		
+		The chosen edge must be flippable. '''
+		
 		assert(self.is_flippable(edge_index))
 		
 		# #-----------#
@@ -280,7 +304,7 @@ class AbstractTriangulation(object):
 		# |         / |
 		# |  A     /  |
 		# |       /   |
-		# |b    e/    |
+		# |b    e/   d|
 		# |     /     |
 		# |    /      |
 		# |   /       |
@@ -289,21 +313,32 @@ class AbstractTriangulation(object):
 		# |/    c     |
 		# #-----------#
 		
-		A, B = self.corner_lookup[edge_index], self.corner_lookup[~edge_index]
-		return [A.edges[1], A.edges[2], B.edges[1], B.edges[2]]
+		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
+		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
 	def find_labels_of_square_about_edge(self, edge_index):
-		# Returns the inside labels of the 4 edges surrounding this edge (ordered anti-clockwise).
+		''' Returns the inside labels of the 4 edges around the given edge.
+		
+		The chosen edge must be flippable. '''
+		
 		assert(self.is_flippable(edge_index))
 		
 		return [edge.label for edge in self.find_edges_of_square_about_edge(edge_index)]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
+		''' Returns the indices of the 4 edges around the given edge.
+		
+		The chosen edge must be flippable. '''
+		
+		assert(self.is_flippable(edge_index))
+		
 		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
 	
 	def homology_basis(self):
-		''' Returns a basis for H_1 of the underlying punctured surface. Each element is given as a path
-		in the dual 1--skeleton. Each pair of paths is guaranteed to meet at most once. '''
+		''' Returns a basis for H_1 of the underlying punctured surface. 
+		
+		Each element is given as a path in the dual 1--skeleton and each pair of 
+		paths is guaranteed to meet at most once. '''
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		tree = [False] * self.zeta
@@ -378,7 +413,8 @@ class AbstractTriangulation(object):
 		return homology_generators
 	
 	def all_isometries(self, other_triangulation, respect_vertex_labels=True):
-		''' Returns a list of all orientation preserving isometries from self to other_triangulation. '''
+		''' Return a list of all isometries from this triangulation to other_triangulation. '''
+		
 		assert(isinstance(other_triangulation, AbstractTriangulation))
 		
 		source_cc = min(self.corner_classes, key=len)
@@ -414,14 +450,18 @@ class AbstractTriangulation(object):
 		return isometries
 	
 	def is_isometric_to(self, other_triangulation):
-		''' Returns if there are any orientation preserving isometries from self to other_triangulation. '''
+		''' Return if there are any orientation preserving isometries from this triangulation to other_triangulation. '''
+		
 		assert(isinstance(other_triangulation, AbstractTriangulation))
 		
 		return len(self.all_isometries(other_triangulation)) > 0
 	
 	def find_isometry(self, other_triangulation, edge_from_label, edge_to_label):
-		''' Returns the isometry from this triangulation to other_triangulation that sends edge_from_label to
-		to edge_to_label. Assumes that this defines a unique isometry. '''
+		''' Return the isometry from this triangulation to other_triangulation that sends edge_from_label to
+		to edge_to_label. 
+		
+		Assumes that such an isometry exists and is unique. '''
+		
 		isometries = [isom for isom in self.all_isometries(other_triangulation) if isom.label_map[edge_from_label] == edge_to_label]
 		if len(isometries) != 1:
 			raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine a unique isometry.')
@@ -431,13 +471,17 @@ class AbstractTriangulation(object):
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector, remove_peripheral=False):
 		''' Returns a new lamination on this surface assigning the specified weight to each edge. '''
+		
 		return flipper.kernel.Lamination(self, vector, remove_peripheral)
 	
 	def empty_lamination(self):
 		''' Returns an empty lamination on this surface. '''
+		
 		return self.lamination([0] * self.zeta)
 	
 	def regular_neighbourhood(self, edge_index):
+		''' Return the lamination which is the boundary of a regular neighbourhood of the chosen edge. '''
+		
 		vector = [0] * self.zeta
 		for vertex in set(self.vertices_of_edge(edge_index)):
 			for corner in self.corner_class_of_vertex(vertex):
@@ -446,12 +490,17 @@ class AbstractTriangulation(object):
 		return self.lamination(vector)
 	
 	def key_curves(self):
-		# These curves fill so if they are all fixed by a mapping class then it is the identity
-		# (or possibly the hyperelliptic if we are on S_{0, 4} or S_{1, 1}).
+		''' Return a list of all boundaries of regular neighbourhoods of edges. 
+		
+		These curves fill so if they are all fixed by a mapping class then it is
+		the identity (or possibly the hyperelliptic if we are on S_{0, 4} or
+		S_{1, 1}). '''
+		
 		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
 	
 	def id_encoding(self):
-		''' Returns an encoding of id: self --> self. '''
+		''' Returns an encoding of the identity map on this triangulation. '''
+		
 		f = b = [flipper.kernel.PartialFunction(flipper.kernel.Id_Matrix(self.zeta))]
 		return flipper.kernel.Encoding(self, self, [flipper.kernel.PLFunction(f, b)])
 	
@@ -490,6 +539,7 @@ class AbstractTriangulation(object):
 		''' Returns an encoding from this triangulation to one in which each triangle
 		on the list to_puncture has been punctured, that is the triangulation obtained
 		by applying 1-->3 Pachner moves to the given triangles. '''
+		
 		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
 		
 		old_zeta = self.zeta

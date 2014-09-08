@@ -1,26 +1,35 @@
 
+''' A module for performing symbolic calculations using sage. '''
+
 import flipper
 
 from sage.all import Matrix, lcm, NumberField
 from flipper.kernel.symboliccomputation_dummy import project
 
-def minpoly_coefficients(algebraic_number):
-	polynomial = algebraic_number.minpoly()
+def minpoly_coefficients(number):
+	''' Return the list of coefficients of the minimal polynomial of the given number. '''
+	
+	polynomial = number.minpoly()
 	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
 	return [int(scale * x) for x in polynomial.coeffs()]
 
 def approximate(number, accuracy):
+	''' Return a string approximating the given number to the given accuracy. '''
+	
 	s = str(number.n(digits=1))
 	i, _ = s.split('.') if '.' in s else (s, '')
 	s2 = str(number.n(digits=len(i)+accuracy))
 	i2, r2 = s2.split('.') if '.' in s2 else (s2, '')
 	return i2 + '.' + r2[:accuracy]
 
-def PF_eigen(matrix, vector):
+def perron_frobenius_eigen(matrix, vector):
+	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace. 
+	
+	Assumes (and checks) that the dominant eigenvalue is real. '''
+	
 	M = Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
-	# Make sure that the eigenvalue that we've got is real.
-	if eigenvalue.imag() != 0:
+	if eigenvalue.imag() != 0:  # Make sure that the eigenvalue that we've got is real.
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
 	eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
@@ -36,11 +45,14 @@ def PF_eigen(matrix, vector):
 	N = flipper.kernel.number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
 	return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 
-def PF_eigen2(matrix, vector):
+def perron_frobenius_eigen2(matrix, vector):
+	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace. 
+	
+	Assumes (and checks) that the dominant eigenvalue is real. '''
+	
 	M = Matrix(matrix.rows)
 	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
-	# Make sure that the eigenvalue that we've got is real.
-	if eigenvalue.imag() != 0:
+	if eigenvalue.imag() != 0:  # Make sure that the eigenvalue that we've got is real.
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
 	# !?! Check this 100.

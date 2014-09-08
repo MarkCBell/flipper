@@ -1,15 +1,17 @@
 
-import flipper
+''' A module for representing isometries between AbstractTriangulations.
 
-def norm(x):
-	return max(x, ~x)
+Provides one class: Isometry. '''
+
+import flipper
 
 class Isometry(object):
 	''' This represents an isometry from one AbstractTriangulation to another. '''
 	def __init__(self, source_triangulation, target_triangulation, corner_map):
-		''' This represents an isometry from source_triangulation to target_triangulation. It is given
-		by a map taking each triangle to a triangle and a permutation (on 3 elements).
-		!?! OUT OF DATE. '''
+		''' This represents an isometry from source_triangulation to target_triangulation. 
+		
+		It is given by a map taking each corner of source_triangulation to a corner of target_triangulation. '''
+		
 		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(corner_map, dict))
@@ -18,13 +20,13 @@ class Isometry(object):
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		self.corner_map = corner_map
+		# We should check that the each of these maps are actually well defined.
 		self.edge_map = dict((corner.edge, self.corner_map[corner].edge) for corner in self.corner_map)
 		self.vertex_map = dict((corner.vertex, self.corner_map[corner].vertex) for corner in self.corner_map)
 		self.triangle_map = dict((corner.triangle, self.corner_map[corner].triangle) for corner in self.corner_map)
 		self.index_map = dict((corner.index, self.corner_map[corner].index) for corner in self.corner_map)
 		self.label_map = dict((corner.label, self.corner_map[corner].label) for corner in self.corner_map)
 		
-		# Should check that the thing that we've built is actually well defined.
 	def __repr__(self):
 		return str(self.edge_map)
 	def __eq__(self, other):
@@ -60,19 +62,29 @@ class Isometry(object):
 		else:
 			return NotImplemented
 	def adapt(self, new_source_triangulation, new_target_triangulation):
+		''' Return this isometry but mapping from  new_source_triangulation to new_target_triangulation. '''
+		
 		assert(isinstance(new_source_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(new_target_triangulation, flipper.kernel.AbstractTriangulation))
-		return [isom for isom in new_source_triangulation.all_isometries(new_target_triangulation) if isom.label_map == self.label_map][0]
+		
+		return new_source_triangulation.find_isometry(new_target_triangulation, 0, self.label_map[0])
 	def triangle_image(self, triangle):
+		''' Return the image of the give triangle along with a cyclic permutation. '''
+		
 		corner = self.target_triangulation.corner_of_edge(self.label_map[triangle.labels[0]])
 		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
+		''' Return the inverse of this isometry. '''
+		
 		return Isometry(self.target_triangulation, self.source_triangulation, dict((self.corner_map[corner], corner) for corner in self.corner_map))
 	def permutation(self):
+		''' Return the permutation on edges induced by this isometry. '''
+		
 		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)])
 	def encode(self):
+		''' Return the Encoding induced by this isometry. '''
+		
 		f = [flipper.kernel.PartialFunction(self.permutation().matrix())]
 		b = [flipper.kernel.PartialFunction(self.inverse().permutation().matrix())]
 		
 		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [flipper.kernel.PLFunction(f, b)])
-

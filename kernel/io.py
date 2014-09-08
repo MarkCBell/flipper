@@ -1,20 +1,23 @@
 
+''' A module for performing input and output formatting. '''
+
 import flipper
 
 import pickle
 from string import ascii_lowercase
 from itertools import product
-from math import log
 
 def string_generator(n, skip=None):
+	''' Returns a list of n usable names, none of which are in skip. '''
+	
 	if skip is None: skip = []
 	n = max(n, 1)
 	
 	alphabet = ascii_lowercase
-	k = n + len(skip)
-	p = int(log(k) / log(len(alphabet))) + 1
 	results = []
-	for i in range(1, p+1):
+	i = 0
+	while True:
+		i += 1
 		for letters in product(alphabet, repeat=i):
 			word = ''.join(letters)
 			if word not in skip:
@@ -36,7 +39,7 @@ def package(objects):
 	
 	All laminations / mapping classes must be defined on the same triangulation
 	We will automatically name items of type 2) and 3) sequentially:
-		a, b, ..., z. '''
+		a, b, ..., z, aa, ab, ... . '''
 	
 	triangulation = None
 	laminations, mapping_classes = [], []

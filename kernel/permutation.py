@@ -1,5 +1,9 @@
 
-''' Represents a permutation on N elements. '''
+''' A module for representing permutations in Sym(n).
+
+Provides one class: Permutation.
+
+There are also two helper functions: Id_permutation and cyclic_permutation. '''
 
 import flipper
 
@@ -8,6 +12,7 @@ from itertools import combinations
 class Permutation(object):
 	''' This represents a permutation in Sym(n). '''
 	def __init__(self, permutation):
+		assert(isinstance(permutation, (list, tuple)))
 		assert(all(isinstance(entry, flipper.Integer_Type) for entry in permutation))
 		assert(set(permutation) == set(range(len(permutation))))
 		
@@ -17,50 +22,68 @@ class Permutation(object):
 	def __repr__(self):
 		return self.compressed_string()
 	def compressed_string(self):
+		''' Return this permutation as a single concatenated string. '''
+		
 		return ''.join(str(p) for p in self.permutation)
+	
 	def __iter__(self):
 		return iter(self.permutation)
-	def __getitem__(self, index):
+	def __call__(self, index):
 		return self.permutation[index]
 	def __len__(self):
 		return len(self.permutation)
 	def __hash__(self):
 		return hash(self.permutation)
 	def __mul__(self, other):
+		assert(isinstance(other, Permutation))
 		assert(len(self) == len(other))
-		return Permutation([self[other[i]] for i in range(len(self))])
-	# !?! Add in __pow__?
+		
+		return Permutation([self(other(i)) for i in range(len(self))])
 	def __eq__(self, other):
 		return self.permutation == other.permutation
 	def __ne__(self, other):
-		return self.permutation != other.permutation
+		return not (self.permutation == other.permutation)
 	def inverse(self):
-		return Permutation([j for i in range(len(self)) for j in range(len(self)) if self[j] == i])
+		''' Return the inverse of this permutation. '''
+		
+		return Permutation([j for i in range(len(self)) for j in range(len(self)) if self(j) == i])
 	def is_even(self):
-		return len([(i, j) for j, i in combinations(range(len(self)), 2) if self[j] > self[i]]) % 2 == 0
+		''' Return if this permutation is even. '''
+		
+		return len([(i, j) for j, i in combinations(range(len(self)), 2) if self(j) > self(i)]) % 2 == 0
 	def order(self):
-		ID = Id_Permutation(len(self))
+		''' Return the order of this permutation. '''
+		
+		id_perm = Id_Permutation(len(self))
 		order = 1
 		product = self
-		while product != ID:
+		while product != id_perm:
 			product = product * self
 			order += 1
 		return order
-	def embed(self, n):
-		# Returns the permutation given by including this permutation into Sym(n). Assumes n >= len(self).
-		if n < len(self):
-			raise flipper.AssumptionError('Cannot embed permutation into smaller symmetric group.')
-		return Permutation(list(self.permutation) + list(range(len(self), n)))
+	def embed(self, new_n):
+		''' Return the inclusion of this permutation into Sym(new_n).
+		
+		new_n must be at least len(self). '''
+		
+		assert(new_n >= len(self))  # Cannot embed permutation into smaller symmetric group.
+		
+		return Permutation(list(self.permutation) + list(range(len(self), new_n)))
 	def matrix(self):
-		# Returns a matrix M such that M*e_i == e_{self[i]}.
-		dim = len(self)
-		return flipper.kernel.Matrix([[1 if i == self[j] else 0 for j in range(dim)] for i in range(dim)])
+		''' Return the corresponding permutation matrix.
+		
+		That is, a matrix M such that M * e_i == e_{self[i]}. '''
+		
+		return flipper.kernel.Matrix([[1 if i == self(j) else 0 for j in range(len(self))] for i in range(len(self))])
 
 #### Some special Permutations we know how to build.
 
 def Id_Permutation(n):
+	''' Return the identity permutation in Sym(n). '''
+	
 	return Permutation(range(n))
 
 def cyclic_permutation(cycle, n):
+	''' Return the cyclic permutation sending 1 |--> cycle in Sym(n). '''
+	
 	return Permutation([(cycle + i) % n for i in range(n)])
-

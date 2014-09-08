@@ -1,8 +1,12 @@
 
 Flipper is a program for computing the action of mapping classes on
 laminations on punctured surfaces using ideal triangulation coordinates.
-Eventually it will also be able to construct the canonical triangulation
-of the surface bundle associated to pseudo-Anosov mapping class.
+
+It can decide the Nielsen--Thurston type of a given mapping class and,
+for pseudo-Anosov mapping classes, construct a layered, veering triangulation
+of their mapping torus, as described by Agol.
+
+Flipper can be run as a Python 2, Python 3 or Sage Python module.
 
 Flipper is available from:
 	https://bitbucket.org/Mark_Bell/flipper
@@ -20,7 +24,7 @@ flipper" located at:
 If you find flipper useful in your research, please consider citing it. A
 suggested reference is:
 	Mark Bell. flipper (Computer Software).
-	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version number used>>.
+	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>.
 or the BibTeX entry:
 	@Misc{flipper,
 		author = {Bell, Mark},
@@ -39,4 +43,3 @@ Quick install, test and start the GUI as a Sage module:
 > sage -python setup.py install --user
 > sage -python setup.py test
 > sage -python -m flipper.app
-

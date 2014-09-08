@@ -22,7 +22,7 @@ class PartialFunction(object):
 		assert(condition is None or isinstance(condition, flipper.kernel.Matrix))
 		
 		self.action = action
-		self.condition = condition if condition is not None else flipper.kernel.Empty_Matrix()
+		self.condition = condition if condition is not None else flipper.kernel.empty_matrix()
 	
 	def __str__(self):
 		return '%s\n%s' % (self.action, self.condition)
@@ -207,8 +207,8 @@ class Encoding(object):
 		''' Given indices = [a_0, ..., a_k] this returns the partial function of
 		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
 		
-		As = flipper.kernel.Id_Matrix(self.zeta)
-		Cs = flipper.kernel.Empty_Matrix()
+		As = flipper.kernel.id_matrix(self.zeta)
+		Cs = flipper.kernel.empty_matrix()
 		for E, i in zip(reversed(self), indices):
 			Cs = Cs.join(E[i].condition * As)
 			As = E[i].action * As
@@ -280,7 +280,7 @@ class Encoding(object):
 		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
 		
 		M4 = face_matrix
-		M6 = flipper.kernel.Id_Matrix(self.zeta)
+		M6 = flipper.kernel.id_matrix(self.zeta)
 		indices = [0]
 		while indices != []:
 			partial_function = self.expand_indices(indices)
@@ -297,12 +297,12 @@ class Encoding(object):
 			else:
 				for i in range(len(marking_matrices)):
 					M1 = Cs
-					M2 = As - M6  # As - flipper.kernel.Id_Matrix.
-					M3 = M6 - As  # flipper.kernel.Id_Matrix - As.
+					M2 = As - M6  # As - flipper.kernel.id_matrix.
+					M3 = M6 - As  # flipper.kernel.id_matrix - As.
 					M5 = marking_matrices[i]
 					
 					# M4 = face_matrix  # These have been precomputed.
-					# M6 = flipper.kernel.Id_Matrix(self.zeta)
+					# M6 = flipper.kernel.id_matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					if P.nontrivial_polytope():
 						# We could just return True here but we'll repeat some work
@@ -328,7 +328,7 @@ class Encoding(object):
 			return NT_TYPE_PSEUDO_ANOSOV
 	
 	def invariant_lamination(self):
-		''' Return a rescaling constant and projectively invariant lamination. 
+		''' Return a rescaling constant and projectively invariant lamination.
 		
 		Assumes that the mapping class is pseudo-Anosov.
 		
@@ -340,7 +340,7 @@ class Encoding(object):
 		
 		If it cannot find one then it raises a ComputationError.
 		
-		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails 
+		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails
 		to converge after many iterations and a ComputationError is thrown then it's
 		actually extremely likely that the map was not pseudo-Anosov. '''
 		

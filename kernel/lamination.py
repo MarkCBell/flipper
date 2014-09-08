@@ -6,12 +6,12 @@ Provides one class: Lamination. '''
 import flipper
 
 class Lamination(object):
-	''' This represents a lamination on an abstract triangulation. 
+	''' This represents a lamination on an abstract triangulation.
 	
-	You shouldn't create laminations directly but instead should use 
-	AbstractTriangulation.lamination() which creates a lamination on that 
-	triangulation. If remove_peripheral is True then the Lamination is 
-	allowed to rescale its weights (by a factor of 2) in order to remove 
+	You shouldn't create laminations directly but instead should use
+	AbstractTriangulation.lamination() which creates a lamination on that
+	triangulation. If remove_peripheral is True then the Lamination is
+	allowed to rescale its weights (by a factor of 2) in order to remove
 	any peripheral components. '''
 	def __init__(self, triangulation, vector, remove_peripheral=False):
 		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))

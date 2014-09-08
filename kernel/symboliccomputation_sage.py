@@ -23,7 +23,7 @@ def approximate(number, accuracy):
 	return i2 + '.' + r2[:accuracy]
 
 def perron_frobenius_eigen(matrix, vector):
-	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace. 
+	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace.
 	
 	Assumes (and checks) that the dominant eigenvalue is real. '''
 	
@@ -46,7 +46,7 @@ def perron_frobenius_eigen(matrix, vector):
 	return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 
 def perron_frobenius_eigen2(matrix, vector):
-	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace. 
+	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace.
 	
 	Assumes (and checks) that the dominant eigenvalue is real. '''
 	

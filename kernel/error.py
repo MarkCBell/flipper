@@ -2,7 +2,7 @@
 ''' A module for the various different errors that can be raised. '''
 
 class AbortError(Exception):
-	''' An exception for aborting computations with. 
+	''' An exception for aborting computations with.
 	
 	This is thrown by clicking 'cancel' on a progress box. '''
 	

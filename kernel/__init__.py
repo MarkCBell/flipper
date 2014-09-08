@@ -20,7 +20,7 @@ from . import symboliccomputation
 from . import types
 from . import utilities
 
-# Set up shorter names for all of the different classes and some common constructors.
+# Set up shorter names for all of the different classes.
 AbstractVertex = abstracttriangulation.AbstractVertex
 AbstractEdge = abstracttriangulation.AbstractEdge
 AbstractTriangle = abstracttriangulation.AbstractTriangle
@@ -47,14 +47,14 @@ Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
 
-Empty_Matrix = matrix.Empty_Matrix
-Id_Matrix = matrix.Id_Matrix
-Zero_Matrix = matrix.Zero_Matrix
+empty_matrix = matrix.empty_matrix
+id_matrix = matrix.id_matrix
+zero_matrix = matrix.zero_matrix
+height_int = algebraicnumber.height_int
+norm = abstracttriangulation.norm
 Integer_Type = types.Integer_Type
 String_Type = types.String_Type
 Number_Type = types.Number_Type
-height_int = algebraicnumber.height_int
-norm = abstracttriangulation.norm
 
 # Functions that help with construction.
 abstract_triangulation = abstracttriangulation.abstract_triangulation

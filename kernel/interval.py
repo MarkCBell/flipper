@@ -1,7 +1,7 @@
 
 ''' A module for representing and manipulating intervals.
 
-Provides one class: Interval. 
+Provides one class: Interval.
 
 There is also a helper function: interval_from_string. '''
 

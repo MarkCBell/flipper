@@ -1,7 +1,7 @@
 
 ''' A module for representing and manipulating polynomials and their roots.
 
-Provides two classes: Polynomial and PolynomialRoot. 
+Provides two classes: Polynomial and PolynomialRoot.
 
 There is also a helper function: polynomial_root. '''
 
@@ -12,7 +12,7 @@ from fractions import gcd
 from itertools import izip_longest
 
 class Polynomial(object):
-	''' This represents an integral polynomial in one variable. 
+	''' This represents an integral polynomial in one variable.
 	
 	It is specified by a list of coefficients. It is capable of determining
 	the number of roots it has in a given interval by using a Sturm chain. '''
@@ -149,9 +149,9 @@ class Polynomial(object):
 		return (-1 if lower_sign < 0 else 0 if lower_sign == 0 else +1), (-1 if upper_sign < 0 else 0 if upper_sign == 0 else +1)
 	
 	def sturm_chain(self):
-		''' Return the Sturm chain associated to this polynomial. 
+		''' Return the Sturm chain associated to this polynomial.
 		
-		This is a finite list of polynomials p_0, p_1, ..., p_m of decreasing degree 
+		This is a finite list of polynomials p_0, p_1, ..., p_m of decreasing degree
 		with these following properties:
 			p0 = p is square free,
 			if p(x) = 0, then sign(p_1(x)) = sign(p'(x)),
@@ -223,7 +223,7 @@ class Polynomial(object):
 		This is the matrix:
 		(  0 |           )
 		(----+ -V[:-1]^T )
-		( Id |           ) 
+		( Id |           )
 		where V is the vector of coefficients of this polynomial.
 		
 		Assumes (and checks) that this polynomial is monic. '''
@@ -235,9 +235,9 @@ class Polynomial(object):
 		return flipper.kernel.Matrix([[(scale * self[i]) if j == self.degree-1 else 1 if j == i-1 else 0 for j in range(self.degree)] for i in range(self.degree)])
 
 class PolynomialRoot(object):
-	''' This represents a single root of a polynomial. 
+	''' This represents a single root of a polynomial.
 	
-	It is specified by a Polynomial and an Interval. 
+	It is specified by a Polynomial and an Interval.
 	
 	The interval must contain exactly one root of the polynomial. If
 	not an ApproximationError will be raised. '''
@@ -287,7 +287,7 @@ class PolynomialRoot(object):
 	def converge_iterate(self, accuracy):
 		''' Replace self.interval with a subinterval of at least the requested accuracy.
 		
-		Repeatedly applies self.newton_raphson_iterate to obtain a more accurate subinterval. This should 
+		Repeatedly applies self.newton_raphson_iterate to obtain a more accurate subinterval. This should
 		converge quadratically so few iterations are needed, if this fails then use self.subdivide_iterate
 		before trying again. '''
 		

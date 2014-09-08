@@ -54,7 +54,7 @@ class Permutation(object):
 	def order(self):
 		''' Return the order of this permutation. '''
 		
-		id_perm = Id_Permutation(len(self))
+		id_perm = id_permutation(len(self))
 		order = 1
 		product = self
 		while product != id_perm:
@@ -78,7 +78,7 @@ class Permutation(object):
 
 #### Some special Permutations we know how to build.
 
-def Id_Permutation(n):
+def id_permutation(n):
 	''' Return the identity permutation in Sym(n). '''
 	
 	return Permutation(range(n))

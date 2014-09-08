@@ -3,7 +3,7 @@
 
 Provides one class: Matrix.
 
-There are also helper functions: Id_Matrix(dim), Zero_Matrix and Empty_Matrix. '''
+There are also helper functions: id_matrix(dim), zero_matrix and empty_matrix. '''
 
 import flipper
 
@@ -80,7 +80,7 @@ class Matrix(object):
 			assert(self.width == other.width and self.height == other.height)
 			return Matrix([[self[i][j] + other[i][j] for j in range(self.width)] for i in range(self.height)])
 		else:
-			return self + (Id_Matrix(self.width) * other)
+			return self + (id_matrix(self.width) * other)
 	def __radd__(self, other):
 		return self + other
 	def __sub__(self, other):
@@ -88,7 +88,7 @@ class Matrix(object):
 			assert(self.width == other.width and self.height == other.height)
 			return Matrix([[self[i][j] - other[i][j] for j in range(self.width)] for i in range(self.height)])
 		else:
-			return self - (Id_Matrix(self.width) * other)
+			return self - (id_matrix(self.width) * other)
 	def __rsub__(self, other):
 		return -(self - other)
 	
@@ -107,7 +107,7 @@ class Matrix(object):
 	def __pow__(self, power):
 		assert(self.width == self.height)
 		if power == 0:
-			return Id_Matrix(self.width)
+			return id_matrix(self.width)
 		if power > 0:
 			sqrt = self**(power//2)
 			square = sqrt * sqrt
@@ -118,7 +118,7 @@ class Matrix(object):
 	def powers(self, max_power):
 		# Returns the list [self**0, ..., self**max_power].
 		assert(self.width == self.height)
-		Ms = [Id_Matrix(self.width)]
+		Ms = [id_matrix(self.width)]
 		for _ in range(max_power):
 			Ms.append(self * Ms[-1])
 		return Ms
@@ -223,7 +223,7 @@ class Matrix(object):
 			j += 1
 		return Matrix(A)
 	def kernel(self):
-		A = self.join(Id_Matrix(self.width))
+		A = self.join(id_matrix(self.width))
 		B = A.transpose()
 		C = B.row_reduce(zeroing_width=self.height)
 		return Matrix([row[self.height:] for row in C if any(row) and not any(row[:self.height])])
@@ -258,7 +258,7 @@ class Matrix(object):
 		# Remove all trivial rows.
 		R = set(tuple(rescale(row)) for row in self if nontrivial(row))
 		R_width = self.width
-		A = Id_Matrix(self.width)
+		A = id_matrix(self.width)
 		# We repeatedly search for a pair of antipodal rows in self and use them to eliminate
 		# one variable. This frequently occurs in the reducibility problem.
 		while R_width > 1:
@@ -334,7 +334,7 @@ class Matrix(object):
 				return B * [1]
 		elif R.width > 1:
 			if not any(all(x < 0 for x in row) for row in R):
-				R = R.join(Id_Matrix(R.width))  # !?!
+				R = R.join(id_matrix(R.width))  # !?!
 				
 				for rc in combinations(range(R.height), R.width-1):
 					A = Matrix([[1] * R.width] + [R[i] for i in rc])
@@ -364,13 +364,13 @@ class Matrix(object):
 
 #### Some special Matrices we know how to build.
 
-def Id_Matrix(dim):
+def id_matrix(dim):
 	return Matrix([[1 if i == j else 0 for j in range(dim)] for i in range(dim)])
 
-def Zero_Matrix(width, height=None):
+def zero_matrix(width, height=None):
 	if height is None: height = width
 	return Matrix([[0] * width for _ in range(height)])
 
-def Empty_Matrix():
+def empty_matrix():
 	return Matrix([])
 

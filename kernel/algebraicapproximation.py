@@ -1,7 +1,7 @@
 
 ''' A module for representing approximations of real algebraic numbers.
 
-Provides two classes: AlgebraicApproximation. 
+Provides two classes: AlgebraicApproximation.
 
 There is also a helper function: algebraic_approximation. '''
 
@@ -33,7 +33,7 @@ from math import log10 as log
 LOG_2 = log(2)
 
 class AlgebraicApproximation(object):
-	''' This represents an algebraic number. 
+	''' This represents an algebraic number.
 	
 	It is specified by an interval which contains the number, an upper
 	bound on the log of its degree and its height.
@@ -72,7 +72,7 @@ class AlgebraicApproximation(object):
 		return AlgebraicApproximation(self.interval.change_denominator(new_denominator), self.log_degree, self.height)
 	
 	def change_accuracy(self, new_accuracy):
-		''' Return a new approximation of this algebraic number with the given accuracy. 
+		''' Return a new approximation of this algebraic number with the given accuracy.
 		
 		The new_accuracy must be at most self.accuracy. '''
 		

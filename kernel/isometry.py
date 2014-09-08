@@ -8,7 +8,7 @@ import flipper
 class Isometry(object):
 	''' This represents an isometry from one AbstractTriangulation to another. '''
 	def __init__(self, source_triangulation, target_triangulation, corner_map):
-		''' This represents an isometry from source_triangulation to target_triangulation. 
+		''' This represents an isometry from source_triangulation to target_triangulation.
 		
 		It is given by a map taking each corner of source_triangulation to a corner of target_triangulation. '''
 		

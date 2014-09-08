@@ -24,7 +24,7 @@ def project(vector, basis):
 	return [sum(a * b[i] for a, b in zip(linear_combination, orthogonal_basis)) for i in range(len(vector))]
 
 def perron_frobenius_eigen(matrix, vector):
-	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace. 
+	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace.
 	
 	Assumes (and checks) that the dominant eigenvalue is real. '''
 	

@@ -2,12 +2,12 @@
 ''' A module for interacting with various symbolic calculation libraries.
 
 This module selects and imports the appropriate library for manipulating algebraic numbers.
-Currently there is an interface to sage and 
+Currently there is an interface to sage and
 
-There used to be an interface to SymPy but this turned out to be extremely unreliable. There 
+There used to be an interface to SymPy but this turned out to be extremely unreliable. There
 were 9x9 invertible matrices for which it could only find 1 eigenvalue!
 
-The dummy library also includes a basic implementation of the gram-schmidt orthonormalisation 
+The dummy library also includes a basic implementation of the gram-schmidt orthonormalisation
 process that other libraries may be able to make use of.
 
 Each library provides one function:

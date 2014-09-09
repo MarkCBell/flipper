@@ -31,7 +31,7 @@ def main(verbose=False):
 			if verbose: print(word)
 			S = flipper.examples.template(surface)
 			mapping_class = S.mapping_class(word)
-			if mapping_class.NT_type() != mapping_class_type:
+			if mapping_class.nielsen_thurston_type() != mapping_class_type:
 				return False
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')

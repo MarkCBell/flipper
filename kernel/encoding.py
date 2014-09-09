@@ -356,22 +356,6 @@ class Encoding(object):
 		
 		return False
 	
-	def NT_type_alternate(self, log_progress=None):
-		''' Return the Nielsen--Thurston type of this encoding.
-		
-		Uses self.is_reducible() and so is not advisable to use.
-		
-		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
-		
-		if self.is_periodic():
-			return NT_TYPE_PERIODIC
-		elif self.is_reducible(log_progress=log_progress):
-			return NT_TYPE_REDUCIBLE
-		else:
-			return NT_TYPE_PSEUDO_ANOSOV
-	
 	def invariant_lamination(self):
 		''' Return a rescaling constant and projectively invariant lamination.
 		
@@ -483,20 +467,29 @@ class Encoding(object):
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
-	def NT_type(self):
+	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.
 		
 		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
 		
+		# We used to do:
+		# if self.is_periodic():
+		#	return NT_TYPE_PERIODIC
+		# elif self.is_reducible(log_progress=log_progress):
+		#	return NT_TYPE_REDUCIBLE
+		# else:
+		#	return NT_TYPE_PSEUDO_ANOSOV
+		# but this uses self.is_reducible() and so took exponential time.
+		
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
 			try:
+				# This can also fail with a flipper.ComputationError if
+				# self.invariant_lamination() fails to find an invariant lamination.
 				_, lamination = self.invariant_lamination()
-				# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-				# fails to find an invariant lamination.
 			except flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
 			else:

@@ -2,12 +2,10 @@
 try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
-	# import tkSimpleDialog
 except ImportError:  # Python 3.
 	try:
 		import tkinter as TK
 		import tkinter.font as TK_FONT
-		# import tkinter.simpledialog as tkSimpleDialog
 	except ImportError:
 		raise ImportError('Tkinter not available.')
 

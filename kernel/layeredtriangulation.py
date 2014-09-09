@@ -12,9 +12,10 @@ Provides three classes: Tetrahedron, Triangulation3 and LayeredTriangulation. ''
 import flipper
 
 from itertools import permutations, combinations, product
+# Perhaps we don't need the Queue.
 try:
 	from Queue import Queue
-except ImportError: # Python 3
+except ImportError:  # Python 3.
 	from queue import Queue
 
 # Edge veerings:

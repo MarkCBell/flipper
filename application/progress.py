@@ -1,21 +1,20 @@
 
+import flipper
+import flipper.application
+
 from multiprocessing import Process
 from multiprocessing import JoinableQueue as Queue
 import inspect
 
 try:
 	from Queue import Empty
-except ImportError:
+except ImportError:  # Python 3.
 	from queue import Empty
 
 try:
 	import Tkinter as TK
-	# import ttk as TTK
-except ImportError: # Python 3
+except ImportError:  # Python 3.
 	import tkinter as TK
-	# from tkinter import ttk as TTK
-
-import flipper
 
 CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
 

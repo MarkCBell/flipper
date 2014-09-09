@@ -248,7 +248,7 @@ class Lamination(object):
 		short_lamination = conjugation(self)
 		
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		x, y = [edge_indices for edge_indices in short_lamination.triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
+		x, y = [edge.indices for edge in short_lamination.triangulation.square_about_edge(e1) if edge.indices != e2]
 		for triangle in short_lamination.triangulation:
 			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 				return True
@@ -258,7 +258,7 @@ class Lamination(object):
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''
 		
-		a, b, c, d = self.triangulation.find_indicies_of_square_about_edge(edge_index)
+		a, b, c, d = self.triangulation.square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
 	
 	def stratum_orders(self):
@@ -352,7 +352,7 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
 		
 		# This relies on knowing how squares are returned.
-		a, b, c, d = self.triangulation.find_edges_of_square_about_edge(edge_index)  # Get the square about it.
+		a, b, c, d = self.triangulation.square_about_edge(edge_index)  # Get the square about it.
 		e = self.triangulation.edge_lookup[edge_index]
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
@@ -575,7 +575,7 @@ class Lamination(object):
 		# But to do a right twist we'll need to switch framing again.
 		if k < 0: e1, e2 = e2, e1
 		
-		x, y = [edge_indices for edge_indices in triangulation.find_indicies_of_square_about_edge(e1) if edge_indices != e2]
+		x, y = [edge.index for edge in triangulation.square_about_edge(e1) if edge.indices != e2]
 		for triangle in triangulation:
 			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 				bottom = x if x in triangle else y
@@ -619,7 +619,7 @@ class Lamination(object):
 		# We might need to swap these edge indices so we have a good frame of reference.
 		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		
-		a, b, c, d = triangulation.find_indicies_of_square_about_edge(e1)
+		a, b, c, d = triangulation.square_about_edge(e1)
 		e = e1
 		
 		x = (short_lamination[a] + short_lamination[b] - short_lamination[e]) // 2

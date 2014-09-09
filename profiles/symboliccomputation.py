@@ -65,14 +65,11 @@ def main(verbose=False):
 		]), [28, 102, 42, 12, 60, 18, 60, 38, 76])
 		]
 	
-	try:
-		for matrix, vector in tests:
-			try:
-				flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(matrix, vector)
-			except flipper.AssumptionError:
-				print('bad test %s' % vector)
-	except ImportError:
-		print('Symbolic computation library required but unavailable, test skipped.')
+	for matrix, vector in tests:
+		try:
+			flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(matrix, vector)
+		except flipper.AssumptionError:
+			print('bad test %s' % vector)
 	
 	return time() - start_time
 

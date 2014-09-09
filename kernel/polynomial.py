@@ -9,7 +9,10 @@ import flipper
 
 from math import log10 as log
 from fractions import gcd
-from itertools import izip_longest
+try:
+	from itertools import izip_longest as zip_longest
+except ImportError:  # Python 3.
+	from itertools import zip_longest
 
 class Polynomial(object):
 	''' This represents an integral polynomial in one variable.
@@ -58,14 +61,14 @@ class Polynomial(object):
 	
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
-			return Polynomial([a + b for a, b in izip_longest(self.coefficients, other.coefficients, fillvalue=0)])
+			return Polynomial([a + b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
 		elif isinstance(other, flipper.Integer_Type):
 			return Polynomial([self[0] + other] + self.coefficients[1:])
 		else:
 			return NotImplemented
 	def __sub__(self, other):
 		if isinstance(other, Polynomial):
-			return Polynomial([a - b for a, b in izip_longest(self.coefficients, other.coefficients, fillvalue=0)])
+			return Polynomial([a - b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
 		elif isinstance(other, flipper.Integer_Type):
 			return Polynomial([self[0] - other] + self.coefficients[1:])
 		else:

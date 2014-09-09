@@ -343,7 +343,7 @@ class Triangulation3(object):
 		return cusps
 	
 	def slope(self, path):
-		''' Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes.
+		''' Return the slope of the peripheral curve given by path relative to the set meridians and longitudes.
 		
 		Assumes that the meridian and longitude on this cusp have been set. '''
 		
@@ -360,7 +360,7 @@ class Triangulation3(object):
 		return (meridian_copies, longitude_copies)
 	
 	def slope_TEMPS(self):
-		''' Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
+		''' Return the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
 		
 		Assumes that the meridian and longitude on this cusp have been set. '''
 		
@@ -401,7 +401,7 @@ class Triangulation3(object):
 		return strn
 
 def permutation_from_pair(a, to_a, b, to_b):
-	''' Returns the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
+	''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
 	
 	image = [None] * 4
 	image[a] = to_a

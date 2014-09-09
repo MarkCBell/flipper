@@ -205,7 +205,7 @@ class Encoding(object):
 		return flipper.kernel.utilities.change_base(int(''.join(str(x) for x in self.find_indices(lamination, count_all=False)), 2))
 	
 	def applied_function(self, lamination):
-		''' Returns the partial function that will be applied to the lamination. '''
+		''' Return the partial function that will be applied to the lamination. '''
 		
 		return self.expand_indices(self.find_indices(lamination))
 	
@@ -225,7 +225,7 @@ class Encoding(object):
 		return PartialFunction(As, Cs)
 	
 	def order(self):
-		''' Returns the order of this mapping class. 
+		''' Return the order of this mapping class. 
 		
 		If this has infinite order then returns 0. 
 		
@@ -251,7 +251,7 @@ class Encoding(object):
 		return min(possible_orders)
 	
 	def order_string(self):
-		''' Returns the order of this mapping class as a string.
+		''' Return the order of this mapping class as a string.
 		
 		This encoding must be a mapping class. '''
 		

@@ -48,9 +48,10 @@ class Tetrahedron(object):
 	
 	def __str__(self):
 		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)
-		# return 'Label: %s, Gluings: %s, Edge labels: %s' % (self.label, self.glued_to, [self.edge_labels[i] for i in combinations(range(4), 2)])
 	
 	def glue(self, side, target, permutation):
+		''' Glue the given side of this tetrahedron to target via the given permutation. '''
+		
 		if self.glued_to[side] is None:
 			assert(self.glued_to[side] is None)
 			assert(target.glued_to[permutation(side)] is None)
@@ -74,20 +75,27 @@ class Tetrahedron(object):
 			assert((target, permutation) == self.glued_to[side])
 	
 	def unglue(self, side):
+		''' Unglue the given side of this tetrahedron. '''
 		if self.glued_to[side] is not None:
 			other, perm = self.glued_to[side]
 			other.glued_to[perm(side)] = None
 			self.glued_to[side] = None
 	
 	def get_edge_label(self, a, b):
+		''' Return the label on edge (a) -- (b) of this tetrahedron. '''
+		
 		a, b = min(a, b), max(a, b)
 		return self.edge_labels[(a, b)]
 	
 	def set_edge_label(self, a, b, value):
+		''' Set the label on edge (a) -- (b) of this tetrahedron. '''
+		
 		a, b = min(a, b), max(a, b)
 		self.edge_labels[(a, b)] = value
 	
 	def snappy_string(self):
+		''' Return the SnapPy string describing this tetrahedron. '''
+		
 		strn = ''
 		strn += '%4d %4d %4d %4d\n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
 		strn += '%4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
@@ -112,7 +120,10 @@ class Triangulation3(object):
 		self.degeneracy_slopes = []
 	
 	def copy(self):
-		# Returns a copy of this triangulation. We guarantee that the tetrahedra in the copy will come in the same order.
+		''' Return a copy of this triangulation.
+		
+		We guarantee that the tetrahedra in the copy will come in the same order. '''
+		
 		new_triangulation = Triangulation3(self.num_tetrahedra)
 		forwards = dict(zip(self, new_triangulation))
 		
@@ -139,29 +150,40 @@ class Triangulation3(object):
 		return other in self.tetrahedra
 	
 	def create_tetrahedra(self):
+		''' Add and return a new tetrahedron to this triangulation. '''
+		
 		self.tetrahedra.append(Tetrahedron(self.num_tetrahedra))
 		self.num_tetrahedra += 1
 		return self.tetrahedra[-1]
 	
 	def destroy_tetrahedra(self, tetrahedron):
+		''' Remove the given tetrahedron from this triangulation. '''
+		
 		for side in range(4):
 			tetrahedron.unglue(side)
 		self.tetrahedra.remove(tetrahedron)
 		self.num_tetrahedra -= 1 # !?! This makes tetrahedron names non-unique.
 	
 	def reindex(self):
+		''' Assign the tetrahedra in this triangulation the labels 0, 1, ... . '''
+		
 		for index, tetrahedron in enumerate(self):
 			tetrahedron.label = index
 	
 	def clear_temp_peripheral_structure(self):
+		''' Remove all TEMP peripheral curves. '''
+		
 		for tetrahedron in self.tetrahedra:
 			tetrahedron.peripheral_curves[TEMPS] = [[0, 0, 0, 0] for _ in range(4)]
 	
 	def is_closed(self):
+		''' Return if this triangulation is closed. '''
+		
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
 	
 	def assign_cusp_indices(self):
-		# Find the vertex classes.
+		''' Assign the tetrahedra in this triangulation their cusp indices and return the list of corners in the same cusp. '''
+		
 		remaining_vertices = list(product(self, range(4)))
 		
 		vertex_classes = []
@@ -197,6 +219,8 @@ class Triangulation3(object):
 		return vertex_classes
 	
 	def cusp_identification_map(self):
+		''' Return a dictionary pairing the sides of the peripheral triangles. '''
+		
 		cusp_pairing = dict()
 		for tetrahedron in self.tetrahedra:
 			for side in range(4):
@@ -208,17 +232,18 @@ class Triangulation3(object):
 		return cusp_pairing
 	
 	def intersection_number(self, peripheral_type_a, peripheral_type_b, cusp=None):
-		# Computes the algebraic intersection number between the specified peripheral types.
-		# See SnapPy/kernel_code/intersection_numbers.c for how to do this.
+		''' Return the algebraic intersection number between the specified peripheral types.
 		
-		# Convention:
-		#    B
-		#    ^
-		#    |
-		# ---+---> A
-		#    |
-		#    |
-		# has intersection +1.
+		See SnapPy/kernel_code/intersection_numbers.c for more information.
+		
+		Convention:
+		    B
+		    ^
+		    |
+		 ---+---> A
+		    |
+		    |
+		has intersection +1. '''
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
 		flow = lambda A, B: 0 if (A < 0) == (B < 0) else (A if (A < 0) != (A < -B) else -B)
@@ -228,22 +253,31 @@ class Triangulation3(object):
 		intersection_number = 0
 		# Count intersection numbers along edges.
 		for tetrahedron, side in cusp:
+			periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
+			periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
+			
 			for other in VERTICES_MEETING[side]:
-				intersection_number -= tetrahedron.peripheral_curves[peripheral_type_a][side][other] * tetrahedron.peripheral_curves[peripheral_type_b][side][other]
+				intersection_number -= periph_a[side][other] * periph_b[side][other]
 		
 		intersection_number = intersection_number // 2
 		
 		# and then within each face.
 		for tetrahedron, side in cusp:
+			periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
+			periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
+			
 			for other in VERTICES_MEETING[side]:
 				left = EXIT_CUSP_LEFT[(side, other)]
 				right = EXIT_CUSP_RIGHT[(side, other)]
-				intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][left]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
-				intersection_number += flow(tetrahedron.peripheral_curves[peripheral_type_a][side][other], tetrahedron.peripheral_curves[peripheral_type_a][side][right]) * flow(tetrahedron.peripheral_curves[peripheral_type_b][side][other], tetrahedron.peripheral_curves[peripheral_type_b][side][left])
+				
+				intersection_number += flow(periph_a[side][other], periph_a[side][left]) * flow(periph_b[side][other], periph_b[side][left])
+				intersection_number += flow(periph_a[side][other], periph_a[side][right]) * flow(periph_b[side][other], periph_b[side][left])
 		
 		return intersection_number
 	
 	def install_longitudes_and_meridians(self):
+		''' Assign a longitude and meridian to each cusp. '''
+		
 		# Install the cusp indices.
 		cusps = self.assign_cusp_indices()
 		cusp_pairing = self.cusp_identification_map()
@@ -309,8 +343,11 @@ class Triangulation3(object):
 		return cusps
 	
 	def slope(self, path):
-		# Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes.
-		# Assumes that the meridian and longitude on this cusp have been set.
+		''' Returns the slope of the peripheral curve given by path relative to the set meridians and longitudes.
+		
+		Assumes that the meridian and longitude on this cusp have been set. '''
+		
+		# We could install path in TEMPS and then use self.slope_TEMPS().
 		
 		# These are the algebraic intersection numbers between the path and the meridian and longitude.
 		meridian_intersection = sum(tetrahedron.peripheral_curves[MERIDIANS][side][other] for (tetrahedron, side, other) in path)
@@ -323,10 +360,10 @@ class Triangulation3(object):
 		return (meridian_copies, longitude_copies)
 	
 	def slope_TEMPS(self):
-		# Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
-		# Assumes that the meridian and longitude on this cusp have been set.
+		''' Returns the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
 		
-		# See Triangulation3.slope(path).
+		Assumes that the meridian and longitude on this cusp have been set. '''
+		
 		longitude_intersection = self.intersection_number(LONGITUDES, TEMPS)
 		meridian_intersection = self.intersection_number(MERIDIANS, TEMPS)
 		longitude_copies = -meridian_intersection
@@ -335,7 +372,12 @@ class Triangulation3(object):
 		return (meridian_copies, longitude_copies)
 	
 	def snappy_string(self, name='flipper triangulation', filled=True):
-		if not self.is_closed(): raise flipper.AssumptionError('Layered triangulation is not closed.')
+		''' Return the SnapPy string describing this tetrahedron.
+		
+		This triangulation must be closed. '''
+		
+		assert(self.is_closed())
+		
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		strn = ''
@@ -378,7 +420,6 @@ def permutation_from_pair(a, to_a, b, to_b):
 	else:
 		raise ValueError('Does not represent a gluing.')
 
-# A class to represent a layered triangulation over a surface specified by a flipper.kernel.AbstractTriangulation.
 class LayeredTriangulation(object):
 	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. '''
 	def __init__(self, triangulation, flip_indices, isometry):
@@ -418,8 +459,13 @@ class LayeredTriangulation(object):
 		return strn
 	
 	def flip(self, edge_index):
-		# MEGA WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
+		''' Modifies this layered triangulation by flipping the given edge of self.upper_triangulation.
+		
+		The given edge must be flippable. '''
+		
 		assert(self.upper_triangulation.is_flippable(edge_index))
+		
+		# MEGA WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
 		
 		# Get a new tetrahedra.
 		new_tetrahedron = self.core_triangulation.create_tetrahedra()
@@ -475,10 +521,14 @@ class LayeredTriangulation(object):
 		return self
 	
 	def flips(self, sequence):
+		''' Modifies this layered triangulation by performing a sequence of flips on self.upper_triangulation. '''
+		
 		for edge_index in sequence:
 			self.flip(edge_index)
 	
 	def close(self, isometry):
+		''' Return the triangulation obtained by gluing the self.upper_triangulation to self.lower_triangulation via the given isometry. '''
+		
 		isometry = isometry.adapt(self.upper_triangulation, self.lower_triangulation)
 		# Duplicate the bundle.
 		closed_triangulation = self.core_triangulation.copy()

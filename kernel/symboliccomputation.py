@@ -20,8 +20,6 @@ Each library provides one function:
 
 More interfaces can be added here. '''
 
-import flipper
-
 from importlib import import_module
 
 # Add new libraries here in order.

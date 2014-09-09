@@ -81,29 +81,31 @@ class PLFunction(object):
 			except TypeError:
 				pass
 		raise TypeError('Object is not in domain.')
-	def copy(self):
-		return PLFunction([f.copy() for f in self.partial_functions], [f.copy() for f in self.inverse_partial_functions])
+	
 	def inverse(self):
+		''' Return the inverse of this PL function. '''
+		
 		if not self.inverse_partial_functions:
 			raise TypeError('Function is not invertible.')
 		
 		return PLFunction(self.inverse_partial_functions, self.partial_functions)
-	def applied_index(self, lamination):
-		# Returns the index of the partial function that would be applied to this lamination.
+	def applied_index(self, vector):
+		''' Return the index of the partial function that would be applied to this vector. '''
+		
 		for index, function in enumerate(self.partial_functions):
 			try:
-				function(lamination)
+				function(vector)
 				return index
 			except TypeError:
 				pass
 		
-		raise TypeError('Object is not in domain.')
+		raise TypeError('Point is not in domain.')
 
 class Encoding(object):
-	''' This represents a map between two AbstractTriagulations. '''
+	''' This represents a map between two AbstractTriagulations.
+	
+	It is given by a sequence of PLFunctions whose composition is the action on the edge weights.'''
 	def __init__(self, source_triangulation, target_triangulation, sequence):
-		''' This represents a map between two AbstractTriagulations. It is given by a sequence
-		of PLFunctions whose composition is the action on the edge weights. '''
 		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
 		assert(all(isinstance(function, PLFunction) for function in sequence))
@@ -129,6 +131,10 @@ class Encoding(object):
 		self.zeta = self.source_triangulation.zeta
 	
 	def is_mapping_class(self):
+		''' Return if this encoding is a mapping class.
+		
+		That is, if it maps to the AbstractTriangulation it came from. '''
+		
 		return self.source_triangulation == self.target_triangulation
 	
 	def __len__(self):
@@ -152,7 +158,6 @@ class Encoding(object):
 	def __hash__(self):
 		return hash(tuple(self.sequence))
 	def __call__(self, other):
-		# return self * other
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
@@ -167,8 +172,6 @@ class Encoding(object):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
 			return Encoding(other.source_triangulation, self.target_triangulation, self.sequence + other.sequence)
-			# !?! Could do something like:
-			# return flipper.kernel.product(list(self) + [other.copy()])
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -181,10 +184,12 @@ class Encoding(object):
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
+		''' Return the inverse of this encoding. '''
+		
 		return Encoding(self.target_triangulation, self.source_triangulation, [A.inverse() for A in reversed(self)])
 	
 	def find_indices(self, lamination, count_all=True):
-		''' Returns a list of indices describing the cell this lamination lies in. '''
+		''' Return the list of indices describing the cell this lamination lies in. '''
 		
 		vector = lamination.vector
 		indices = []
@@ -195,6 +200,8 @@ class Encoding(object):
 		return indices
 	
 	def find_indices_compressed(self, lamination):
+		''' Return the list of indices describing the cell this lamination lies in as a base64 string. '''
+		
 		return flipper.kernel.utilities.change_base(int(''.join(str(x) for x in self.find_indices(lamination, count_all=False)), 2))
 	
 	def applied_function(self, lamination):
@@ -204,8 +211,10 @@ class Encoding(object):
 	
 	
 	def expand_indices(self, indices):
-		''' Given indices = [a_0, ..., a_k] this returns the partial function of
-		choice[a_k] * ... * choice[a_0]. Be careful about the order in which you give the indices. '''
+		''' Return the partial function corresponding to the given list of indices.
+		
+		Note: Given indices = [a_0, ..., a_k] this returns choice[a_k] * ... * choice[a_0].
+		Be careful about the order in which you give the indices. '''
 		
 		As = flipper.kernel.id_matrix(self.zeta)
 		Cs = flipper.kernel.empty_matrix()
@@ -216,8 +225,14 @@ class Encoding(object):
 		return PartialFunction(As, Cs)
 	
 	def order(self):
-		''' Returns the order of this mapping class. If this has infinite order then returns 0. '''
+		''' Returns the order of this mapping class. 
+		
+		If this has infinite order then returns 0. 
+		
+		This encoding must be a mapping class. '''
+		
 		assert(self.is_mapping_class())
+		
 		# We could do:
 		# for i in range(self.source_triangulation.max_order):
 		#	if (self**(i+1)).is_identity():
@@ -236,24 +251,52 @@ class Encoding(object):
 		return min(possible_orders)
 	
 	def order_string(self):
+		''' Returns the order of this mapping class as a string.
+		
+		This encoding must be a mapping class. '''
+		
 		order = self.order()
 		return 'Infinite' if order == 0 else str(order)
 	
 	def is_identity(self):
+		''' Return if this mapping class is the identity. '''
+		
 		return self == self.source_triangulation.id_encoding()
 	
 	def is_periodic(self):
+		''' Return if this encoding has finite order.
+		
+		This encoding must be a mapping class. '''
+		
 		return self.order() > 0
 	
 	def is_reducible(self, log_progress=None):
-		''' This determines if the induced action of self on V the space of laminations on T
-		has a fixed point satisfying:
-			face_matrix.v >= 0 and marking_matrix.v >= 0
-		for some marking_matrix in marking_matrices. '''
-		# We now use Ben's branch and bound approach. It's much better.
+		''' Return if this encoding is reducible.
+		
+		This determines if the induced action of self on V the space of laminations on T.
+		To do this, for each Marking matrix and (Action, Condition) matrix pair we check
+		if there is a non-negative, non-trivial solution to:
+			( Condition )
+			(Action - Id)
+			(Id - Action) x >= 0
+			(    Id     )
+			(   Face    )
+			(  Marking  )
+		
+		Such a solution corresponds to an essential invariant (multi)curve. See section ?? of:
+			http://arxiv.org/pdf/1403.2997.pdf
+		for more information.
+		
+		This only uses integer arithmetic but there may be exponentially many LP problems to
+		check. Hence this is not advisable to use.
+		
+		This encoding must be a mapping class. '''
+		
 		assert(self.is_mapping_class())
 		
-		# We first create two little functions to increment the list of indices to the next point that
+		# We now use Ben's branch and bound approach. It's much better.
+		
+		# To do this we create two little functions to increment the list of indices to the next point that
 		# we are interested in. The first jumps from our current location to the next subtree, the second
 		# advances to the next index according to the lex ordering.
 		
@@ -262,6 +305,8 @@ class Encoding(object):
 		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
 		
 		def jump_index(indices):
+			''' Return the next indices at this level of the tree. '''
+			
 			indices = list(indices)
 			while len(indices) > 0 and indices[-1] == len(self[len(self)-len(indices)])-1:
 				indices.pop()
@@ -269,6 +314,8 @@ class Encoding(object):
 			return indices
 		
 		def next_index(indices):
+			''' Return the next indices of the tree. '''
+			
 			indices = list(indices)
 			if len(indices) < len(self):
 				return indices + [0]
@@ -285,14 +332,13 @@ class Encoding(object):
 		while indices != []:
 			partial_function = self.expand_indices(indices)
 			As, Cs = partial_function.action, partial_function.condition
-			if log_progress is not None:
-				# Log how far we've gotten.
+			
+			if log_progress is not None:  # Log how far we've gotten.
 				progression = float(sum(index * scale for index, scale in zip(indices, sizes_mul))) / total
 				log_progress(progression)
 			
 			if len(indices) < len(self):
-				# Remember to always add the Id matrix as empty matrices always
-				# define trivial polytopes.
+				# Remember to always add the Id matrix as empty matrices always define trivial polytopes.
 				indices = next_index(indices) if Cs.join(M6).nontrivial_polytope() else jump_index(indices)
 			else:
 				for i in range(len(marking_matrices)):
@@ -305,21 +351,20 @@ class Encoding(object):
 					# M6 = flipper.kernel.id_matrix(self.zeta)
 					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
 					if P.nontrivial_polytope():
-						# We could just return True here but we'll repeat some work
-						# just to make sure everything went ok.
-						certificate = self.source_triangulation.lamination([2*i for i in P.find_edge_vector()])
-						assert(self.check_fixedpoint(certificate))
 						return True
 				indices = jump_index(indices)
 		
 		return False
 	
-	def check_fixedpoint(self, certificate):
-		assert(self.is_mapping_class())
-		return certificate.is_multicurve() and self(certificate) == certificate
-	
 	def NT_type_alternate(self, log_progress=None):
+		''' Return the Nielsen--Thurston type of this encoding.
+		
+		Uses self.is_reducible() and so is not advisable to use.
+		
+		This encoding must be a mapping class. '''
+		
 		assert(self.is_mapping_class())
+		
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		elif self.is_reducible(log_progress=log_progress):
@@ -336,13 +381,14 @@ class Encoding(object):
 		the map until it appear to be projectively similar to a previous iteration.
 		Finally it uses:
 			flipper.kernel.symboliccomputation.perron_frobenius_eigen()
-		to find the nearby projective fixed point.
-		
-		If it cannot find one then it raises a ComputationError.
+		to find the nearby projective fixed point. If it cannot find one then it
+		raises a ComputationError.
 		
 		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails
-		to converge after many iterations and a ComputationError is thrown then it's
-		actually extremely likely that the map was not pseudo-Anosov. '''
+		to converge after many iterations and a ComputationError is thrown then it
+		is extremely likely that the mapping class was not pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
 		
 		# Suppose that f_1, ..., f_m, g_1, ..., g_n, t_1, ..., t_k, p is the Thurston decomposition of self.
 		# That is: f_i are pA on subsurfaces, g_i are periodic on subsurfaces, t_i are Dehn twist along the curve of
@@ -362,18 +408,21 @@ class Encoding(object):
 		# we note that x_i = i*c + O(1), so rescale x_i by 1/i, round and check if this is c.
 		#
 		# Finally, the third case happens if and only if x_i is periodic. In this case self must be
-		# periodic or reducible. We test for periodicity at the begining hence if we ever find a curve
+		# periodic or reducible. We test for periodicity at the beginning hence if we ever find a curve
 		# fixed by a power of self then we must reducible.
 		
 		assert(self.is_mapping_class())
+		
 		if self.is_periodic():  # This is not needed but it provides a fast test.
 			raise flipper.AssumptionError('Mapping class is periodic.')
+		
 		triangulation = self.source_triangulation
 		
 		curves = [triangulation.key_curves()[0]]
 		
 		def projective_difference(A, B, error_reciprocal):
-			# Returns True iff the projective difference between A and B is less than 1 / error_reciprocal.
+			''' Return if the projective difference between A and B is less than 1 / error_reciprocal. '''
+			
 			A_sum, B_sum = sum(A), sum(B)
 			return max(abs((p * B_sum) - (q * A_sum)) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
 		
@@ -435,27 +484,36 @@ class Encoding(object):
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
 	def NT_type(self):
+		''' Return the Nielsen--Thurston type of this encoding.
+		
+		This encoding must be a mapping class. '''
+		
 		assert(self.is_mapping_class())
+		
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
 		else:
 			try:
 				_, lamination = self.invariant_lamination()
+				# This can also fail with a flipper.ComputationError if self.invariant_lamination()
+				# fails to find an invariant lamination.
 			except flipper.AssumptionError:
 				return NT_TYPE_REDUCIBLE
-			# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-			# fails to find an invariant lamination.
-			if lamination.is_filling():
-				return NT_TYPE_PSEUDO_ANOSOV
 			else:
-				return NT_TYPE_REDUCIBLE
+				if lamination.is_filling():
+					return NT_TYPE_PSEUDO_ANOSOV
+				else:
+					return NT_TYPE_REDUCIBLE
 	
 	def dilatation(self, lamination):
-		''' Returns the dilatation of this mapping class on the given lamination.
+		''' Return the dilatation of this mapping class on the given lamination.
 		
-		Assumes (and checks) that the given lamination is projectively invariant. '''
+		Assumes (and checks) that the given lamination is projectively invariant.
+		
+		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
+		
 		new_lamination = self(lamination)
 		if not lamination.projectively_equal(new_lamination):
 			raise flipper.AssumptionError('Lamination is not projectively invariant.')
@@ -463,15 +521,20 @@ class Encoding(object):
 		return float(new_lamination.weight()) / float(lamination.weight())
 	
 	def splitting_sequences(self, take_roots=False):
-		''' Returns a list of splitting sequences associated to this mapping class.
+		''' Return a list of splitting sequences associated to this mapping class.
+		
 		Eventually this should return the unique splitting sequence associated, in which
 		case the name might change.
 		
-		Assumes (and checks) that the mapping class is pseudo-Anosov. '''
+		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
+		
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+		
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
 			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
@@ -534,4 +597,3 @@ class Encoding(object):
 					
 				assert(c != 0)
 			return splittings
-

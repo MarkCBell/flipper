@@ -24,6 +24,8 @@ class Lamination(object):
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
 			def dual_weight(corner):
+				''' Return the weight of normal arc corresponding to the given corner. '''
+				
 				return vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index]
 			
 			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
@@ -34,12 +36,16 @@ class Lamination(object):
 		self.vector = list(vector)
 	
 	def copy(self):
+		''' Return a copy of this lamination. '''
+		
 		return Lamination(self.triangulation, list(self.vector))
 	
 	def __repr__(self):
 		return str(self.vector)
 	
 	def projective_string(self):
+		''' Return a string describing this lamination in PML. '''
+		
 		w = float(self.weight())
 		return str([float(x) / w for x in self])
 	
@@ -83,32 +89,50 @@ class Lamination(object):
 		return self * other
 	
 	def is_empty(self):
+		''' Return if this lamination is equal to the empty lamination. '''
+		
 		return not any(self)
 	
-	def all_isometries(self, other):
-		assert(isinstance(other, Lamination))
-		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other == isometry.encode()(self)]
+	def all_isometries(self, other_lamination):
+		''' Return a list of isometries taking this lamination to other_lamination. '''
+		
+		assert(isinstance(other_lamination, Lamination))
+		
+		return [isometry for isometry in self.triangulation.all_isometries(other_lamination.triangulation) if other_lamination == isometry.encode()(self)]
 	
-	def all_projective_isometries(self, other):
-		assert(isinstance(other, Lamination))
-		return [isometry for isometry in self.triangulation.all_isometries(other.triangulation) if other.projectively_equal(isometry.encode()(self))]
+	def all_projective_isometries(self, other_lamination):
+		''' Return a list of isometries taking this lamination projectively to other_lamination. '''
+		
+		assert(isinstance(other_lamination, Lamination))
+		
+		return [isometry for isometry in self.triangulation.all_isometries(other_lamination.triangulation) if other_lamination.projectively_equal(isometry.encode()(self))]
 	
-	def projectively_equal(self, other):
-		assert(isinstance(other, Lamination))
+	def projectively_equal(self, other_lamination):
+		''' Return if this lamination is projectively equal to other_lamination.
+		
+		other_lamination must be on the same AbstractTriangulation as this lamination. '''
+		
+		assert(isinstance(other_lamination, Lamination))
+		assert(other_lamination.triangulation == self.triangulation)
+		
 		# We can't do division so we have to cross multiply.
-		return self * other.weight() == other * self.weight()
+		return self * other_lamination.weight() == other_lamination * self.weight()
 	
 	def projective_hash(self):
-		# We use this function to hash the number down. It NEEDS be (projectively) invariant under isometries of the triangulation
-		# so we achieve this by sorting the hash values.
+		''' Return a hashable object that is invariant under isometries and rescaling. '''
+		
+		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		w = self.weight()
 		return tuple(sorted([x.algebraic_hash_ratio(w) for x in self]))
 	
 	def weight(self):
+		''' Return the sum of the vector of this lamination. '''
+		
 		return sum(self.vector)
 	
 	def is_multicurve(self):
-		''' Decides if this lamination is a multicurve. '''
+		''' Return if this lamination is a multicurve. '''
+		
 		if self == self.triangulation.empty_lamination(): return False
 		
 		# This isn't quite right. We should allow NumberFieldElements too.
@@ -125,6 +149,10 @@ class Lamination(object):
 		return True
 	
 	def conjugate_short(self):
+		''' Return an encoding which maps this lamination to a lamination with as little weight as possible.
+		
+		This lamination must be a multicurve. '''
+		
 		# Repeatedly flip to reduce the weight of this lamination as much as
 		# possible. Assumes that self is a multicurve.
 		#
@@ -134,8 +162,7 @@ class Lamination(object):
 		#	0 or 2 times.
 		# The latter case happens if and only if a component of S - \gamma has no punctures.
 		
-		if not self.is_multicurve():
-			raise flipper.AssumptionError('Can only conjugate multicurves to be short.')
+		assert(self.is_multicurve())
 		
 		lamination = self.copy()
 		best_conjugation = conjugation = lamination.triangulation.id_encoding()
@@ -164,7 +191,8 @@ class Lamination(object):
 		return best_conjugation
 	
 	def is_curve(self):
-		''' Decides if this lamination is a curve. '''
+		''' Return if this lamination is a curve. '''
+		
 		if not self.is_multicurve(): return False
 		
 		conjugation = self.conjugate_short()
@@ -200,7 +228,8 @@ class Lamination(object):
 		return True
 	
 	def is_twistable(self):
-		''' Decides if this lamination is a twistable. '''
+		''' Return if this lamination is a twistable. '''
+		
 		# This is based off of self.encode_twist(). See the documentation there as to why this works.
 		if not self.is_curve(): return False
 		
@@ -210,7 +239,8 @@ class Lamination(object):
 		return short_lamination.weight() == 2
 	
 	def is_halftwistable(self):
-		''' Decides if this lamination is a half twistable. '''
+		''' Return if this lamination is a half twistable. '''
+		
 		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
 		if not self.is_twistable(): return False
 		
@@ -226,22 +256,29 @@ class Lamination(object):
 		return False
 	
 	def weight_difference_flip_edge(self, edge_index):
-		''' Returns how much the weight would change by if this flip was done. '''
+		''' Return how much the weight would change by if this flip was done. '''
+		
 		a, b, c, d = self.triangulation.find_indicies_of_square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
 	
 	def stratum_orders(self):
-		''' Returns a dictionary mapping each vertex of the underlying triangulaton to
-		the number of stratum exiting it. This is the number of bipods incident to the vertex. '''
+		''' Return a dictionary mapping each vertex of the underlying triangulation to the number of stratum exiting it.
+		
+		This is the number of bipods incident to the vertex. '''
+		
 		triangulation = self.triangulation
 		return dict((vertex, sum(1 for corner in triangulation.corner_class_of_vertex(vertex) if self.is_bipod(corner))) for vertex in triangulation.vertices)
 	
 	def is_bipod(self, corner):
-		''' Returns if the lamination looks like a bipod with respect to this corner. '''
+		''' Return if the lamination looks like a bipod with respect to the given corner. '''
+		
 		return self[corner.indices[1]] + self[corner.indices[2]] == self[corner.indices[0]]
 	
 	def open_bipod(self, corner):
-		''' Returns an encoding flipping the edge opposite this corner along with a new corner class. '''
+		''' Return an encoding flipping the edge opposite this corner along with a new corner class.
+		
+		This lamination must be a bipod wrt the given corner. '''
+		
 		assert(self.is_bipod(corner))
 		assert(self.triangulation.is_flippable(corner.label))
 		# #-----------#     #-----------#
@@ -273,6 +310,8 @@ class Lamination(object):
 		return encoding, None
 	
 	def repeatedly_open_bipod(self, corner):
+		''' Return the encoding which opens the given bipod until it is no longer a bipod. '''
+		
 		encoding = self.triangulation.id_encoding()
 		lamination = self
 		while corner is not None:
@@ -283,7 +322,8 @@ class Lamination(object):
 		return encoding
 	
 	def is_tripod(self, triangle):
-		''' Returns if the lamination looks like a tripod in this triangle. '''
+		''' Return if the lamination looks like a tripod in this triangle. '''
+		
 		weights = [self[edge] for edge in triangle]
 		dual_weights_doubled = [weights[1] + weights[2] - weights[0],
 					weights[2] + weights[0] - weights[1],
@@ -291,29 +331,19 @@ class Lamination(object):
 		return all(dual_weight > 0 for dual_weight in dual_weights_doubled)
 	
 	def tripod_regions(self):
-		''' Returns a list of all triangles in which this lamination looks like a tripod. '''
+		''' Return a list of all triangles in which this lamination looks like a tripod. '''
+		
 		return [triangle for triangle in self.triangulation if self.is_tripod(triangle)]
 	
 	def is_tripod_free(self):
+		''' Return if this lamination has a tripod in any triangle. '''
+		
 		return not any(self.tripod_regions())
 	
-	def remove_tripod_regions(self):
-		lamination = self
-		encodings = []
-		while not lamination.is_tripod_free():
-			bipod_edges = [triangle[side] for triangle, side in lamination.triangulation.corners if lamination.is_bipod((triangle, side))]
-			edge_index = max(bipod_edges, key=lambda i: lamination[i])
-			edge_index = int(raw_input('Edge to flip'))
-			
-			E = lamination.triangulation.encode_flip(edge_index)
-			lamination = E(lamination)
-			encodings.append(E)
-		
-		return flipper.kernel.product(encodings)
-	
 	def collapse_trivial_weight(self, edge_index):
-		''' Returns this lamination on the triangulation obtained by collapsing edge edge_index.
-		Assumes that:
+		''' Return this lamination on the triangulation obtained by collapsing edge edge_index.
+		
+		This assumes (and checks) that:
 			- self.triangulation is not S_{0,3},
 			- the given edge does not connect between two real vertices, (with non-negative label), and
 			- edge_index is the only edge of weight 0. '''
@@ -408,20 +438,20 @@ class Lamination(object):
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
 	def splitting_sequences(self, target_dilatation=None):
-		''' Returns a list of splitting sequence associated to this lamination.
+		''' Return a list of splitting sequence associated to this lamination.
+		
+		This assumes (and checks) that this lamination is filling.
+		
 		This is the flips the edges of maximal weight until you reach a
-		periodic sequence (with required dilatation if given).
+		projectively periodic sequence (with required dilatation if given).
 		
 		The splitting sequence will have self.preperiodic_encoding set to
-		None iff an edge collapse occurs. This is because we don't (yet)
-		know how to describe this by a PLFunction but only happens because
-		we punctured too many triangles to begin with.
+		None if and only if an edge collapse occurs. This is because we don't
+		(yet) know how to describe this by a PLFunction but only happens 
+		because we punctured too many triangles to begin with.
 		
-		This requires the entries to be NumberFieldElements (over the same
-		NumberField) or AlgebraicNumbers.
-		
-		This assumes that the lamination is filling. If not then it will
-		discover this. '''
+		This requires the entries of self.vector to be NumberFieldElements
+		(over the same NumberField) or AlgebraicNumbers. '''
 		
 		# Check if the lamination is obviously non-filling.
 		if any(v == 0 for v in self):
@@ -485,6 +515,8 @@ class Lamination(object):
 				seen[target] = [len(laminations)-1]
 	
 	def is_filling(self):
+		''' Return if this lamination is filling. '''
+		
 		try:
 			self.splitting_sequences()
 		except flipper.AssumptionError:
@@ -493,12 +525,11 @@ class Lamination(object):
 			return True
 	
 	def encode_twist(self, k=1):
-		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return the identity encoding. If k is negative this
-		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-		Assumes that this lamination is a twistable curve. '''
-		if not self.is_twistable():
-			raise flipper.AssumptionError('Not a good curve.')
+		''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.
+		
+		This lamination must be a twistable curve. '''
+		
+		assert(self.is_twistable())
 		
 		if k == 0: return self.triangulation.id_encoding()
 		
@@ -525,13 +556,11 @@ class Lamination(object):
 		return conjugation.inverse() * T**abs(k) * conjugation
 	
 	def encode_halftwist(self, k=1):
-		''' Returns an Encoding of a left Dehn twist about this lamination raised to the power k.
-		If k is zero this will return the identity encoding. If k is negative this
-		will return an Encoding of a right Dehn twist about this lamination raised to the power -k.
-		Assumes that this lamination is a half twistable curve. '''
-		# !?! TOTALLY REDO.
-		if not self.is_halftwistable():
-			raise flipper.AssumptionError('Not a boundary of a pair of pants.')
+		''' Return an Encoding of a left half twist about this lamination raised to the power k.
+		
+		This lamination must be a half-twistable curve. '''
+		
+		assert(self.is_halftwistable())
 		
 		if k == 0: return self.triangulation.id_encoding()
 		
@@ -570,8 +599,10 @@ class Lamination(object):
 		return conjugation.inverse() * T**abs(k) * conjugation
 	
 	def geometric_intersection(self, lamination):
-		''' Returns the gemetric intersection number between this lamination and the given one.
+		''' Return the geometric intersection number between this lamination and the given one.
+		
 		Assumes that self is a twistable lamination. '''
+		
 		assert(isinstance(lamination, Lamination))
 		assert(lamination.triangulation == self.triangulation)
 		
@@ -602,4 +633,3 @@ class Lamination(object):
 		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
 		
 		return intersection_number
-

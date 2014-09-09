@@ -5,6 +5,19 @@ from time import time
 import flipper
 import snappy
 
+def tetrahedra_shapes(manifold):
+	# Return the exact shapes of the tetrahedra using snap.
+	T = snappy.snap.tetrahedra_field_gens(M)
+	_, generator, shapes = T.find_field(100, 20)
+	generator_approximation = generator.f(100)
+	return [shape(generator_approximation).imag() for shape in shapes]
+
+def is_geometric(manifold):
+	return all([shape > 0 for shape in tetrahedra_shapes(manifold)])
+
+def is_degenerate(manifold):
+	return any([shape == 0 for shape in tetrahedra_shapes(manifold)])
+
 def Example_H2():
 	T = flipper.abstract_triangulation([
 		[3, 0, ~4],
@@ -36,14 +49,9 @@ possible_examples = [
 	'aaaaabab', 'aaaabaab', 'aaaaaaaaab'
 ]
 
-def main(h):
+def main(mapping_class):
 	try:
-		dilatation, invariant_lamination = h.invariant_lamination()
-		
-		print(dilatation)
-		print(dilatation.number_field)
-		
-		splittings = invariant_lamination.splitting_sequences(dilatation)
+		splittings = mapping_class.splitting_sequences()
 		for splitting in splittings:
 			M = snappy.Manifold(splitting.bundle().snappy_string())
 			print(len(splitting.periodic_flips), M.num_tetrahedra())
@@ -51,7 +59,7 @@ def main(h):
 			print(M.solution_type())
 			print('Volume %f' % M.volume())
 			print(M.identify())
-			return M.solution_type() == 'all tetrahedra positively oriented'
+			return M.solution_type() == 'all tetrahedra positively oriented'  # What about other bundles?
 	except flipper.AssumptionError:
 		print('Not pA.')
 	

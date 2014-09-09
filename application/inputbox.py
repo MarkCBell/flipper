@@ -1,10 +1,8 @@
 
 try:
 	import Tkinter as TK
-	# import ttk as TTK
-except ImportError: # Python 3
+except ImportError:  # Python 3.
 	import tkinter as TK
-	# from tkinter import ttk as TTK
 
 class GetStringApp(object):
 	def __init__(self, title, prompt, validate=None, host_app_parent=None):

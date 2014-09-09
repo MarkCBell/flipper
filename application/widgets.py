@@ -6,9 +6,12 @@
 try:
 	import Tkinter as TK
 	DOWN_ARROW = unichr(9660)
-except ImportError:
-	import tkinter as TK
-	DOWN_ARROW = chr(9660)
+except ImportError:  # Python 3.
+	try:
+		import tkinter as TK
+		DOWN_ARROW = chr(9660)
+	except ImportError:
+		raise ImportError('Tkinter not available.')
 
 class SplitButton(TK.Frame):
 	def __init__(self, parent, commands, **options):

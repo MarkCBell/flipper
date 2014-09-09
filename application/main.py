@@ -1,6 +1,9 @@
 
 ''' The main window of the flipper GUI application. '''
 
+import flipper
+import flipper.application
+
 import re
 import os
 import sys
@@ -8,6 +11,7 @@ import pickle
 import string
 from math import sin, cos, pi, sqrt
 from itertools import product, combinations
+
 try:
 	import Tkinter as TK
 	import tkFileDialog
@@ -27,9 +31,6 @@ except ImportError:  # Python 3.
 		from tkinter import ttk as TTK
 	except ImportError:
 		raise ImportError('Ttk not available.')
-
-import flipper
-import flipper.application
 
 # Some constants.
 COMMAND_MODIFIERS = {'darwin': 'Command', 'win32': 'Ctrl', 'linux2': 'Ctrl', 'linux3': 'Ctrl'}
@@ -143,7 +144,7 @@ class FlipperApp(object):
 		self.mappingclassmenu.add_cascade(label='Store...', menu=self.storemappingclassmenu, font=app_font)
 		self.mappingclassmenu.add_command(label='Apply', command=self.show_apply, font=app_font)
 		self.mappingclassmenu.add_command(label='Order', command=self.order, font=app_font)
-		self.mappingclassmenu.add_command(label='Type', command=self.NT_type, font=app_font)
+		self.mappingclassmenu.add_command(label='Type', command=self.nielsen_thurston_type, font=app_font)
 		self.mappingclassmenu.add_command(label='Invariant lamination', command=self.invariant_lamination, font=app_font)
 		self.mappingclassmenu.add_command(label='Build bundle', command=self.build_bundle, font=app_font)
 		self.menubar.add_cascade(label='Mapping class', menu=self.mappingclassmenu, state='disabled', font=app_font)
@@ -1168,18 +1169,18 @@ class FlipperApp(object):
 			if mapping_class is not None:
 				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, mapping_class.order_string()))
 	
-	def NT_type(self):
+	def nielsen_thurston_type(self):
 		if self.is_complete():
 			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
 				try:
-					NT_type = flipper.application.apply_progression(mapping_class.NT_type)
+					nielsen_thurston_type = flipper.application.apply_progression(mapping_class.nielsen_thurston_type)
 					
-					if NT_type == flipper.kernel.encoding.NT_TYPE_PERIODIC:
+					if nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_PERIODIC:
 						tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
-					elif NT_type == flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
+					elif nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
 						tkMessageBox.showinfo('Periodic', '%s is reducible.' % composition)
-					elif NT_type == flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
+					elif nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
 						tkMessageBox.showinfo('Periodic', '%s is pseudo-Anosov.' % composition)
 				except flipper.AssumptionError:
 					pass
@@ -1411,10 +1412,10 @@ class FlipperApp(object):
 		elif 'mapping_class_type' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
-				if 'NT_type' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['NT_type'] = flipper.application.apply_progression(mapping_class.NT_type)
+				if 'nielsen_thurston_type' not in self.cache[mapping_class]:
+					self.cache[mapping_class]['nielsen_thurston_type'] = flipper.application.apply_progression(mapping_class.nielsen_thurston_type)
 					self.unsaved_work = True
-				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['NT_type'])
+				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['nielsen_thurston_type'])
 			except flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:

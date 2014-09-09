@@ -12,9 +12,10 @@ There is also a helper function: abstract_triangulation. '''
 import flipper
 
 from itertools import product, combinations
+# Perhaps we don't need the Queue.
 try:
 	from Queue import Queue
-except ImportError: # Python 3
+except ImportError:  # Python 3.
 	from queue import Queue
 
 def norm(value):
@@ -285,8 +286,8 @@ class AbstractTriangulation(object):
 		
 		# Use the following for reference:
 		# #-----------#     #-----------#
-		# |     a    /|     |\          |
-		# |         / |     | \         |
+		# |     a    A|     |\          |
+		# |         A |     | \         |
 		# |  A     /  |     |  \   A2   |
 		# |       /   |     |   \       |
 		# |b    e/   d| --> |    \e'    |
@@ -294,21 +295,21 @@ class AbstractTriangulation(object):
 		# |    /      |     |      \    |
 		# |   /       |     |       \   |
 		# |  /     B  |     |  B2    \  |
-		# | /         |     |         \ |
-		# |/    c     |     |          \|
+		# | /         |     |         V |
+		# |/    c     |     |          V|
 		# #-----------#     #-----------#
 		
 		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
 		new_edge = AbstractEdge(corner_A.vertex, corner_B.vertex, edge_index)
 		
-		a, b, c, d = self.find_edges_of_square_about_edge(edge_index)
+		a, b, c, d = self.square_about_edge(edge_index)
 		triangle_A2 = AbstractTriangle([new_edge, d, a])
 		triangle_B2 = AbstractTriangle([~new_edge, b, c])
 		
 		unchanged_triangles = [triangle for triangle in self if triangle != corner_A.triangle and triangle != corner_B.triangle]
 		return AbstractTriangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
-	def find_edges_of_square_about_edge(self, edge_index):
+	def square_about_edge(self, edge_index):
 		''' Return the four edges around the given edge.
 		
 		The chosen edge must be flippable. '''
@@ -331,24 +332,6 @@ class AbstractTriangulation(object):
 		
 		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
-	
-	def find_labels_of_square_about_edge(self, edge_index):
-		''' Return the inside labels of the 4 edges around the given edge.
-		
-		The chosen edge must be flippable. '''
-		
-		assert(self.is_flippable(edge_index))
-		
-		return [edge.label for edge in self.find_edges_of_square_about_edge(edge_index)]
-	
-	def find_indicies_of_square_about_edge(self, edge_index):
-		''' Return the indices of the 4 edges around the given edge.
-		
-		The chosen edge must be flippable. '''
-		
-		assert(self.is_flippable(edge_index))
-		
-		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
 	
 	def homology_basis(self):
 		''' Return a basis for H_1 of the underlying punctured surface.
@@ -530,7 +513,7 @@ class AbstractTriangulation(object):
 		
 		new_triangulation = self.flip_edge(edge_index)
 		
-		a, b, c, d = self.find_indicies_of_square_about_edge(edge_index)
+		a, b, c, d = [edge.index for edge in self.square_about_edge(edge_index)]
 		e = norm(edge_index)  # Give it a shorter name.
 		A1 = flipper.kernel.id_matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
 		C1 = flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])

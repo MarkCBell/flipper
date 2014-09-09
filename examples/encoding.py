@@ -16,7 +16,7 @@ def main():
 		start_time = time()
 		try:
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
-			print(' -- %s.' % mapping_class.NT_type())
+			print(' -- %s.' % mapping_class.nielsen_thurston_type())
 		except ImportError:
 			print(' Cannot determine without a symbolic library.')
 		except flipper.ComputationError:

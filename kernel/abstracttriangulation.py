@@ -333,7 +333,7 @@ class AbstractTriangulation(object):
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
 	def find_labels_of_square_about_edge(self, edge_index):
-		''' Returns the inside labels of the 4 edges around the given edge.
+		''' Return the inside labels of the 4 edges around the given edge.
 		
 		The chosen edge must be flippable. '''
 		
@@ -342,7 +342,7 @@ class AbstractTriangulation(object):
 		return [edge.label for edge in self.find_edges_of_square_about_edge(edge_index)]
 	
 	def find_indicies_of_square_about_edge(self, edge_index):
-		''' Returns the indices of the 4 edges around the given edge.
+		''' Return the indices of the 4 edges around the given edge.
 		
 		The chosen edge must be flippable. '''
 		
@@ -351,7 +351,7 @@ class AbstractTriangulation(object):
 		return [norm(x) for x in self.find_labels_of_square_about_edge(edge_index)]
 	
 	def homology_basis(self):
-		''' Returns a basis for H_1 of the underlying punctured surface.
+		''' Return a basis for H_1 of the underlying punctured surface.
 		
 		Each element is given as a path in the dual 1--skeleton and each pair of
 		paths is guaranteed to meet at most once. '''
@@ -455,6 +455,7 @@ class AbstractTriangulation(object):
 				new_from_corner, new_to_corner = self.rotate_corner(from_corner), other_triangulation.rotate_corner(to_corner)
 				if new_from_corner in corner_map:
 					if new_to_corner != corner_map[new_from_corner]:
+						# Map does not extend to a consistent isometry.
 						break
 				else:
 					corner_map[new_from_corner] = new_to_corner
@@ -486,12 +487,12 @@ class AbstractTriangulation(object):
 	
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector, remove_peripheral=False):
-		''' Returns a new lamination on this surface assigning the specified weight to each edge. '''
+		''' Return a new lamination on this surface assigning the specified weight to each edge. '''
 		
 		return flipper.kernel.Lamination(self, vector, remove_peripheral)
 	
 	def empty_lamination(self):
-		''' Returns an empty lamination on this surface. '''
+		''' Return an empty lamination on this surface. '''
 		
 		return self.lamination([0] * self.zeta)
 	
@@ -560,7 +561,7 @@ class AbstractTriangulation(object):
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def encode_puncture_triangles(self, to_puncture):
-		''' Returns an encoding from this triangulation to one in which each triangle
+		''' Return an encoding from this triangulation to one in which each triangle
 		on the list to_puncture has been punctured, that is the triangulation obtained
 		by applying 1-->3 Pachner moves to the given triangles. '''
 		

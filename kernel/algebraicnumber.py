@@ -56,7 +56,7 @@ class AlgebraicMonomial(object):
 		return self._hash
 	
 	def interval_approximation(self, accuracy=0):
-		''' Returns an interval containing this number correct to the requested accuracy. '''
+		''' Return an interval containing this number correct to the requested accuracy. '''
 		
 		accuracy_required = max(accuracy, 0)
 		if self._interval is None or self._accuracy < accuracy_required:
@@ -70,7 +70,7 @@ class AlgebraicMonomial(object):
 		return self._interval
 	
 	def algebraic_approximation(self, accuracy=0):
-		''' Returns an AlgebraicApproximation of this monomial which is correct to at least the
+		''' Return an AlgebraicApproximation of this monomial which is correct to at least the
 		requested accuracy. If no accuracy is given then accuracy will be chosen such that
 		the approximation will determine a unique algebraic number. '''
 		
@@ -180,7 +180,7 @@ class AlgebraicNumber(object):
 		return set(self).union(set(other))
 	
 	def interval_approximation(self, accuracy=0):
-		''' Returns an interval containing this number correct to the requested accuracy. '''
+		''' Return an interval containing this number correct to the requested accuracy. '''
 		
 		accuracy_required = max(accuracy, 0)
 		if self._interval is None or self._accuracy < accuracy_required:
@@ -195,7 +195,7 @@ class AlgebraicNumber(object):
 		return self._interval
 	
 	def algebraic_approximation(self, accuracy=0):
-		''' Returns an AlgebraicApproximation of this element which is correct to at least the
+		''' Return an AlgebraicApproximation of this element which is correct to at least the
 		requested accuracy. If no accuracy is given then accuracy will be chosen such that
 		the approximation will determine a unique algebraic number. '''
 		

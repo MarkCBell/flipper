@@ -8,7 +8,7 @@ from string import ascii_lowercase
 from itertools import product
 
 def string_generator(n, skip=None):
-	''' Returns a list of n usable names, none of which are in skip. '''
+	''' Return a list of n usable names, none of which are in skip. '''
 	
 	if skip is None: skip = []
 	n = max(n, 1)

@@ -8,7 +8,7 @@ import snappy
 def tetrahedra_shapes(manifold):
 	# Return the exact shapes of the tetrahedra using snap.
 	T = snappy.snap.tetrahedra_field_gens(M)
-	_, generator, shapes = T.find_field(100, 20)
+	_, generator, shapes = T.find_field(prec=100, degree=20, optimize=True)
 	generator_approximation = generator.f(100)
 	return [shape(generator_approximation).imag() for shape in shapes]
 
@@ -93,15 +93,18 @@ def test2():
 
 def test3():
 	S = Example_H2()
-	h = S.mapping_class('CbCA')  # 6 tetrahedra.
-	#h = S.mapping_class('Bcc')  # 10 tetrahedra.
+	# h = S.mapping_class('CbCA')  # 6 tetrahedra.
+	# h = S.mapping_class('Bcc')  # 10 tetrahedra.
+	h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.
+	# h = flipper.examples.template('S_2_1').mapping_class('abbcccDeffD')
 	splittings = h.splitting_sequences()
 	print('Saving %d bundles.' % len(splittings))
 	for index, splitting in enumerate(splittings):
-		snappy.Manifold(splitting.bundle().snappy_string()).save('test%d.tri' % index)
+		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string())
+		# snappy.Manifold(splitting.bundle().snappy_string()).save('test%d.tri' % index)
 
 if __name__ == '__main__':
-	#test1()
+	# test1()
 	test2()
-	#test3()
+	# test3()
 

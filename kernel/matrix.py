@@ -150,7 +150,7 @@ class Matrix(object):
 			Ms.append(self * Ms[-1])
 		return Ms
 	def inverse(self):
-		''' Return the inverse of this matrix. 
+		''' Return the inverse of this matrix.
 		
 		This matrix must be square. '''
 		
@@ -282,7 +282,7 @@ class Matrix(object):
 		
 		return Matrix([(row if i != index else new_row) for i, row in enumerate(self.rows)])
 	def solve(self, target):
-		''' Return an x such that self * x == target * k for some k in ZZ. 
+		''' Return an x such that self * x == target * k for some k in ZZ.
 		
 		This matrix must be square. '''
 		

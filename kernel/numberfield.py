@@ -166,9 +166,9 @@ class NumberFieldElement(object):
 		return self.algebraic_approximation().sign()
 	
 	def algebraic_approximation(self, accuracy=0):
-		''' Return an AlgebraicApproximation of this element which is correct to at least the requested accuracy. 
+		''' Return an AlgebraicApproximation of this element which is correct to at least the requested accuracy.
 		
-		If no accuracy is given then accuracy will be chosen such that the approximation will 
+		If no accuracy is given then accuracy will be chosen such that the approximation will
 		determine a unique algebraic number. '''
 		
 		# Let:

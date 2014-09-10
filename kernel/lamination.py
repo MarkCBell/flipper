@@ -170,7 +170,7 @@ class Lamination(object):
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
 		# If we ever fail to make progress more than once then the curve is as short as it's going to get.
-		while time_since_last_weight_loss < 2:
+		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
 			# By Lee Mosher's work there is a complexity that we will reduce to by doing this.
@@ -447,7 +447,7 @@ class Lamination(object):
 		
 		The splitting sequence will have self.preperiodic_encoding set to
 		None if and only if an edge collapse occurs. This is because we don't
-		(yet) know how to describe this by a PLFunction but only happens 
+		(yet) know how to describe this by a PLFunction but only happens
 		because we punctured too many triangles to begin with.
 		
 		This requires the entries of self.vector to be NumberFieldElements
@@ -601,7 +601,7 @@ class Lamination(object):
 	def geometric_intersection(self, lamination):
 		''' Return the geometric intersection number between this lamination and the given one.
 		
-		Assumes that self is a twistable lamination. '''
+		Assumes that this is a twistable lamination. '''
 		
 		assert(isinstance(lamination, Lamination))
 		assert(lamination.triangulation == self.triangulation)

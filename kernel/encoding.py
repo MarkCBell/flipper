@@ -225,9 +225,9 @@ class Encoding(object):
 		return PartialFunction(As, Cs)
 	
 	def order(self):
-		''' Return the order of this mapping class. 
+		''' Return the order of this mapping class.
 		
-		If this has infinite order then returns 0. 
+		If this has infinite order then returns 0.
 		
 		This encoding must be a mapping class. '''
 		

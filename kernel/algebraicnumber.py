@@ -24,7 +24,6 @@ def height_int(number):
 class AlgebraicMonomial(object):
 	''' This represents a product of algebraic numbers. '''
 	def __init__(self, terms, height=None):
-		''' Takes a list of PolynomialRoots and produces the '''
 		assert(all(isinstance(term, flipper.kernel.PolynomialRoot) for term in terms))
 		
 		# We could record self.terms as tuple(sorted(terms)) but to make this work in Python 3

@@ -98,9 +98,9 @@ class Tetrahedron(object):
 		''' Return the SnapPy string describing this tetrahedron. '''
 		
 		strn = ''
-		strn += '%4d %4d %4d %4d\n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-		strn += '%4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
-		strn += '%4d %4d %4d %4d\n' % tuple(self.cusp_indices)
+		strn += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
+		strn += ' %4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
+		strn += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
 		strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
 		strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
@@ -382,7 +382,7 @@ class Triangulation3(object):
 		# First make sure that all of the labellings are good.
 		self.reindex()
 		strn = ''
-		strn += '% Triangulation3\n'
+		strn += '% Triangulation\n'
 		strn += '%s\n' % name
 		strn += 'not_attempted 0.0\n'
 		strn += 'oriented_manifold\n'
@@ -391,9 +391,9 @@ class Triangulation3(object):
 		strn += '%d 0\n' % self.num_cusps
 		for i in range(self.num_cusps):
 			if filled and not self.real_cusps[i]:
-				strn += ' torus %0.12f %0.12f\n' % self.fibre_slopes[i]
+				strn += '    torus %16.12f %16.12f\n' % self.fibre_slopes[i]
 			else:
-				strn += ' torus 0.000000000000 0.000000000000\n'
+				strn += '    torus   0.000000000000   0.000000000000\n'
 		strn += '\n'
 		strn += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:

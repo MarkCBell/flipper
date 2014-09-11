@@ -283,7 +283,7 @@ class Encoding(object):
 			(   Face    )
 			(  Marking  )
 		
-		Such a solution corresponds to an essential invariant (multi)curve. See section ?? of:
+		Such a solution corresponds to an essential invariant (multi)curve. See section 4 of:
 			http://arxiv.org/pdf/1403.2997.pdf
 		for more information.
 		

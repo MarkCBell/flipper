@@ -346,7 +346,7 @@ class Triangulation3(object):
 		
 		Assumes that the meridian and longitude on this cusp have been set. '''
 		
-		# We could install path in TEMPS and then use self.slope_TEMPS().
+		# It is really hard to write this path into TEMPS, we have to worry about how to push things off consistently.
 		
 		# These are the algebraic intersection numbers between the path and the meridian and longitude.
 		meridian_intersection = sum(tetrahedron.peripheral_curves[MERIDIANS][side][other] for (tetrahedron, side, other) in path)

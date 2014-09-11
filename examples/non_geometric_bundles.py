@@ -49,22 +49,6 @@ possible_examples = [
 	'aaaaabab', 'aaaabaab', 'aaaaaaaaab'
 ]
 
-def main(mapping_class):
-	try:
-		splittings = mapping_class.splitting_sequences()
-		for splitting in splittings:
-			M = snappy.Manifold(splitting.bundle().snappy_string())
-			print(len(splitting.periodic_flips), M.num_tetrahedra())
-			print(splitting.initial_lamination.stratum_orders())
-			print(M.solution_type())
-			print('Volume %f' % M.volume())
-			print(M.identify())
-			return M.solution_type() == 'all tetrahedra positively oriented'  # What about other bundles?
-	except flipper.AssumptionError:
-		print('Not pA.')
-	
-	return True
-
 def test1():
 	S = Example_H2()
 	for word in possible_examples:
@@ -72,30 +56,42 @@ def test1():
 		word = word.strip()
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
-		if not main(h):
-			print('##############################')
-			print(word)
-			print('##############################')
+		try:
+			splittings = h.splitting_sequences()
+			for M in [snappy.Manifold(splitting.bundle().snappy_string()) for splitting in splittings]:
+				if M.solution_type() != 'all tetrahedra positively oriented':
+					print('##############################')
+					print('(POSSIBLY) NON GEOMETRIC')
+					print(word, M.num_tetrahedra())
+					print('##############################')
+		except flipper.AssumptionError:
+			pass  # Mapping class is not pseudo-Anosov.
+		
 		print('Time %0.3f' % (time() - start_time))
 
 def test2():
 	S = Example_H2()
+	S = flipper.examples.template('S_2_1')
 	while True:
-		start_time = time()
-		length = randint(3, 10)
-		word = S.random_word(length)  # , negative=False)
+		word = S.random_word(randint(10, 15))  # , negative=False)
+		print('Testing: %s' % word)
 		h = S.mapping_class(word)
-		if not main(h):
-			print('##############################')
-			print(word)
-			print('##############################')
-		print('Time %0.3f' % (time() - start_time))
+		try:
+			splittings = h.splitting_sequences()
+			for M in [snappy.Manifold(splitting.bundle().snappy_string()) for splitting in splittings]:
+				if M.solution_type() != 'all tetrahedra positively oriented':
+					print('##############################')
+					print('(POSSIBLY) NON GEOMETRIC')
+					print(word, M.num_tetrahedra())
+					print('##############################')
+		except flipper.AssumptionError:
+			pass  # Mapping class is not pseudo-Anosov.
 
 def test3():
 	S = Example_H2()
-	# h = S.mapping_class('CbCA')  # 6 tetrahedra.
+	h = S.mapping_class('CbCA')  # 6 tetrahedra.
 	# h = S.mapping_class('Bcc')  # 10 tetrahedra.
-	h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.
+	# h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.
 	# h = flipper.examples.template('S_2_1').mapping_class('abbcccDeffD')
 	splittings = h.splitting_sequences()
 	print('Saving %d bundles.' % len(splittings))
@@ -108,3 +104,8 @@ if __name__ == '__main__':
 	test2()
 	# test3()
 
+# On S_1_2 length 6:
+# BAbAc == bcBA == abCB
+# cbA == aBC
+# On S_2_1 length ??:
+# 

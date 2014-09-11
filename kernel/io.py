@@ -117,4 +117,3 @@ def depackage(packaged_objects):
 	
 	[triangulation, laminations, mapping_classes] = data
 	return triangulation, laminations, mapping_classes
-

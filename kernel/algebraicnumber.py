@@ -17,7 +17,7 @@ HASH_DENOMINATOR = 30
 def height_int(number):
 	''' Return the height of the given integer. '''
 	
-	assert(isinstance(number, flipper.Integer_Type))
+	assert(isinstance(number, flipper.IntegerType))
 	
 	return log(max(abs(number), 1))
 
@@ -84,8 +84,8 @@ class AlgebraicNumber(object):
 	def __init__(self, terms, height=None):
 		assert(isinstance(terms, dict))
 		assert(all(isinstance(term, AlgebraicMonomial) for term in terms))
-		assert(all(isinstance(terms[term], flipper.Integer_Type) for term in terms))
-		assert(height is None or isinstance(height, flipper.Number_Type))
+		assert(all(isinstance(terms[term], flipper.IntegerType) for term in terms))
+		assert(height is None or isinstance(height, flipper.NumberType))
 		assert(len(set(terms)) == len(terms))  # Check for repeated terms.
 		
 		self.terms = dict((term, terms[term]) for term in terms if terms[term] != 0)
@@ -115,7 +115,7 @@ class AlgebraicNumber(object):
 	def __add__(self, other):
 		if isinstance(other, AlgebraicNumber):
 			return AlgebraicNumber(dict((term, self.co(term) + other.co(term)) for term in self.all_terms(other)), height=self.height + other.height + LOG_2)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return self + other * AlgebraicNumber({AlgebraicMonomial([]): 1}, height=self.height+flipper.kernel.height_int(other) + LOG_2)
 		else:
 			return NotImplemented
@@ -124,7 +124,7 @@ class AlgebraicNumber(object):
 	def __sub__(self, other):
 		if isinstance(other, AlgebraicNumber):
 			return AlgebraicNumber(dict((term, self.co(term) - other.co(term)) for term in self.all_terms(other)), height=self.height + other.height + LOG_2)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return self - other * AlgebraicNumber({AlgebraicMonomial([]): 1}, height=self.height+flipper.kernel.height_int(other) + LOG_2)
 		else:
 			return NotImplemented
@@ -138,7 +138,7 @@ class AlgebraicNumber(object):
 					term = term1 * term2
 					terms[term] = self.co(term1) * other.co(term2) + (terms[term] if term in terms else 0)
 			return AlgebraicNumber(terms, height=self.height+other.height)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return AlgebraicNumber(dict((term, other * self.co(term)) for term in self), height=self.height+flipper.kernel.height_int(other))
 		else:
 			return NotImplemented

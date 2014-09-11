@@ -28,7 +28,7 @@ class ExampleSurface(object):
 		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper())]
 		return ''.join(choice(available_letters) for _ in range(length))
 	def mapping_class(self, word):
-		if isinstance(word, flipper.Integer_Type):
+		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)
 		
 		h = self.triangulation.id_encoding()

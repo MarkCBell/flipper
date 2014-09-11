@@ -53,7 +53,7 @@ class Lamination(object):
 		return iter(self.vector)
 	
 	def __getitem__(self, item):
-		if isinstance(item, flipper.Integer_Type):
+		if isinstance(item, flipper.IntegerType):
 			return self.vector[flipper.kernel.norm(item)]
 		elif isinstance(item, flipper.kernel.AbstractEdge):
 			return self.vector[item.index]
@@ -136,7 +136,7 @@ class Lamination(object):
 		if self == self.triangulation.empty_lamination(): return False
 		
 		# This isn't quite right. We should allow NumberFieldElements too.
-		if not all(isinstance(entry, flipper.Integer_Type) for entry in self): return False
+		if not all(isinstance(entry, flipper.IntegerType) for entry in self): return False
 		
 		for corner_class in self.triangulation.corner_classes:
 			for corner in corner_class:

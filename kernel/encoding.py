@@ -146,7 +146,7 @@ class Encoding(object):
 	def __getitem__(self, key):
 		if isinstance(key, slice):
 			return Encoding(self.sequence[key])
-		elif isinstance(key, flipper.Integer_Type):
+		elif isinstance(key, flipper.IntegerType):
 			return self.sequence[key]
 		else:
 			raise TypeError('Invalid argument type.')

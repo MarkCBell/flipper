@@ -20,7 +20,7 @@ class Polynomial(object):
 	It is specified by a list of coefficients. It is capable of determining
 	the number of roots it has in a given interval by using a Sturm chain. '''
 	def __init__(self, coefficients):
-		assert(all(isinstance(coefficient, flipper.Integer_Type) for coefficient in coefficients))  # Should this be Number_Type?
+		assert(all(isinstance(coefficient, flipper.IntegerType) for coefficient in coefficients))  # Should this be NumberType?
 		
 		if coefficients == []: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
@@ -62,19 +62,19 @@ class Polynomial(object):
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
 			return Polynomial([a + b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return Polynomial([self[0] + other] + self.coefficients[1:])
 		else:
 			return NotImplemented
 	def __sub__(self, other):
 		if isinstance(other, Polynomial):
 			return Polynomial([a - b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return Polynomial([self[0] - other] + self.coefficients[1:])
 		else:
 			return NotImplemented
 	def __mul__(self, other):
-		if isinstance(other, flipper.Integer_Type):
+		if isinstance(other, flipper.IntegerType):
 			return Polynomial([a * other for a in self])
 		else:
 			return NotImplemented

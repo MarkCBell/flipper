@@ -27,9 +27,9 @@ from math import log10 as log
 class Interval(object):
 	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
-		assert(isinstance(lower, flipper.Integer_Type))
-		assert(isinstance(upper, flipper.Integer_Type))
-		assert(isinstance(precision, flipper.Integer_Type))
+		assert(isinstance(lower, flipper.IntegerType))
+		assert(isinstance(upper, flipper.IntegerType))
+		assert(isinstance(precision, flipper.IntegerType))
 		if lower > upper: raise ValueError('Interval is empty.')
 		
 		self.lower = lower
@@ -70,7 +70,7 @@ class Interval(object):
 	def change_denominator(self, new_denominator):
 		''' Return a this interval over a new denominator. '''
 		
-		assert(isinstance(new_denominator, flipper.Integer_Type))
+		assert(isinstance(new_denominator, flipper.IntegerType))
 		
 		d = new_denominator - self.precision
 		if d > 0:
@@ -84,7 +84,7 @@ class Interval(object):
 		
 		The new_accuracy must be at most self.accuracy. '''
 		
-		assert(isinstance(new_accuracy, flipper.Integer_Type))
+		assert(isinstance(new_accuracy, flipper.IntegerType))
 		
 		if self.accuracy == float('inf'):
 			return self
@@ -103,7 +103,7 @@ class Interval(object):
 	def __contains__(self, other):
 		if isinstance(other, Interval):
 			return self.lower < other.lower and other.upper < self.upper
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return self.lower < other * 10**self.precision < self.upper
 		else:
 			return NotImplemented
@@ -123,7 +123,7 @@ class Interval(object):
 			new_lower = P.lower + Q.lower
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -136,7 +136,7 @@ class Interval(object):
 			new_lower = P.lower - Q.upper
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
 		else:
 			return NotImplemented
@@ -148,7 +148,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
 			return Interval(min(values), max(values), 2*common_precision)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -173,7 +173,7 @@ class Interval(object):
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
 			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
 			return Interval(min(values), max(values), common_precision)
-		elif isinstance(other, flipper.Integer_Type):
+		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower // other, self.upper // other]
 			return Interval(min(values), max(values), self.precision)
 		else:
@@ -184,7 +184,7 @@ class Interval(object):
 	def midpoint(self, magnitude=10):
 		''' Return a smaller interval containing the midpoint of this interval. '''
 		
-		assert(isinstance(magnitude, flipper.Integer_Type))
+		assert(isinstance(magnitude, flipper.IntegerType))
 		
 		m = (10**magnitude) * (self.lower + self.upper) // 2
 		return Interval(m-1, m+1, self.precision+magnitude)

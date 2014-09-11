@@ -56,7 +56,7 @@ def package(objects):
 			unnamed_mapping_classes.append(item)
 		elif isinstance(item, (list, tuple)) and len(item) == 2:
 			name, item2 = item
-			if isinstance(name, flipper.String_Type):
+			if isinstance(name, flipper.StringType):
 				if isinstance(item2, flipper.kernel.AbstractTriangulation):
 					if triangulation is not None:
 						raise ValueError('Only one triangulation may be given.')

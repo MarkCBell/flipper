@@ -405,7 +405,7 @@ class FlipperApp(object):
 				string_contents = open(load_from, 'rb').read()
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
-			elif not isinstance(load_from, flipper.String_Type):
+			elif not isinstance(load_from, flipper.StringType):
 				string_contents = flipper.package(load_from)
 			
 			try:
@@ -966,7 +966,7 @@ class FlipperApp(object):
 				
 				curve.counted = True
 		
-		if all(isinstance(x, flipper.Integer_Type) and x % 2 == 0 for x in vector):
+		if all(isinstance(x, flipper.IntegerType) and x % 2 == 0 for x in vector):
 			vector = [i // 2 for i in vector]
 		else:
 			vector = [i / 2 for i in vector]

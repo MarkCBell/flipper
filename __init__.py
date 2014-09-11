@@ -10,9 +10,9 @@ import flipper.versions
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.abstract_triangulation = flipper.kernel.abstract_triangulation
 
-flipper.Integer_Type = flipper.kernel.Integer_Type
-flipper.String_Type = flipper.kernel.String_Type
-flipper.Number_Type = flipper.kernel.Number_Type
+flipper.IntegerType = flipper.kernel.IntegerType
+flipper.StringType = flipper.kernel.StringType
+flipper.NumberType = flipper.kernel.NumberType
 
 flipper.AbortError = flipper.kernel.AbortError
 flipper.ApproximationError = flipper.kernel.ApproximationError

@@ -52,9 +52,9 @@ id_matrix = matrix.id_matrix
 zero_matrix = matrix.zero_matrix
 height_int = algebraicnumber.height_int
 norm = abstracttriangulation.norm
-Integer_Type = types.Integer_Type
-String_Type = types.String_Type
-Number_Type = types.Number_Type
+IntegerType = types.IntegerType
+StringType = types.StringType
+NumberType = types.NumberType
 
 # Functions that help with construction.
 abstract_triangulation = abstracttriangulation.abstract_triangulation

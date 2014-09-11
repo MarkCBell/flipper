@@ -12,7 +12,7 @@ class SplittingSequence(object):
 		assert(preperiodic is None or isinstance(preperiodic, flipper.kernel.Encoding))
 		assert(isinstance(periodic, flipper.kernel.Encoding))
 		assert(isinstance(isometry, flipper.kernel.Isometry))
-		assert(all(isinstance(flip, flipper.Integer_Type) for flip in periodic_flips))
+		assert(all(isinstance(flip, flipper.IntegerType) for flip in periodic_flips))
 		
 		self.initial_lamination = initial_lamination
 		self.preperiodic = preperiodic  # Unused.

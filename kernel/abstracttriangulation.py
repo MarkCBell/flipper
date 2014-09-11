@@ -28,7 +28,7 @@ def norm(value):
 class AbstractVertex(object):
 	''' This represents a vertex, labelled with an integer. '''
 	def __init__(self, label):
-		assert(isinstance(label, flipper.Integer_Type))
+		assert(isinstance(label, flipper.IntegerType))
 		self.label = label
 	
 	def __repr__(self):
@@ -42,7 +42,7 @@ class AbstractEdge(object):
 	def __init__(self, source_vertex, target_vertex, label, reversed_edge=None):
 		assert(isinstance(source_vertex, AbstractVertex))
 		assert(isinstance(target_vertex, AbstractVertex))
-		assert(isinstance(label, flipper.Integer_Type))
+		assert(isinstance(label, flipper.IntegerType))
 		assert(reversed_edge is None or isinstance(reversed_edge, AbstractEdge))
 		
 		self.source_vertex = source_vertex
@@ -108,7 +108,7 @@ class AbstractCorner(object):
 	It is a triangle along with a side number (the side opposite this corner). '''
 	def __init__(self, triangle, side):
 		assert(isinstance(triangle, AbstractTriangle))
-		assert(isinstance(side, flipper.Integer_Type))
+		assert(isinstance(side, flipper.IntegerType))
 		
 		self.triangle = triangle
 		self.side = side

@@ -35,7 +35,7 @@ EXIT_CUSP_RIGHT = {(0, 1): 2, (0, 2): 3, (0, 3): 1, (1, 0): 3, (1, 2): 0, (1, 3)
 class Tetrahedron(object):
 	''' This represents a tetrahedron. '''
 	def __init__(self, label=None):
-		assert(label is None or isinstance(label, flipper.Integer_Type))
+		assert(label is None or isinstance(label, flipper.IntegerType))
 		
 		self.label = label
 		self.glued_to = [None] * 4 # Each entry is either: None or (Tetrahedron, permutation).
@@ -111,7 +111,7 @@ class Tetrahedron(object):
 class Triangulation3(object):
 	''' This represents triangulation, that is a collection of tetrahedra. '''
 	def __init__(self, num_tetrahedra):
-		assert(isinstance(num_tetrahedra, flipper.Integer_Type))
+		assert(isinstance(num_tetrahedra, flipper.IntegerType))
 		
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
@@ -426,7 +426,7 @@ class LayeredTriangulation(object):
 	def __init__(self, triangulation, flip_indices, isometry):
 		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
 		assert(isinstance(flip_indices, (list, tuple)))
-		assert(all(isinstance(edge_index, flipper.Integer_Type) for edge_index in flip_indices))
+		assert(all(isinstance(edge_index, flipper.IntegerType) for edge_index in flip_indices))
 		assert(isinstance(isometry, flipper.kernel.Isometry))
 		
 		self.triangulation = triangulation

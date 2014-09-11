@@ -12,11 +12,6 @@ Provides three classes: Tetrahedron, Triangulation3 and LayeredTriangulation. ''
 import flipper
 
 from itertools import permutations, combinations, product
-# Perhaps we don't need the Queue.
-try:
-	from Queue import Queue
-except ImportError:  # Python 3.
-	from queue import Queue
 
 # Edge veerings:
 VEERING_UNKNOWN = None
@@ -183,27 +178,30 @@ class Triangulation3(object):
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
 	
 	def assign_cusp_indices(self):
-		''' Assign the tetrahedra in this triangulation their cusp indices and return the list of corners in the same cusp. '''
+		''' Assign the tetrahedra in this triangulation their cusp indices and return the list of corners in the same cusp.
 		
-		remaining_vertices = list(product(self, range(4)))
+		This triangulation must be closed. '''
+		
+		assert(self.is_closed())
 		
 		vertex_classes = []
-		while len(remaining_vertices) > 0:
-			new_vertex_class = []
-			to_explore = Queue()
-			to_explore.put(remaining_vertices.pop())
-			while not to_explore.empty():
-				current_vertex = to_explore.get()
-				new_vertex_class.append(current_vertex)
-				current_tetrahedron, current_side = current_vertex
+		remaining_vertices = list(product(self, range(4)))
+		while remaining_vertices:
+			# We do a depth first search to find all vertices in this cusp.
+			new_vertex = remaining_vertices.pop()
+			new_vertex_class = [new_vertex]
+			# This is a stack of triangles that may still have consequences.
+			to_explore = [new_vertex]
+			while to_explore:
+				current_tetrahedron, current_side = to_explore.pop()
 				for side in VERTICES_MEETING[current_side]:
-					if current_tetrahedron.glued_to[side] is not None:
-						neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
-						neighbour_side = permutation(current_side)
-						neighbour_vertex = neighbour_tetrahedron, neighbour_side
-						if neighbour_vertex in remaining_vertices:
-							to_explore.put(neighbour_vertex)
-							remaining_vertices.remove(neighbour_vertex)
+					neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
+					neighbour_side = permutation(current_side)
+					neighbour_vertex = neighbour_tetrahedron, neighbour_side
+					if neighbour_vertex in remaining_vertices:
+						to_explore.append(neighbour_vertex)
+						new_vertex_class.append(neighbour_vertex)
+						remaining_vertices.remove(neighbour_vertex)
 			
 			vertex_classes.append(new_vertex_class)
 		
@@ -367,6 +365,8 @@ class Triangulation3(object):
 		
 		longitude_intersection = self.intersection_number(LONGITUDES, TEMPS)
 		meridian_intersection = self.intersection_number(MERIDIANS, TEMPS)
+		
+		# So the number of copies of the longitude and the meridian that we need to represent the path is:
 		longitude_copies = -meridian_intersection
 		meridian_copies = longitude_intersection
 		
@@ -410,10 +410,8 @@ def permutation_from_pair(a, to_a, b, to_b):
 	c, d = set(range(4)).difference([a, b])
 	to_c, to_d = set(range(4)).difference([to_a, to_b])
 	
-	X1 = {a: to_a, b: to_b, c: to_c, d: to_d}
-	X2 = {a: to_a, b: to_b, c: to_d, d: to_c}
-	perm1 = flipper.kernel.Permutation([X1[i] for i in range(4)])
-	perm2 = flipper.kernel.Permutation([X2[i] for i in range(4)])
+	perm1 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_c, d: to_d}[i] for i in range(4)])
+	perm2 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_d, d: to_c}[i] for i in range(4)])
 	if not perm1.is_even():
 		return perm1
 	elif not perm2.is_even():

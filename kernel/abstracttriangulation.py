@@ -12,11 +12,6 @@ There is also a helper function: abstract_triangulation. '''
 import flipper
 
 from itertools import product, combinations
-# Perhaps we don't need the Queue.
-try:
-	from Queue import Queue
-except ImportError:  # Python 3.
-	from queue import Queue
 
 def norm(value):
 	''' A map taking an edges label to its index.
@@ -416,33 +411,36 @@ class AbstractTriangulation(object):
 		
 		assert(isinstance(other_triangulation, AbstractTriangulation))
 		
+		# Isometries are determined by where a single triangle is sent.
+		# We take a corner of smallest degree.
 		source_cc = min(self.corner_classes, key=len)
+		source_corner = source_cc[0]
+		# And find all the places where it could be sent so there are as few as possible to check.
 		target_corners = [corner for target_cc in other_triangulation.corner_classes for corner in target_cc if len(target_cc) == len(source_cc)]
 		
-		source_corner = source_cc[0]
 		isometries = []
 		for target_corner in target_corners:
-			corner_map = {}
-			to_process = Queue()
-			to_process.put((source_corner, target_corner))
-			while not to_process.empty():
-				from_corner, to_corner = to_process.get()
+			# We do a depth first search extending the corner map across the triangulation.
+			corner_map = {source_corner: target_corner}
+			# This is a stack of triangles that may still have consequences.
+			to_process = [(source_corner, target_corner)]
+			while to_process:
+				from_corner, to_corner = to_process.pop()
 				new_from_corner, new_to_corner = self.opposite_corner(from_corner), other_triangulation.opposite_corner(to_corner)
 				if new_from_corner in corner_map:
 					if new_to_corner != corner_map[new_from_corner]:
-						break
+						break  # Map does not extend to a consistent isometry.
 				else:
 					corner_map[new_from_corner] = new_to_corner
-					to_process.put((new_from_corner, new_to_corner))
+					to_process.append((new_from_corner, new_to_corner))
 				
 				new_from_corner, new_to_corner = self.rotate_corner(from_corner), other_triangulation.rotate_corner(to_corner)
 				if new_from_corner in corner_map:
 					if new_to_corner != corner_map[new_from_corner]:
-						# Map does not extend to a consistent isometry.
-						break
+						break  # Map does not extend to a consistent isometry.
 				else:
 					corner_map[new_from_corner] = new_to_corner
-					to_process.put((new_from_corner, new_to_corner))
+					to_process.append((new_from_corner, new_to_corner))
 			else:
 				isometries.append(flipper.kernel.Isometry(self, other_triangulation, corner_map))
 		

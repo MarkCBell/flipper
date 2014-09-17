@@ -71,14 +71,15 @@ def test1():
 
 def test2():
 	S = Example_H2()
-	S = flipper.examples.template('S_2_1')
+	# S = flipper.examples.template('S_2_1')
+	# S = flipper.examples.template('S_1_2')
 	while True:
-		word = S.random_word(randint(10, 15))  # , negative=False)
+		word = S.random_word(randint(2, 5))  # , negative=False)
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
 		try:
 			splittings = h.splitting_sequences()
-			for M in [snappy.Manifold(splitting.bundle().snappy_string()) for splitting in splittings]:
+			for M in [snappy.Manifold(splitting.bundle().snappy_string(filled=False)) for splitting in splittings]:
 				if M.solution_type() != 'all tetrahedra positively oriented':
 					print('##############################')
 					print('(POSSIBLY) NON GEOMETRIC')
@@ -92,17 +93,19 @@ def test3():
 	h = S.mapping_class('CbCA')  # 6 tetrahedra.
 	# h = S.mapping_class('Bcc')  # 10 tetrahedra.
 	# h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.
+	# h = S.mapping_class('aabAb')  # 13 tetrahedra (not HIS example?).
 	# h = flipper.examples.template('S_2_1').mapping_class('abbcccDeffD')
+	
 	splittings = h.splitting_sequences()
 	print('Saving %d bundles.' % len(splittings))
 	for index, splitting in enumerate(splittings):
-		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string())
-		# snappy.Manifold(splitting.bundle().snappy_string()).save('test%d.tri' % index)
+		print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
+		# open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
 
 if __name__ == '__main__':
 	# test1()
-	test2()
-	# test3()
+	# test2()
+	test3()
 
 # On S_1_2 length 6:
 # BAbAc == bcBA == abCB

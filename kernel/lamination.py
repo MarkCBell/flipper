@@ -248,7 +248,7 @@ class Lamination(object):
 		short_lamination = conjugation(self)
 		
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		x, y = [edge.indices for edge in short_lamination.triangulation.square_about_edge(e1) if edge.indices != e2]
+		x, y = [edge.index for edge in short_lamination.triangulation.square_about_edge(e1) if edge.index != e2]
 		for triangle in short_lamination.triangulation:
 			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
 				return True

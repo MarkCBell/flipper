@@ -20,12 +20,14 @@ class ExampleSurface(object):
 		else:
 			self.laminations = dict(list(zip(ascii_lowercase, laminations)))
 		if isinstance(mapping_classes, dict):
-			self.mapping_classes = mapping_classes
+			self.all_mapping_classes = mapping_classes
 		else:
+			self.pos_mapping_classes = dict(zip(ascii_lowercase, mapping_classes))
+			self.inverse_mapping_classes = dict((name.swapcase, self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			inverse_mapping_classes = [h.inverse() for h in mapping_classes]
-			self.mapping_classes = dict(list(zip(ascii_lowercase, mapping_classes)) + list(zip(ascii_uppercase, inverse_mapping_classes)))
-	def random_word(self, length, positive=True, negative=True):
-		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper())]
+			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.inverse_mapping_classes.items()))
+	def random_word(self, length, positive=True, negative=True, other=True):
+		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper()) or (other and not x.islower() and not x.isupper())]
 		return ''.join(choice(available_letters) for _ in range(length))
 	def mapping_class(self, word):
 		if isinstance(word, flipper.IntegerType):
@@ -36,6 +38,9 @@ class ExampleSurface(object):
 			h = h * self.mapping_classes[letter]
 		
 		return h
+	def show(self):
+		import flipper.application
+		flipper.application.start(list(self.laminations.items()) + list(self.pos_mapping_classes.items()))
 
 def Example_S_1_1():
 	T = flipper.abstract_triangulation([[0, 2, 1], [~0, ~2, ~1]])

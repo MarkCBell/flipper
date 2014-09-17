@@ -33,10 +33,56 @@ except ImportError:  # Python 3.
 		raise ImportError('Ttk not available.')
 
 # Some constants.
-COMMAND_MODIFIERS = {'darwin': 'Command', 'win32': 'Ctrl', 'linux2': 'Ctrl', 'linux3': 'Ctrl'}
-COMMAND_MODIFIER = COMMAND_MODIFIERS[sys.platform] if sys.platform in COMMAND_MODIFIERS else 'Ctrl'
-COMMAND_MODIFIER_BINDINGS = {'darwin': 'Command', 'win32': 'Control', 'linux2': 'Control', 'linux3': 'Control'}
-COMMAND_MODIFIER_BINDING = COMMAND_MODIFIER_BINDINGS[sys.platform] if sys.platform in COMMAND_MODIFIER_BINDINGS else 'Control'
+if sys.platform in ['darwin']:
+	COMMAND = {
+		'new': 'Command+N',
+		'open': 'Command+O',
+		'save': 'Command+S',
+		'close': 'Command+W',
+		'lamination': 'Command+L',
+		'erase': 'Command+D',
+		'twist': 'Command+T',
+		'halftwist': 'Command+H',
+		'isometry': 'Command+I',
+		'compose': 'Command+O'
+		}
+	COMMAND_KEY = {
+		'new': '<Command-n>',
+		'open': '<Command-o>',
+		'save': '<Command-s>',
+		'close': '<Command-w>',
+		'lamination': '<Command-l>',
+		'erase': '<Command-d>',
+		'twist': '<Command-t>',
+		'halftwist': '<Command-h>',
+		'isometry': '<Command-i>',
+		'compose': '<Command-m>'
+		}
+else:
+	COMMAND = {
+		'new': 'Ctrl+N',
+		'open': 'Ctrl+O',
+		'save': 'Ctrl+S',
+		'close': 'Ctrl+W',
+		'lamination': 'Ctrl+L',
+		'erase': 'Ctrl+D',
+		'twist': 'Ctrl+T',
+		'halftwist': 'Ctrl+H',
+		'isometry': 'Ctrl+I',
+		'compose': 'Ctrl+M'
+		}
+	COMMAND_KEY = {
+		'new': '<Control-n>',
+		'open': '<Control-o>',
+		'save': '<Control-s>',
+		'close': '<Control-w>',
+		'lamination': '<Control-l>',
+		'erase': '<Control-d>',
+		'twist': '<Control-t>',
+		'halftwist': '<Control-h>',
+		'isometry': '<Control-i>',
+		'compose': '<Control-m>'
+		}
 
 # Event modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
 BIT_SHIFT = 0x001
@@ -111,15 +157,15 @@ class FlipperApp(object):
 		app_font = self.options.application_font  # Get a shorter name.
 		
 		self.filemenu = TK.Menu(self.menubar, tearoff=0)
-		self.filemenu.add_command(label='New', command=self.initialise, accelerator='%s+N' % COMMAND_MODIFIER, font=app_font)
-		self.filemenu.add_command(label='Open', command=self.load, accelerator='%s+O' % COMMAND_MODIFIER, font=app_font)
-		self.filemenu.add_command(label='Save', command=self.save, accelerator='%s+S' % COMMAND_MODIFIER, font=app_font)
+		self.filemenu.add_command(label='New', command=self.initialise, accelerator=COMMAND['new'], font=app_font)
+		self.filemenu.add_command(label='Open', command=self.load, accelerator=COMMAND['open'], font=app_font)
+		self.filemenu.add_command(label='Save', command=self.save, accelerator=COMMAND['save'], font=app_font)
 		self.exportmenu = TK.Menu(self.menubar, tearoff=0)
 		self.exportmenu.add_command(label='Export kernel file', command=self.export_kernel_file, font=app_font)
 		self.exportmenu.add_command(label='Export image', command=self.export_image, font=app_font)
 		self.filemenu.add_cascade(label='Export', menu=self.exportmenu, font=app_font)
 		self.filemenu.add_separator()
-		self.filemenu.add_command(label='Exit', command=self.quit, accelerator='%s+W' % COMMAND_MODIFIER, font=app_font)
+		self.filemenu.add_command(label='Exit', command=self.quit, accelerator=COMMAND['save'], font=app_font)
 		self.menubar.add_cascade(label='File', menu=self.filemenu, font=app_font)
 		
 		self.surfacemenu = TK.Menu(self.menubar, tearoff=0)
@@ -134,17 +180,17 @@ class FlipperApp(object):
 		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=app_font)
 		
 		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
-		self.laminationmenu.add_command(label='Store', command=self.store_lamination, accelerator='%s+L' % COMMAND_MODIFIER, font=app_font)
+		self.laminationmenu.add_command(label='Store', command=self.store_lamination, accelerator=COMMAND['lamination'], font=app_font)
 		self.laminationmenu.add_command(label='Tighten', command=self.tighten_lamination, font=app_font)
-		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator='%s+D' % COMMAND_MODIFIER, font=app_font)
+		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator=COMMAND['erase'], font=app_font)
 		self.menubar.add_cascade(label='Lamination', menu=self.laminationmenu, state='disabled', font=app_font)
 		
 		self.mappingclassmenu = TK.Menu(self.menubar, tearoff=0)
 		self.storemappingclassmenu = TK.Menu(self.menubar, tearoff=0)
-		self.storemappingclassmenu.add_command(label='Twist', command=self.store_twist, accelerator='%s+T' % COMMAND_MODIFIER, font=app_font)
-		self.storemappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, accelerator='%s+H' % COMMAND_MODIFIER, font=app_font)
-		self.storemappingclassmenu.add_command(label='Isometry', command=self.store_isometry, accelerator='%s+I' % COMMAND_MODIFIER, font=app_font)
-		self.storemappingclassmenu.add_command(label='Composition', command=self.store_composition, accelerator='%s+M' % COMMAND_MODIFIER, font=app_font)
+		self.storemappingclassmenu.add_command(label='Twist', command=self.store_twist, accelerator=COMMAND['twist'], font=app_font)
+		self.storemappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, accelerator=COMMAND['halftwist'], font=app_font)
+		self.storemappingclassmenu.add_command(label='Isometry', command=self.store_isometry, accelerator=COMMAND['isometry'], font=app_font)
+		self.storemappingclassmenu.add_command(label='Composition', command=self.store_composition, accelerator=COMMAND['compose'], font=app_font)
 		self.mappingclassmenu.add_cascade(label='Store...', menu=self.storemappingclassmenu, font=app_font)
 		self.mappingclassmenu.add_command(label='Apply', command=self.show_apply, font=app_font)
 		self.mappingclassmenu.add_command(label='Order', command=self.order, font=app_font)
@@ -187,16 +233,16 @@ class FlipperApp(object):
 		self.menubar.add_cascade(label='Help', menu=self.helpmenu, font=app_font)
 		self.parent.config(menu=self.menubar)
 		
-		self.parent.bind('<%s-n>' % COMMAND_MODIFIER_BINDING, lambda event: self.initialise())
-		self.parent.bind('<%s-o>' % COMMAND_MODIFIER_BINDING, lambda event: self.load())
-		self.parent.bind('<%s-s>' % COMMAND_MODIFIER_BINDING, lambda event: self.save())
-		self.parent.bind('<%s-w>' % COMMAND_MODIFIER_BINDING, lambda event: self.quit())
-		self.parent.bind('<%s-d>' % COMMAND_MODIFIER_BINDING, lambda event: self.destroy_lamination())
-		self.parent.bind('<%s-l>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_lamination())
-		self.parent.bind('<%s-t>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_twist())
-		self.parent.bind('<%s-h>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_halftwist())
-		self.parent.bind('<%s-i>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_isometry())
-		self.parent.bind('<%s-m>' % COMMAND_MODIFIER_BINDING, lambda event: self.store_composition())
+		self.parent.bind(COMMAND_KEY['new'], lambda event: self.initialise())
+		self.parent.bind(COMMAND_KEY['open'], lambda event: self.load())
+		self.parent.bind(COMMAND_KEY['save'], lambda event: self.save())
+		self.parent.bind(COMMAND_KEY['close'], lambda event: self.quit())
+		self.parent.bind(COMMAND_KEY['lamination'], lambda event: self.store_lamination())
+		self.parent.bind(COMMAND_KEY['erase'], lambda event: self.destroy_lamination())
+		self.parent.bind(COMMAND_KEY['twist'], lambda event: self.store_twist())
+		self.parent.bind(COMMAND_KEY['halftwist'], lambda event: self.store_halftwist())
+		self.parent.bind(COMMAND_KEY['isometry'], lambda event: self.store_isometry())
+		self.parent.bind(COMMAND_KEY['compose'], lambda event: self.store_composition())
 		self.parent.bind('<Key>', self.parent_key_press)
 		
 		self.parent.protocol('WM_DELETE_WINDOW', self.quit)

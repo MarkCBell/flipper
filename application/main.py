@@ -126,7 +126,11 @@ class FlipperApp(object):
 		self.surfacemenu.add_command(label='Create ngon', command=self.initialise_circular_n_gon, font=app_font)
 		self.surfacemenu.add_command(label='Create radial ngon', command=self.initialise_radial_n_gon, font=app_font)
 		self.surfacemenu.add_command(label='Information', command=self.show_surface_information, font=app_font)
-		self.surfacemenu.add_command(label='Zoom', command=self.auto_zoom, font=app_font)
+		self.zoommenu = TK.Menu(self.menubar, tearoff=0)
+		self.zoommenu.add_command(label='Zoom in', command=self.zoom_in, accelerator='+', font=app_font)
+		self.zoommenu.add_command(label='Zoom out', command=self.zoom_out, accelerator='-', font=app_font)
+		self.zoommenu.add_command(label='Auto zoom', command=self.auto_zoom, accelerator='0', font=app_font)
+		self.surfacemenu.add_cascade(label='Zoom...', menu=self.zoommenu, font=app_font)
 		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=app_font)
 		
 		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
@@ -428,58 +432,85 @@ class FlipperApp(object):
 				if abstract_triangulation is None:
 					raise ValueError('Triangulation required.')
 				
-				if abstract_triangulation.is_isometric_to(self.abstract_triangulation):
+				# See if we can use the current triangulation.
+				if self.abstract_triangulation is not None and abstract_triangulation.is_isometric_to(self.abstract_triangulation):
 					isom = self.abstract_triangulation.all_isometries(abstract_triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 					canvas_objects = [vertices, edges]
 				else:
-					# There isn't a good one here so create a triangulation ourselves.
-					# We will place n triangles in k x k square there may be a few unused slots
-					# at the end.
+					# If not then we'll create a triangulation ourselves.
+					vertices, edges = [], []
+					
 					n = abstract_triangulation.num_triangles
+					ngon = n + 2
 					self.parent.update_idletasks()
 					w = int(self.canvas.winfo_width())
 					h = int(self.canvas.winfo_height())
 					r = min(w, h) * (1 + self.options.zoom_fraction) / 4
-					k = int(sqrt(n)) + 1
-					cell_size = r / k
-					r = cell_size / 2
-					x_0, y_0 = (w / 2, h / 2)
 					
-					vertices = []
-					edges = []
 					# Create the vertices.
-					for i in range(n):
-						x_1, y_1 = x_0 + cell_size * (i % k), y_0 + cell_size * (i // k)
-						for j in range(3):
-							x_2, y_2 = x_1 + sin(2*pi*(j+0.5) / 3) * r, y_1 + cos(2*pi*(j+0.5) / 3) * r
-							vertices.append((x_2, y_2))
+					for i in range(ngon):
+						x, y = w / 2 + r * sin(2*pi*(i+0.5) / ngon), h / 2 + r * cos(2*pi*(i+0.5) / ngon)
+						vertices.append((x, y))
 					
-					# Add in the edges.
-					for i, j in product(range(n), range(3)):
-						edge_number = abstract_triangulation[i][j].index
-						[glued_to] = [3*a + b for a, b in product(range(n), range(3)) if abstract_triangulation[a][b].index == edge_number and (a, b) != (i, j)]
-						edge_info = (3*i + j, 3*i + ((j+1) % 3), edge_number, glued_to)
-						edges.append(edge_info)
+					dual_tree = abstract_triangulation.dual_tree()
+					
+					def num_descendants(edge_label):
+						''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
+						
+						corner = abstract_triangulation.corner_of_edge(edge_label)
+						left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
+						right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
+						
+						return left, right
+					
+					start = min(i for i in range(abstract_triangulation.zeta) if not dual_tree[i])
+					to_extend = [(0, 1, start)]
+					edges = [(0, 1, start, None)]
+					while to_extend:
+						source_vertex, target_vertex, label = to_extend.pop()
+						c = num_descendants(label)
+						left, right = num_descendants(label)
+						corner = abstract_triangulation.corner_of_edge(label)
+						
+						edges.append((target_vertex + left + 1, target_vertex, corner.indices[2], None))
+						edges.append((source_vertex, target_vertex + left + 1, corner.indices[1], None))
+						
+						if left > 0:
+							to_extend.append((target_vertex + left + 1, target_vertex, ~(corner.labels[2])))
+						
+						if right > 0:
+							to_extend.append((source_vertex, target_vertex + left + 1, ~(corner.labels[1])))
+					
+					for i, j in combinations(range(len(edges)), r=2):
+						if edges[i][2] == edges[j][2]:
+							edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
+							edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
+					
 					canvas_objects = [vertices, edges]
 			
 			if not self.initialise():
 				return
 			
 			vertices, edges = canvas_objects
+			
+			# Create the vertices.
 			for vertex in vertices:
 				self.create_vertex(vertex)
 			
+			# Create the edges.
 			for edge in edges:
 				start_index, end_index, edge_index, glued_to_index = edge
 				self.create_edge(self.vertices[start_index], self.vertices[end_index])
 			
+			# Create the edge identifications.
 			for index, edge in enumerate(edges):
 				start_index, end_index, edge_index, glued_to_index = edge
 				if glued_to_index is not None and glued_to_index > index:
 					self.create_edge_identification(self.edges[index], self.edges[glued_to_index])
 			
+			# Set the correct edge indices.
 			for index, edge in enumerate(edges):
 				start_index, end_index, edge_index, glued_to_index = edge
 				self.edges[index].index = edge_index
@@ -487,17 +518,17 @@ class FlipperApp(object):
 			
 			self.abstract_triangulation = abstract_triangulation
 			
-			for name, lamination in laminations:
+			for name, lamination in sorted(laminations):
 				self.add_lamination(lamination, name)
 			
-			for name, mapping_class in mapping_classes:
+			for name, mapping_class in sorted(mapping_classes):
 				self.add_mapping_class(mapping_class, name)
 			
 			if cache is not None:
 				self.cache = cache
 			
 			self.unsaved_work = False
-		except AssertionError:  # (IndexError, ValueError):
+		except ImportError:  # (IndexError, ValueError):
 			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.version)
 	
 	def export_image(self):
@@ -578,6 +609,12 @@ class FlipperApp(object):
 			curve_component.update()
 		self.build_edge_labels()
 		self.redraw()
+	
+	def zoom_in(self):
+		self.zoom_centre(1.05)
+	
+	def zoom_out(self):
+		self.zoom_centre(0.95)
 	
 	def zoom_centre(self, scale):
 		self.parent.update_idletasks()
@@ -1349,22 +1386,24 @@ class FlipperApp(object):
 			self.canvas_right_click(event)
 		elif key == 'F1':
 			self.show_help()
-		elif key == 'Prior':
-			self.zoom_centre(1.05)
-		elif key == 'Next':
+		elif key == 'Prior' or key == 'equal' or key == 'plus':
+			self.zoom_in()
+		elif key == 'Next' or key == 'minus' or key == 'underscore':
 			self.zoom_centre(0.95)
+		elif key == '0':
+			self.auto_zoom()
 		elif key == 'Up':
 			if focus == self.canvas:
-				self.translate(0, -5)
+				self.translate(0, 5)
 		elif key == 'Down':
 			if focus == self.canvas:
-				self.translate(0, 5)
+				self.translate(0, -5)
 		elif key == 'Left':
 			if focus == self.canvas:
-				self.translate(-5, 0)
+				self.translate(5, 0)
 		elif key == 'Right':
 			if focus == self.canvas:
-				self.translate(5, 0)
+				self.translate(-5, 0)
 	
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)

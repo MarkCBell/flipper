@@ -412,7 +412,7 @@ class Encoding(object):
 		
 		# We will remember the cells we've tested to avoid recalculating their eigenvectors again.
 		tested_cells = []
-		for i in range(50):
+		for i in range(100):
 			new_curve = self(curves[-1])
 			
 			# Check if we have seen this curve before.

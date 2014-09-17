@@ -15,7 +15,7 @@ def test(splittings, M):
 				if M.is_isometric_to(N):
 					return True
 			except RuntimeError:
-				pass
+				pass  # Snappy couldn't decide if these are isometric or not.
 	
 	return False
 

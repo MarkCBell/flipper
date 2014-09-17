@@ -328,13 +328,11 @@ class AbstractTriangulation(object):
 		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
-	def homology_basis(self):
-		''' Return a basis for H_1 of the underlying punctured surface.
+	def tree(self, dual=False):
+		''' Return a maximal tree in the 1--skeleton of this triangulation.
 		
-		Each element is given as a path in the dual 1--skeleton and each pair of
-		paths is guaranteed to meet at most once. '''
+		This is given as a list of Booleans signaling if each edge is in the tree. '''
 		
-		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		tree = [False] * self.zeta
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
 		vertices_used[self.vertices[0]] = True
@@ -348,15 +346,22 @@ class AbstractTriangulation(object):
 						vertices_used[b] = True
 						break
 			else:
-				break  # If there are no more to add then our tree is maximal
+				return tree  # If there are no more to add then our tree is maximal
+	
+	def dual_tree(self, avoid=None):
+		''' Return a maximal tree in 1--skeleton of the dual of this triangulation.
 		
-		# Now construct a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
+		If given an avoid list then no edges in avoid will be used. If not then we will
+		choose a tree in the 1--skeleton and avoid that. '''
+		
+		if avoid is None: avoid = self.tree()
+		
 		dual_tree = [False] * self.zeta
 		faces_used = dict((triangle, False) for triangle in self.triangles)
 		faces_used[self.triangles[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				if not tree[edge_index] and not dual_tree[edge_index]:
+				if not avoid[edge_index] and not dual_tree[edge_index]:
 					a, b = self.triangles_of_edge(edge_index)
 					if faces_used[a] != faces_used[b]:
 						dual_tree[edge_index] = True
@@ -364,7 +369,19 @@ class AbstractTriangulation(object):
 						faces_used[b] = True
 						break
 			else:
-				break  # If there are no more to add then our tree is maximal
+				return dual_tree  # If there are no more to add then our dual tree is maximal
+	
+	def homology_basis(self):
+		''' Return a basis for H_1 of the underlying punctured surface.
+		
+		Each element is given as a path in the dual 1--skeleton and each pair of
+		paths is guaranteed to meet at most once. '''
+		
+		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
+		tree = self.tree()
+		
+		# Now construct a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
+		dual_tree = self.dual_tree(tree)
 		
 		# Generators are given by edges not in the tree or the dual tree (along with some segment
 		# in the dual tree to make it into a loop).

@@ -28,7 +28,7 @@ def perron_frobenius_eigen(matrix, vector):
 	Assumes (and checks) that the dominant eigenvalue is real. '''
 	
 	M = Matrix(matrix.rows)
-	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
+	eigenvalue = max(M.eigenvalues(), key=lambda z: z.real())
 	if eigenvalue.imag() != 0:  # Make sure that the eigenvalue that we've got is real.
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	

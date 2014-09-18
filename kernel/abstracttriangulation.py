@@ -328,10 +328,12 @@ class AbstractTriangulation(object):
 		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
-	def tree(self, dual=False):
-		''' Return a maximal tree in the 1--skeleton of this triangulation.
+	def tree_and_dual_tree(self):
+		''' Return a maximal tree in the 1--skeleton of this triangulation and a
+		maximal tree in 1--skeleton of the dual of this triangulation.
 		
-		This is given as a list of Booleans signaling if each edge is in the tree. '''
+		These are given as lists of Booleans signaling if each edge is in the tree.
+		No edge is used in both the tree and the dual tree. '''
 		
 		tree = [False] * self.zeta
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
@@ -346,22 +348,14 @@ class AbstractTriangulation(object):
 						vertices_used[b] = True
 						break
 			else:
-				return tree  # If there are no more to add then our tree is maximal
-	
-	def dual_tree(self, avoid=None):
-		''' Return a maximal tree in 1--skeleton of the dual of this triangulation.
-		
-		If given an avoid list then no edges in avoid will be used. If not then we will
-		choose a tree in the 1--skeleton and avoid that. '''
-		
-		if avoid is None: avoid = self.tree()
+				break  # If there are no more to add then our tree is maximal.
 		
 		dual_tree = [False] * self.zeta
 		faces_used = dict((triangle, False) for triangle in self.triangles)
 		faces_used[self.triangles[0]] = True
 		while True:
 			for edge_index in range(self.zeta):
-				if not avoid[edge_index] and not dual_tree[edge_index]:
+				if not tree[edge_index] and not dual_tree[edge_index]:
 					a, b = self.triangles_of_edge(edge_index)
 					if faces_used[a] != faces_used[b]:
 						dual_tree[edge_index] = True
@@ -369,7 +363,9 @@ class AbstractTriangulation(object):
 						faces_used[b] = True
 						break
 			else:
-				return dual_tree  # If there are no more to add then our dual tree is maximal
+				break  # If there are no more to add then our dual tree is maximal
+		
+		return tree, dual_tree
 	
 	def homology_basis(self):
 		''' Return a basis for H_1 of the underlying punctured surface.
@@ -378,10 +374,8 @@ class AbstractTriangulation(object):
 		paths is guaranteed to meet at most once. '''
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
-		tree = self.tree()
-		
-		# Now construct a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
-		dual_tree = self.dual_tree(tree)
+		# and a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
+		tree, dual_tree = self.tree_and_dual_tree()
 		
 		# Generators are given by edges not in the tree or the dual tree (along with some segment
 		# in the dual tree to make it into a loop).

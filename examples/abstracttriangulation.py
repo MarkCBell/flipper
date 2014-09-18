@@ -20,10 +20,10 @@ class ExampleSurface(object):
 		else:
 			self.laminations = dict(list(zip(ascii_lowercase, laminations)))
 		if isinstance(mapping_classes, dict):
-			self.all_mapping_classes = mapping_classes
+			self.mapping_classes = mapping_classes
 		else:
 			self.pos_mapping_classes = dict(zip(ascii_lowercase, mapping_classes))
-			self.inverse_mapping_classes = dict((name.swapcase, self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
+			self.inverse_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			inverse_mapping_classes = [h.inverse() for h in mapping_classes]
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.inverse_mapping_classes.items()))
 	def random_word(self, length, positive=True, negative=True, other=True):

@@ -9,7 +9,7 @@ import os
 import sys
 import pickle
 import string
-from math import sin, cos, pi, sqrt
+from math import sin, cos, pi
 from itertools import product, combinations
 
 try:
@@ -512,12 +512,11 @@ class FlipperApp(object):
 						
 						return left, right
 					
-					start = min(i for i in range(abstract_triangulation.zeta) if not dual_tree[i])
-					to_extend = [(0, 1, start)]
-					edges = [(0, 1, start, None)]
+					initial_edge_index = min(i for i in range(abstract_triangulation.zeta) if not dual_tree[i])
+					to_extend = [(0, 1, initial_edge_index)]
+					edges = [(0, 1, initial_edge_index, None)]
 					while to_extend:
 						source_vertex, target_vertex, label = to_extend.pop()
-						c = num_descendants(label)
 						left, right = num_descendants(label)
 						corner = abstract_triangulation.corner_of_edge(label)
 						

@@ -14,9 +14,6 @@ def stratum(splitting):
 
 def test(splittings, M):
 	for splitting in splittings:
-		T = splitting.initial_lamination.triangulation
-		print(T)
-		print(T.genus, T.num_vertices, T.euler_characteristic, splitting.periodic_flips)
 		N = snappy.Manifold(splitting.bundle().snappy_string())
 		for _ in range(300):
 			M.randomize()
@@ -31,7 +28,6 @@ def test(splittings, M):
 
 def main(verbose=False):
 	for surface, word, target in flipper.censuses.load('knot_monodromies'):
-		surface, word, target = 'S_3_1', 'abcdEF', '8_7'
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()

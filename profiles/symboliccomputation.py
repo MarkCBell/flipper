@@ -66,7 +66,7 @@ def main(verbose=False):
 	
 	for matrix, vector in tests:
 		try:
-			flipper.kernel.symboliccomputation.Perron_Frobenius_eigen(matrix, vector)
+			flipper.kernel.symboliccomputation.perron_frobenius_eigen(matrix, vector)
 		except flipper.AssumptionError:
 			print('bad test %s' % vector)
 	

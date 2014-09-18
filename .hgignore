@@ -1,3 +1,4 @@
+
 syntax:glob
 build/*
 dist/*
@@ -6,4 +7,6 @@ __pycache__/*
 *.bat
 *.swp
 *.orig
+
+htmlcov/*
 

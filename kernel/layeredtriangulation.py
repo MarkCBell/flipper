@@ -620,7 +620,7 @@ class LayeredTriangulation(object):
 				else:
 					assert(real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] == label)
 		
-		# Compute longitude slopes.
+		# Compute fibre slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
 			for corner_class in self.upper_triangulation.corner_classes:

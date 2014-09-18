@@ -500,7 +500,8 @@ class FlipperApp(object):
 						x, y = w / 2 + r * sin(2*pi*(i+0.5) / ngon), h / 2 + r * cos(2*pi*(i+0.5) / ngon)
 						vertices.append((x, y))
 					
-					dual_tree = abstract_triangulation.dual_tree()
+					# Get a dual tree.
+					_, dual_tree = abstract_triangulation.tree_and_dual_tree()
 					
 					def num_descendants(edge_label):
 						''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''

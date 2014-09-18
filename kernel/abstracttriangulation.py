@@ -363,7 +363,7 @@ class AbstractTriangulation(object):
 						faces_used[b] = True
 						break
 			else:
-				break  # If there are no more to add then our dual tree is maximal
+				break  # If there are no more to add then our dual tree is maximal.
 		
 		return tree, dual_tree
 	

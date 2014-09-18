@@ -461,17 +461,19 @@ class Lamination(object):
 		puncture_encoding = self.triangulation.encode_puncture_triangles(self.tripod_regions())
 		lamination = puncture_encoding(self)
 		
-		laminations = [lamination]
-		flips = []
 		encodings = [puncture_encoding]
+		laminations = [lamination]
+		num_isometries = [len(lamination.all_isometries(lamination))]
+		flips = []
 		seen = {lamination.projective_hash(): [0]}
 		while True:
 			# Find the index of the largest entry.
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])
 			E = lamination.triangulation.encode_flip(edge_index)
-			lamination = E(lamination)
 			encodings.append(E)
+			lamination = E(lamination)
 			laminations.append(lamination)
+			num_isometries.append(len(lamination.all_isometries(lamination)))
 			flips.append(edge_index)
 			
 			# Check if we have created any edges of weight 0.
@@ -483,6 +485,7 @@ class Lamination(object):
 					# We cannot provide the encoding or flip so we'll just stick in a None.
 					encodings.append(None)
 					laminations.append(lamination)
+					num_isometries.append(len(lamination.all_isometries(lamination)))
 					flips.append(None)
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
@@ -495,19 +498,21 @@ class Lamination(object):
 					isometries = lamination.all_projective_isometries(old_lamination)
 					if len(isometries) > 0:
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
-							if None in encodings:
-								pp_encoding = None
-							else:
-								pp_encoding = flipper.kernel.product(encodings[:index+1], start=self.triangulation.id_encoding())
-								assert(pp_encoding.source_triangulation == self.triangulation)
-								assert(pp_encoding.target_triangulation == old_lamination.triangulation)
-							p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
-							p_flips = flips[index:]
-							
-							assert(p_encoding.source_triangulation == old_lamination.triangulation)
-							assert(p_encoding.target_triangulation == lamination.triangulation)
-							
-							return [flipper.kernel.SplittingSequence(old_lamination, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
+							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
+							if num_isometries[-1] == max(num_isometries[index:]):
+								if None in encodings:
+									pp_encoding = None
+								else:
+									pp_encoding = flipper.kernel.product(encodings[:index+1], start=self.triangulation.id_encoding())
+									assert(pp_encoding.source_triangulation == self.triangulation)
+									assert(pp_encoding.target_triangulation == old_lamination.triangulation)
+								p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
+								p_flips = flips[index:]
+								
+								assert(p_encoding.source_triangulation == old_lamination.triangulation)
+								assert(p_encoding.target_triangulation == lamination.triangulation)
+								
+								return [flipper.kernel.SplittingSequence(old_lamination, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)

@@ -7,7 +7,7 @@ import snappy
 
 def tetrahedra_shapes(manifold):
 	# Return the exact shapes of the tetrahedra using snap.
-	T = snappy.snap.tetrahedra_field_gens(M)
+	T = snappy.snap.tetrahedra_field_gens(manifold)
 	_, generator, shapes = T.find_field(prec=100, degree=20, optimize=True)
 	generator_approximation = generator.f(100)
 	return [shape(generator_approximation).imag() for shape in shapes]
@@ -18,15 +18,10 @@ def is_geometric(manifold):
 def is_degenerate(manifold):
 	return any([shape == 0 for shape in tetrahedra_shapes(manifold)])
 
+###########################################################################
+
 def Example_H2():
-	T = flipper.abstract_triangulation([
-		[3, 0, ~4],
-		[4, ~5, ~0],
-		[5, 2, ~6],
-		[6, ~7, ~1],
-		[7, 1, ~8],
-		[8, ~3, ~2]
-		])
+	T = flipper.abstract_triangulation([[3, 0, ~4], [4, ~5, ~0], [5, 2, ~6], [6, ~7, ~1], [7, 1, ~8], [8, ~3, ~2]])
 	
 	a = T.encode_flips_and_close([4], 3, 3)
 	b = T.encode_flips_and_close([4, 6, 8], 1, 2)
@@ -100,7 +95,7 @@ def test3():
 	print('Saving %d bundles.' % len(splittings))
 	for index, splitting in enumerate(splittings):
 		print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
-		# open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
+		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
 
 if __name__ == '__main__':
 	# test1()

@@ -4,7 +4,7 @@
 # the template(SURFACE) function.
 
 from random import choice
-from string import ascii_lowercase, ascii_uppercase  # !?! Possible concern: ascii_lower/uppercase is too short.
+from string import ascii_lowercase  # !?! Possible concern: ascii_lower/uppercase is too short.
 
 import flipper
 
@@ -24,7 +24,6 @@ class ExampleSurface(object):
 		else:
 			self.pos_mapping_classes = dict(zip(ascii_lowercase, mapping_classes))
 			self.inverse_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
-			inverse_mapping_classes = [h.inverse() for h in mapping_classes]
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.inverse_mapping_classes.items()))
 	def random_word(self, length, positive=True, negative=True, other=True):
 		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper()) or (other and not x.islower() and not x.isupper())]
@@ -85,7 +84,7 @@ def Example_S_2_1():
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
 def Example_S_2_1b():
-	''' Nathans origional version - broken somehow. '''
+	''' Nathans origional version. '''
 	T = flipper.abstract_triangulation([[1, 2, 4], [5, 3, 0], [~2, 6, ~1], [~3, ~0, 7], [~4, ~5, 8], [~7, ~8, ~6]])
 	
 	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0])
@@ -116,14 +115,13 @@ def Example_S_3_1():
 	
 	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
 	
-	f.encode_twist()
 	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
 
 def Example_S_3_1b():
-	''' Nathans origional version - broken somehow. '''
+	''' Nathans origional version. '''
 	T = flipper.abstract_triangulation([[1, 2, 5], [0, 6, 3], [4, ~1, 7], [~3, 8, ~2], [9, ~5, ~6],
 									[10, ~0, ~9], [~10, ~7, ~8], [11, 12, ~4], [~12, 14, 13], [~13, ~11, ~14]])
 	
@@ -187,9 +185,9 @@ def template(surface):
 		'S_1_1': Example_S_1_1,
 		'S_1_2': Example_S_1_2,
 		'S_2_1': Example_S_2_1,
-		'S_2_1b': Example_S_2_1b,  # Broken.
+		'S_2_1b': Example_S_2_1b,
 		'S_3_1': Example_S_3_1,
-		'S_3_1b': Example_S_3_1b,  # Broken.
+		'S_3_1b': Example_S_3_1b,
 		'E_12': Example_12,
 		'E_24': Example_24,
 		'E_36': Example_36

@@ -21,11 +21,9 @@ def test(splittings, M):
 
 def main(verbose=False):
 	unmatched = []
+	
+	# We could also load('knot_monodromies').
 	for surface, word, target in flipper.censuses.load('census_monodromies'):
-		#surface, word, target = 'S_3_1', 'Ghabacbdce', 's194'  # Slow ~50s.
-		#surface, word, target = 'S_3_1', 'abcdeGh', 's451'  # Slow ~66s.
-		#surface, word, target = 'S_2_1', 'abCDEf', 'm160'  # No closers??
-		#surface, word, target = 'S_2_1', 'abCDE', 'v2099'  # No closers??
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)

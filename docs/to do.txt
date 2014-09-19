@@ -18,7 +18,9 @@ lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
 be able to (half) twist along all curves - construct chain
 recheck ALL number theory bounds
-completing the square
+completing the square - problems come from the Birman subgroup, see:
+	#surface, word, target = 'S_2_1', 'abCDEf', 'm160'
+	#surface, word, target = 'S_2_1', 'abCDE', 'v2099'
 
 ### Tests ###
 add more tests

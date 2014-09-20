@@ -3,7 +3,6 @@ from __future__ import print_function
 from time import time
 
 import flipper
-import snappy
 
 def stratum(splitting):
 	lamination = splitting.initial_lamination
@@ -18,6 +17,8 @@ def main(verbose=False):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()
+		# One of the bundles should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
+		# But we wont bother to check this here.
 		print('\tAll: %s, Real: %s' % stratum(splittings[0]))
 		if verbose: print('\tComputed in %f' % (time() - start_time))
 

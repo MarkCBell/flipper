@@ -5,7 +5,9 @@ from time import time
 import flipper
 import snappy
 
-def test(splittings, M):
+def test(surface, word, target):
+	splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()
+	M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
 	for splitting in splittings:
 		N = snappy.Manifold(splitting.bundle().snappy_string())
 		for _ in range(100):
@@ -26,9 +28,7 @@ def main(verbose=False):
 	for surface, word, target in flipper.censuses.load('census_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
-		M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
-		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()
-		if not test(splittings, M):
+		if not test(surface, word, target):
 			print('Could not match %s on %s' % (word, surface))
 			unmatched.append((surface, word, target))
 		if verbose: print('\tComputed in %f' % (time() - start_time))

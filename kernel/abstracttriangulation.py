@@ -590,10 +590,24 @@ class AbstractTriangulation(object):
 		return E
 
 def abstract_triangulation(all_labels):
-	''' A short way of constructing an AbstractTriangulation from a list of triples of edge labels. '''
+	''' A short way of constructing an AbstractTriangulation from a list of triples of edge labels.
 	
-	# We should assert a load of stuff here first. !?!
+	all_labels must be a list of triples of integers and each of 0, ..., zeta-1, ~0, ..., ~(zeta-1)
+	must occur exactly once. '''
+	
+	assert(isinstance(all_labels, (list, tuple)))
+	assert(all(isinstance(labels, (list, tuple)) for labels in all_labels))
+	assert(all(len(labels) == 3 for labels in all_labels))
+	
 	zeta = len(all_labels) * 3 // 2
+	
+	# Check that each of 0, ..., zeta-1, ~0, ..., ~(zeta-1) occurs exactly once.
+	flattened = [label for labels in all_labels for label in labels]
+	for i in range(zeta):
+		if i not in flattened:
+			raise TypeError('Missing label %d' % i)
+		if ~i not in flattened:
+			raise TypeError('Missing label ~%d' % i)
 	
 	def finder(edge_label):
 		''' Return the label and position of the given edge_label. '''

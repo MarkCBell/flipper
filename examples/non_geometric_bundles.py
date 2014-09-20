@@ -95,7 +95,7 @@ def test3():
 	print('Saving %d bundles.' % len(splittings))
 	for index, splitting in enumerate(splittings):
 		print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
-		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
+		# open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
 
 if __name__ == '__main__':
 	# test1()

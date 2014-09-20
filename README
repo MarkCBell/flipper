@@ -43,3 +43,4 @@ Quick install, test and start the GUI as a Sage module:
 > sage -python setup.py install --user
 > sage -python setup.py test
 > sage -python -m flipper.app
+

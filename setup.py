@@ -80,19 +80,13 @@ setup(
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',
 	url='https://bitbucket.org/Mark_Bell/flipper',
-	packages=['flipper'],
-	package_dir={'flipper': ''},
 	# Remember to update these if the directory structure changes.
-	package_data={'flipper':
-		['kernel/*.py',
-		'censuses/*.py',
-		'examples/*.py',
-		'tests/*.py',
-		'profiles/*.py',
-		'version.py',
-		'application/*.py', 'application/icon/*', 'application/docs/*',
-		'docs/*',
-		'censuses/*.dat']},
+	packages=['flipper', 'flipper.application', 'flipper.censuses', 'flipper.examples', 'flipper.kernel', 'flipper.tests', 'flipper.profiles'],
+	package_dir={'flipper': ''},
+	package_data={
+		'flipper': ['docs/*'],
+		'flipper.application': ['application/icon/*', 'application/docs/*'],
+		'flipper.censuses': ['censuses/*.dat']
+		},
 	cmdclass={'test': TestCommand, 'profile': ProfileCommand}
 	)
-

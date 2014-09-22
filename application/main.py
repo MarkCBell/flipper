@@ -175,7 +175,7 @@ class FlipperApp(object):
 		self.zoommenu = TK.Menu(self.menubar, tearoff=0)
 		self.zoommenu.add_command(label='Zoom in', command=self.zoom_in, accelerator='+', font=app_font)
 		self.zoommenu.add_command(label='Zoom out', command=self.zoom_out, accelerator='-', font=app_font)
-		self.zoommenu.add_command(label='Auto zoom', command=self.auto_zoom, accelerator='0', font=app_font)
+		self.zoommenu.add_command(label='Zoom to drawing', command=self.zoom_to_drawing, accelerator='0', font=app_font)
 		self.surfacemenu.add_cascade(label='Zoom...', menu=self.zoommenu, font=app_font)
 		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=app_font)
 		
@@ -480,7 +480,7 @@ class FlipperApp(object):
 				
 				# See if we can use the current triangulation.
 				if self.abstract_triangulation is not None and abstract_triangulation.is_isometric_to(self.abstract_triangulation):
-					isom = self.abstract_triangulation.all_isometries(abstract_triangulation)[0]
+					isom = self.abstract_triangulation.isometries_to(abstract_triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 					canvas_objects = [vertices, edges]
@@ -497,8 +497,7 @@ class FlipperApp(object):
 					
 					# Create the vertices.
 					for i in range(ngon):
-						x, y = w / 2 + r * sin(2*pi*(i+0.5) / ngon), h / 2 + r * cos(2*pi*(i+0.5) / ngon)
-						vertices.append((x, y))
+						vertices.append((w / 2 + r * sin(2 * pi * (i + 0.5) / ngon), h / 2 + r * cos(2 * pi * (i + 0.5) / ngon)))
 					
 					# Get a dual tree.
 					_, dual_tree = abstract_triangulation.tree_and_dual_tree()
@@ -560,7 +559,7 @@ class FlipperApp(object):
 			for index, edge in enumerate(edges):
 				start_index, end_index, edge_index, glued_to_index = edge
 				self.edges[index].index = edge_index
-			self.auto_zoom()
+			self.zoom_to_drawing()
 			
 			self.abstract_triangulation = abstract_triangulation
 			
@@ -670,7 +669,7 @@ class FlipperApp(object):
 		self.zoom(scale)
 		self.translate(cw / 2, ch / 2)
 	
-	def auto_zoom(self):
+	def zoom_to_drawing(self):
 		self.parent.update_idletasks()
 		box = self.canvas.bbox('all')
 		if box is not None:
@@ -1193,10 +1192,10 @@ class FlipperApp(object):
 				from_edges, to_edges = zip(*[[int(d) for d in x.split(':')] for x in specification.split(' ')])
 				try:
 					# Some of this should really go in self.valid_isometry.
-					possible_isometry = [isom for isom in self.abstract_triangulation.all_isometries(self.abstract_triangulation) if all(isom.edge_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
-					isometry = possible_isometry[0]
-				except IndexError:
-					tkMessageBox.showwarning('Isometry', 'Information does not specify an isometry.')
+					isometries_to = self.abstract_triangulation.self_isometries_to()
+					[isometry] = [isom for isom in isometries_to if all(isom.index_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
+				except ValueError:
+					tkMessageBox.showwarning('Isometry', 'Information does not specify a unique isometry.')
 				else:
 					name = flipper.application.get_input('Name', 'New isometry name:', validate=self.valid_name)
 					if name is not None:
@@ -1437,7 +1436,7 @@ class FlipperApp(object):
 		elif key == 'Next' or key == 'minus' or key == 'underscore':
 			self.zoom_centre(0.95)
 		elif key == '0':
-			self.auto_zoom()
+			self.zoom_to_drawing()
 		elif key == 'Up':
 			if focus == self.canvas:
 				self.translate(0, 5)

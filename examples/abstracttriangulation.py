@@ -148,7 +148,7 @@ def Example_12():
 	
 	a = T.lamination([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1] # This is a 1/12 click.
+	p = T.self_isometries()[1] # This is a 1/12 click.
 	
 	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
@@ -161,7 +161,7 @@ def Example_24():
 	
 	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1] # This is a 1/24 click.
+	p = T.self_isometries()[1] # This is a 1/24 click.
 	
 	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
@@ -176,7 +176,7 @@ def Example_36():
 	
 	a = T.lamination([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.all_isometries(T)[1] # This is a 1/36 click.
+	p = T.self_isometries()[1] # This is a 1/36 click.
 	
 	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 

@@ -417,7 +417,7 @@ class AbstractTriangulation(object):
 		
 		return homology_generators
 	
-	def all_isometries(self, other_triangulation, respect_vertex_labels=True):
+	def isometries_to(self, other_triangulation, respect_vertex_labels=True):
 		''' Return a list of all isometries from this triangulation to other_triangulation. '''
 		
 		assert(isinstance(other_triangulation, AbstractTriangulation))
@@ -458,12 +458,17 @@ class AbstractTriangulation(object):
 		if respect_vertex_labels: isometries = [isom for isom in isometries if all((vertex.label >= 0) == (isom.vertex_map[vertex].label >= 0) for vertex in self.vertices)]
 		return isometries
 	
+	def self_isometries(self):
+		''' Returns a list of isometries taking this triangulation to itself. '''
+		
+		return self.isometries_to(self)
+	
 	def is_isometric_to(self, other_triangulation):
 		''' Return if there are any orientation preserving isometries from this triangulation to other_triangulation. '''
 		
 		assert(isinstance(other_triangulation, AbstractTriangulation))
 		
-		return len(self.all_isometries(other_triangulation)) > 0
+		return len(self.isometries_to(other_triangulation)) > 0
 	
 	def find_isometry(self, other_triangulation, edge_from_label, edge_to_label):
 		''' Return the isometry from this triangulation to other_triangulation that sends edge_from_label to
@@ -471,11 +476,12 @@ class AbstractTriangulation(object):
 		
 		Assumes that such an isometry exists and is unique. '''
 		
-		isometries = [isom for isom in self.all_isometries(other_triangulation) if isom.label_map[edge_from_label] == edge_to_label]
-		if len(isometries) != 1:
+		try:
+			[isometry] = [isom for isom in self.isometries_to(other_triangulation) if isom.label_map[edge_from_label] == edge_to_label]
+		except ValueError:
 			raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine a unique isometry.')
 		else:
-			return isometries[0]
+			return isometry
 	
 	# Laminations we can build on the triangulation.
 	def lamination(self, vector, remove_peripheral=False):

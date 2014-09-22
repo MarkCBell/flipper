@@ -23,7 +23,7 @@ def main(verbose=False):
 			if verbose: print('Checking: %s' % surface)
 			S = flipper.examples.template(surface)
 			T = S.triangulation
-			assert(len(T.all_isometries(T)) == num_isoms > 0)
+			assert(len(T.self_isometries()) == num_isoms > 0)
 		
 	except AssertionError:
 		return False

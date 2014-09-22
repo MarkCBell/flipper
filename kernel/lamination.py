@@ -93,19 +93,24 @@ class Lamination(object):
 		
 		return not any(self)
 	
-	def all_isometries(self, other_lamination):
+	def isometries_to(self, other_lamination):
 		''' Return a list of isometries taking this lamination to other_lamination. '''
 		
 		assert(isinstance(other_lamination, Lamination))
 		
-		return [isometry for isometry in self.triangulation.all_isometries(other_lamination.triangulation) if other_lamination == isometry.encode()(self)]
+		return [isometry for isometry in self.triangulation.isometries_to(other_lamination.triangulation) if other_lamination == isometry.encode()(self)]
+	
+	def self_isometries(self):
+		''' Returns a list of isometries taking this lamination to itself. '''
+		
+		return self.isometries_to(self)
 	
 	def all_projective_isometries(self, other_lamination):
 		''' Return a list of isometries taking this lamination projectively to other_lamination. '''
 		
 		assert(isinstance(other_lamination, Lamination))
 		
-		return [isometry for isometry in self.triangulation.all_isometries(other_lamination.triangulation) if other_lamination.projectively_equal(isometry.encode()(self))]
+		return [isometry for isometry in self.triangulation.isometries_to(other_lamination.triangulation) if other_lamination.projectively_equal(isometry.encode()(self))]
 	
 	def projectively_equal(self, other_lamination):
 		''' Return if this lamination is projectively equal to other_lamination.
@@ -463,7 +468,7 @@ class Lamination(object):
 		
 		encodings = [puncture_encoding]
 		laminations = [lamination]
-		num_isometries = [len(lamination.all_isometries(lamination))]
+		num_isometries = [len(lamination.self_isometries())]
 		flips = []
 		seen = {lamination.projective_hash(): [0]}
 		while True:
@@ -473,7 +478,7 @@ class Lamination(object):
 			encodings.append(E)
 			lamination = E(lamination)
 			laminations.append(lamination)
-			num_isometries.append(len(lamination.all_isometries(lamination)))
+			num_isometries.append(len(lamination.self_isometries()))
 			flips.append(edge_index)
 			
 			# Check if we have created any edges of weight 0.
@@ -485,7 +490,7 @@ class Lamination(object):
 					# We cannot provide the encoding or flip so we'll just stick in a None.
 					encodings.append(None)
 					laminations.append(lamination)
-					num_isometries.append(len(lamination.all_isometries(lamination)))
+					num_isometries.append(len(lamination.self_isometries()))
 					flips.append(None)
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
@@ -555,7 +560,7 @@ class Lamination(object):
 		
 		# Find the correct isometry to take us back.
 		# !?! TO DO.
-		map_back = [isom for isom in short_lamination.triangulation.all_isometries(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
+		map_back = [isom for isom in short_lamination.triangulation.isometries_to(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
 		T = map_back * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
@@ -598,7 +603,7 @@ class Lamination(object):
 		new_triangulation = short_lamination.triangulation
 		
 		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.all_isometries(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == bottom and isom.index_map[bottom] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
+		map_back = [isom for isom in new_triangulation.isometries_to(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == bottom and isom.index_map[bottom] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
 		T = map_back * forwards3 * forwards2 * forwards
 		
 		return conjugation.inverse() * T**abs(k) * conjugation

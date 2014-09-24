@@ -17,8 +17,6 @@ def main():
 		try:
 			# If this computation fails it will throw a ComputationError - the map was probably reducible.
 			print(' -- %s.' % mapping_class.nielsen_thurston_type())
-		except ImportError:
-			print(' Cannot determine without a symbolic library.')
 		except flipper.ComputationError:
 			print(' ~~ Probably reducible.')
 		print('      (Time: %0.4fs)' % (time() - start_time))

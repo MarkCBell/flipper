@@ -6,8 +6,8 @@ from . import algebraicapproximation
 from . import algebraicnumber
 from . import encoding
 from . import error
+from . import equippedtriangulation
 from . import interval
-from . import io
 from . import isometry
 from . import lamination
 from . import layeredtriangulation
@@ -34,6 +34,7 @@ AbortError = error.AbortError
 ApproximationError = error.ApproximationError
 AssumptionError = error.AssumptionError
 ComputationError = error.ComputationError
+EquippedTriangulation = equippedtriangulation.EquippedTriangulation
 Interval = interval.Interval
 Isometry = isometry.Isometry
 Lamination = lamination.Lamination
@@ -64,8 +65,7 @@ algebraic_number = algebraicnumber.algebraic_number
 interval_from_string = interval.interval_from_string  # Careful - don't overwrite kernel.interval.
 number_field = numberfield.number_field
 
+package = utilities.package
+depackage = utilities.depackage
 product = utilities.product
-
-package = io.package
-depackage = io.depackage
 

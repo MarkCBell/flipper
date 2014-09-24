@@ -24,15 +24,13 @@ def main(verbose=False):
 	try:
 		for surface, word in tests:
 			if verbose: print(word)
-			S = flipper.examples.template(surface)
+			S = flipper.load.equipped_triangulation(surface)
 			mapping_class = S.mapping_class(word)
 			mapping_class.invariant_lamination()  # This could fail with a ComputationError.
 	except ImportError:
 		print('Symbolic computation library required but unavailable, test skipped.')
 	except flipper.AssumptionError:
 		pass  # mapping_class is not pseudo-Anosov.
-	except AssertionError:
-		return False
 	except flipper.ComputationError:
 		return False
 	

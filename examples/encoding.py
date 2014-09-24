@@ -5,7 +5,7 @@ from time import time
 import flipper
 
 def main():
-	S = flipper.examples.abstracttriangulation.Example_S_1_2()
+	S = flipper.load.equipped_triangulation('S_1_2')
 	words = ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa']
 	
 	times = []

@@ -6,14 +6,9 @@ import flipper
 def main(verbose=False):
 	if verbose: print('Running number field tests.')
 	
-	# !?! TO DO.
-	
-	try:
-		N = flipper.kernel.number_field([-2, 0, 1], '1.41')  # QQ(sqrt(2)).
-		x = N.lmbda  # sqrt(2)
-		assert(x * x == 2)
-	except AssertionError:
-		return False
+	N = flipper.kernel.number_field([-2, 0, 1], '1.41')  # QQ(sqrt(2)).
+	x = N.lmbda  # sqrt(2)
+	if not (x * x == 2): return False
 	
 	return True
 

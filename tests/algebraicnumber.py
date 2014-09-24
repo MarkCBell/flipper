@@ -13,16 +13,13 @@ def main(verbose=False):
 	c = algebraic_number([-1001, 0, 1], '31.639')  # sqrt(1001).
 	
 	# Add more tests here.
-	try:
-		assert(a * a == 2)
-		assert(b * b == 3)
-		assert(a * b == b * a)
-		assert((a + 1) * (b + 1) == 1 + a + b + a * b)
-		assert((1 + a + b) * (b + 1) == 1 + a + b + b + a * b + b * b)
-		assert((1 + a + b) * (1 + a) * (1 + b) == 6 + 5 * a + 4 * b + 3 * a * b)
-		assert(10000 * c * c == 10000 * 1001)
-	except AssertionError:
-		return False
+	if not (a * a == 2): return False
+	if not (b * b == 3): return False
+	if not (a * b == b * a): return False
+	if not ((a + 1) * (b + 1) == 1 + a + b + a * b): return False
+	if not ((1 + a + b) * (b + 1) == 1 + a + b + b + a * b + b * b): return False
+	if not ((1 + a + b) * (1 + a) * (1 + b) == 6 + 5 * a + 4 * b + 3 * a * b): return False
+	if not (10000 * c * c == 10000 * 1001): return False
 	
 	return True
 

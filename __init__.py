@@ -1,8 +1,8 @@
 
 # import flipper.application  # Don't do this import so people without tkinter can still use the kernel.
 import flipper.kernel
-import flipper.censuses
 import flipper.examples
+import flipper.load
 import flipper.tests
 import flipper.profiles
 import flipper.versions

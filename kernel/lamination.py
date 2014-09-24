@@ -19,6 +19,8 @@ class Lamination(object):
 		assert(isinstance(remove_peripheral, bool))
 		assert(flipper.kernel.matrix.nonnegative(vector))
 		
+		# !?! Add error checking here to make sure the triangle inequalities are satisfied.
+		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:

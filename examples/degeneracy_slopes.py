@@ -17,7 +17,7 @@ def test(surface, word, target):
 				if M.is_isometric_to(N):
 					return True
 			except RuntimeError:
-				pass  # Snappy couldn't decide if these are isometric or not.
+				pass  # SnapPy couldn't decide if these are isometric or not.
 	
 	return False
 
@@ -25,7 +25,7 @@ def main(verbose=False):
 	unmatched = []
 	
 	# We could also load('knot_monodromies').
-	for surface, word, target in flipper.censuses.load('census_monodromies'):
+	for surface, word, target in flipper.load.database('census_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		if not test(surface, word, target):

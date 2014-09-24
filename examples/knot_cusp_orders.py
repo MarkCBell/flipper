@@ -13,7 +13,7 @@ def stratum(splitting):
 	return vertex_orders, real_vertex_orders
 
 def main(verbose=False):
-	for surface, word, target in flipper.censuses.load('knot_monodromies'):
+	for surface, word, target in flipper.load.database('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()

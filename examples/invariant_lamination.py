@@ -7,7 +7,7 @@ import flipper
 def main(n=100):
 	times = {}
 	surface = 'S_1_2'
-	S = flipper.examples.template(surface)
+	S = flipper.load.equipped_triangulation(surface)
 	for index in range(n):
 		word = S.random_word(50)  # , negative=False)
 		print('%d/%d: %s %s' % (index+1, n, surface, word), end='')

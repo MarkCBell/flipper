@@ -26,15 +26,12 @@ def main(verbose=False):
 		# ('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow useful for profiling. Current best time 102s.
 		]
 	
-	try:
-		for surface, word, mapping_class_type in tests:
-			if verbose: print(word)
-			S = flipper.examples.template(surface)
-			mapping_class = S.mapping_class(word)
-			if mapping_class.nielsen_thurston_type() != mapping_class_type:
-				return False
-	except ImportError:
-		print('Symbolic computation library required but unavailable, test skipped.')
+	for surface, word, mapping_class_type in tests:
+		if verbose: print(word)
+		S = flipper.load.equipped_triangulation(surface)
+		mapping_class = S.mapping_class(word)
+		if mapping_class.nielsen_thurston_type() != mapping_class_type:
+			return False
 	
 	return True
 

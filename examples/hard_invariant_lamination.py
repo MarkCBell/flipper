@@ -6,7 +6,7 @@ import flipper
 
 def main():
 	times = {}
-	S = flipper.examples.abstracttriangulation.Example_S_2_1()
+	S = flipper.load.equipped_triangulations('S_1_2')
 	
 	examples = [
 		('S_2_1', 'AEeadfaCEeCdEBfbCDFC'),  # Cannot estimate!
@@ -34,7 +34,7 @@ def main():
 	
 	for index, (surface, word) in enumerate(examples):
 		print('%d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
-		S = flipper.examples.template(surface)
+		S = flipper.load.equipped_triangulation(surface)
 		mapping_class = S.mapping_class(word)
 		t = time()
 		try:

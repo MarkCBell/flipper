@@ -250,14 +250,6 @@ class Encoding(object):
 		
 		return min(possible_orders)
 	
-	def order_string(self):
-		''' Return the order of this mapping class as a string.
-		
-		This encoding must be a mapping class. '''
-		
-		order = self.order()
-		return 'Infinite' if order == 0 else str(order)
-	
 	def is_identity(self):
 		''' Return if this mapping class is the identity. '''
 		

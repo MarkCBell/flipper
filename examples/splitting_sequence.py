@@ -10,7 +10,7 @@ def main():
 	for surface, word in tests:
 		print(word)
 		start_time = time()
-		flipper.examples.template(surface).mapping_class(word).splitting_sequences()
+		flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
 		print('Computed in %f' % (time() - start_time))
 
 if __name__ == '__main__':

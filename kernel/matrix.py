@@ -375,7 +375,7 @@ class Matrix(object):
 		while A.height > 1:
 			A = A.fourier_motzkin_eliminate()
 			A = A.basic_simplify()
-		return any(x >= 0 for x in A[0])
+		return len(A) == 0 or any(x >= 0 for x in A[0])
 	
 	def find_edge_vector(self):
 		''' Return a non-trivial vector in the polytope given by self * x >= 0 or None if none exists.

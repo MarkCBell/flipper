@@ -10,7 +10,7 @@ import flipper
 RANDOM_WORD_LENGTH = 10
 
 def test(surface, word, target):
-	splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()
+	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
 	# Snappy can fail with a RuntimeError.
 	return any(snappy.Manifold(splitting.bundle().snappy_string()).is_isometric_to(target) for splitting in splittings)
 
@@ -43,8 +43,6 @@ def main(verbose=False):
 			if verbose: print(word)
 			if not test(surface, word, snappy.twister.Surface(surface).bundle(word)):
 				return False
-	except ImportError:
-		print('Symbolic computation library required but unavailable, test skipped.')
 	except flipper.ComputationError:
 		return False  # Mapping class is probably reducible.
 	

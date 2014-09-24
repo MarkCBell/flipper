@@ -84,6 +84,11 @@ else:
 		'compose': '<Control-m>'
 		}
 
+# Regexs for validating names of things.
+VALID_NAME_REGEX = r'[a-zA-Z][a-zA-z0-9_]*$'  # Valid names consist of letters, numbers, underscores and start with a letter.
+VALID_SPECIFICATION_REGEX = r'[a-zA-Z]+$'  # Valid specifications are non-empty and consists of letters.
+VALID_ISOMETRY_REGEX = r'([0-9]+:[0-9]+( |$))+'  # Valid isometries match 'num:num num:num ...'.
+
 # Event modifier keys. Originate from: http://effbot.org/tkinterbook/tkinter-events-and-bindings.htm
 BIT_SHIFT = 0x001
 # BIT_CAPSLOCK = 0x002
@@ -285,25 +290,23 @@ class FlipperApp(object):
 		return True
 	
 	def valid_name(self, strn):
-		# A name is valid if it consists of letters, numbers, underscores and starts with a letter.
-		if not strn or strn[0] not in string.ascii_letters or any(x not in (string.ascii_letters + string.digits + '_') for x in strn):
-			tkMessageBox.showerror('Name', 'Not a valid name. A valid name must start with a letter and contain only letters, numbers and underscores.')
+		if re.match(VALID_NAME_REGEX, strn) is None:
+			tkMessageBox.showerror('Invalid name', 'A valid name must match "%s".' % VALID_NAME_REGEX)
 			return False
 		
 		return True
 	
 	def valid_specification(self, strn):
-		# A specification is valid if it is non-empty and consists of letter.
-		if not strn or any(x not in string.ascii_letters for x in strn):
-			tkMessageBox.showerror('Specification', 'Not a valid specification. A valid specification name must contain only letters.')
+		if re.match(VALID_SPECIFICATION_REGEX, strn) is None:
+			tkMessageBox.showerror('Invalid specification', 'A valid specification must match "%s".' % VALID_SPECIFICATION_REGEX)
 			return False
 		
 		return True
 	
 	def valid_isometry(self, strn):
-		# A isometry is valid if it matched 'num:num num:num ...'.
-		if re.match(r'(\d+:\d+ ?)*$', strn) is None:
-			tkMessageBox.showerror('Isometry', 'Not a valid isometry specification. A valid specification must match "(\\d+:\\d+ ?)*$".')
+		
+		if re.match(VALID_ISOMETRY_REGEX, strn) is None:
+			tkMessageBox.showerror('Invalid isometry specification', 'A valid specification must match "%s".' % VALID_ISOMETRY_REGEX)
 			return False
 		
 		return True
@@ -1192,7 +1195,7 @@ class FlipperApp(object):
 				from_edges, to_edges = zip(*[[int(d) for d in x.split(':')] for x in specification.split(' ')])
 				try:
 					# Some of this should really go in self.valid_isometry.
-					isometries_to = self.abstract_triangulation.self_isometries_to()
+					isometries_to = self.abstract_triangulation.self_isometries()
 					[isometry] = [isom for isom in isometries_to if all(isom.index_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
 				except ValueError:
 					tkMessageBox.showwarning('Isometry', 'Information does not specify a unique isometry.')
@@ -1210,8 +1213,6 @@ class FlipperApp(object):
 				for twist in composition.split('.'):
 					if twist in self.mapping_classes:
 						mapping_class = mapping_class * self.mapping_classes[twist]
-					elif twist.swapcase() in self.mapping_classes:
-						mapping_class = mapping_class * self.mapping_classes[twist].inverse()
 					else:
 						tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
 						raise flipper.AssumptionError()
@@ -1249,7 +1250,9 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition, mapping_class = self.create_composition()
 			if mapping_class is not None:
-				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, mapping_class.order_string()))
+				order = mapping_class.order()
+				order_string = 'Infinite' if order == 0 else str(order)
+				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, order_string))
 	
 	def nielsen_thurston_type(self):
 		if self.is_complete():
@@ -1466,20 +1469,10 @@ class FlipperApp(object):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
 		
-		if 'multicurve_lamination' in tags:
-			pass
-		elif 'twist_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[iid]]
-			if lamination.is_twistable():
-				name = flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
-				if name is not None:
-					self.add_mapping_class(lamination.encode_twist(), name)
+		if 'twist_lamination' in tags:
+			self.store_twist(self.laminations[self.lamination_names[iid]])
 		elif 'half_twist_lamination' in tags:
-			lamination = self.laminations[self.lamination_names[iid]]
-			if lamination.is_halftwistable():
-				name = flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
-				if name is not None:
-					self.add_mapping_class(lamination.encode_halftwist(), name)
+			self.store_halftwist(self.laminations[self.lamination_names[iid]])
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[iid]]
@@ -1489,10 +1482,6 @@ class FlipperApp(object):
 				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
 			except flipper.AbortError:
 				pass
-		elif 'mapping_class_order' in tags:
-			mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
-			order = mapping_class.order()
-			self.treeview_objects.item(iid, text='Order: %s' % ('Infinite' if order == 0 else str(order)))
 		elif 'mapping_class_type' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]

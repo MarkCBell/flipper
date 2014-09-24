@@ -1,45 +1,9 @@
 
 # Some standard example surfaces with mapping classes defined on them.
 # Mainly used for running tests on. These can be accessed through
-# the template(SURFACE) function.
-
-from random import choice
-from string import ascii_lowercase  # !?! Possible concern: ascii_lower/uppercase is too short.
+# the load(SURFACE) function.
 
 import flipper
-
-class ExampleSurface(object):
-	def __init__(self, triangulation, laminations, mapping_classes):
-		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
-		assert(isinstance(laminations, (dict, list, tuple)))
-		assert(isinstance(mapping_classes, (dict, list, tuple)))
-		
-		self.triangulation = triangulation
-		if isinstance(laminations, dict):
-			self.laminations = laminations
-		else:
-			self.laminations = dict(list(zip(ascii_lowercase, laminations)))
-		if isinstance(mapping_classes, dict):
-			self.mapping_classes = mapping_classes
-		else:
-			self.pos_mapping_classes = dict(zip(ascii_lowercase, mapping_classes))
-			self.inverse_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
-			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.inverse_mapping_classes.items()))
-	def random_word(self, length, positive=True, negative=True, other=True):
-		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper()) or (other and not x.islower() and not x.isupper())]
-		return ''.join(choice(available_letters) for _ in range(length))
-	def mapping_class(self, word):
-		if isinstance(word, flipper.IntegerType):
-			word = self.random_word(word)
-		
-		h = self.triangulation.id_encoding()
-		for letter in word:
-			h = h * self.mapping_classes[letter]
-		
-		return h
-	def show(self):
-		import flipper.application
-		flipper.application.start(list(self.laminations.items()) + list(self.pos_mapping_classes.items()))
 
 def Example_S_1_1():
 	T = flipper.abstract_triangulation([[0, 2, 1], [~0, ~2, ~1]])
@@ -47,7 +11,7 @@ def Example_S_1_1():
 	a = T.lamination([1, 0, 1])
 	b = T.lamination([0, 1, 1])
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
 def Example_S_1_1m():
 	# Mirror image of S_1_1 and its standard (Twister) curves:
@@ -56,7 +20,7 @@ def Example_S_1_1m():
 	a = T.lamination([1, 1, 0]).encode_twist()
 	b = T.lamination([0, 1, 1]).encode_twist()
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
 def Example_S_1_2():
 	# S_1_2 and its standard (Twister) curves:
@@ -66,7 +30,7 @@ def Example_S_1_2():
 	b = T.lamination([1, 0, 0, 0, 1, 1])
 	c = T.lamination([0, 1, 0, 1, 0, 1])
 	
-	return ExampleSurface(T, [a, b, c], [a.encode_twist(), b.encode_twist(), c.encode_twist()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c], [a.encode_twist(), b.encode_twist(), c.encode_twist()])
 
 def Example_S_2_1():
 	# S_2_1 and its standard (Twister) curves:
@@ -79,7 +43,7 @@ def Example_S_2_1():
 	e = T.lamination([0, 1, 1, 1, 1, 2, 1, 0, 1])
 	f = T.lamination([0, 0, 1, 0, 0, 0, 1, 0, 0])
 	
-	return ExampleSurface(T, [a, b, c, d, e, f],
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
@@ -96,7 +60,7 @@ def Example_S_2_1b():
 	
 	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f]] for x in [a,b,c,d,e,f]]))
 	
-	return ExampleSurface(T, [a, b, c, d, e, f],
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
@@ -115,7 +79,7 @@ def Example_S_3_1():
 	
 	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
 	
-	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
@@ -136,7 +100,7 @@ def Example_S_3_1b():
 	
 	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
 	
-	return ExampleSurface(T, [a, b, c, d, e, f, g, h],
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
@@ -150,7 +114,7 @@ def Example_12():
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/12 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
 def Example_24():
 	# A 24-gon.
@@ -163,7 +127,7 @@ def Example_24():
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/24 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
 def Example_36():
 	# A 36-gon
@@ -178,9 +142,9 @@ def Example_36():
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/36 click.
 	
-	return ExampleSurface(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
-def template(surface):
+def load(surface):
 	surfaces = {
 		'S_1_1': Example_S_1_1,
 		'S_1_2': Example_S_1_2,

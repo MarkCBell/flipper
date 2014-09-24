@@ -6,27 +6,24 @@ import flipper
 def main(verbose=False):
 	if verbose: print('Running abstract triangulation tests.')
 	
-	try:
-		# These need to be changed if the standard example triangulations ever change.
-		num_isometries = [
-			('S_1_1', 6),
-			('S_1_2', 4),
-			('S_2_1', 2),
-			('S_3_1', 2),
-			('E_12', 12),
-			('E_24', 24),
-			('E_36', 36)
-			]
-		
-		# Check that every triangulation has the correct number of isometries to itself.
-		for surface, num_isoms in num_isometries:
-			if verbose: print('Checking: %s' % surface)
-			S = flipper.examples.template(surface)
-			T = S.triangulation
-			assert(len(T.self_isometries()) == num_isoms > 0)
-		
-	except AssertionError:
-		return False
+	# These need to be changed if the standard example triangulations ever change.
+	num_isometries = [
+		('S_1_1', 6),
+		('S_1_2', 4),
+		('S_2_1', 2),
+		('S_3_1', 2),
+		('E_12', 12),
+		('E_24', 24),
+		('E_36', 36)
+		]
+	
+	# Check that every triangulation has the correct number of isometries to itself.
+	for surface, num_isoms in num_isometries:
+		if verbose: print('Checking: %s' % surface)
+		S = flipper.load.equipped_triangulation(surface)
+		T = S.triangulation
+		if len(T.self_isometries()) != num_isoms > 0:
+			return False
 	
 	return True
 

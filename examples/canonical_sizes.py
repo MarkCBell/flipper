@@ -7,7 +7,7 @@ import flipper
 import snappy
 
 def test():
-	S = flipper.examples.template('S_2_1')
+	S = flipper.load.equipped_triangulation('S_2_1')
 	
 	for _ in range(100):
 		word = S.random_word(50)
@@ -22,3 +22,4 @@ def test():
 
 if __name__ == '__main__':
 	test()
+

@@ -16,7 +16,7 @@ def main(verbose=False):
 	for surface, word, target in flipper.censuses.load('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
-		splittings = flipper.examples.template(surface).mapping_class(word).splitting_sequences()
+		splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
 		# One of the bundles should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
 		print('\tAll: %s, Real: %s' % stratum(splittings[0]))

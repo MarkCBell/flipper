@@ -20,14 +20,16 @@ class Polynomial(object):
 	It is specified by a list of coefficients. It is capable of determining
 	the number of roots it has in a given interval by using a Sturm chain. '''
 	def __init__(self, coefficients):
-		assert(all(isinstance(coefficient, flipper.IntegerType) for coefficient in coefficients))  # Should this be NumberType?
+		assert(isinstance(coefficients, (list, tuple)))
+		assert(all(isinstance(coefficient, flipper.IntegerType) for coefficient in coefficients))
 		
-		if coefficients == []: coefficients = [0]
+		# It is easier if the zero polynomial has coefficients [0] instead of [].
+		# At various points we will want the min of the coefficients etc.
+		if not coefficients: coefficients = [0]
 		self.coefficients = list(coefficients[:min(i for i in range(1, len(coefficients)+1) if not any(coefficients[i:]))])
 		self.height = log(max(max(abs(x) for x in self.coefficients), 1))
 		self.degree = len(self.coefficients) - (2 if self.is_zero() else 1)  # The zero polynomial has degree -1.
 		self.log_degree = log(max(self.degree, 1))
-		self.accuracy = 0
 		self._chain = None  # Stores the Sturm chain associated to this polynomial. See self.sturm_chain().
 	
 	def copy(self):

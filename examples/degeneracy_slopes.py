@@ -7,7 +7,8 @@ import snappy
 
 def test(surface, word, target):
 	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
-	M = snappy.twister.Surface(surface).bundle(word)  # This should be the same as: M = snappy.Manifold(target)
+	# M = snappy.twister.Surface(surface).bundle(word)  # These should be the same.
+	M = snappy.Manifold(target)
 	for splitting in splittings:
 		N = snappy.Manifold(splitting.bundle().snappy_string())
 		for _ in range(100):

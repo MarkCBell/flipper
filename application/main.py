@@ -8,9 +8,8 @@ import re
 import os
 import sys
 import pickle
-import string
 from math import sin, cos, pi
-from itertools import product, combinations
+from itertools import combinations
 
 try:
 	import Tkinter as TK
@@ -356,8 +355,8 @@ class FlipperApp(object):
 		if name in self.treeview_laminations:
 			if tkMessageBox.showwarning('Remove lamination', 'Remove existing lamination %s?' % name, type='yesno') == 'yes':
 				lamination = self.laminations[name]
-				entry = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
-				self.treeview_objects.delete(*entry)
+				[entry] = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
+				self.treeview_objects.delete(entry)
 				self.laminations.pop(name)
 				self.cache.pop(lamination)
 				self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
@@ -407,8 +406,8 @@ class FlipperApp(object):
 			if tkMessageBox.showwarning('Remove mapping class', 'Remove existing mapping class %s?' % name, type='yesno') == 'yes':
 				name_inverse = name.swapcase()
 				mapping_class = self.mapping_classes[name]
-				entry = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
-				self.treeview_objects.delete(*entry)
+				[entry] = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
+				self.treeview_objects.delete(entry)
 				self.mapping_classes.pop(name)
 				self.mapping_classes.pop(name_inverse)
 				self.cache.pop(mapping_class)

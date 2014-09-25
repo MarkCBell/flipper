@@ -12,13 +12,15 @@ def main(verbose=False):
 	p1 = flipper.kernel.Polynomial([1, -7, 19, -26, 19, -7, 1])
 	p2 = flipper.kernel.Polynomial([2, -3, 1])  # 2 - 3x + x^2 = (x - 2) (x - 1).
 	
-	if not (g == f.derivative()): return False
-	if not (h == f + g): return False
-	if not (len(f.roots()) == 2): return False
-	if not (len(p1.roots()) == 3): return False
-	if not (len(p2.roots()) == 2): return False
+	tests = [
+		g == f.derivative(),
+		h == f + g,
+		len(f.roots()) == 2,
+		len(p1.roots()) == 3,
+		len(p2.roots()) == 2
+		]
 	
-	return True
+	return all(tests)
 
 if __name__ == '__main__':
 	print(main(verbose=True))

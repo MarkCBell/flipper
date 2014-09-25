@@ -51,9 +51,10 @@ class EquippedTriangulation(object):
 			h = h * self.mapping_classes[letter]
 		
 		return h
-	def show(self):
-		''' Start an instance of the flipper application with this triangulation and its laminations and mapping classes. '''
+	def objects(self):
+		''' Return a list of all objects known on this triangulation.
 		
-		import flipper.application
-		flipper.application.start(list(self.laminations.items()) + list(self.pos_mapping_classes.items()))
+		This can be passed directly into flipper.application.start(). '''
+		
+		return [self.triangulation] + list(self.laminations.items()) + list(self.pos_mapping_classes.items())
 

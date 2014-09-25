@@ -6,7 +6,7 @@ import flipper
 
 def main():
 	times = {}
-	S = flipper.load.equipped_triangulations('S_1_2')
+	S = flipper.load.equipped_triangulation('S_1_2')
 	
 	examples = [
 		('S_2_1', 'AEeadfaCEeCdEBfbCDFC'),  # Cannot estimate!
@@ -29,7 +29,7 @@ def main():
 		('S_2_1', 'ECdEEEaEce'),
 		('S_2_1', 'DCDfCaEd'),
 		('S_2_1', 'BaEcCCeAbC'),
-		('S_3_1', 'abcdeGh')  # Takes ~12 iterations to converge!
+		('S_3_1', 'abcdeGh')  # Takes ~11 iterations to converge!
 		]
 	
 	for index, (surface, word) in enumerate(examples):
@@ -42,7 +42,8 @@ def main():
 		except flipper.AssumptionError:
 			pass  # mapping_class is not pseudo-Anosov.
 		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-		# fails to find an invariant lamination.
+		# fails to find an invariant lamination. This is very bad so we wont try and catch
+		# this exception.
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / len(examples)))

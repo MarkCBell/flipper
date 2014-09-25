@@ -458,7 +458,9 @@ class FlipperApp(object):
 				string_contents = open(load_from, 'rb').read()
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
-			elif not isinstance(load_from, flipper.StringType):
+			elif isinstance(load_from, flipper.StringType):
+				string_contents = load_from
+			else:
 				string_contents = flipper.package(load_from)
 			
 			try:

@@ -4,6 +4,7 @@ undo and redo
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 update examples in application/examples/
+switch to using an EquippedTriangulation
 
 ### Documentation ###
 more documentation

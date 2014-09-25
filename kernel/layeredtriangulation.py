@@ -5,7 +5,7 @@ Provides three classes: Tetrahedron, Triangulation3 and LayeredTriangulation. ''
 
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
-
+#
 # Warning: LayeredTriangulation3 modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
 
@@ -14,18 +14,25 @@ import flipper
 from itertools import permutations, combinations, product
 
 # Edge veerings:
-VEERING_UNKNOWN = None
-VEERING_LEFT = 0
-VEERING_RIGHT = 1
-SOURCE = -1
+VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = None, 0, 1
 # Peripheral curve types:
 PERIPHERAL_TYPES = list(range(3))
 LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
 # This order was chosen so they appear ordered anti-clockwise from the cusp.
 VERTICES_MEETING = {0: (1, 2, 3), 1: (0, 3, 2), 2: (0, 1, 3), 3: (0, 2, 1)}
-EXIT_CUSP_LEFT = {(0, 1): 3, (0, 2): 1, (0, 3): 2, (1, 0): 2, (1, 2): 3, (1, 3): 0, (2, 0): 3, (2, 1): 0, (2, 3): 1, (3, 0): 1, (3, 1): 2, (3, 2): 0}
-EXIT_CUSP_RIGHT = {(0, 1): 2, (0, 2): 3, (0, 3): 1, (1, 0): 3, (1, 2): 0, (1, 3): 2, (2, 0): 1, (2, 1): 3, (2, 3): 0, (3, 0): 2, (3, 1): 0, (3, 2): 1}
+EXIT_CUSP_LEFT = {
+	(0, 1): 3, (0, 2): 1, (0, 3): 2,
+	(1, 0): 2, (1, 2): 3, (1, 3): 0,
+	(2, 0): 3, (2, 1): 0, (2, 3): 1,
+	(3, 0): 1, (3, 1): 2, (3, 2): 0
+	}
+EXIT_CUSP_RIGHT = {
+	(0, 1): 2, (0, 2): 3, (0, 3): 1,
+	(1, 0): 3, (1, 2): 0, (1, 3): 2,
+	(2, 0): 1, (2, 1): 3, (2, 3): 0,
+	(3, 0): 2, (3, 1): 0, (3, 2): 1
+	}
 
 class Tetrahedron(object):
 	''' This represents a tetrahedron. '''
@@ -341,23 +348,6 @@ class Triangulation3(object):
 		
 		return cusps
 	
-	def slope(self, path):
-		''' Return the slope of the peripheral curve given by path relative to the set meridians and longitudes.
-		
-		Assumes that the meridian and longitude on this cusp have been set. '''
-		
-		# It is really hard to write this path into TEMPS, we have to worry about how to push things off consistently.
-		
-		# These are the algebraic intersection numbers between the path and the meridian and longitude.
-		meridian_intersection = sum(tetrahedron.peripheral_curves[MERIDIANS][side][other] for (tetrahedron, side, other) in path)
-		longitude_intersection = sum(tetrahedron.peripheral_curves[LONGITUDES][side][other] for (tetrahedron, side, other) in path)
-		
-		# So the number of copies of the longitude and the meridian that we need to represent the path is:
-		longitude_copies = -meridian_intersection
-		meridian_copies = longitude_intersection
-		
-		return (meridian_copies, longitude_copies)
-	
 	def slope_TEMPS(self):
 		''' Return the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
 		
@@ -373,7 +363,7 @@ class Triangulation3(object):
 		return (meridian_copies, longitude_copies)
 	
 	def snappy_string(self, name='flipper triangulation', filled=True):
-		''' Return the SnapPy string describing this tetrahedron.
+		''' Return the SnapPy string describing this triangulation.
 		
 		This triangulation must be closed. '''
 		
@@ -623,15 +613,17 @@ class LayeredTriangulation(object):
 		# Compute fibre slopes.
 		fibre_slopes = [None] * closed_triangulation.num_cusps
 		for index, cusp in enumerate(cusps):
+			meridian_intersection, longitude_intersection = 0, 0
 			for corner_class in self.upper_triangulation.corner_classes:
 				corner = corner_class[0]
 				tetra, perm = fibre_immersion[corner.triangle]
 				if tetra.cusp_indices[perm(corner.side)] == index:
-					fibre_path = []
 					for corner in corner_class:
 						tetra, perm = fibre_immersion[corner.triangle]
-						fibre_path.append((tetra, perm(corner.side), perm(3)))
-					fibre_slopes[index] = closed_triangulation.slope(fibre_path)
+						side, other = perm(corner.side), perm(3)
+						meridian_intersection += tetra.peripheral_curves[MERIDIANS][side][other]
+						longitude_intersection += tetra.peripheral_curves[LONGITUDES][side][other]
+					fibre_slopes[index] = (longitude_intersection, -meridian_intersection)
 					break
 			else:
 				raise RuntimeError('No vertex was mapped to this cusp.')

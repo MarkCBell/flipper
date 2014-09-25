@@ -140,7 +140,7 @@ class Encoding(object):
 	def __len__(self):
 		return len(self.sequence)
 	def __repr__(self):
-		return 'PLfunction (comp): %s --> %s' % (self.source_triangulation, self.target_triangulation)
+		return 'PLfunction (%d flips)' % len(self)
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):
@@ -406,6 +406,7 @@ class Encoding(object):
 		tested_cells = []
 		for i in range(100):
 			new_curve = self(curves[-1])
+			# print(self.find_indices_compressed(new_curve))
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
@@ -416,7 +417,7 @@ class Encoding(object):
 				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
-					# print('%s - %d' % (self.find_indices_compressed(average_curve), i))
+					# print('%s - %d, %d' % (self.find_indices_compressed(average_curve), i, j))
 					partial_function = (self**j).applied_function(average_curve)
 					if partial_function not in tested_cells:
 						tested_cells.append(partial_function)

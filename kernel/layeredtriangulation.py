@@ -348,7 +348,7 @@ class Triangulation3(object):
 		
 		return cusps
 	
-	def slope_TEMPS(self):
+	def slope(self):
 		''' Return the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
 		
 		Assumes that the meridian and longitude on this cusp have been set. '''
@@ -648,7 +648,7 @@ class LayeredTriangulation(object):
 				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):
 					break
 			
-			degeneracy_slopes[index] = closed_triangulation.slope_TEMPS()
+			degeneracy_slopes[index] = closed_triangulation.slope()
 		
 		closed_triangulation.real_cusps = real_cusps
 		closed_triangulation.fibre_slopes = fibre_slopes

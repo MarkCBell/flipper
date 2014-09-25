@@ -8,9 +8,12 @@ def main(verbose=False):
 	
 	N = flipper.kernel.number_field([-2, 0, 1], '1.41')  # QQ(sqrt(2)).
 	x = N.lmbda  # sqrt(2)
-	if not (x * x == 2): return False
 	
-	return True
+	tests = [
+		x * x == 2
+		]
+	
+	return all(tests)
 
 if __name__ == '__main__':
 	print(main(verbose=True))

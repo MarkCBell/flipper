@@ -12,7 +12,7 @@ def find_databases():
 	
 	databases = []
 	for path in os.listdir(DATABASE_DIRECTORY):
-		head, tail = os.path.split(path)
+		_, tail = os.path.split(path)
 		name, extension = os.path.splitext(tail)
 		if extension == '.dat':
 			databases.append(name)

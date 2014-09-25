@@ -28,7 +28,7 @@ def Example_H2():
 	c = T.encode_flips_and_close([6, 8, 1, 2], 0, 0)
 	# d = ???  # Ask Vincent for the 4th generator.
 	
-	return flipper.examples.flipper.kernel.EquippedTriangulation(T, [], [a, b, c])
+	return flipper.kernel.EquippedTriangulation(T, [], [a, b, c])
 
 # To try and find smaller non-geometric bundles we know that if we use positive words then the number of
 # tetrahedra in the bundle is #a + 3#b + 4#c. So the following is a list of all Lyndon words (cyclically
@@ -95,7 +95,7 @@ def test3():
 	print('Saving %d bundles.' % len(splittings))
 	for index, splitting in enumerate(splittings):
 		print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
-		# open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
+		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
 
 if __name__ == '__main__':
 	# test1()

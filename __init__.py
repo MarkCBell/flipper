@@ -1,4 +1,16 @@
 
+''' Flipper is a program for computing the action of mapping classes on
+laminations on punctured surfaces using ideal triangulation coordinates.
+
+It can decide the Nielsen--Thurston type of a given mapping class and,
+for pseudo-Anosov mapping classes, construct a layered, veering
+triangulation of their mapping torus, as described by Agol.
+
+Get started by creating an AbstractTriangulation using the helper function:
+	flipper.abstract_triangulation(...)
+or by loading one of the provided EquippedTriangulations using:
+	flipper.load.equipped_triangulation(...) '''
+
 # import flipper.application  # Don't do this import so people without tkinter can still use the kernel.
 import flipper.kernel
 import flipper.examples

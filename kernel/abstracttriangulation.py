@@ -596,10 +596,21 @@ class AbstractTriangulation(object):
 		return E
 
 def abstract_triangulation(all_labels):
-	''' A short way of constructing an AbstractTriangulation from a list of triples of edge labels.
+	''' Return an AbstractTriangulation from a list of triples of edge labels.
 	
-	all_labels must be a list of triples of integers and each of 0, ..., zeta-1, ~0, ..., ~(zeta-1)
-	must occur exactly once. '''
+	Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient
+	and edge e of T and assign an index i(e) in 0, ..., zeta-1. Now to each
+	triangle t of T associate the triple (j(e_1), j(e_2), j(e_3)) where:
+		- e_1, e_2, e_3 are the edges of t, ordered acording to the orientation of t, and
+		- j(e) = {  i(e) if the orientation of e agrees with that of t, and
+		         { ~i(e) otherwise.
+		    Here ~x = -1 - x, the two's complement of x.
+	
+	We may describe T by the list [j(t) for t in T]. This function reconstructs
+	T from such a list.
+	
+	all_labels must be a list of triples of integers and each of
+	0, ..., zeta-1, ~0, ..., ~(zeta-1) must occur exactly once. '''
 	
 	assert(isinstance(all_labels, (list, tuple)))
 	assert(all(isinstance(labels, (list, tuple)) for labels in all_labels))

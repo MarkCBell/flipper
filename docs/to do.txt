@@ -22,11 +22,11 @@ recheck ALL number theory bounds
 completing the square - problems come from the Birman subgroup, see:
 	#surface, word, target = 'S_2_1', 'abCDEf', 'm160'
 	#surface, word, target = 'S_2_1', 'abCDE', 'v2099'
+Add function to convert Twister surface files to flipper.EquippedTriangulations
 
 ### Tests ###
 add more tests
 tests for every module
-remove asserts from tests
 
 add better profiling to see speedup progress
 

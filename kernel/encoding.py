@@ -227,7 +227,9 @@ class Encoding(object):
 	def order(self):
 		''' Return the order of this mapping class.
 		
-		If this has infinite order then returns 0.
+		If this has infinite order then returns 0. Note: if the
+		underlying surface is S_0_4 or S_1_1 then this might be
+		off by a factor of 2 due to the hyperelliptic.
 		
 		This encoding must be a mapping class. '''
 		

@@ -86,7 +86,7 @@ setup(
 	package_data={
 		'flipper': ['docs/*'],
 		'flipper.application': ['icon/*', 'docs/*'],
-		'flipper.censuses': ['*.dat']
+		'flipper.load': ['censuses/*.dat']
 		},
 	cmdclass={'test': TestCommand, 'profile': ProfileCommand}
 	)

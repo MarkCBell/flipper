@@ -698,7 +698,7 @@ class FlipperApp(object):
 				return piece
 		return None
 	
-	def redraw(self):  # !?! To do.
+	def redraw(self):
 		self.build_edge_labels()
 		
 		for vertex in self.vertices:

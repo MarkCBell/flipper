@@ -385,10 +385,7 @@ class Lamination(object):
 		
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
-		if near_vertices[0].label <= near_vertices[1].label:
-			good_vertex, bad_vertex = near_vertices[1], near_vertices[0]
-		else:
-			good_vertex, bad_vertex = near_vertices[0], near_vertices[1]
+		bad_vertex, good_vertex = sorted(near_vertices, key=lambda v: v.label)
 		
 		# If we collapse together two real vertices (or a vertex with itself) then there is a loop
 		# dijoint to this lamination and so this is not filling.

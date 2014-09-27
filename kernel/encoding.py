@@ -229,7 +229,9 @@ class Encoding(object):
 		
 		If this has infinite order then returns 0. Note: if the
 		underlying surface is S_0_4 or S_1_1 then this might be
-		off by a factor of 2 due to the hyperelliptic.
+		off by a factor of 2 due to the hyperelliptic. Eventuallly,
+		when algebraic intersection numbers are implemented, this
+		problem will be solved.
 		
 		This encoding must be a mapping class. '''
 		
@@ -237,7 +239,7 @@ class Encoding(object):
 		
 		# We could do:
 		# for i in range(self.source_triangulation.max_order):
-		#	if (self**(i+1)).is_identity():
+		#	if self**(i+1) == self.source_triangulation.id_encoding():
 		#		return i+1
 		# But this is quadratic in the order so instead we do:
 		curves = self.source_triangulation.key_curves()
@@ -252,103 +254,12 @@ class Encoding(object):
 		
 		return min(possible_orders)
 	
-	def is_identity(self):
-		''' Return if this mapping class is the identity. '''
-		
-		return self == self.source_triangulation.id_encoding()
-	
 	def is_periodic(self):
 		''' Return if this encoding has finite order.
 		
 		This encoding must be a mapping class. '''
 		
 		return self.order() > 0
-	
-	def is_reducible(self, log_progress=None):
-		''' Return if this encoding is reducible.
-		
-		This determines if the induced action of self on V the space of laminations on T.
-		To do this, for each Marking matrix and (Action, Condition) matrix pair we check
-		if there is a non-negative, non-trivial solution to:
-			( Condition )
-			(Action - Id)
-			(Id - Action) x >= 0
-			(    Id     )
-			(   Face    )
-			(  Marking  )
-		
-		Such a solution corresponds to an essential invariant (multi)curve. See section 4 of:
-			http://arxiv.org/pdf/1403.2997.pdf
-		for more information.
-		
-		This only uses integer arithmetic but there may be exponentially many LP problems to
-		check. Hence this is not advisable to use.
-		
-		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
-		
-		# We now use Ben's branch and bound approach. It's much better.
-		
-		# To do this we create two little functions to increment the list of indices to the next point that
-		# we are interested in. The first jumps from our current location to the next subtree, the second
-		# advances to the next index according to the lex ordering.
-		
-		sizes = [len(encoding) for encoding in self][::-1]
-		sizes_mul = [flipper.kernel.product(sizes[i:]) for i in range(len(sizes))]
-		total = sum((scale-1) * scale_prod for scale, scale_prod in zip(sizes, sizes_mul))
-		
-		def jump_index(indices):
-			''' Return the next indices at this level of the tree. '''
-			
-			indices = list(indices)
-			while len(indices) > 0 and indices[-1] == len(self[len(self)-len(indices)])-1:
-				indices.pop()
-			if len(indices) > 0: indices[-1] += 1
-			return indices
-		
-		def next_index(indices):
-			''' Return the next indices of the tree. '''
-			
-			indices = list(indices)
-			if len(indices) < len(self):
-				return indices + [0]
-			elif len(indices) == len(self):
-				return jump_index(indices)
-			else:
-				raise IndexError
-		
-		face_matrix, marking_matrices = self.source_triangulation.face_matrix(), self.source_triangulation.marking_matrices()
-		
-		M4 = face_matrix
-		M6 = flipper.kernel.id_matrix(self.zeta)
-		indices = [0]
-		while indices != []:
-			partial_function = self.expand_indices(indices)
-			As, Cs = partial_function.action, partial_function.condition
-			
-			if log_progress is not None:  # Log how far we've gotten.
-				progression = float(sum(index * scale for index, scale in zip(indices, sizes_mul))) / total
-				log_progress(progression)
-			
-			if len(indices) < len(self):
-				# Remember to always add the Id matrix as empty matrices always define trivial polytopes.
-				indices = next_index(indices) if Cs.join(M6).nontrivial_polytope() else jump_index(indices)
-			else:
-				for i in range(len(marking_matrices)):
-					M1 = Cs
-					M2 = As - M6  # As - flipper.kernel.id_matrix.
-					M3 = M6 - As  # flipper.kernel.id_matrix - As.
-					M5 = marking_matrices[i]
-					
-					# M4 = face_matrix  # These have been precomputed.
-					# M6 = flipper.kernel.id_matrix(self.zeta)
-					P = M4.join(M5).join(M2).join(M3).join(M1)  # A better order.
-					if P.nontrivial_polytope():
-						return True
-				indices = jump_index(indices)
-		
-		return False
 	
 	def invariant_lamination(self):
 		''' Return a rescaling constant and projectively invariant lamination.
@@ -553,18 +464,6 @@ class Encoding(object):
 						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
 						
 						curves = self.source_triangulation.key_curves()
-						print('#########################')
-						for c1, c2 in product(curves, curves):
-							top1 = self(c1)
-							top2 = c2
-							bottom1 = isom(periodic(preperiodic(c1)))
-							bottom2 = preperiodic(c2)
-							i1 = top1.geometric_intersection(top2)
-							i2 = bottom1.geometric_intersection(bottom2)
-							print(i1 == i2)
-							if i1 != i2:
-								break
-						
 						print('???????????????????')
 						print(len(self))
 						print(preperiodic.target_triangulation)

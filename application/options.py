@@ -23,7 +23,7 @@ RENDER_LAMINATION_C_TRAIN_TRACK = 'Compressed train track'
 LABEL_EDGES_NONE = 'None'
 LABEL_EDGES_INDEX = 'Index'
 LABEL_EDGES_GEOMETRIC = 'Geometric'
-LABEL_EDGES_ALGEBRAIC = 'Algebraic'
+# LABEL_EDGES_ALGEBRAIC = 'Algebraic'
 SIZE_SMALL, SIZE_MEDIUM, SIZE_LARGE = 0, 1, 2
 # SIZE_XLARGE = 3
 
@@ -53,8 +53,6 @@ class Options(object):
 		# Drawing parameters.
 		self.epsilon = 10
 		self.float_error = 0.001
-		self.dilatation_error = 0.001
-		self.spacing = 10
 		
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
 		self.zoom_fraction = 0.9 # Must be in (0, 1)

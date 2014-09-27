@@ -147,6 +147,7 @@ def Example_36():
 def load(surface):
 	surfaces = {
 		'S_1_1': Example_S_1_1,
+		'S_1_1m': Example_S_1_1m,
 		'S_1_2': Example_S_1_2,
 		'S_2_1': Example_S_2_1,
 		'S_2_1b': Example_S_2_1b,

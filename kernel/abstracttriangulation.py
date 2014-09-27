@@ -90,7 +90,9 @@ class AbstractTriangle(object):
 		return self.edges[index]
 	
 	def __contains__(self, item):
-		if isinstance(item, AbstractEdge):
+		if isinstance(item, flipper.IntegerType):
+			return item in self.labels
+		elif isinstance(item, AbstractEdge):
 			return item in self.edges
 		elif isinstance(item, AbstractVertex):
 			return item in self.vertices
@@ -272,38 +274,6 @@ class AbstractTriangulation(object):
 		
 		return self.triangle_lookup[edge_index] != self.triangle_lookup[~edge_index]
 	
-	def flip_edge(self, edge_index):
-		''' Return a new triangulation obtained by flipping the given edge.
-		
-		The chosen edge must be flippable. '''
-		
-		assert(self.is_flippable(edge_index))
-		
-		# Use the following for reference:
-		# #-----------#     #-----------#
-		# |     a    A|     |\          |
-		# |         A |     | \         |
-		# |  A     /  |     |  \   A2   |
-		# |       /   |     |   \       |
-		# |b    e/   d| --> |    \e'    |
-		# |     /     |     |     \     |
-		# |    /      |     |      \    |
-		# |   /       |     |       \   |
-		# |  /     B  |     |  B2    \  |
-		# | /         |     |         V |
-		# |/    c     |     |          V|
-		# #-----------#     #-----------#
-		
-		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
-		new_edge = AbstractEdge(corner_A.vertex, corner_B.vertex, edge_index)
-		
-		a, b, c, d = self.square_about_edge(edge_index)
-		triangle_A2 = AbstractTriangle([new_edge, d, a])
-		triangle_B2 = AbstractTriangle([~new_edge, b, c])
-		
-		unchanged_triangles = [triangle for triangle in self if triangle != corner_A.triangle and triangle != corner_B.triangle]
-		return AbstractTriangulation(unchanged_triangles + [triangle_A2, triangle_B2])
-	
 	def square_about_edge(self, edge_index):
 		''' Return the four edges around the given edge.
 		
@@ -311,8 +281,8 @@ class AbstractTriangulation(object):
 		
 		assert(self.is_flippable(edge_index))
 		
-		# #-----------#
-		# |     a    /|
+		# #<----------#
+		# |     a    ^^
 		# |         / |
 		# |  A     /  |
 		# |       /   |
@@ -322,11 +292,42 @@ class AbstractTriangulation(object):
 		# |   /       |
 		# |  /     B  |
 		# | /         |
-		# |/    c     |
-		# #-----------#
+		# V/    c     |
+		# #---------->#
 		
 		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
+	
+	def flip_edge(self, edge_index):
+		''' Return a new triangulation obtained by flipping the given edge.
+		
+		The chosen edge must be flippable. '''
+		
+		assert(self.is_flippable(edge_index))
+		
+		# Use the following for reference:
+		# #<----------#     #-----------#
+		# |     a    ^^     |\          |
+		# |         / |     | \         |
+		# |  A     /  |     |  \        |
+		# |       /   |     |   \       |
+		# |b    e/   d| --> |    \e'    |
+		# |     /     |     |     \     |
+		# |    /      |     |      \    |
+		# |   /       |     |       \   |
+		# |  /     B  |     |        \  |
+		# | /         |     |         \ |
+		# V/    c     |     |          V|
+		# #---------->#     #-----------#
+		
+		a, b, c, d = self.square_about_edge(edge_index)
+		new_edge = AbstractEdge(a.target_vertex, c.target_vertex, edge_index)
+		
+		triangle_A2 = AbstractTriangle([new_edge, d, a])
+		triangle_B2 = AbstractTriangle([~new_edge, b, c])
+		
+		unchanged_triangles = [triangle for triangle in self if edge_index not in triangle.labels and ~edge_index not in triangle]
+		return AbstractTriangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
 	def tree_and_dual_tree(self):
 		''' Return a maximal tree in the 1--skeleton of this triangulation and a

@@ -22,9 +22,14 @@ LOG_2 = log(2)
 HASH_DENOMINATOR = 30
 
 class NumberField(object):
-	''' This represents a number field QQ(lambda). Additionally NumberField() returns QQ. '''
+	''' This represents a number field QQ(lambda).
+	
+	Additionally NumberField() returns QQ.
+	
+	The given PolynomialRoot must be a monic polynomial. '''
 	def __init__(self, polynomial_root=None):
 		assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
+		assert(polynomial_root.polynomial.is_monic())
 		
 		if polynomial_root is None: polynomial_root = flipper.kernel.polynomial_root([-1, 1], '1.00')
 		self.polynomial_root = polynomial_root

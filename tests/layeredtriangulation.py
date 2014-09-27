@@ -7,8 +7,6 @@ except ImportError:
 
 import flipper
 
-RANDOM_WORD_LENGTH = 10
-
 def test(surface, word, target):
 	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
 	# Snappy can fail with a RuntimeError.

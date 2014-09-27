@@ -9,6 +9,7 @@ import flipper
 
 from math import log10 as log
 from fractions import gcd
+from functools import reduce as freduce
 try:
 	from itertools import izip_longest as zip_longest
 except ImportError:  # Python 3.
@@ -139,7 +140,8 @@ class Polynomial(object):
 	def rescale(self):
 		''' Return a possibly simpler polynomial with the same roots. '''
 		
-		return Polynomial(flipper.kernel.matrix.rescale(self))
+		c = max(abs(freduce(gcd, self)), 1)  # Avoid a possible division by 0.
+		return Polynomial([coefficient // c for coefficient in self])
 	
 	def square_free(self):
 		''' Return the polynomial with the same roots but each with multiplicity one. '''

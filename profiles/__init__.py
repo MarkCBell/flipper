@@ -12,7 +12,7 @@ from . import encoding
 #from . import interval
 #from . import lamination
 #from . import layeredtriangulation
-from . import matrix
+#from . import matrix
 #from . import numberfield
 #from . import permutation
 #from . import polynomial

@@ -1,7 +1,7 @@
 
 ''' A module for representing an abstract triangulation of a punctured surface.
 
-Provides two classes: AbstractVertex, AbstractEdge, AbstractTriangle, AbstractCorner and AbstractTriangulation.
+Provides five classes: AbstractVertex, AbstractEdge, AbstractTriangle, AbstractCorner and AbstractTriangulation.
 	An AbstractVertex is a singleton.
 	An AbstractEdge is an ordered pair of AbstractVertices.
 	An AbstractTriangle is an ordered triple of AbstractEdges
@@ -11,12 +11,10 @@ There is also a helper function: abstract_triangulation. '''
 
 import flipper
 
-from itertools import product, combinations
-
 def norm(value):
 	''' A map taking an edges label to its index.
 	
-	That is x and ~x should map to the same thing. '''
+	That is, x and ~x should map to the same thing. '''
 	
 	return max(value, ~value)
 
@@ -178,8 +176,6 @@ class AbstractTriangulation(object):
 		self.euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
 		self.genus = (2 - self.euler_characteristic - self.num_vertices) // 2
 		self.max_order = 6 - 4 * self.euler_characteristic  # The maximum order of a periodic mapping class.
-		self._face_matrix = None
-		self._marking_matrices = None
 	
 	def __repr__(self):
 		return str(list(self))
@@ -210,25 +206,6 @@ class AbstractTriangulation(object):
 			new_edges[~edge] = ~new_edges[edge]
 		new_triangles = [AbstractTriangle([new_edges[edge] for edge in triangle]) for triangle in self]
 		return AbstractTriangulation(new_triangles)
-	
-	def face_matrix(self):
-		''' Return a matrix specifying the three triangle inequalities in each triangle. '''
-		
-		assert(False)
-		if self._face_matrix is None:
-			X = [[(3*i + j, self.triangles[i][j+k]) for i in range(self.num_triangles) for j in range(3)] for k in range(3)]
-			self._face_matrix = flipper.kernel.zero_matrix(self.zeta, 3*self.num_triangles).tweak(X[0] + X[1], X[2])
-		return self._face_matrix
-	
-	def marking_matrices(self):
-		''' Return a list of matrices each specifying an assignment of laminations cusps to vertices. '''
-		
-		assert(False)
-		if self._marking_matrices is None:
-			corner_choices = [P for P in product(*self.vertices) if all(t1 != t2 for ((t1, s1), (t2, s2)) in combinations(P, r=2))]
-			X = dict((P, [[(i, triangle[side+j]) for i, (triangle, side) in enumerate(P)] for j in range(3)]) for P in corner_choices)
-			self._marking_matrices = [flipper.kernel.zero_matrix(self.zeta, len(P)).tweak(X[P][0], X[P][1]+X[P][2]) for P in corner_choices]
-		return self._marking_matrices
 	
 	def vertices_of_edge(self, edge_index):
 		''' Return the two vertices at the ends of the given edge. '''

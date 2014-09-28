@@ -1,13 +1,15 @@
 
 ''' A module for representing triangulations of 3--manifolds.
 
-Provides three classes: Tetrahedron, Triangulation3 and LayeredTriangulation. '''
+Provides two classes: Tetrahedron and Triangulation3. '''
 
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 #
 # Warning: LayeredTriangulation3 modifies itself in place!
 # Perhaps when I'm feeling purer I'll come back and redo this.
+#
+# We use right-handed tetrahedra, see SnapPy/headers/kernel_typedefs.h.
 
 import flipper
 
@@ -218,7 +220,7 @@ class Triangulation3(object):
 				tetrahedron.cusp_indices[side] = index
 		
 		self.num_cusps = len(vertex_classes)
-		self.real_cusps = [False] * self.num_cusps
+		self.real_cusps = [None] * self.num_cusps
 		self.fibre_slopes = [(0, 0)] * self.num_cusps
 		self.degeneracy_slopes = [(0, 0)] * self.num_cusps
 		
@@ -365,6 +367,9 @@ class Triangulation3(object):
 	def snappy_string(self, name='flipper triangulation', filled=True):
 		''' Return the SnapPy string describing this triangulation.
 		
+		If filled=True then the fake cusps that we had to install are filled
+		along the fibre slope.
+		
 		This triangulation must be closed. '''
 		
 		assert(self.is_closed())
@@ -390,269 +395,4 @@ class Triangulation3(object):
 			strn += tetrahedra.snappy_string() + '\n'
 		
 		return strn
-
-def permutation_from_pair(a, to_a, b, to_b):
-	''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
-	
-	image = [None] * 4
-	image[a] = to_a
-	image[b] = to_b
-	c, d = set(range(4)).difference([a, b])
-	to_c, to_d = set(range(4)).difference([to_a, to_b])
-	
-	perm1 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_c, d: to_d}[i] for i in range(4)])
-	perm2 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_d, d: to_c}[i] for i in range(4)])
-	if not perm1.is_even():
-		return perm1
-	elif not perm2.is_even():
-		return perm2
-	else:
-		raise ValueError('Does not represent a gluing.')
-
-class LayeredTriangulation(object):
-	''' This represents a Triangulation3 which has maps from a pair of AbstractTriangulations into is boundary. '''
-	def __init__(self, triangulation, flip_indices, isometry):
-		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
-		assert(isinstance(flip_indices, (list, tuple)))
-		assert(all(isinstance(edge_index, flipper.IntegerType) for edge_index in flip_indices))
-		assert(isinstance(isometry, flipper.kernel.Isometry))
-		
-		self.triangulation = triangulation
-		self.flip_indices = flip_indices
-		self.isometry = isometry
-		
-		self.lower_triangulation = self.triangulation.copy()
-		self.upper_triangulation = self.triangulation.copy()
-		self.core_triangulation = Triangulation3(2 * self.triangulation.num_triangles)
-		
-		lower_tetrahedra = self.core_triangulation.tetrahedra[:self.triangulation.num_triangles]
-		upper_tetrahedra = self.core_triangulation.tetrahedra[self.triangulation.num_triangles:]
-		for lower, upper in zip(lower_tetrahedra, upper_tetrahedra):
-			lower.glue(3, upper, flipper.kernel.Permutation((0, 2, 1, 3)))
-		
-		# We store two maps, one from the lower triangulation and one from the upper.
-		# Each is a dictionary sending each AbstractTriangle of lower/upper_triangulation to a pair (Tetrahedron, permutation).
-		self.lower_map = dict((lower, (lower_tetra, flipper.kernel.Permutation((0, 1, 2, 3)))) for lower, lower_tetra in zip(self.lower_triangulation, lower_tetrahedra))
-		self.upper_map = dict((upper, (upper_tetra, flipper.kernel.Permutation((0, 2, 1, 3)))) for upper, upper_tetra in zip(self.upper_triangulation, upper_tetrahedra))
-		
-		self.flips(self.flip_indices)
-		self.closed_triangulation = self.close(self.isometry)
-	
-	def __repr__(self):
-		strn = 'Core tri:\n'
-		strn += '\n'.join(str(tetra) for tetra in self.core_triangulation)
-		strn += '\nUpper tri:\n' + str(self.upper_triangulation)
-		strn += '\nLower tri:\n' + str(self.lower_triangulation)
-		strn += '\nUpper map: ' + str(self.upper_map)
-		strn += '\nLower map: ' + str(self.lower_map)
-		return strn
-	
-	def flip(self, edge_index):
-		''' Modifies this layered triangulation by flipping the given edge of self.upper_triangulation.
-		
-		The given edge must be flippable. '''
-		
-		assert(self.upper_triangulation.is_flippable(edge_index))
-		
-		# MEGA WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
-		
-		# Get a new tetrahedra.
-		new_tetrahedron = self.core_triangulation.create_tetrahedra()
-		new_tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
-		new_tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
-		new_tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
-		new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
-		
-		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
-		cornerA = self.upper_triangulation.corner_of_edge(edge_index)
-		cornerB = self.upper_triangulation.corner_of_edge(~edge_index)
-		(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
-		object_A, perm_A = self.upper_map[A]
-		object_B, perm_B = self.upper_map[B]
-		
-		below_A, down_perm_A = object_A.glued_to[perm_A(3)]
-		below_B, down_perm_B = object_B.glued_to[perm_A(3)]
-		
-		object_A.unglue(3)
-		object_B.unglue(3)
-		
-		# Do some gluings.
-		new_glue_perm_A = permutation_from_pair(0, down_perm_A(perm_A(side_A)), 2, down_perm_A(perm_A(3)))
-		new_glue_perm_B = permutation_from_pair(2, down_perm_B(perm_B(side_B)), 0, down_perm_B(perm_B(3)))
-		new_tetrahedron.glue(2, below_A, new_glue_perm_A)
-		new_tetrahedron.glue(0, below_B, new_glue_perm_B)
-		
-		new_tetrahedron.glue(1, object_A, flipper.kernel.Permutation((2, 3, 1, 0)))
-		new_tetrahedron.glue(3, object_B, flipper.kernel.Permutation((1, 0, 2, 3)))
-		
-		# Get the new upper triangulation
-		new_upper_triangulation = self.upper_triangulation.flip_edge(edge_index)
-		
-		# Rebuild the upper_map.
-		new_upper_map = dict()
-		cornerA = new_upper_triangulation.corner_of_edge(edge_index)
-		cornerB = new_upper_triangulation.corner_of_edge(~edge_index)
-		new_A, new_B = cornerA.triangle, cornerB.triangle
-		# Most of the triangles have stayed the same.
-		old_fixed_triangles = [triangle for triangle in self.upper_triangulation if triangle != A and triangle != B]
-		new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
-		for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
-			new_upper_map[new_triangle] = self.upper_map[old_triangle]
-		
-		# This relies on knowing how the upper_triangulation.flip_edge() function works.
-		new_upper_map[new_A] = (object_A, flipper.kernel.Permutation((0, 2, 1, 3)))
-		new_upper_map[new_B] = (object_B, flipper.kernel.Permutation((0, 2, 1, 3)))
-		
-		# Finally, install the new objects.
-		self.upper_triangulation = new_upper_triangulation
-		self.upper_map = new_upper_map
-		
-		return self
-	
-	def flips(self, sequence):
-		''' Modifies this layered triangulation by performing a sequence of flips on self.upper_triangulation. '''
-		
-		for edge_index in sequence:
-			self.flip(edge_index)
-	
-	def close(self, isometry):
-		''' Return the triangulation obtained by gluing the self.upper_triangulation to self.lower_triangulation via the given isometry. '''
-		
-		isometry = isometry.adapt(self.upper_triangulation, self.lower_triangulation)
-		# Duplicate the bundle.
-		closed_triangulation = self.core_triangulation.copy()
-		# The tetrahedra in the closed triangulation are guaranteed to be in the same order so we can get away with this.
-		forwards = dict(zip(self.core_triangulation, closed_triangulation))
-		upper_tetrahedra = [self.upper_map[triangle][0] for triangle in self.upper_map]
-		
-		# Remove the boundary tetrahedra.
-		for triangle in self.upper_triangulation:
-			A, perm_A = self.upper_map[triangle]
-			closed_triangulation.destroy_tetrahedra(forwards[A])
-		for triangle in self.lower_triangulation:
-			B, perm_B = self.lower_map[triangle]
-			closed_triangulation.destroy_tetrahedra(forwards[B])
-		
-		# These are maps which push the upper and lower triangulations in just a bit.
-		core_lower_map = dict()
-		for triangle in self.lower_triangulation:
-			B, perm_B = self.lower_map[triangle]
-			above_B, perm_up = B.glued_to[3]
-			core_lower_map[triangle] = (above_B, perm_up * perm_B)
-		
-		core_upper_map = dict()
-		for triangle in self.upper_triangulation:
-			A, perm_A = self.upper_map[triangle]
-			below_A, perm_down = A.glued_to[3]
-			core_upper_map[triangle] = (below_A, perm_down * perm_A)
-		
-		# This is a map which send each triangle of self.upper_triangulation via isometry to a pair:
-		#	(triangle, permutation)
-		# where triangle is either a triangle in self.lower_triangulation or a triangle in
-		# self.upper_triangulation, if it is directly paired with one.
-		paired = dict()
-		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = isometry.triangle_image(source_triangle)
-			B, perm_B = core_lower_map[target_triangle]
-			
-			if B in upper_tetrahedra:
-				hit_triangle = [T for T in self.upper_triangulation if self.upper_map[T][0] == B][0]
-				A, perm_A = self.upper_map[hit_triangle]
-				paired[source_triangle] = (hit_triangle, perm_A.inverse() * perm_B * perm.embed(4))
-			else:
-				paired[source_triangle] = (target_triangle, perm.embed(4))
-		
-		# This is the map obtained by repeatedly applying the paired map until you land in the lower triangulation.
-		full_fowards = dict()
-		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = paired[source_triangle]
-			
-			# We might have to map repeatedly until we get back to the lower triangulation.
-			while target_triangle not in self.lower_triangulation:
-				new_target_triangle, new_perm = paired[target_triangle]
-				target_triangle = new_target_triangle
-				perm = new_perm * perm
-			
-			full_fowards[source_triangle] = (target_triangle, perm)
-		
-		# Now close the bundle up.
-		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = full_fowards[source_triangle]
-			
-			A, perm_A = core_upper_map[source_triangle]
-			B, perm_B = core_lower_map[target_triangle]
-			if forwards[A] in closed_triangulation:
-				forwards[A].glue(perm_A(3), forwards[B], perm_B * perm * perm_A.inverse())
-		
-		# There should now be no unglued faces.
-		assert(all(tetra.glued_to[side] is not None for tetra in closed_triangulation for side in range(4)))
-		
-		# Construct an immersion of the fibre surface into the closed bundle.
-		fibre_immersion = dict()
-		for source_triangle in self.upper_triangulation:
-			target_triangle, perm = full_fowards[source_triangle]
-			
-			B, perm_B = core_lower_map[target_triangle]
-			fibre_immersion[source_triangle] = (forwards[B], perm_B * perm)
-		
-		# Install longitudes and meridians.
-		cusps = closed_triangulation.install_longitudes_and_meridians()
-		
-		# Now identify each the type of each cusp.
-		real_cusps = [None] * closed_triangulation.num_cusps
-		for corner_class in self.upper_triangulation.corner_classes:
-			vertex = corner_class[0].vertex
-			label = vertex.label >= 0
-			for corner in corner_class:
-				tetrahedron, permutation = fibre_immersion[corner.triangle]
-				if real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] is None:
-					real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] = label
-				else:
-					assert(real_cusps[tetrahedron.cusp_indices[permutation(corner.side)]] == label)
-		
-		# Compute fibre slopes.
-		fibre_slopes = [None] * closed_triangulation.num_cusps
-		for index, cusp in enumerate(cusps):
-			meridian_intersection, longitude_intersection = 0, 0
-			for corner_class in self.upper_triangulation.corner_classes:
-				corner = corner_class[0]
-				tetra, perm = fibre_immersion[corner.triangle]
-				if tetra.cusp_indices[perm(corner.side)] == index:
-					for corner in corner_class:
-						tetra, perm = fibre_immersion[corner.triangle]
-						side, other = perm(corner.side), perm(3)
-						meridian_intersection += tetra.peripheral_curves[MERIDIANS][side][other]
-						longitude_intersection += tetra.peripheral_curves[LONGITUDES][side][other]
-					fibre_slopes[index] = (longitude_intersection, -meridian_intersection)
-					break
-			else:
-				raise RuntimeError('No vertex was mapped to this cusp.')
-		
-		# Compute degeneracy slopes.
-		degeneracy_slopes = [None] * closed_triangulation.num_cusps
-		cusp_pairing = closed_triangulation.cusp_identification_map()
-		for index, cusp in enumerate(cusps):
-			closed_triangulation.clear_temp_peripheral_structure()
-			
-			# Set the degeneracy curve into the TEMPS peripheral structure.
-			start_tetrahedron, start_side = cusp[0]
-			NV = VERTICES_MEETING[start_side]
-			start_other = NV[min(i for i in range(3) if start_tetrahedron.get_edge_label(start_side, NV[(i+1) % 3]) == VEERING_RIGHT and start_tetrahedron.get_edge_label(start_side, NV[(i+2) % 3]) == VEERING_LEFT)]
-			
-			current_tetrahedron, current_side, current_other = start_tetrahedron, start_side, start_other
-			while True:
-				current_tetrahedron.peripheral_curves[TEMPS][current_side][current_other] += 1
-				leave = (EXIT_CUSP_LEFT if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT else EXIT_CUSP_RIGHT)[(current_side, current_other)]
-				current_tetrahedron.peripheral_curves[TEMPS][current_side][leave] -= 1
-				current_tetrahedron, current_side, current_other = cusp_pairing[(current_tetrahedron, current_side, leave)]
-				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):
-					break
-			
-			degeneracy_slopes[index] = closed_triangulation.slope()
-		
-		closed_triangulation.real_cusps = real_cusps
-		closed_triangulation.fibre_slopes = fibre_slopes
-		closed_triangulation.degeneracy_slopes = degeneracy_slopes
-		
-		return closed_triangulation
 

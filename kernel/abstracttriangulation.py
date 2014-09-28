@@ -75,6 +75,7 @@ class AbstractTriangle(object):
 		self.labels = [edge.label for edge in self]
 		self.indices = [edge.index for edge in self]
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
+		self.corners = [AbstractCorner(self, i) for i in range(3)]
 	
 	def __repr__(self):
 		return str(tuple(self.edges))
@@ -94,6 +95,8 @@ class AbstractTriangle(object):
 			return item in self.edges
 		elif isinstance(item, AbstractVertex):
 			return item in self.vertices
+		elif isinstance(item, AbstractCorner):
+			return item in self.corners
 		else:
 			return NotImplemented
 
@@ -138,7 +141,7 @@ class AbstractTriangulation(object):
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
 		self.vertices = list(set(vertex for triangle in self for vertex in triangle.vertices))
-		self.corners = [AbstractCorner(triangle, index) for triangle in self for index in range(3)]
+		self.corners = [corner for triangle in self for corner in triangle.corners]
 		
 		self.num_triangles = len(self.triangles)
 		self.zeta = len(self.oriented_edges)

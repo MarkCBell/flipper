@@ -38,20 +38,22 @@ class Isometry(object):
 	def __iter__(self):
 		return iter(self.label_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
-		assert(False)
-		# !?! TO DO.
 		if isinstance(other, flipper.kernel.AbstractVertex):
 			if other not in self.source_triangulation:
 				raise ValueError('Vertex no in source triangulation.')
+			return self.vertex_map[other]
 		elif isinstance(other, flipper.kernel.AbstractEdge):
 			if other not in self.source_triangulation:
 				raise ValueError('Edge no in source triangulation.')
+			return self.edge_map[other]
 		elif isinstance(other, flipper.kernel.AbstractTriangle):
 			if other not in self.source_triangulation:
 				raise ValueError('Triangle no in source triangulation.')
+			return self.triangle_map[other]
 		elif isinstance(other, flipper.kernel.AbstractCorner):
 			if other not in self.source_triangulation:
 				raise ValueError('Corner no in source triangulation.')
+			return self.corner_map[other]
 		else:
 			return NotImplemented
 	def __mul__(self, other):

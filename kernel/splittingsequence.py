@@ -50,11 +50,11 @@ class SplittingSequence(object):
 		triangulation = self.initial_lamination.triangulation
 		
 		# Move over a lot of data.
-		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.layeredtriangulation.VEERING_LEFT, flipper.kernel.layeredtriangulation.VEERING_RIGHT
-		LONGITUDES, MERIDIANS = flipper.kernel.layeredtriangulation.LONGITUDES, flipper.kernel.layeredtriangulation.MERIDIANS
-		TEMPS = flipper.kernel.layeredtriangulation.TEMPS
-		VERTICES_MEETING = flipper.kernel.layeredtriangulation.VERTICES_MEETING
-		EXIT_CUSP_LEFT, EXIT_CUSP_RIGHT = flipper.kernel.layeredtriangulation.EXIT_CUSP_LEFT, flipper.kernel.layeredtriangulation.EXIT_CUSP_RIGHT
+		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
+		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
+		TEMPS = flipper.kernel.triangulation3.TEMPS
+		VERTICES_MEETING = flipper.kernel.triangulation3.VERTICES_MEETING
+		EXIT_CUSP_LEFT, EXIT_CUSP_RIGHT = flipper.kernel.triangulation3.EXIT_CUSP_LEFT, flipper.kernel.triangulation3.EXIT_CUSP_RIGHT
 		
 		triangulation3 = flipper.kernel.Triangulation3(len(self.periodic_flips))
 		lower_triangulation = triangulation.copy()

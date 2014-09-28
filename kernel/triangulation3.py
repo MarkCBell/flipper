@@ -6,9 +6,6 @@ Provides two classes: Tetrahedron and Triangulation3. '''
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 #
-# Warning: LayeredTriangulation3 modifies itself in place!
-# Perhaps when I'm feeling purer I'll come back and redo this.
-#
 # We use right-handed tetrahedra, see SnapPy/headers/kernel_typedefs.h.
 
 import flipper

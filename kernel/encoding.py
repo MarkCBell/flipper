@@ -448,6 +448,9 @@ class Encoding(object):
 					if splitting.preperiodic is None:
 						print('COULDNT CHECK')
 						c = -1
+						
+						
+						
 						# !?! TO DO.
 					else:
 						# Find the correct isometry (isom) which completes the square (pentagon?).
@@ -465,13 +468,6 @@ class Encoding(object):
 						
 						curves = self.source_triangulation.key_curves()
 						print('???????????????????')
-						print(len(self))
-						print(preperiodic.target_triangulation)
-						for curve in self.source_triangulation.key_curves():
-							print(curve)
-							print((preperiodic * self.inverse())(curve))
-							print((isom * periodic * preperiodic)(curve))
-							print('####')
 						if preperiodic * self.inverse() == isom * periodic * preperiodic:
 							c += 1
 				print('!!! %d closers' % c)

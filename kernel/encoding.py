@@ -5,8 +5,6 @@ Provides two classes: PartialFunction, PLFunction and Encoding. '''
 
 import flipper
 
-from itertools import product
-
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
@@ -449,8 +447,6 @@ class Encoding(object):
 						print('COULDNT CHECK')
 						c = -1
 						
-						
-						
 						# !?! TO DO.
 					else:
 						# Find the correct isometry (isom) which completes the square (pentagon?).
@@ -466,7 +462,6 @@ class Encoding(object):
 						#
 						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
 						
-						curves = self.source_triangulation.key_curves()
 						print('???????????????????')
 						if preperiodic * self.inverse() == isom * periodic * preperiodic:
 							c += 1

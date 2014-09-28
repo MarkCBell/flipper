@@ -10,7 +10,6 @@ from . import equippedtriangulation
 from . import interval
 from . import isometry
 from . import lamination
-from . import layeredtriangulation
 from . import matrix
 from . import numberfield
 from . import permutation
@@ -18,6 +17,7 @@ from . import polynomial
 from . import splittingsequence
 from . import symboliccomputation
 from . import types
+from . import triangulation3
 from . import utilities
 
 # Set up shorter names for all of the different classes.
@@ -38,7 +38,6 @@ EquippedTriangulation = equippedtriangulation.EquippedTriangulation
 Interval = interval.Interval
 Isometry = isometry.Isometry
 Lamination = lamination.Lamination
-Triangulation3 = layeredtriangulation.Triangulation3
 Matrix = matrix.Matrix
 NumberField = numberfield.NumberField
 PolynomialRoot = polynomial.PolynomialRoot
@@ -47,6 +46,7 @@ AlgebraicNumber = algebraicnumber.AlgebraicNumber
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
+Triangulation3 = triangulation3.Triangulation3
 
 empty_matrix = matrix.empty_matrix
 id_matrix = matrix.id_matrix

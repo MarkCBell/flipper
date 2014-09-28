@@ -437,41 +437,42 @@ class Encoding(object):
 			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		else:
-			# There might be more work to do here. We should choose only one of the splittings.
-			if False:
-				c = 0
-				for splitting in splittings:
-					# If we installed too many punctures by default then the preperiodic encoding wont make it through.
-					if splitting.preperiodic is None:
-						print('COULDNT CHECK')
-						c = -1
-						
-						# !?! TO DO.
-					else:
-						# Find the correct isometry (isom) which completes the square (pentagon?).
-						# Remember: The periodic goes in the _opposite_ direction to self so the
-						# diagram looks like this:
-						#
-						#   T ------------ self^{-1} ------------> T
-						#    \                                      \
-						#  preperiodic                            preperiodic
-						#      \                                      \
-						#       V                                      V
-						#       T' --- periodic ---> T'' --- isom ---> T'
-						#
-						preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
-						
-						print('???????????????????')
-						if preperiodic * self.inverse() == isom * periodic * preperiodic:
-							c += 1
-				print('!!! %d closers' % c)
-				if c == 0:
-					print ('!!!!!!!!!!!!!!!!!!!')
-					print ('!!!!!!!!!!!!!!!!!!!')
-					print ('!!!!!!!!!!!!!!!!!!!')
-					print ('!!!!!!!!!!!!!!!!!!!')
-					print ('!!!!!!!!!!!!!!!!!!!')
+		
+		# There might be more work to do here. We should choose only one of the splittings.
+		if False:
+			c = 0
+			for splitting in splittings:
+				# If we installed too many punctures by default then the preperiodic encoding wont make it through.
+				if splitting.preperiodic is None:
+					print('COULDNT CHECK')
+					c = -1
 					
-				assert(c != 0)
-			return splittings
+					# !?! TO DO.
+				else:
+					# Find the correct isometry (isom) which completes the square (pentagon?).
+					# Remember: The periodic goes in the _opposite_ direction to self so the
+					# diagram looks like this:
+					#
+					#   T ------------ self^{-1} ------------> T
+					#    \                                      \
+					#  preperiodic                            preperiodic
+					#      \                                      \
+					#       V                                      V
+					#       T' --- periodic ---> T'' --- isom ---> T'
+					#
+					preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
+					
+					print('???????????????????')
+					if preperiodic * self.inverse() == isom * periodic * preperiodic:
+						c += 1
+			print('!!! %d closers' % c)
+			if c == 0:
+				print ('!!!!!!!!!!!!!!!!!!!')
+				print ('!!!!!!!!!!!!!!!!!!!')
+				print ('!!!!!!!!!!!!!!!!!!!')
+				print ('!!!!!!!!!!!!!!!!!!!')
+				print ('!!!!!!!!!!!!!!!!!!!')
+				
+			assert(c != 0)
+		return splittings
+

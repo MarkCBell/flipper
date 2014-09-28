@@ -36,6 +36,7 @@ class Isometry(object):
 	def __ne__(self, other):
 		return not (self == other)
 	def __iter__(self):
+		assert(False)
 		return iter(self.label_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.AbstractVertex):
@@ -60,7 +61,9 @@ class Isometry(object):
 		if isinstance(other, Isometry):
 			if other.target_triangulation != self.source_triangulation:
 				raise ValueError('Cannot compose isometries between different triangulations.')
-			return Isometry(other.source_triangulation, self.target_triangulation, dict((edge, self[other[edge]]) for edge in other))
+			
+			composed_edge_map = dict((corner, self(other(corner))) for corner in other.corner_map)
+			return Isometry(other.source_triangulation, self.target_triangulation, composed_edge_map)
 		else:
 			return NotImplemented
 	def adapt(self, new_source_triangulation, new_target_triangulation):
@@ -70,15 +73,11 @@ class Isometry(object):
 		assert(isinstance(new_target_triangulation, flipper.kernel.AbstractTriangulation))
 		
 		return new_source_triangulation.find_isometry(new_target_triangulation, 0, self.label_map[0])
-	def triangle_image(self, triangle):
-		''' Return the image of the give triangle along with a cyclic permutation. '''
-		
-		corner = self(triangle.corners[0])
-		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
 		''' Return the inverse of this isometry. '''
 		
-		return Isometry(self.target_triangulation, self.source_triangulation, dict((self.corner_map[corner], corner) for corner in self.corner_map))
+		inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
+		return Isometry(self.target_triangulation, self.source_triangulation, inverse_corner_map)
 	def permutation(self):
 		''' Return the permutation on edges induced by this isometry. '''
 		

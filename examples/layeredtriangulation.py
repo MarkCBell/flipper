@@ -2,26 +2,32 @@
 from __future__ import print_function
 
 import flipper
+import snappy
 
 def main():
 	word = 'abC'
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
 	S = flipper.load.equipped_triangulation('S_1_2')
-	mapping_class = S.mapping_class(word)
-	splittings = mapping_class.splitting_sequences()  # Requires the SymbolicComputation library.
+	h = S.mapping_class(word)
+	splittings = h.splitting_sequences()  # A list of splitting sequences.
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	bundle = splittings[0].bundle()
-	with open('test.tri', 'w') as disk_file:
-		disk_file.write(bundle.snappy_string(name='flipper abC layered triangulation'))  # Write the manifold to a file.
-	print('I stored the bundle with monodromy \'%s\' in \'test.tri\'.' % word)
-	print('It was built using the first of %d isometries.' % len(splittings))
-	print('It has %d cusp(s) with the following properties (in order):' % bundle.num_cusps)
-	print('Cusp types: %s' % bundle.cusp_types)
-	print('Fibre slopes: %s' % bundle.fibre_slopes)
-	print('Degeneracy slopes: %s' % bundle.degeneracy_slopes)
-	print('To build this bundle I may have had to create some artificial cusps,')
-	print('these are the ones of type 1.')
+	print('Built the bundle with monodromy h=\'%s\'.' % word)
+	print('It is the first of %d sisters.' % len(splittings))
+	print('It has %d cusp(s) with the following properties:' % bundle.num_cusps)
+	for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
+		print('\tCusp %s (%s): Fibre slope %s, degeneracy slope %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy))
+	print('To build this bundle I may have had to create some fake cusps.')
+	
+	M = snappy.Manifold(bundle.snappy_string())
+	print('The manifold M: %s' % M)
+	print('has these fake cusps filled along the fibre slopes.')
+	print('Hence M is actually the mapping torus M_h.')
+	
+	N = snappy.Manifold(bundle.snappy_string(filled=False))
+	print('The manifold N: %s' % N)
+	print('has these cusps left unfilled.')
 
 if __name__ == '__main__':
 	main()

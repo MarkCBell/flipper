@@ -37,6 +37,8 @@ class SplittingSequence(object):
 		self.periodic = periodic  # Unused.
 		self.isometry = isometry
 		self.periodic_flips = periodic_flips
+		self.triangulation = self.initial_lamination.triangulation
+		# self.periodic = self.triangulation.encode_flips(self.periodic_flips)
 	
 	def dilatation(self):
 		''' Return the dilatation of the corresponding mapping class (as a float). '''
@@ -46,9 +48,6 @@ class SplittingSequence(object):
 	def bundle(self):
 		''' Return the corresponding veering layered triangulation of the corresponding mapping torus. '''
 		
-		# Use the current data.
-		triangulation = self.initial_lamination.triangulation
-		
 		# Move over a lot of data.
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
@@ -57,8 +56,8 @@ class SplittingSequence(object):
 		EXIT_CUSP_LEFT, EXIT_CUSP_RIGHT = flipper.kernel.triangulation3.EXIT_CUSP_LEFT, flipper.kernel.triangulation3.EXIT_CUSP_RIGHT
 		
 		triangulation3 = flipper.kernel.Triangulation3(len(self.periodic_flips))
-		lower_triangulation = triangulation.copy()
-		upper_triangulation = triangulation.copy()
+		lower_triangulation = self.triangulation.copy()
+		upper_triangulation = self.triangulation.copy()
 		
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
 		#  - A triangle of upper (resp. lower) triangulation, or
@@ -112,7 +111,7 @@ class SplittingSequence(object):
 			new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
 			for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
 				new_upper_map[new_triangle] = upper_map[old_triangle]
-				if maps_to_triangle(upper_map[old_triangle]):
+				if maps_to_triangle(upper_map[old_triangle]):  # Don't forget to update the lower_map too.
 					lower_map[upper_map[old_triangle]] = new_triangle
 			
 			# This relies on knowing how the upper_triangulation.flip_edge() function works.
@@ -131,12 +130,14 @@ class SplittingSequence(object):
 		# upper_triangulation.
 		full_forwards = dict()
 		for source_triangle in upper_triangulation:
-			target_triangle, perm = isometry.triangle_image(source_triangle)
+			target_corner = isometry(source_triangle.corners[0])
+			target_triangle = target_corner.triangle
+			perm = flipper.kernel.permutation.cyclic_permutation(target_corner.side-0, 3)
+			
 			while maps_to_triangle(lower_map[target_triangle]):
-				new_source_triangle = lower_map[target_triangle]
-				new_target_triangle, new_perm = isometry.triangle_image(new_source_triangle)
-				perm = new_perm * perm
-				target_triangle = new_target_triangle
+				new_target_corner = isometry(lower_map[target_triangle].corners[0])
+				target_triangle = new_target_corner.triangle
+				perm = flipper.kernel.permutation.cyclic_permutation(new_target_corner.side-0, 3) * perm
 			full_forwards[source_triangle] = (target_triangle, perm)
 		
 		# Now close the bundle up.

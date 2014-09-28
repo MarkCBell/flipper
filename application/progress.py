@@ -26,8 +26,8 @@ def _worker_thread(function, args, answer, indeterminant):
 			answer.put((CATEGORY_PROGRESS, 0))
 			result = function(*args, log_progress=lambda v: answer.put((CATEGORY_PROGRESS, v)))
 		answer.put((CATEGORY_RESULT, result))
-	except Exception as e:
-		answer.put((CATEGORY_ERROR, e))  # Return any errors that occur.
+	except Exception as error:
+		answer.put((CATEGORY_ERROR, error))  # Return any errors that occur.
 
 class ProgressApp(object):
 	def __init__(self, host_app_parent=None):
@@ -77,7 +77,7 @@ class ProgressApp(object):
 		if args is None: args = []
 		answer = Queue()
 		self.worker = Process(target=_worker_thread, args=(function, args, answer, indeterminant))
-		self.worker.deamon = True
+		self.worker.deamon = True  # Making the worker a deamon of this thread stops it if the main thread is killed.
 		self.running = True
 		self.worker.start()
 		

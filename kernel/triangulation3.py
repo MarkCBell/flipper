@@ -3,10 +3,10 @@
 
 Provides two classes: Tetrahedron and Triangulation3. '''
 
+# We use right-handed tetrahedra, see SnapPy/headers/kernel_typedefs.h.
+#
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
-#
-# We use right-handed tetrahedra, see SnapPy/headers/kernel_typedefs.h.
 
 import flipper
 
@@ -20,12 +20,14 @@ LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
 # Tetrahedron geometry:
 # This order was chosen so they appear ordered anti-clockwise from the cusp.
 VERTICES_MEETING = {0: (1, 2, 3), 1: (0, 3, 2), 2: (0, 1, 3), 3: (0, 2, 1)}
+# If you enter cusp a through side b then EXIT_CUSP_LEFT[(a, b)] is the side to your left.
 EXIT_CUSP_LEFT = {
 	(0, 1): 3, (0, 2): 1, (0, 3): 2,
 	(1, 0): 2, (1, 2): 3, (1, 3): 0,
 	(2, 0): 3, (2, 1): 0, (2, 3): 1,
 	(3, 0): 1, (3, 1): 2, (3, 2): 0
 	}
+# Similarly EXIT_CUSP_RIGHT[(a, b)] is the side to your right.
 EXIT_CUSP_RIGHT = {
 	(0, 1): 2, (0, 2): 3, (0, 3): 1,
 	(1, 0): 3, (1, 2): 0, (1, 3): 2,
@@ -35,8 +37,8 @@ EXIT_CUSP_RIGHT = {
 
 class Tetrahedron(object):
 	''' This represents a tetrahedron. '''
-	def __init__(self, label=None):
-		assert(label is None or isinstance(label, flipper.IntegerType))
+	def __init__(self, label):
+		assert(isinstance(label, flipper.IntegerType))
 		
 		self.label = label
 		self.glued_to = [None] * 4 # Each entry is either: None or (Tetrahedron, permutation).
@@ -118,7 +120,7 @@ class Triangulation3(object):
 		
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
-		self.num_cusps = 0
+		self.num_cusps = -1
 		self.real_cusps = []
 		self.fibre_slopes = []
 		self.degeneracy_slopes = []

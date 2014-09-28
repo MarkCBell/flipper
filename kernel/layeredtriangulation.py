@@ -81,6 +81,8 @@ class Tetrahedron(object):
 	
 	def unglue(self, side):
 		''' Unglue the given side of this tetrahedron. '''
+		
+		# Actually this is never used.
 		if self.glued_to[side] is not None:
 			other, perm = self.glued_to[side]
 			other.glued_to[perm(side)] = None
@@ -153,27 +155,6 @@ class Triangulation3(object):
 	
 	def __contains__(self, other):
 		return other in self.tetrahedra
-	
-	def create_tetrahedra(self):
-		''' Add and return a new tetrahedron to this triangulation. '''
-		
-		self.tetrahedra.append(Tetrahedron(self.num_tetrahedra))
-		self.num_tetrahedra += 1
-		return self.tetrahedra[-1]
-	
-	def destroy_tetrahedra(self, tetrahedron):
-		''' Remove the given tetrahedron from this triangulation. '''
-		
-		for side in range(4):
-			tetrahedron.unglue(side)
-		self.tetrahedra.remove(tetrahedron)
-		self.num_tetrahedra -= 1 # !?! This makes tetrahedron names non-unique.
-	
-	def reindex(self):
-		''' Assign the tetrahedra in this triangulation the labels 0, 1, ... . '''
-		
-		for index, tetrahedron in enumerate(self):
-			tetrahedron.label = index
 	
 	def clear_temp_peripheral_structure(self):
 		''' Remove all TEMP peripheral curves. '''
@@ -374,8 +355,6 @@ class Triangulation3(object):
 		
 		assert(self.is_closed())
 		
-		# First make sure that all of the labellings are good.
-		self.reindex()
 		strn = ''
 		strn += '% Triangulation\n'
 		strn += '%s\n' % name

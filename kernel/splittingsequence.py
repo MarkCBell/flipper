@@ -70,16 +70,16 @@ class SplittingSequence(object):
 		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.AbstractTriangle)
 		maps_to_tetrahedron = lambda X: isinstance(X, tuple)  # == not maps_to_triangle(X).
 		
-		for new_tetrahedron, edge_index in zip(triangulation3, self.periodic_flips):
-			assert(upper_triangulation.is_flippable(edge_index))
-			
-			new_tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
-			new_tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
-			new_tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
-			new_tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
-			
+		for tetrahedron, edge_index in zip(triangulation3, self.periodic_flips):
 			# Get the new upper triangulation
+			# The given edge_index must be flippable.
 			new_upper_triangulation = upper_triangulation.flip_edge(edge_index)
+			
+			# Setup the next tetrahedron.
+			tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
+			tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
+			tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
+			tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 			
 			# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
 			# WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
@@ -89,16 +89,16 @@ class SplittingSequence(object):
 			if maps_to_tetrahedron(upper_map[A]):
 				tetra, perm = upper_map[A]
 				# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
-				new_tetrahedron.glue(2, tetra, permutation_from_pair(0, perm(side_A), 2, perm(3)))
+				tetrahedron.glue(2, tetra, permutation_from_pair(0, perm(side_A), 2, perm(3)))
 			else:
-				lower_map[upper_map[A]] = (new_tetrahedron, permutation_from_pair(side_A, 0, 3, 2))
+				lower_map[upper_map[A]] = (tetrahedron, permutation_from_pair(side_A, 0, 3, 2))
 			
 			if maps_to_tetrahedron(upper_map[B]):
 				tetra, perm = upper_map[B]
 				# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
-				new_tetrahedron.glue(0, tetra, permutation_from_pair(2, perm(side_B), 0, perm(3)))
+				tetrahedron.glue(0, tetra, permutation_from_pair(2, perm(side_B), 0, perm(3)))
 			else:
-				lower_map[upper_map[B]] = (new_tetrahedron, permutation_from_pair(side_B, 2, 3, 0))
+				lower_map[upper_map[B]] = (tetrahedron, permutation_from_pair(side_B, 2, 3, 0))
 			
 			# Rebuild the upper_map.
 			new_upper_map = dict()
@@ -115,8 +115,8 @@ class SplittingSequence(object):
 					lower_map[upper_map[old_triangle]] = new_triangle
 			
 			# This relies on knowing how the upper_triangulation.flip_edge() function works.
-			new_upper_map[new_A] = (new_tetrahedron, flipper.kernel.Permutation((3, 0, 2, 1)))
-			new_upper_map[new_B] = (new_tetrahedron, flipper.kernel.Permutation((1, 2, 0, 3)))
+			new_upper_map[new_A] = (tetrahedron, flipper.kernel.Permutation((3, 0, 2, 1)))
+			new_upper_map[new_B] = (tetrahedron, flipper.kernel.Permutation((1, 2, 0, 3)))
 			
 			# Finally, install the new objects.
 			upper_triangulation = new_upper_triangulation
@@ -201,14 +201,22 @@ class SplittingSequence(object):
 			triangulation3.clear_temp_peripheral_structure()
 			
 			# Set the degeneracy curve into the TEMPS peripheral structure.
+			# First find a good starting point:
 			start_tetrahedron, start_side = cusp[0]
-			NV = VERTICES_MEETING[start_side]
-			start_other = NV[min(i for i in range(3) if start_tetrahedron.get_edge_label(start_side, NV[(i+1) % 3]) == VEERING_RIGHT and start_tetrahedron.get_edge_label(start_side, NV[(i+2) % 3]) == VEERING_LEFT)]
+			edge_labels = [start_tetrahedron.get_edge_label(start_side, other) for other in VERTICES_MEETING[start_side]]
+			for i in range(3):
+				if edge_labels[(i+1) % 3] == VEERING_RIGHT and edge_labels[(i+2) % 3] == VEERING_LEFT:
+					start_other = VERTICES_MEETING[start_side][i]
+					break
 			
+			# Then walk around, never crossing through an edge where both ends veer the same way.
 			current_tetrahedron, current_side, current_other = start_tetrahedron, start_side, start_other
 			while True:
 				current_tetrahedron.peripheral_curves[TEMPS][current_side][current_other] += 1
-				leave = (EXIT_CUSP_LEFT if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT else EXIT_CUSP_RIGHT)[(current_side, current_other)]
+				if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT:
+					leave = EXIT_CUSP_LEFT[(current_side, current_other)]
+				else:
+					leave = EXIT_CUSP_RIGHT[(current_side, current_other)]
 				current_tetrahedron.peripheral_curves[TEMPS][current_side][leave] -= 1
 				current_tetrahedron, current_side, current_other = cusp_pairing[(current_tetrahedron, current_side, leave)]
 				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):

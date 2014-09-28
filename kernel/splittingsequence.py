@@ -63,8 +63,13 @@ class SplittingSequence(object):
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
 		#  - A triangle of upper (resp. lower) triangulation, or
 		#  - A triple (tetrahedron, permutation) of triangulation3.
+		# We start with no tetrahedra, so these maps are just the identity map between the two triangulations.
 		lower_map = dict((triangleA, triangleB) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
 		upper_map = dict((triangleB, triangleA) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
+		
+		# We also use these two functions to quickly tell what a triangle maps to.
+		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.AbstractTriangle)
+		maps_to_tetrahedron = lambda X: isinstance(X, tuple)  # == not maps_to_triangle(X).
 		
 		for new_tetrahedron, edge_index in zip(triangulation3, self.periodic_flips):
 			assert(upper_triangulation.is_flippable(edge_index))
@@ -82,32 +87,32 @@ class SplittingSequence(object):
 			cornerA = upper_triangulation.corner_of_edge(edge_index)
 			cornerB = upper_triangulation.corner_of_edge(~edge_index)
 			(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
-			if isinstance(upper_map[A], tuple):  # There is a tetrahedron there.
+			if maps_to_tetrahedron(upper_map[A]):
 				tetra, perm = upper_map[A]
 				# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
 				new_tetrahedron.glue(2, tetra, permutation_from_pair(0, perm(side_A), 2, perm(3)))
 			else:
-				lower_map[upper_map[A]] = (new_tetrahedron, permutation_from_pair(side_A, 0, 3, 2))  # !?! Recheck this.
+				lower_map[upper_map[A]] = (new_tetrahedron, permutation_from_pair(side_A, 0, 3, 2))
 			
-			if isinstance(upper_map[B], tuple):  # There is a tetrahedron there.
+			if maps_to_tetrahedron(upper_map[B]):
 				tetra, perm = upper_map[B]
 				# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
 				new_tetrahedron.glue(0, tetra, permutation_from_pair(2, perm(side_B), 0, perm(3)))
 			else:
-				lower_map[upper_map[B]] = (new_tetrahedron, permutation_from_pair(side_B, 2, 3, 0))  # !?! Recheck this.
+				lower_map[upper_map[B]] = (new_tetrahedron, permutation_from_pair(side_B, 2, 3, 0))
 			
 			# Rebuild the upper_map.
 			new_upper_map = dict()
-			cornerA = new_upper_triangulation.corner_of_edge(edge_index)
-			cornerB = new_upper_triangulation.corner_of_edge(~edge_index)
-			new_A, new_B = cornerA.triangle, cornerB.triangle
+			new_cornerA = new_upper_triangulation.corner_of_edge(edge_index)
+			new_cornerB = new_upper_triangulation.corner_of_edge(~edge_index)
+			new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
 			# Most of the triangles have stayed the same.
 			# This relies on knowing how the upper_triangulation.flip_edge() function works.
 			old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle != A and triangle != B]
 			new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
 			for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
 				new_upper_map[new_triangle] = upper_map[old_triangle]
-				if isinstance(upper_map[old_triangle], flipper.kernel.AbstractTriangle):
+				if maps_to_triangle(upper_map[old_triangle]):
 					lower_map[upper_map[old_triangle]] = new_triangle
 			
 			# This relies on knowing how the upper_triangulation.flip_edge() function works.
@@ -127,7 +132,7 @@ class SplittingSequence(object):
 		full_forwards = dict()
 		for source_triangle in upper_triangulation:
 			target_triangle, perm = isometry.triangle_image(source_triangle)
-			while isinstance(lower_map[target_triangle], flipper.kernel.AbstractTriangle):
+			while maps_to_triangle(lower_map[target_triangle]):
 				new_source_triangle = lower_map[target_triangle]
 				new_target_triangle, new_perm = isometry.triangle_image(new_source_triangle)
 				perm = new_perm * perm
@@ -136,7 +141,7 @@ class SplittingSequence(object):
 		
 		# Now close the bundle up.
 		for source_triangle in upper_triangulation:
-			if isinstance(upper_map[source_triangle], tuple):
+			if maps_to_tetrahedron(upper_map[source_triangle]):
 				A, perm_A = upper_map[source_triangle]
 				target_triangle, perm = full_forwards[source_triangle]
 				B, perm_B = lower_map[target_triangle]
@@ -173,7 +178,6 @@ class SplittingSequence(object):
 					assert(triangulation3.real_cusps[index] == label)
 		
 		# Compute fibre slopes.
-		fibre_slopes = [None] * triangulation3.num_cusps
 		for index, cusp in enumerate(cusps):
 			meridian_intersection, longitude_intersection = 0, 0
 			for corner_class in upper_triangulation.corner_classes:

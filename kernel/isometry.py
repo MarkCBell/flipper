@@ -73,7 +73,7 @@ class Isometry(object):
 	def triangle_image(self, triangle):
 		''' Return the image of the give triangle along with a cyclic permutation. '''
 		
-		corner = self.target_triangulation.corner_of_edge(self.label_map[triangle.labels[0]])
+		corner = self(triangle.corners[0])
 		return (corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side-0, 3))
 	def inverse(self):
 		''' Return the inverse of this isometry. '''

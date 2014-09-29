@@ -127,6 +127,8 @@ class Encoding(object):
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
+		
+		self._invariant_lamination = None
 	
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
@@ -259,7 +261,7 @@ class Encoding(object):
 		
 		return self.order() > 0
 	
-	def invariant_lamination(self):
+	def invariant_lamination_uncached(self):
 		''' Return a rescaling constant and projectively invariant lamination.
 		
 		Assumes that the mapping class is pseudo-Anosov.
@@ -371,6 +373,20 @@ class Encoding(object):
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
+	def invariant_lamination(self):
+		''' A version of self.invariant_lamination_uncached with caching. '''
+		
+		if self._invariant_lamination is None:
+			try:
+				self._invariant_lamination = self.invariant_lamination_uncached()
+			except Exception as error:
+				self._invariant_lamination = error
+		
+		if isinstance(self._invariant_lamination, Exception):
+			raise self._invariant_lamination
+		else:
+			return self._invariant_lamination
+	
 	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.
 		
@@ -438,41 +454,6 @@ class Encoding(object):
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
-		# There might be more work to do here. We should choose only one of the splittings.
-		if False:
-			c = 0
-			for splitting in splittings:
-				# If we installed too many punctures by default then the preperiodic encoding wont make it through.
-				if splitting.preperiodic is None:
-					print('COULDNT CHECK')
-					c = -1
-					
-					# !?! TO DO.
-				else:
-					# Find the correct isometry (isom) which completes the square (pentagon?).
-					# Remember: The periodic goes in the _opposite_ direction to self so the
-					# diagram looks like this:
-					#
-					#   T ------------ self^{-1} ------------> T
-					#    \                                      \
-					#  preperiodic                            preperiodic
-					#      \                                      \
-					#       V                                      V
-					#       T' --- periodic ---> T'' --- isom ---> T'
-					#
-					preperiodic, periodic, isom = splitting.preperiodic, splitting.periodic, splitting.isometry.encode()
-					
-					print('???????????????????')
-					if preperiodic * self.inverse() == isom * periodic * preperiodic:
-						c += 1
-			print('!!! %d closers' % c)
-			if c == 0:
-				print ('!!!!!!!!!!!!!!!!!!!')
-				print ('!!!!!!!!!!!!!!!!!!!')
-				print ('!!!!!!!!!!!!!!!!!!!')
-				print ('!!!!!!!!!!!!!!!!!!!')
-				print ('!!!!!!!!!!!!!!!!!!!')
-				
-			assert(c != 0)
+		# Eventually we should choose only one of the splittings.
 		return splittings
 

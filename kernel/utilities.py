@@ -133,6 +133,41 @@ def depackage(packaged_objects):
 
 ###############################################################################
 
+class memoized(object):
+	''' Decorator. Caches a function's return value each time it is called.
+	
+	If called later with the same arguments, the cached value is returned
+	(not reevaluated). This is stronger than the standard memoization as it
+	caches exceptions that are thrown too. '''
+	def __init__(self, func):
+		self.func = func
+		self.cache = {}
+	def __call__(self, *args, **kwargs):
+		try:
+			if args not in self.cache:
+				try:
+					self.cache[args] = self.func(*args, **kwargs)
+				except Exception as error:
+					self.cache[args] = error
+			if isinstance(self.cache[args], Exception):
+				raise self.cache[args]
+			else:
+				return self.cache[args]
+		except TypeError:
+			# If we can't cache the results then it is better to not than blow up.
+			return self.func(*args, **kwargs)
+	def __repr__(self):
+		return self.func.__repr__
+	def __get__(self, obj, objtype):
+		''' Support instance methods. '''
+		
+		def memoized_function(*args, **kwargs):
+			return self.__call__(obj)
+		memoized_function.__doc__ = 'A memoized version of ??.\n\n' + self.func.__doc__
+		return memoized_function
+
+###############################################################################
+
 def product(iterable, start=1, left=True):
 	''' Return the product of start (default 1) and an iterable of numbers. '''
 	

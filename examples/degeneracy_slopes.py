@@ -1,9 +1,10 @@
 
 from __future__ import print_function
-from time import time
 
 import flipper
 import snappy
+
+from time import time
 
 def test(surface, word, target):
 	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()

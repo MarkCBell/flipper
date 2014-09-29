@@ -441,7 +441,7 @@ class Lamination(object):
 		
 		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
 	
-	def splitting_sequences(self, target_dilatation=None):
+	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
 		This assumes (and checks) that this lamination is filling.
@@ -522,6 +522,20 @@ class Lamination(object):
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]
+	
+	def splitting_sequences(self, target_dilatation=None):
+		''' A version of self.splitting_sequences_uncached with caching. '''
+		
+		if target_dilatation not in self._splitting_sequences:
+			try:
+				self._spitting_sequences[target_dilatation] = self.splitting_sequence_uncached()
+			except Exception as error:
+				self._spitting_sequences[target_dilatation] = error
+		
+		if isinstance(self._splitting_sequences[target_dilatation], Exception):
+			raise self._splitting_sequences[target_dilatation]
+		else:
+			return self._splitting_sequences[target_dilatation]
 	
 	def is_filling(self):
 		''' Return if this lamination is filling. '''
@@ -642,3 +656,4 @@ class Lamination(object):
 		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
 		
 		return intersection_number
+

@@ -1,8 +1,9 @@
 
 from __future__ import print_function
-from time import time
 
 import flipper
+
+from time import time
 
 def main():
 	times = {}
@@ -36,7 +37,7 @@ def main():
 		print('%d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
 		S = flipper.load.equipped_triangulation(surface)
 		mapping_class = S.mapping_class(word)
-		t = time()
+		start_time = time()
 		try:
 			mapping_class.invariant_lamination()
 		except flipper.AssumptionError:
@@ -44,7 +45,7 @@ def main():
 		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 		# fails to find an invariant lamination. This is very bad so we wont try and catch
 		# this exception.
-		times[word] = time() - t
+		times[word] = time() - start_time
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / len(examples)))
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))

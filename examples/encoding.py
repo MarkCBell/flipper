@@ -6,24 +6,28 @@ import flipper
 
 def main():
 	S = flipper.load.equipped_triangulation('S_1_2')
-	words = ['aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa']
+	word = 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'
 	
-	times = []
-	num_trials = len(words)
-	for word in words:
-		print(word)
-		mapping_class = S.mapping_class(word)
-		start_time = time()
-		try:
-			# If this computation fails it will throw a ComputationError - the map was probably reducible.
-			print(' -- %s.' % mapping_class.nielsen_thurston_type())
-		except flipper.ComputationError:
-			print(' ~~ Probably reducible.')
-		print('      (Time: %0.4fs)' % (time() - start_time))
-		times.append(time() - start_time)
+	h = S.mapping_class(word)
+	print('Built the mapping class h := \'%s\'.' % word)
 	
-	print('Times over %d trials: Average %0.4fs, Max %0.4fs' % (num_trials, sum(times) / len(times), max(times)))
-
+	print('h has order %s (where 0 == infinite).' % h.order())
+	
+	# These computations can fails with a ComputationError in which case the map was almost certainly reducible.
+	try:
+		print('h is %s.' % h.nielsen_thurston_type())
+	except flipper.ComputationError:
+		print('The computation failed, h is probably reducible.')
+	
+	try:
+		dilatation, lamination = h.invariant_lamination()
+		print('h leaves L := %s projectively invariant.' % lamination.projective_string())
+		print('and dilates it by a factor of %s.' % dilatation)
+	except flipper.AssumptionError:
+		print('We cannot find a projectively invariant lamination for h as it is not pseudo-Anosov.')
+	except flipper.ComputationError:
+		print('The computation failed, h is probably reducible.')
+	
 
 if __name__ == '__main__':
 	main()

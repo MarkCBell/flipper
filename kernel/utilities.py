@@ -162,8 +162,8 @@ class memoized(object):
 		''' Support instance methods. '''
 		
 		def memoized_function(*args, **kwargs):
-			return self.__call__(obj)
-		memoized_function.__doc__ = 'A memoized version of ??.\n\n' + self.func.__doc__
+			return self.__call__(obj, *args, **kwargs)
+		memoized_function.__doc__ = 'A memoized version of ' + self.func.__name__ + '.\n\n' + self.func.__doc__
 		return memoized_function
 
 ###############################################################################

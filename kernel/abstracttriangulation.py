@@ -235,6 +235,7 @@ class AbstractTriangulation(object):
 		for cc in self.corner_classes:
 			if cc[0].vertex == vertex:
 				return cc
+		
 		raise ValueError('Given vertex does not correspond to a corner class.')
 	
 	def opposite_corner(self, corner):
@@ -465,7 +466,7 @@ class AbstractTriangulation(object):
 			return isometry
 	
 	# Laminations we can build on the triangulation.
-	def lamination(self, vector, remove_peripheral=False):
+	def lamination(self, vector, remove_peripheral=True):
 		''' Return a new lamination on this surface assigning the specified weight to each edge. '''
 		
 		return flipper.kernel.Lamination(self, vector, remove_peripheral)

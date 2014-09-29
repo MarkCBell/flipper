@@ -12,29 +12,31 @@ class Lamination(object):
 	AbstractTriangulation.lamination() which creates a lamination on that
 	triangulation. If remove_peripheral is True then the Lamination is
 	allowed to rescale its weights (by a factor of 2) in order to remove
-	any peripheral components. '''
-	def __init__(self, triangulation, vector, remove_peripheral=False):
+	any peripheral components / satifsy the triangle inequalities. '''
+	def __init__(self, triangulation, vector, remove_peripheral=True):
 		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
 		assert(all(isinstance(entry, object) for entry in vector))
 		assert(isinstance(remove_peripheral, bool))
 		assert(flipper.kernel.matrix.nonnegative(vector))
 		
-		# !?! Add error checking here to make sure the triangle inequalities are satisfied.
 		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:
 			# Compute how much peripheral component there is on each corner class.
+			# This will also check that the triangle inequalities are satisfied. When
+			# they fail one of peripheral.values() is negative, which is non-zero and
+			# so triggers the correction.
 			def dual_weight(corner):
-				''' Return the weight of normal arc corresponding to the given corner. '''
+				''' Return double the weight of normal arc corresponding to the given corner. '''
 				
 				return vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index]
 			
 			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
-			# If there is any remove it.
+			# If there is any add / remove it.
 			if any(peripheral.values()):
-				# Really should be vector[i] - sum(peripheral[x]) / 2 but we can't do division in a ring.
-				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
+				# Really should be vector[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
+				vector = [2*vector[i] - sum(peripheral[v] for v in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -79,7 +81,7 @@ class Lamination(object):
 	def __add__(self, other):
 		if isinstance(other, Lamination):
 			if other.triangulation == self.triangulation:
-				return self.triangulation.lamination([x + y for x, y in zip(self, other)], remove_peripheral=True)
+				return self.triangulation.lamination([x + y for x, y in zip(self, other)])
 			else:
 				raise ValueError('Laminations must be on the same triangulation to add them.')
 		else:

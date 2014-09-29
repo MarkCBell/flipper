@@ -128,7 +128,7 @@ class Encoding(object):
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		self._invariant_lamination = None
+		self._invariant_lamination = None  # For caching hard to compute results.
 	
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
@@ -379,7 +379,7 @@ class Encoding(object):
 		if self._invariant_lamination is None:
 			try:
 				self._invariant_lamination = self.invariant_lamination_uncached()
-			except Exception as error:
+			except (flipper.AssumptionError, flipper.ComputationError) as error:
 				self._invariant_lamination = error
 		
 		if isinstance(self._invariant_lamination, Exception):

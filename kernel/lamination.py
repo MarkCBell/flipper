@@ -36,6 +36,8 @@ class Lamination(object):
 				# Really should be vector[i] - sum(peripheral[x]) / 2 but we can't do division in a ring.
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
+		
+		self._splitting_sequences = {}  # For caching hard to compute results.
 	
 	def copy(self):
 		''' Return a copy of this lamination. '''
@@ -528,9 +530,9 @@ class Lamination(object):
 		
 		if target_dilatation not in self._splitting_sequences:
 			try:
-				self._spitting_sequences[target_dilatation] = self.splitting_sequence_uncached()
-			except Exception as error:
-				self._spitting_sequences[target_dilatation] = error
+				self._splitting_sequences[target_dilatation] = self.splitting_sequences_uncached()
+			except (flipper.AssumptionError) as error:
+				self._splitting_sequences[target_dilatation] = error
 		
 		if isinstance(self._splitting_sequences[target_dilatation], Exception):
 			raise self._splitting_sequences[target_dilatation]

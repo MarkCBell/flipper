@@ -103,6 +103,21 @@ DEFAULT_EDGE_LABEL_COLOUR = 'black'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
+def update_cache_progression(instance, method):
+	# Make instance_copy, a copy of instance.
+	# Compute instance_copy.method() with an indeterminant progress bar.
+	# Copy instance_copy._cache to instance._cache.
+	# Return instance.
+	def helper():
+		try:
+			getattr(instance, method)()
+		except (flipper.AssumptionError, flipper.ComputationError):
+			pass
+		return instance
+	instance_copy = flipper.application.apply_progression(helper)
+	instance._cache = instance_copy._cache
+	return instance
+
 class FlipperApp(object):
 	def __init__(self, parent, return_slot=None):
 		self.parent = parent
@@ -268,10 +283,6 @@ class FlipperApp(object):
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
 		self.treeview_mapping_classes = []
-		# We will cache properties of laminations and mapping classes.
-		# The rule is that we will cache anything that we cannot compute in
-		# polynomial time.
-		self.cache = {}
 		
 		self.selected_object = None
 	
@@ -346,7 +357,6 @@ class FlipperApp(object):
 			for label, tag in tagged_properties:
 				self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 			
-			self.cache[lamination] = {}
 			self.treeview_laminations.append(name)
 			
 			self.unsaved_work = True
@@ -358,7 +368,6 @@ class FlipperApp(object):
 				[entry] = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
 				self.treeview_objects.delete(entry)
 				self.laminations.pop(name)
-				self.cache.pop(lamination)
 				self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
 				self.treeview_laminations.remove(name)
 			else:
@@ -396,7 +405,6 @@ class FlipperApp(object):
 			for label, tag in tagged_properties:
 				self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 			
-			self.cache[mapping_class] = {}
 			self.treeview_mapping_classes.append(name)
 			
 			self.unsaved_work = True
@@ -410,7 +418,6 @@ class FlipperApp(object):
 				self.treeview_objects.delete(entry)
 				self.mapping_classes.pop(name)
 				self.mapping_classes.pop(name_inverse)
-				self.cache.pop(mapping_class)
 				self.mapping_class_names = dict((iid, m_name) for iid, m_name in self.mapping_class_names.items() if m_name != name)
 				self.treeview_mapping_classes.remove(name)
 			else:
@@ -429,9 +436,8 @@ class FlipperApp(object):
 				abstract_triangulation = self.abstract_triangulation
 				laminations = [(name, self.laminations[name]) for name in self.treeview_laminations]
 				mapping_classes = [(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes]
-				cache = self.cache
 				canvas_objects = (vertices, edges)
-				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects, cache)
+				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects)
 				
 				pickled_objects = pickle.dumps((spec, version, data))
 				open(path, 'wb').write(pickled_objects)
@@ -475,7 +481,7 @@ class FlipperApp(object):
 			else:
 				raise ValueError('Not a valid specification.')
 			
-			[abstract_triangulation, laminations, mapping_classes, canvas_objects, cache] = load_objects
+			[abstract_triangulation, laminations, mapping_classes, canvas_objects] = load_objects
 			
 			if canvas_objects is None:
 				# Build a triangulation ourselves.
@@ -572,9 +578,6 @@ class FlipperApp(object):
 			
 			for name, mapping_class in sorted(mapping_classes):
 				self.add_mapping_class(mapping_class, name)
-			
-			if cache is not None:
-				self.cache = cache
 			
 			self.unsaved_work = False
 		except ImportError:  # (IndexError, ValueError):
@@ -1015,7 +1018,6 @@ class FlipperApp(object):
 		self.mapping_classes = {}
 		self.mapping_class_names = {}
 		self.treeview_mapping_classes = []
-		self.cache = {}
 		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
 			self.treeview_objects.delete(child)
 		self.menubar.entryconfig('Lamination', state='disabled')
@@ -1261,15 +1263,9 @@ class FlipperApp(object):
 			if mapping_class is not None:
 				try:
 					nielsen_thurston_type = flipper.application.apply_progression(mapping_class.nielsen_thurston_type)
-					
-					if nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_PERIODIC:
-						tkMessageBox.showinfo('Periodic', '%s is periodic.' % composition)
-					elif nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_REDUCIBLE:
-						tkMessageBox.showinfo('Periodic', '%s is reducible.' % composition)
-					elif nielsen_thurston_type == flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV:
-						tkMessageBox.showinfo('Periodic', '%s is pseudo-Anosov.' % composition)
-				except flipper.AssumptionError:
-					pass
+					tkMessageBox.showinfo('Nielsen-Thurston type', '%s is %s.' % (composition, nielsen_thurston_type))
+				except flipper.ComputationError:
+					tkMessageBox.showerror('Mapping class', 'Could not find any projectively invariant laminations of %s, it is probably reducible.' % composition)
 				except flipper.AbortError:
 					pass
 	
@@ -1477,39 +1473,37 @@ class FlipperApp(object):
 		elif 'filling_lamination' in tags:
 			try:
 				lamination = self.laminations[self.lamination_names[iid]]
-				if 'filling' not in self.cache[lamination]:
-					self.cache[lamination]['filling'] = flipper.application.apply_progression(lamination.is_filling)
-					self.unsaved_work = True
-				self.treeview_objects.item(iid, text='Filling: %s' % self.cache[lamination]['filling'])
+				update_cache_progression(lamination, 'is_filling')
+				
+				self.treeview_objects.item(iid, text='Filling: %s' % lamination.is_filling())
+				self.unsaved_work = True
 			except flipper.AbortError:
 				pass
 		elif 'mapping_class_type' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
-				if 'nielsen_thurston_type' not in self.cache[mapping_class]:
-					self.cache[mapping_class]['nielsen_thurston_type'] = flipper.application.apply_progression(mapping_class.nielsen_thurston_type)
-					self.unsaved_work = True
-				self.treeview_objects.item(iid, text='Type: %s' % self.cache[mapping_class]['nielsen_thurston_type'])
+				update_cache_progression(mapping_class, 'nielsen_thurston_type')
+				
+				self.treeview_objects.item(iid, text='Type: %s' % mapping_class.nielsen_thurston_type())
+				self.unsaved_work = True
+			except flipper.ComputationError:
+				tkMessageBox.showerror('Mapping class', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
 				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
-				if 'invariant_lamination' not in self.cache[mapping_class]:
-					_, lamination = flipper.application.apply_progression(mapping_class.invariant_lamination)
-					self.cache[mapping_class]['invariant_lamination'] = lamination
-					self.unsaved_work = True
-					self.treeview_objects.item(iid, text='Invariant lamination')
-				if self.cache[mapping_class]['invariant_lamination'] is not None:
-					self.lamination_to_canvas(self.cache[mapping_class]['invariant_lamination'])
-				else:
-					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
-			except flipper.AssumptionError:
-				self.cache[mapping_class]['invariant_lamination'] = None
+				update_cache_progression(mapping_class, 'invariant_lamination')
+				
+				_, lamination = mapping_class.invariant_lamination()
+				self.treeview_objects.item(iid, text='Invariant lamination')
+				self.lamination_to_canvas(lamination)
+				self.unsaved_work = True
+			except flipper.AssumptionError as error:
 				self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination: x')
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
-			except flipper.ComputationError:
+			except flipper.ComputationError as error:
 				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass

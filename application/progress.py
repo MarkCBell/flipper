@@ -18,6 +18,10 @@ except ImportError:  # Python 3.
 
 CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
 
+# Note: Because of how memory is managed in Python the _worker_thread
+# works with a copy of the main memory. Therefore any changes it makes to the
+# objects involved, such as caching results, will NOT be done to the origional
+# objects. Hence all such changes will be lost when the thread completes.
 def _worker_thread(function, args, answer, indeterminant):
 	try:
 		if indeterminant:

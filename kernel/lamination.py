@@ -37,7 +37,7 @@ class Lamination(object):
 				vector = [2*vector[i] - sum(peripheral[x] for x in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		self.vector = list(vector)
 		
-		self._splitting_sequences = {}  # For caching hard to compute results.
+		self._cache = {}  # For caching hard to compute results.
 	
 	def copy(self):
 		''' Return a copy of this lamination. '''
@@ -528,16 +528,19 @@ class Lamination(object):
 	def splitting_sequences(self, target_dilatation=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''
 		
-		if target_dilatation not in self._splitting_sequences:
-			try:
-				self._splitting_sequences[target_dilatation] = self.splitting_sequences_uncached()
-			except (flipper.AssumptionError) as error:
-				self._splitting_sequences[target_dilatation] = error
+		if 'splitting_sequences' not in self._cache:
+			self._cache['splitting_sequences'] = {}
 		
-		if isinstance(self._splitting_sequences[target_dilatation], Exception):
-			raise self._splitting_sequences[target_dilatation]
+		if target_dilatation not in self._cache['splitting_sequences']:
+			try:
+				self._cache['splitting_sequences'][target_dilatation] = self.splitting_sequences_uncached()
+			except (flipper.AssumptionError) as error:
+				self._cache['splitting_sequences'][target_dilatation] = error
+		
+		if isinstance(self._cache['splitting_sequences'][target_dilatation], Exception):
+			raise self._cache['splitting_sequences'][target_dilatation]
 		else:
-			return self._splitting_sequences[target_dilatation]
+			return self._cache['splitting_sequences'][target_dilatation]
 	
 	def is_filling(self):
 		''' Return if this lamination is filling. '''

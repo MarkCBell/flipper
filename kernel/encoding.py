@@ -128,7 +128,7 @@ class Encoding(object):
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		self._invariant_lamination = None  # For caching hard to compute results.
+		self._cache = {}  # For caching hard to compute results.
 	
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
@@ -376,16 +376,16 @@ class Encoding(object):
 	def invariant_lamination(self):
 		''' A version of self.invariant_lamination_uncached with caching. '''
 		
-		if self._invariant_lamination is None:
+		if 'invariant_lamination' not in self._cache:
 			try:
-				self._invariant_lamination = self.invariant_lamination_uncached()
+				self._cache['invariant_lamination'] = self.invariant_lamination_uncached()
 			except (flipper.AssumptionError, flipper.ComputationError) as error:
-				self._invariant_lamination = error
+				self._cache['invariant_lamination'] = error
 		
-		if isinstance(self._invariant_lamination, Exception):
-			raise self._invariant_lamination
+		if isinstance(self._cache['invariant_lamination'], Exception):
+			raise self._cache['invariant_lamination']
 		else:
-			return self._invariant_lamination
+			return self._cache['invariant_lamination']
 	
 	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.

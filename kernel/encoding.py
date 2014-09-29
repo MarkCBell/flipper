@@ -164,7 +164,9 @@ class Encoding(object):
 			vector = other.vector
 			for A in reversed(self):
 				vector = A(vector)
-			return self.target_triangulation.lamination(vector)
+			# If other has no peripheral components then self(other) does too.
+			# Hence we can skip this check and save ~25% of the work.
+			return self.target_triangulation.lamination(vector, remove_peripheral=False)
 		else:
 			return NotImplemented
 	def __mul__(self, other):
@@ -345,8 +347,8 @@ class Encoding(object):
 							# but this is much faster.
 							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 								# If it does then we have a projectively invariant lamination.
-								invariant_lamination = triangulation.lamination(eigenvector, remove_peripheral=True)
-								if not invariant_lamination.is_empty():
+								invariant_lamination = triangulation.lamination(eigenvector)
+								if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 									if j == 1:
 										if eigenvalue == 1:
 											raise flipper.AssumptionError('Mapping class is reducible.')
@@ -364,7 +366,7 @@ class Encoding(object):
 			denominators = [min(new_curve) + 1, i + 1]  # Other strategies: (i // triangulation.max_order) + 1
 			for denominator in denominators:
 				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
-				new_small_curve = small_curve = triangulation.lamination(vector, remove_peripheral=True)
+				new_small_curve = small_curve = triangulation.lamination(vector)
 				if not small_curve.is_empty():
 					for j in range(1, triangulation.max_order+1):
 						new_small_curve = self(new_small_curve)

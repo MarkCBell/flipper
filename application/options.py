@@ -78,6 +78,6 @@ class Options(object):
 			self.canvas_font.configure(size=14)
 		
 		self.parent.treeview_objects.tag_configure('txt', font=self.application_font)
-		TTK.Style().configure('Treeview', font=self.application_font)  # !?! This isn't quite right.
+		TTK.Style().configure('Treeview', font=self.application_font)
 		self.parent.redraw()
 

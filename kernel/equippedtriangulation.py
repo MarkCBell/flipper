@@ -14,19 +14,31 @@ class EquippedTriangulation(object):
 		assert(isinstance(laminations, (dict, list, tuple)))
 		assert(isinstance(mapping_classes, (dict, list, tuple)))
 		
-		# !?! Add more error checking here.
-		
 		self.triangulation = triangulation
 		if isinstance(laminations, dict):
+			assert(all(isinstance(key, flipper.StringType) for key in laminations))
+			assert(all(isinstance(laminations[key], flipper.kernel.Lamination) for key in laminations))
+			assert(all(laminations[key].triangulation == self.triangulation for key in laminations))
 			self.laminations = laminations
 		else:
+			assert(all(isinstance(lamination, flipper.kernel.Lamination) for lamination in laminations))
+			assert(all(lamination.triangulation == self.triangulation for lamination in laminations))
 			self.laminations = dict(list(flipper.kernel.utilities.name_objects(laminations)))
+		
 		if isinstance(mapping_classes, dict):
+			assert(all(isinstance(key, flipper.StringType) for key in mapping_classes))
+			assert(all(isinstance(mapping_classes[key], flipper.kernel.Encoding) for key in mapping_classes))
+			assert(all(mapping_classes[key].source_triangulation == self.triangulation for key in mapping_classes))
+			assert(all(mapping_classes[key].is_mapping_class() for key in mapping_classes))
 			self.mapping_classes = mapping_classes
 		else:
+			assert(all(isinstance(mapping_class, flipper.kernel.Encoding) for mapping_class in mapping_classes))
+			assert(all(mapping_class.source_triangulation == self.triangulation for mapping_class in mapping_classes))
+			assert(all(mapping_class.is_mapping_class() for mapping_class in mapping_classes))
 			self.pos_mapping_classes = dict(list(flipper.kernel.utilities.name_objects(mapping_classes)))
 			self.inverse_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.inverse_mapping_classes.items()))
+	
 	def random_word(self, length, positive=True, negative=True, other=True):
 		''' Return a random word of the required length.
 		

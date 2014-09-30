@@ -275,12 +275,10 @@ class FlipperApp(object):
 		self.train_track_blocks = []
 		
 		self.zeta = 0
-		self.abstract_triangulation = None
+		self.equipped_triangulation = None
 		self.current_lamination = None
-		self.laminations = {}
 		self.lamination_names = {}
 		self.treeview_laminations = []
-		self.mapping_classes = {}
 		self.mapping_class_names = {}
 		self.treeview_mapping_classes = []
 		
@@ -323,16 +321,18 @@ class FlipperApp(object):
 	
 	def valid_composition(self, strn):
 		# A composition is valid if it is a list of mapping class names and inverse names separated by periods.
-		if any(x not in self.mapping_classes for x in strn.split('.')):
-			tkMessageBox.showerror('Composition', 'Not a valid composition. A valid composition must consist of mapping class names and inverse names separated by periods.')
+		try:
+			self.equipped_triangulation.mapping_class(strn)
+		except KeyError:
+			tkMessageBox.showerror('Invalid composition', 'A valid composition must consist of mapping class names and inverse names, with periods to separate ambiguities.')
 			return False
 		
 		return True
 	
 	def add_lamination(self, lamination, name):
 		if self.remove_lamination(name):
+			self.equipped_triangulation.laminations[name] = lamination
 			iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
-			self.laminations[name] = lamination
 			self.lamination_names[iid] = name
 			multicurve_string = lamination.is_multicurve()
 			twistable_string = lamination.is_twistable()
@@ -364,10 +364,9 @@ class FlipperApp(object):
 	def remove_lamination(self, name):
 		if name in self.treeview_laminations:
 			if tkMessageBox.showwarning('Remove lamination', 'Remove existing lamination %s?' % name, type='yesno') == 'yes':
-				lamination = self.laminations[name]
+				self.equipped_triangulation.laminations.pop(name)
 				[entry] = [child for child in self.treeview_objects.get_children('laminations') if self.lamination_names[child] == name]
 				self.treeview_objects.delete(entry)
-				self.laminations.pop(name)
 				self.lamination_names = dict((iid, l_name) for iid, l_name in self.lamination_names.items() if l_name != name)
 				self.treeview_laminations.remove(name)
 			else:
@@ -378,9 +377,12 @@ class FlipperApp(object):
 	def add_mapping_class(self, mapping_class, name):
 		name_inverse = name.swapcase()
 		if self.remove_mapping_class(name) and self.remove_mapping_class(name_inverse):
+			self.equipped_triangulation.pos_mapping_classes[name] = mapping_class
+			self.equipped_triangulation.neg_mapping_classes[name_inverse] = mapping_class.inverse()
+			self.equipped_triangulation.mapping_classes[name] = mapping_class
+			self.equipped_triangulation.mapping_classes[name_inverse] = mapping_class.inverse()
+			
 			iid = self.treeview_objects.insert('mapping_classes', 'end', text=name, tags=['txt', 'mapping_class'])
-			self.mapping_classes[name] = mapping_class
-			self.mapping_classes[name_inverse] = mapping_class.inverse()
 			self.mapping_class_names[iid] = name
 			order = mapping_class.order()
 			order_string = 'Infinite' if order == 0 else str(order)
@@ -410,14 +412,16 @@ class FlipperApp(object):
 			self.unsaved_work = True
 	
 	def remove_mapping_class(self, name):
+		name_inverse = name.swapcase()
 		if name in self.treeview_mapping_classes:
 			if tkMessageBox.showwarning('Remove mapping class', 'Remove existing mapping class %s?' % name, type='yesno') == 'yes':
-				name_inverse = name.swapcase()
-				mapping_class = self.mapping_classes[name]
+				self.equipped_triangulation.pos_mapping_classes.pop(name)
+				self.equipped_triangulation.neg_mapping_classes.pop(name_inverse)
+				self.equipped_triangulation.mapping_classes.pop(name)
+				self.equipped_triangulation.mapping_classes.pop(name_inverse)
+				
 				[entry] = [child for child in self.treeview_objects.get_children('mapping_classes') if self.mapping_class_names[child] == name]
 				self.treeview_objects.delete(entry)
-				self.mapping_classes.pop(name)
-				self.mapping_classes.pop(name_inverse)
 				self.mapping_class_names = dict((iid, m_name) for iid, m_name in self.mapping_class_names.items() if m_name != name)
 				self.treeview_mapping_classes.remove(name)
 			else:
@@ -433,11 +437,9 @@ class FlipperApp(object):
 				version = flipper.version
 				vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 				edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), edge.index, self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
-				abstract_triangulation = self.abstract_triangulation
-				laminations = [(name, self.laminations[name]) for name in self.treeview_laminations]
-				mapping_classes = [(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes]
+				equipped_triangulation = self.equipped_triangulation
 				canvas_objects = (vertices, edges)
-				data = (abstract_triangulation, laminations, mapping_classes, canvas_objects)
+				data = (equipped_triangulation, canvas_objects)
 				
 				pickled_objects = pickle.dumps((spec, version, data))
 				open(path, 'wb').write(pickled_objects)
@@ -481,24 +483,23 @@ class FlipperApp(object):
 			else:
 				raise ValueError('Not a valid specification.')
 			
-			[abstract_triangulation, laminations, mapping_classes, canvas_objects] = load_objects
+			[equipped_triangulation, canvas_objects] = load_objects
 			
-			if canvas_objects is None:
-				# Build a triangulation ourselves.
-				if abstract_triangulation is None:
-					raise ValueError('Triangulation required.')
-				
+			if canvas_objects is None and equipped_triangulation is None:
+				raise ValueError('EquippedTriangulation required.')
+			elif canvas_objects is None and equipped_triangulation is not None:
 				# See if we can use the current triangulation.
-				if self.abstract_triangulation is not None and abstract_triangulation.is_isometric_to(self.abstract_triangulation):
-					isom = self.abstract_triangulation.isometries_to(abstract_triangulation)[0]
+				if equipped_triangulation.triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
+					isom = self.equipped_triangulation.triangulation.isometries_to(equipped_triangulation.triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 					canvas_objects = [vertices, edges]
-				else:
-					# If not then we'll create a triangulation ourselves.
+				else:  # If not then we'll create a triangulation ourselves.
 					vertices, edges = [], []
 					
-					n = abstract_triangulation.num_triangles
+					triangulation = equipped_triangulation.triangulation
+					
+					n = triangulation.num_triangles
 					ngon = n + 2
 					self.parent.update_idletasks()
 					w = int(self.canvas.winfo_width())
@@ -510,24 +511,24 @@ class FlipperApp(object):
 						vertices.append((w / 2 + r * sin(2 * pi * (i + 0.5) / ngon), h / 2 + r * cos(2 * pi * (i + 0.5) / ngon)))
 					
 					# Get a dual tree.
-					_, dual_tree = abstract_triangulation.tree_and_dual_tree()
+					_, dual_tree = equipped_triangulation.triangulation.tree_and_dual_tree()
 					
 					def num_descendants(edge_label):
 						''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
 						
-						corner = abstract_triangulation.corner_of_edge(edge_label)
+						corner = triangulation.corner_of_edge(edge_label)
 						left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
 						right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
 						
 						return left, right
 					
-					initial_edge_index = min(i for i in range(abstract_triangulation.zeta) if not dual_tree[i])
+					initial_edge_index = min(i for i in range(triangulation.zeta) if not dual_tree[i])
 					to_extend = [(0, 1, initial_edge_index)]
 					edges = [(0, 1, initial_edge_index, None)]
 					while to_extend:
 						source_vertex, target_vertex, label = to_extend.pop()
 						left, right = num_descendants(label)
-						corner = abstract_triangulation.corner_of_edge(label)
+						corner = triangulation.corner_of_edge(label)
 						
 						edges.append((target_vertex + left + 1, target_vertex, corner.indices[2], None))
 						edges.append((source_vertex, target_vertex + left + 1, corner.indices[1], None))
@@ -544,6 +545,10 @@ class FlipperApp(object):
 							edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
 					
 					canvas_objects = [vertices, edges]
+			elif canvas_objects is not None and equipped_triangulation is None:
+				pass
+			elif canvas_objects is not None and equipped_triangulation is not None:
+				pass
 			
 			if not self.initialise():
 				return
@@ -571,16 +576,16 @@ class FlipperApp(object):
 				self.edges[index].index = edge_index
 			self.zoom_to_drawing()
 			
-			self.abstract_triangulation = abstract_triangulation
+			self.equipped_triangulation = equipped_triangulation
 			
-			for name, lamination in sorted(laminations):
+			for name, lamination in sorted(self.equipped_triangulation.laminations.items()):
 				self.add_lamination(lamination, name)
 			
-			for name, mapping_class in sorted(mapping_classes):
+			for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items()):
 				self.add_mapping_class(mapping_class, name)
 			
 			self.unsaved_work = False
-		except ImportError:  # (IndexError, ValueError):
+		except (IndexError, ValueError):
 			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.version)
 	
 	def export_image(self):
@@ -598,10 +603,10 @@ class FlipperApp(object):
 				try:
 					disk_file = open(path, 'w')
 					
-					laminations = [(name, self.laminations[name]) for name in self.treeview_laminations]
-					mapping_classes = [(name, self.mapping_classes[name]) for name in self.treeview_mapping_classes]
-					
-					example = flipper.package((self.abstract_triangulation, laminations, mapping_classes))
+					spec = 'A flipper kernel file.'
+					version = flipper.version
+					data = self.equipped_triangulation
+					example = pickles.dumps((spec, version, data))
 					disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
@@ -613,11 +618,7 @@ class FlipperApp(object):
 	def quit(self):
 		# If we are complete then write down our current state in the return slot.
 		if self.is_complete() and self.return_slot is not None:
-			lamination_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('laminations')]
-			mapping_class_names = [self.treeview_objects.item(child)['text'] for child in self.treeview_objects.get_children('mapping_classes')]
-			laminations = [(name, self.laminations[name]) for name in lamination_names]
-			mapping_classes = [(name, self.mapping_classes[name]) for name in mapping_class_names]
-			self.return_slot[0] = [self.abstract_triangulation] + laminations +  mapping_classes
+			self.return_slot[0] = self.equipped_triangulation
 		
 		if self.initialise():
 			self.parent.quit()
@@ -786,8 +787,8 @@ class FlipperApp(object):
 	
 	def show_surface_information(self):
 		if self.is_complete():
-			num_marked_points = self.abstract_triangulation.num_vertices
-			euler_characteristic = self.abstract_triangulation.euler_characteristic
+			num_marked_points = self.equipped_triangulation.triangulation.num_vertices
+			euler_characteristic = self.equipped_triangulation.triangulation.euler_characteristic
 			genus = (2 - euler_characteristic - num_marked_points) // 2
 			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus, num_marked_points, euler_characteristic))
 		else:
@@ -801,7 +802,7 @@ class FlipperApp(object):
 		self.vertices.append(flipper.application.Vertex(self.canvas, point, self.options))
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 		return self.vertices[-1]
 	
 	def destroy_vertex(self, vertex=None):
@@ -818,12 +819,12 @@ class FlipperApp(object):
 		self.vertices.remove(vertex)
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def destroy_all_vertices(self):
 		while self.vertices:
 			self.destroy_vertex()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def create_edge(self, v1, v2):
 		# Don't create a new edge if one already exists.
@@ -844,7 +845,7 @@ class FlipperApp(object):
 						self.create_triangle(e0, e1, e2)
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 		return self.edges[-1]
 	
 	def destroy_edge(self, edge=None):
@@ -857,7 +858,7 @@ class FlipperApp(object):
 		self.edges.remove(edge)
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def create_triangle(self, e1, e2, e3):
 		assert(e1 != e2 and e1 != e3 and e2 != e3)
@@ -875,7 +876,7 @@ class FlipperApp(object):
 		
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 		return self.triangles[-1]
 	
 	def destroy_triangle(self, triangle=None):
@@ -888,7 +889,7 @@ class FlipperApp(object):
 		self.triangles.remove(triangle)
 		self.unsaved_work = True
 		self.redraw()
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def create_edge_identification(self, e1, e2):
 		assert(e1.equivalent_edge is None and e2.equivalent_edge is None)
@@ -905,7 +906,7 @@ class FlipperApp(object):
 		e1.set_colour(new_colour)
 		e2.set_colour(new_colour)
 		self.unsaved_work = True
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def destroy_edge_identification(self, edge):
 		if edge.equivalent_edge is not None:
@@ -918,7 +919,7 @@ class FlipperApp(object):
 			edge.equivalent_edge.equivalent_edge = None
 			edge.equivalent_edge = None
 			self.unsaved_work = True
-		self.build_abstract_triangulation()
+		self.build_equipped_triangulation()
 	
 	def create_curve_component(self, vertices, multiplicity=1, counted=False):
 		self.curve_components.append(flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity, counted))
@@ -945,7 +946,7 @@ class FlipperApp(object):
 			self.destroy_train_track_block(self.train_track_blocks[-1])
 		
 		if self.is_complete():
-			self.current_lamination = self.abstract_triangulation.empty_lamination()
+			self.current_lamination = self.equipped_triangulation.triangulation.empty_lamination()
 		
 		self.select_object(None)
 		self.redraw()
@@ -996,26 +997,24 @@ class FlipperApp(object):
 		else:
 			self.destroy_edge_labels()
 	
-	def create_abstract_triangulation(self):
+	def create_equipped_triangulation(self):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		labels = [[triangle.edges[side].index if triangle[side+1] == triangle.edges[side][0] else ~triangle.edges[side].index for side in range(3)] for triangle in self.triangles]
-		self.abstract_triangulation = flipper.abstract_triangulation(labels)
-		self.current_lamination = self.abstract_triangulation.empty_lamination()
+		self.equipped_triangulation = flipper.kernel.EquippedTriangulation(flipper.abstract_triangulation(labels), [], [])
+		self.current_lamination = self.equipped_triangulation.triangulation.empty_lamination()
 		self.create_edge_labels()
 		self.menubar.entryconfig('Lamination', state='normal')
 		self.menubar.entryconfig('Mapping class', state='normal')
 	
-	def destroy_abstract_triangulation(self):
+	def destroy_equipped_triangulation(self):
 		self.destroy_lamination()
 		self.clear_edge_indices()
 		self.destroy_edge_labels()
-		self.abstract_triangulation = None
+		self.equipped_triangulation = None
 		self.current_lamination = None
-		self.laminations = {}
 		self.lamination_names = {}
 		self.treeview_laminations = []
-		self.mapping_classes = {}
 		self.mapping_class_names = {}
 		self.treeview_mapping_classes = []
 		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
@@ -1023,11 +1022,11 @@ class FlipperApp(object):
 		self.menubar.entryconfig('Lamination', state='disabled')
 		self.menubar.entryconfig('Mapping class', state='disabled')
 	
-	def build_abstract_triangulation(self):
-		if self.is_complete() and self.abstract_triangulation is None:
-			self.create_abstract_triangulation()
-		elif not self.is_complete() and self.abstract_triangulation is not None:
-			self.destroy_abstract_triangulation()
+	def build_equipped_triangulation(self):
+		if self.is_complete() and self.equipped_triangulation is None:
+			self.create_equipped_triangulation()
+		elif not self.is_complete() and self.equipped_triangulation is not None:
+			self.destroy_equipped_triangulation()
 	
 	
 	######################################################################
@@ -1062,9 +1061,9 @@ class FlipperApp(object):
 		current_vector = self.current_lamination.vector
 		new_vector = [a+b for a, b in zip(vector, current_vector)]
 		try:
-			self.current_lamination = self.abstract_triangulation.lamination(new_vector)
+			self.current_lamination = self.equipped_triangulation.triangulation.lamination(new_vector)
 		except TypeError:
-			self.current_lamination = self.abstract_triangulation.empty_lamination()
+			self.current_lamination = self.equipped_triangulation.triangulation.empty_lamination()
 		
 		return self.current_lamination
 	
@@ -1140,20 +1139,13 @@ class FlipperApp(object):
 	
 	def tighten_lamination(self):
 		if self.is_complete():
-			try:
-				lamination = self.canvas_to_lamination()
-				self.lamination_to_canvas(lamination)
-			except flipper.AssumptionError:
-				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
+			lamination = self.canvas_to_lamination()
+			self.lamination_to_canvas(lamination)
 	
 	def store_lamination(self, lamination=None):
 		if self.is_complete():
-			if lamination is None:
-				try:
-					lamination = self.canvas_to_lamination()
-				except flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-					return
+			if lamination is None:  # Use the one currently drawn.
+				lamination = self.canvas_to_lamination()
 			
 			name = flipper.application.get_input('Name', 'New lamination name:', validate=self.valid_name)
 			if name is not None:
@@ -1161,12 +1153,8 @@ class FlipperApp(object):
 	
 	def store_twist(self, lamination=None):
 		if self.is_complete():
-			if lamination is None:
-				try:
-					lamination = self.canvas_to_lamination()
-				except flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-					return
+			if lamination is None:  # Use the one currently drawn.
+				lamination = self.canvas_to_lamination()
 			
 			if lamination.is_twistable():
 				name = flipper.application.get_input('Name', 'New twist name:', validate=self.valid_name)
@@ -1177,12 +1165,8 @@ class FlipperApp(object):
 	
 	def store_halftwist(self, lamination=None):
 		if self.is_complete():
-			if lamination is None:
-				try:
-					lamination = self.canvas_to_lamination()
-				except flipper.AssumptionError:
-					tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-					return
+			if lamination is None:  # Use the one currently drawn.
+				lamination = self.canvas_to_lamination()
 			
 			if lamination.is_halftwistable():
 				name = flipper.application.get_input('Name', 'New half twist name:', validate=self.valid_name)
@@ -1198,7 +1182,7 @@ class FlipperApp(object):
 				from_edges, to_edges = zip(*[[int(d) for d in x.split(':')] for x in specification.split(' ')])
 				try:
 					# Some of this should really go in self.valid_isometry.
-					isometries_to = self.abstract_triangulation.self_isometries()
+					isometries_to = self.equipped_triangulation.triangulation.self_isometries()
 					[isometry] = [isom for isom in isometries_to if all(isom.index_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
 				except ValueError:
 					tkMessageBox.showwarning('Isometry', 'Information does not specify a unique isometry.')
@@ -1212,13 +1196,8 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition = flipper.application.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				mapping_class = self.abstract_triangulation.id_encoding()
-				for twist in composition.split('.'):
-					if twist in self.mapping_classes:
-						mapping_class = mapping_class * self.mapping_classes[twist]
-					else:
-						tkMessageBox.showwarning('Mapping class', 'Unknown mapping class: %s' % twist)
-						raise flipper.AssumptionError()
+				# self.valid_composition made sure that this wont fail.
+				mapping_class = self.equipped_triangulation.mapping_class(composition)
 				
 				return composition, mapping_class
 			else:
@@ -1234,16 +1213,12 @@ class FlipperApp(object):
 	
 	def show_apply(self, mapping_class=None):
 		if self.is_complete():
-			try:
-				lamination = self.canvas_to_lamination()
-			except flipper.AssumptionError:
-				tkMessageBox.showwarning('Curve', 'Not an essential lamination.')
-			else:
-				if mapping_class is None:
-					_, mapping_class = self.create_composition()
-				
-				if mapping_class is not None:
-					self.lamination_to_canvas(mapping_class(lamination))
+			lamination = self.canvas_to_lamination()
+			if mapping_class is None:
+				_, mapping_class = self.create_composition()
+			
+			if mapping_class is not None:
+				self.lamination_to_canvas(mapping_class(lamination))
 	
 	
 	######################################################################
@@ -1453,26 +1428,38 @@ class FlipperApp(object):
 	def treeview_objects_left_click(self, event):
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
+		if iid in self.lamination_names:
+			name = self.lamination_names[iid]
+		elif iid in self.mapping_class_names:
+			name = self.mapping_class_names[iid]
+		else:
+			name = None
 		
 		if 'show_lamination' in tags:
-			self.lamination_to_canvas(self.laminations[self.lamination_names[iid]])
+			self.lamination_to_canvas(self.equipped_triangulation.laminations[name])
 		elif 'apply_mapping_class' in tags:
-			self.show_apply(self.mapping_classes[self.mapping_class_names[iid]])
+			self.show_apply(self.equipped_triangulation.mapping_classes[name])
 		elif 'apply_mapping_class_inverse' in tags:
-			self.show_apply(self.mapping_classes[self.mapping_class_names[iid].swapcase()])
+			self.show_apply(self.equipped_triangulation.mapping_classes[name.swapcase()])
 	
 	def treeview_objects_double_left_click(self, event):
 		self.treeview_objects_left_click(event)
 		iid = self.treeview_objects.identify('row', event.x, event.y)
 		tags = self.treeview_objects.item(iid, 'tags')
+		if iid in self.lamination_names:
+			name = self.lamination_names[iid]
+		elif iid in self.mapping_class_names:
+			name = self.mapping_class_names[iid]
+		else:
+			name = None
 		
 		if 'twist_lamination' in tags:
-			self.store_twist(self.laminations[self.lamination_names[iid]])
+			self.store_twist(self.equipped_triangulation.laminations[name])
 		elif 'half_twist_lamination' in tags:
-			self.store_halftwist(self.laminations[self.lamination_names[iid]])
+			self.store_halftwist(self.equipped_triangulation.laminations[name])
 		elif 'filling_lamination' in tags:
 			try:
-				lamination = self.laminations[self.lamination_names[iid]]
+				lamination = self.equipped_triangulation.laminations[name]
 				update_cache_progression(lamination, 'is_filling')
 				
 				self.treeview_objects.item(iid, text='Filling: %s' % lamination.is_filling())
@@ -1481,7 +1468,7 @@ class FlipperApp(object):
 				pass
 		elif 'mapping_class_type' in tags:
 			try:
-				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
+				mapping_class = self.equipped_triangulation.mapping_classes[name]
 				update_cache_progression(mapping_class, 'nielsen_thurston_type')
 				
 				self.treeview_objects.item(iid, text='Type: %s' % mapping_class.nielsen_thurston_type())
@@ -1492,7 +1479,7 @@ class FlipperApp(object):
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
-				mapping_class = self.mapping_classes[self.mapping_class_names[iid]]
+				mapping_class = self.equipped_triangulation.mapping_classes[name]
 				update_cache_progression(mapping_class, 'invariant_lamination')
 				
 				_, lamination = mapping_class.invariant_lamination()

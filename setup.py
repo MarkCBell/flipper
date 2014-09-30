@@ -19,29 +19,9 @@ class TestCommand(Command):
 		pass
 	
 	def run(self):
-		''' Runs all of the tests in the tests directory. '''
-		try:
-			test_module = importlib.import_module('flipper.tests')
-		except ImportError:
-			print('flipper module unavailable, install by running: \n>>> python setup.py install [--user]')
-		else:
-			failed_tests = []
-			for test_name in dir(test_module):
-				if not test_name.startswith('_') and test_name != 'flipper':
-					test = importlib.import_module('flipper.tests.%s' % test_name)
-					print('Running %s test...' % test_name)
-					result = test.main(verbose=False)
-					print('\tPassed' if result else '\tFAILED')
-					if not result:
-						failed_tests.append(test_name)
-			
-			print('Finished testing.')
-			if len(failed_tests) > 0:
-				print('\tFAILED TESTS:')
-				for test_name in failed_tests:
-					print('\t%s' % test_name)
-			else:
-				print('\tAll tests passed.')
+		import flipper
+		
+		flipper.test.main()
 
 # So we can access all of the profiling suite just by doing 'python setup.py profile'
 class ProfileCommand(Command):
@@ -55,24 +35,9 @@ class ProfileCommand(Command):
 		pass
 	
 	def run(self):
-		''' Runs all of the tests in the tests directory. '''
-		profile_module = importlib.import_module('flipper.profiles')
-		try:
-			profile_module = importlib.import_module('flipper.profiles')
-		except ImportError:
-			print('flipper module unavailable, install by running: \n>>> python setup.py install [--user]')
-		else:
-			total_time = 0
-			for profile_name in dir(profile_module):
-				if not profile_name.startswith('_') and profile_name != 'flipper':
-					profile = importlib.import_module('flipper.profiles.%s' % profile_name)
-					print('Running %s profile...' % profile_name)
-					time = profile.main()
-					total_time += time
-					print('\tRan in %0.3fs' % time)
-			
-			print('Finished profiling.')
-			print('\tTotal time: %0.3fs' % total_time)
+		import flipper
+		
+		flipper.profile.main()
 
 setup(
 	name='flipper',
@@ -85,7 +50,7 @@ setup(
 	packages=['flipper', 'flipper.application', 'flipper.load', 'flipper.examples', 'flipper.kernel', 'flipper.tests', 'flipper.profiles'],
 	package_dir={'flipper': ''},
 	package_data={
-		'flipper': ['docs/*'],
+		'flipper': ['./README', './LICENSE', 'docs/*'],
 		'flipper.application': ['icon/*', 'docs/*'],
 		'flipper.load': ['censuses/*.dat']
 		},

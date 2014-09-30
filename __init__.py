@@ -32,10 +32,6 @@ flipper.AssumptionError = flipper.kernel.AssumptionError
 flipper.ComputationError = flipper.kernel.ComputationError
 
 flipper.package = flipper.kernel.package
-flipper.depackage = flipper.kernel.depackage
 
 flipper.version = flipper.versions.version
-
-if __name__ == '__main__':
-	print('Hello')
 

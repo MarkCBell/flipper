@@ -36,3 +36,6 @@ flipper.depackage = flipper.kernel.depackage
 
 flipper.version = flipper.versions.version
 
+if __name__ == '__main__':
+	print('Hello')
+

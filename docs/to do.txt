@@ -4,7 +4,6 @@ undo and redo
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 update examples in application/examples/
-switch to using an EquippedTriangulation
 
 ### Documentation ###
 more documentation
@@ -12,7 +11,6 @@ documentation for kernel - sphinx?
 check docstrings using pylint
 
 ### Kernel ###
-make polynomials squarefree - polynomial gcd
 make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field
@@ -29,5 +27,6 @@ Rewrite AlgebraicNumber
 add more tests
 tests for every module
 
+### Profiles ###
 add better profiling to see speedup progress
 

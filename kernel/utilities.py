@@ -142,27 +142,31 @@ class memoized(object):
 	def __init__(self, func):
 		self.func = func
 		self.cache = {}
-	def __call__(self, *args, **kwargs):
+	def __call__(self, *args):
 		try:
 			if args not in self.cache:
 				try:
-					self.cache[args] = self.func(*args, **kwargs)
+					self.cache[args] = self.func(*args)
 				except Exception as error:
 					self.cache[args] = error
-			if isinstance(self.cache[args], Exception):
-				raise self.cache[args]
-			else:
-				return self.cache[args]
 		except TypeError:
 			# If we can't cache the results then it is better to not than blow up.
-			return self.func(*args, **kwargs)
+			return self.func(*args)
+		
+		if isinstance(self.cache[args], Exception):
+			raise self.cache[args]
+		else:
+			return self.cache[args]
 	def __repr__(self):
 		return self.func.__repr__
 	def __get__(self, obj, objtype):
 		''' Support instance methods. '''
 		
-		def memoized_function(*args, **kwargs):
-			return self.__call__(obj, *args, **kwargs)
+		def memoized_function(*args):
+			''' Call the given instance with these arguements. '''
+			
+			return self.__call__(obj, *args)
+		
 		memoized_function.__doc__ = 'A memoized version of ' + self.func.__name__ + '.\n\n' + self.func.__doc__
 		return memoized_function
 

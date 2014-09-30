@@ -30,12 +30,12 @@ def string_generator(n, skip=None):
 			if len(results) >= n:
 				return results
 
-def name_objects(objects):
+def name_objects(objects, skip=None):
 	''' Return a list of pairs (name, object). '''
 	
 	assert(isinstance(objects, (list, tuple)))
 	
-	return zip(string_generator(len(objects)), objects)
+	return zip(string_generator(len(objects), skip), objects)
 
 def package(objects):
 	''' This packages an abstract triangulation, some laminations and mapping classes
@@ -48,15 +48,18 @@ def package(objects):
 		3) an Encoding,
 		4) a pair (String, Lamination),
 		5) a pair (String, Encoding).
+	Or an EquippedTriangulation.
 	
 	All laminations / mapping classes must be defined on the same triangulation
 	We will automatically name items of type 2) and 3) sequentially:
 		a, b, ..., z, aa, ab, ... . '''
 	
+	if isinstance(objects, flipper.kernel.EquippedTriangulation):
+		objects = [objects.triangulation] + list(objects.laminations.items()) + list(objects.pos_mapping_classes.items())
+	
 	triangulation = None
-	laminations, mapping_classes = [], []
+	laminations, mapping_classes = {}, {}
 	unnamed_laminations, unnamed_mapping_classes = [], []
-	lamination_names, mapping_class_names = set(), set()
 	for item in objects:
 		if isinstance(item, flipper.kernel.AbstractTriangulation):
 			if triangulation is not None:
@@ -74,15 +77,13 @@ def package(objects):
 						raise ValueError('Only one triangulation may be given.')
 					triangulation = item2
 				elif isinstance(item2, flipper.kernel.Lamination):
-					if name not in lamination_names:
-						laminations.append(item)
-						lamination_names.add(name)
+					if name not in laminations:
+						laminations[name] = item2
 					else:
 						raise ValueError('Laminations with identical names.')
 				elif isinstance(item2, flipper.kernel.Encoding):
-					if name not in mapping_class_names:
-						mapping_classes.append(item)
-						mapping_class_names.add(name)
+					if name not in mapping_classes:
+						mapping_classes[name] = item2
 					else:
 						raise ValueError('Encodings with identical names.')
 				else:
@@ -92,11 +93,11 @@ def package(objects):
 		else:
 			raise ValueError('Each item given must be an AbstractTriangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
 	
-	for name, lamination in zip(string_generator(len(unnamed_laminations), lamination_names), unnamed_laminations):
-		laminations.append((name, lamination))
+	for name, lamination in name_objects(unnamed_laminations, laminations):
+		laminations[name] = lamination
 	
-	for name, encoding in zip(string_generator(len(unnamed_mapping_classes), mapping_class_names), unnamed_mapping_classes):
-		mapping_classes.append((name, encoding))
+	for name, encoding in name_objects(unnamed_mapping_classes, mapping_classes):
+		mapping_classes[name] = encoding
 	
 	if triangulation is None:
 		if len(laminations) > 0:
@@ -106,30 +107,17 @@ def package(objects):
 		else:
 			raise ValueError('A triangulation, Lamination or Encoding must be given.')
 	
-	if any(lamination.triangulation != triangulation for name, lamination in laminations):
+	if any(laminations[name].triangulation != triangulation for name in laminations):
 		raise ValueError('All laminations must be on the same abstract triangulations.')
-	if any(mapping_class.source_triangulation != triangulation for name, mapping_class in mapping_classes):
+	if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
 		raise ValueError('All mapping classes must go from the same abstract triangulations.')
-	if any(mapping_class.target_triangulation != triangulation for name, mapping_class in mapping_classes):
+	if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
 		raise ValueError('All mapping classes must go to the same abstract triangulations.')
 	
 	spec = 'A flipper kernel file.'
 	version = flipper.version
-	
-	data = (triangulation, laminations, mapping_classes)
+	data = flipper.kernel.EquippedTriangulation(triangulation, laminations, mapping_classes)
 	return pickle.dumps((spec, version, data))
-
-def depackage(packaged_objects):
-	''' Extracts the stuff from the contents of a flipper kernel file. '''
-	
-	(spec, version, data) = pickle.loads(packaged_objects)
-	if spec != 'A flipper kernel file.':
-		raise ValueError('Not a valid specification.')
-	if version != flipper.version:
-		raise ValueError('Wrong version of flipper.')
-	
-	[triangulation, laminations, mapping_classes] = data
-	return triangulation, laminations, mapping_classes
 
 ###############################################################################
 

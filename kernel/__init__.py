@@ -66,6 +66,5 @@ interval_from_string = interval.interval_from_string  # Careful - don't overwrit
 number_field = numberfield.number_field
 
 package = utilities.package
-depackage = utilities.depackage
 product = utilities.product
 

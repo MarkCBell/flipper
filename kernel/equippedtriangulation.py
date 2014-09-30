@@ -104,11 +104,4 @@ class EquippedTriangulation(object):
 			h = h * self.mapping_classes[letter]
 		
 		return h
-	
-	def objects(self):
-		''' Return a list of all objects known on this triangulation.
-		
-		This can be passed directly into flipper.application.start(). '''
-		
-		return [self.triangulation] + list(self.laminations.items()) + list(self.pos_mapping_classes.items())
 

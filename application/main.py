@@ -451,7 +451,15 @@ class FlipperApp(object):
 		return False
 	
 	def load(self, load_from=None):
-		''' Loads up some informations. If given no options opens a file dialog and
+		''' Load up some information.
+		
+		We can load from:
+			- the path to a flipper file,
+			- the contents of flipper file,
+			- a file objects, or
+			- something that flipper.package can eat.
+		If given nothing it asks the user to select a flipper (kernel) file.
+		
 		asks for a flipper (kernel) file. Alternatively can be passed the contents of
 		a file, a file object or something that flipper.package can eat. '''
 		try:
@@ -466,7 +474,10 @@ class FlipperApp(object):
 			elif isinstance(load_from, file):
 				string_contents = load_from.read()
 			elif isinstance(load_from, flipper.StringType):
-				string_contents = load_from
+				try:
+					string_contents = open(load_from, 'rb').read()
+				except IOError:
+					string_contents = load_from
 			else:
 				string_contents = flipper.package(load_from)
 			
@@ -478,18 +489,17 @@ class FlipperApp(object):
 				raise ValueError('Wrong version of flipper.')
 			if spec == 'A flipper file.':
 				load_objects = data
+				equipped_triangulation, canvas_objects = data
 			elif spec == 'A flipper kernel file.':
-				load_objects = data + (None, None)
+				equipped_triangulation, canvas_objects = data, None
 			else:
 				raise ValueError('Not a valid specification.')
-			
-			[equipped_triangulation, canvas_objects] = load_objects
 			
 			if canvas_objects is None and equipped_triangulation is None:
 				raise ValueError('EquippedTriangulation required.')
 			elif canvas_objects is None and equipped_triangulation is not None:
 				# See if we can use the current triangulation.
-				if equipped_triangulation.triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
+				if self.equipped_triangulation is not None and equipped_triangulation.triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
 					isom = self.equipped_triangulation.triangulation.isometries_to(equipped_triangulation.triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]

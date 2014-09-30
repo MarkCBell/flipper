@@ -41,7 +41,7 @@ class ProfileCommand(Command):
 setup(
 	name='flipper',
 	version=str(version),
-	description='flipper',
+	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',
 	url='https://bitbucket.org/Mark_Bell/flipper',
@@ -55,3 +55,4 @@ setup(
 		},
 	cmdclass={'test': TestCommand, 'profile': ProfileCommand}
 	)
+

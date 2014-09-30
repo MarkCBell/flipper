@@ -49,14 +49,41 @@ class EquippedTriangulation(object):
 		assert(isinstance(length, flipper.IntegerType))
 		
 		available_letters = [x for x in self.mapping_classes.keys() if (positive and x.islower()) or (negative and x.isupper()) or (other and not x.islower() and not x.isupper())]
-		return ''.join(choice(available_letters) for _ in range(length))
+		return '.'.join(choice(available_letters) for _ in range(length))
+	
+	def decompose_word(self, word):
+		''' Return a list of mapping_class keys whose concatenation is word and the keys are chosen greedly.
+		
+		Raises a KeyError if the greedy decomposition fails. '''
+		
+		# By sorting the available keys, longest first, we ensure that any time we
+		# get a match it is as long as possible.
+		available_letters = sorted(self.mapping_classes, key=len, reverse=True)
+		decomposition = []
+		while word:
+			for letter in available_letters:
+				if word.startswith(letter):
+					decomposition.append(letter)
+					word = word[len(letter):]
+					break
+			else:
+				raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % (decomposition, word))
+		
+		return decomposition
+	
 	def mapping_class(self, word):
-		''' Return the mapping class corresponding to the given word of a random one of given length if word is an integer. '''
+		''' Return the mapping class corresponding to the given word of a random one of given length if word is an integer.
+		
+		Raises a KeyError if the word does not correspond to a mapping class. '''
 		
 		assert(isinstance(word, flipper.StringType) or isinstance(word, flipper.IntegerType))
 		
 		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)
+		
+		# This can fail with a KeyError.
+		decomposition = [self.mapping_classes[letter] for subword in word.split('.') for letter in self.decompose_word(subword)]
+		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding())
 		
 		h = self.triangulation.id_encoding()
 		for letter in word:

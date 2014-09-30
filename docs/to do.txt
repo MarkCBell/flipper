@@ -9,6 +9,9 @@ update examples in application/examples/
 more documentation
 documentation for kernel - sphinx?
 check docstrings using pylint
+redo installation / testing instructions
+now stable install with:
+	python -m pip install flipper-topology (--user)
 
 ### Kernel ###
 make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster

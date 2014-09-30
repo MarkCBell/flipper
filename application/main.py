@@ -488,7 +488,6 @@ class FlipperApp(object):
 			if version != flipper.version:
 				raise ValueError('Wrong version of flipper.')
 			if spec == 'A flipper file.':
-				load_objects = data
 				equipped_triangulation, canvas_objects = data
 			elif spec == 'A flipper kernel file.':
 				equipped_triangulation, canvas_objects = data, None

@@ -33,7 +33,7 @@ def main(verbose=False):
 		if not test(surface, word, target):
 			print('Could not match %s on %s' % (word, surface))
 			unmatched.append((surface, word, target))
-		if verbose: print('\tComputed in %f' % (time() - start_time))
+		if verbose: print('\tComputed in %0.3fs' % (time() - start_time))
 	
 	if unmatched:
 		print('Unable to match:')

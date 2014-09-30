@@ -54,69 +54,71 @@ def package(objects):
 	We will automatically name items of type 2) and 3) sequentially:
 		a, b, ..., z, aa, ab, ... . '''
 	
-	if isinstance(objects, flipper.kernel.EquippedTriangulation):
-		objects = [objects.triangulation] + list(objects.laminations.items()) + list(objects.pos_mapping_classes.items())
-	
-	triangulation = None
-	laminations, mapping_classes = {}, {}
-	unnamed_laminations, unnamed_mapping_classes = [], []
-	for item in objects:
-		if isinstance(item, flipper.kernel.AbstractTriangulation):
-			if triangulation is not None:
-				raise ValueError('Only one triangulation may be given.')
-			triangulation = item
-		elif isinstance(item, flipper.kernel.Lamination):
-			unnamed_laminations.append(item)
-		elif isinstance(item, flipper.kernel.Encoding):
-			unnamed_mapping_classes.append(item)
-		elif isinstance(item, (list, tuple)) and len(item) == 2:
-			name, item2 = item
-			if isinstance(name, flipper.StringType):
-				if isinstance(item2, flipper.kernel.AbstractTriangulation):
-					if triangulation is not None:
-						raise ValueError('Only one triangulation may be given.')
-					triangulation = item2
-				elif isinstance(item2, flipper.kernel.Lamination):
-					if name not in laminations:
-						laminations[name] = item2
-					else:
-						raise ValueError('Laminations with identical names.')
-				elif isinstance(item2, flipper.kernel.Encoding):
-					if name not in mapping_classes:
-						mapping_classes[name] = item2
-					else:
-						raise ValueError('Encodings with identical names.')
-				else:
-					raise ValueError('Each item given must be a Lamination, Encoding, (String, Lamination) or (String, Encoding).')
-			else:
-				raise ValueError('Item must be named by a string.')
-		else:
-			raise ValueError('Each item given must be an AbstractTriangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
-	
-	for name, lamination in name_objects(unnamed_laminations, laminations):
-		laminations[name] = lamination
-	
-	for name, encoding in name_objects(unnamed_mapping_classes, mapping_classes):
-		mapping_classes[name] = encoding
-	
-	if triangulation is None:
-		if len(laminations) > 0:
-			triangulation = laminations[0][1].triangulation
-		elif len(mapping_classes) > 0:
-			triangulation = mapping_classes[0][1].source_triangulation
-		else:
-			raise ValueError('A triangulation, Lamination or Encoding must be given.')
-	
-	if any(laminations[name].triangulation != triangulation for name in laminations):
-		raise ValueError('All laminations must be on the same abstract triangulations.')
-	if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
-		raise ValueError('All mapping classes must go from the same abstract triangulations.')
-	if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
-		raise ValueError('All mapping classes must go to the same abstract triangulations.')
-	
 	spec = 'A flipper kernel file.'
 	version = flipper.version
-	data = flipper.kernel.EquippedTriangulation(triangulation, laminations, mapping_classes)
+	
+	if isinstance(objects, flipper.kernel.EquippedTriangulation):
+		data = objects
+	else:
+		triangulation = None
+		laminations, mapping_classes = {}, {}
+		unnamed_laminations, unnamed_mapping_classes = [], []
+		for item in objects:
+			if isinstance(item, flipper.kernel.AbstractTriangulation):
+				if triangulation is not None:
+					raise ValueError('Only one triangulation may be given.')
+				triangulation = item
+			elif isinstance(item, flipper.kernel.Lamination):
+				unnamed_laminations.append(item)
+			elif isinstance(item, flipper.kernel.Encoding):
+				unnamed_mapping_classes.append(item)
+			elif isinstance(item, (list, tuple)) and len(item) == 2:
+				name, item2 = item
+				if isinstance(name, flipper.StringType):
+					if isinstance(item2, flipper.kernel.AbstractTriangulation):
+						if triangulation is not None:
+							raise ValueError('Only one triangulation may be given.')
+						triangulation = item2
+					elif isinstance(item2, flipper.kernel.Lamination):
+						if name not in laminations:
+							laminations[name] = item2
+						else:
+							raise ValueError('Laminations with identical names.')
+					elif isinstance(item2, flipper.kernel.Encoding):
+						if name not in mapping_classes:
+							mapping_classes[name] = item2
+						else:
+							raise ValueError('Encodings with identical names.')
+					else:
+						raise ValueError('Each item given must be a Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+				else:
+					raise ValueError('Item must be named by a string.')
+			else:
+				raise ValueError('Each item given must be an AbstractTriangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+		
+		for name, lamination in name_objects(unnamed_laminations, laminations):
+			laminations[name] = lamination
+		
+		for name, encoding in name_objects(unnamed_mapping_classes, mapping_classes):
+			mapping_classes[name] = encoding
+		
+		if triangulation is None:
+			if len(laminations) > 0:
+				triangulation = laminations[0][1].triangulation
+			elif len(mapping_classes) > 0:
+				triangulation = mapping_classes[0][1].source_triangulation
+			else:
+				raise ValueError('A triangulation, Lamination or Encoding must be given.')
+		
+		if any(laminations[name].triangulation != triangulation for name in laminations):
+			raise ValueError('All laminations must be on the same abstract triangulations.')
+		if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
+			raise ValueError('All mapping classes must go from the same abstract triangulations.')
+		if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
+			raise ValueError('All mapping classes must go to the same abstract triangulations.')
+		
+		data = flipper.kernel.EquippedTriangulation(triangulation, laminations, mapping_classes)
+	
 	return pickle.dumps((spec, version, data))
 
 ###############################################################################

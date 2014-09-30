@@ -44,7 +44,7 @@ class EquippedTriangulation(object):
 			self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
 	
-	def random_word(self, length, positive=True, negative=True, other=True):
+	def random_word(self, length, positive=True, negative=True):
 		''' Return a random word of the required length.
 		
 		Positive (respectively negative) mapping classes are used if and only if
@@ -98,10 +98,4 @@ class EquippedTriangulation(object):
 		# This can fail with a KeyError.
 		decomposition = [self.mapping_classes[letter] for subword in word.split('.') for letter in self.decompose_word(subword)]
 		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding())
-		
-		h = self.triangulation.id_encoding()
-		for letter in word:
-			h = h * self.mapping_classes[letter]
-		
-		return h
 

@@ -19,6 +19,9 @@ import flipper.tests
 import flipper.profiles
 import flipper.versions
 
+import flipper.test
+import flipper.profile
+
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.abstract_triangulation = flipper.kernel.abstract_triangulation
 

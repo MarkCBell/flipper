@@ -488,25 +488,18 @@ class FlipperApp(object):
 			if version != flipper.version:
 				raise ValueError('Wrong version of flipper.')
 			if spec == 'A flipper file.':
-				equipped_triangulation, canvas_objects = data
+				equipped_triangulation, (vertices, edges) = data
 			elif spec == 'A flipper kernel file.':
-				equipped_triangulation, canvas_objects = data, None
-			else:
-				raise ValueError('Not a valid specification.')
-			
-			if canvas_objects is None and equipped_triangulation is None:
-				raise ValueError('EquippedTriangulation required.')
-			elif canvas_objects is None and equipped_triangulation is not None:
-				# See if we can use the current triangulation.
-				if self.equipped_triangulation is not None and equipped_triangulation.triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
-					isom = self.equipped_triangulation.triangulation.isometries_to(equipped_triangulation.triangulation)[0]
+				equipped_triangulation = data
+				triangulation = equipped_triangulation.triangulation
+				
+				# We don't have any vertices or edges, so see if we can use the current triangulation's.
+				if self.equipped_triangulation is not None and triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
+					isom = self.equipped_triangulation.triangulation.isometries_to(triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
 					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
-					canvas_objects = [vertices, edges]
 				else:  # If not then we'll create a triangulation ourselves.
 					vertices, edges = [], []
-					
-					triangulation = equipped_triangulation.triangulation
 					
 					n = triangulation.num_triangles
 					ngon = n + 2
@@ -552,17 +545,11 @@ class FlipperApp(object):
 						if edges[i][2] == edges[j][2]:
 							edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
 							edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
-					
-					canvas_objects = [vertices, edges]
-			elif canvas_objects is not None and equipped_triangulation is None:
-				pass
-			elif canvas_objects is not None and equipped_triangulation is not None:
-				pass
+			else:
+				raise ValueError('Not a valid specification.')
 			
 			if not self.initialise():
 				return
-			
-			vertices, edges = canvas_objects
 			
 			# Create the vertices.
 			for vertex in vertices:
@@ -610,13 +597,9 @@ class FlipperApp(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper kernel file', '.flp'), ('all files', '.*')], title='Export Kernel File')
 			if path != '':
 				try:
-					disk_file = open(path, 'w')
-					
-					spec = 'A flipper kernel file.'
-					version = flipper.version
-					data = self.equipped_triangulation
-					example = pickles.dumps((spec, version, data))
-					disk_file.write(example)
+					example = flipper.package(self.equipped_triangulation)
+					with open(path, 'wb') as disk_file:
+						disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
 				finally:
@@ -1277,7 +1260,7 @@ class FlipperApp(object):
 				path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 				if path != '':
 					try:
-						disk_file = open(path, 'w')
+						disk_file = open(path, 'wb')
 						try:
 							splittings = mapping_class.splitting_sequences()
 						except flipper.AssumptionError:
@@ -1495,11 +1478,11 @@ class FlipperApp(object):
 				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(lamination)
 				self.unsaved_work = True
-			except flipper.AssumptionError as error:
+			except flipper.AssumptionError:
 				self.unsaved_work = True
 				self.treeview_objects.item(iid, text='Invariant lamination: x')
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
-			except flipper.ComputationError as error:
+			except flipper.ComputationError:
 				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass

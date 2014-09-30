@@ -20,7 +20,7 @@ def main(verbose=False):
 		# One of the bundles should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
 		print('\tAll: %s, Real: %s' % stratum(splittings[0]))
-		if verbose: print('\tComputed in %f' % (time() - start_time))
+		if verbose: print('\tComputed in %0.3fs' % (time() - start_time))
 
 if __name__ == '__main__':
 	main(verbose=True)

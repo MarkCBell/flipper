@@ -38,5 +38,5 @@ class Version(object):
 	def __ge__(self, other):
 		return self > other or self == other
 
-version = Version(0, 5, 4)
+version = Version(0, 5, 5)
 

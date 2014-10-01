@@ -1,0 +1,25 @@
+\begin{thebibliography}{1}
+
+\bibitem{mercurial}
+Mercurial, a distributed source control management tool.
+\newblock Available at \url{http://mercurial.selenic.com/}.
+
+\bibitem{Agol}
+Ian Agol.
+\newblock Ideal triangulations of pseudo-{A}nosov mapping tori.
+\newblock In {\em Topology and geometry in dimension three}, volume 560 of {\em
+  Contemp. Math.}, pages 1--17. Amer. Math. Soc., Providence, RI, 2011.
+
+\bibitem{SnapPy}
+Marc Culler, Nathan~M. Dunfield, and Jeffrey~R. Weeks.
+\newblock Snap{P}y, a computer program for studying the topology of
+  $3$-manifolds.
+\newblock Available at \url{http://snappy.computop.org} (20/09/2014).
+
+\bibitem{sage}
+W.\thinspace{}A. Stein et~al.
+\newblock {\em {S}age {M}athematics {S}oftware ({V}ersion 6.3.1)}.
+\newblock The Sage Development Team, 2014.
+\newblock \url{http://www.sagemath.org}.
+
+\end{thebibliography}

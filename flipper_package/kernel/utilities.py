@@ -55,7 +55,7 @@ def package(objects):
 		a, b, ..., z, aa, ab, ... . '''
 	
 	spec = 'A flipper kernel file.'
-	version = flipper.version
+	version = flipper.__version__
 	
 	if isinstance(objects, flipper.kernel.EquippedTriangulation):
 		data = objects

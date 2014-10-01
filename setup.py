@@ -1,22 +1,29 @@
 
-from distutils.core import setup, Command
-#from setuptools import setup, Command
-import os
+from __future__ import print_function
 
-from versions import version  # Get the correct version number.
+import os
+try:
+	from setuptools import setup, Command
+except ImportError:
+	print('Unable to import setuptools, using distutils instead.')
+	from distutils.core import setup, Command
+
+flipper_directory = os.path.join(os.path.dirname(__file__), 'flipper_package')
+exec(open(os.path.join(flipper_directory, 'version.py')).read())  # Load in the variable __version__.
 
 setup(
 	name='flipper-topology',  # The name 'flipper' is taken on PyPI.
-	version=str(version),
+	version=__version__,
 	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
 	author='Mark Bell',
 	author_email='M.C.Bell@warwick.ac.uk',
 	url='https://bitbucket.org/Mark_Bell/flipper',
 	# Remember to update these if the directory structure changes.
 	packages=['flipper', 'flipper.application', 'flipper.load', 'flipper.examples', 'flipper.kernel', 'flipper.tests', 'flipper.profiles'],
-	package_dir={'flipper': os.path.dirname(__file__)},
+	package_dir={'flipper': flipper_directory},
 	package_data={
-		'': ['./README', './LICENSE', 'docs/*'],
+		'': ['README', 'LICENSE'],
+		'flipper': ['docs/*'],
 		'flipper.application': ['icon/*', 'docs/*'],
 		'flipper.load': ['censuses/*.dat']
 		}

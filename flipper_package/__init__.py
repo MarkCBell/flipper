@@ -11,13 +11,14 @@ Get started by creating an AbstractTriangulation using the helper function:
 or by loading one of the provided EquippedTriangulations using:
 	flipper.load.equipped_triangulation(...) '''
 
+from flipper.version import __version__
+
 # import flipper.application  # Don't do this import so people without tkinter can still use the kernel.
 import flipper.kernel
 import flipper.examples
 import flipper.load
 import flipper.tests
 import flipper.profiles
-import flipper.versions
 
 import flipper.test
 import flipper.profile
@@ -35,6 +36,4 @@ flipper.AssumptionError = flipper.kernel.AssumptionError
 flipper.ComputationError = flipper.kernel.ComputationError
 
 flipper.package = flipper.kernel.package
-
-flipper.version = flipper.versions.version
 

@@ -8,7 +8,7 @@ except ImportError:
 	print('Unable to import setuptools, using distutils instead.')
 	from distutils.core import setup, Command
 
-flipper_directory = os.path.join(os.path.dirname(__file__), 'flipper_package')
+flipper_directory = os.path.join(os.path.dirname(__file__), 'flipper_triangulation')
 exec(open(os.path.join(flipper_directory, 'version.py')).read())  # Load in the variable __version__.
 
 setup(

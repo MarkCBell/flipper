@@ -707,7 +707,7 @@ class FlipperApp(object):
 	def select_object(self, selected_object):
 		# We can only ever select vertices, edges and curve_components.
 		assert(selected_object is None or \
-			isinstance(selected_object, (flipper.application.Vertex, flipper.application.Edge, flipper.application.CurveComponent)))
+			isinstance(selected_object, (flipper.application.CanvasVertex, flipper.application.CanvasEdge, flipper.application.CurveComponent)))
 		self.selected_object = selected_object
 		for x in self.vertices + self.edges + self.curve_components + self.train_track_blocks:
 			x.set_current_colour()
@@ -783,7 +783,7 @@ class FlipperApp(object):
 	
 	
 	def create_vertex(self, point):
-		self.vertices.append(flipper.application.Vertex(self.canvas, point, self.options))
+		self.vertices.append(flipper.application.CanvasVertex(self.canvas, point, self.options))
 		self.unsaved_work = True
 		self.redraw()
 		self.build_equipped_triangulation()
@@ -819,7 +819,7 @@ class FlipperApp(object):
 		if any(flipper.application.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
-		e0 = flipper.application.Edge(self.canvas, [v1, v2], self.options)
+		e0 = flipper.application.CanvasEdge(self.canvas, [v1, v2], self.options)
 		self.edges.append(e0)
 		# Add in any needed triangles.
 		for e1, e2 in combinations(self.edges, r=2):
@@ -850,7 +850,7 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = flipper.application.Triangle(self.canvas, [e1, e2, e3], self.options)
+		new_triangle = flipper.application.CanvasTriangle(self.canvas, [e1, e2, e3], self.options)
 		self.triangles.append(new_triangle)
 		
 		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
@@ -1295,26 +1295,26 @@ class FlipperApp(object):
 			if self.selected_object is None:
 				if possible_object is None:
 					self.select_object(self.create_vertex((x, y)))
-				elif isinstance(possible_object, flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.CanvasEdge):
 					self.destroy_edge_identification(possible_object)
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.CanvasVertex):
 					self.select_object(possible_object)
-			elif isinstance(self.selected_object, flipper.application.Vertex):
+			elif isinstance(self.selected_object, flipper.application.CanvasVertex):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
 					new_vertex = self.create_vertex((x, y))
 					self.create_edge(self.selected_object, new_vertex)
 					self.select_object(new_vertex)
-				elif isinstance(possible_object, flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.CanvasVertex):
 					self.create_edge(self.selected_object, possible_object)
 					self.select_object(possible_object)
-				elif isinstance(possible_object, flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.CanvasEdge):
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
-			elif isinstance(self.selected_object, flipper.application.Edge):
+			elif isinstance(self.selected_object, flipper.application.CanvasEdge):
 				if possible_object == self.selected_object:
 					self.select_object(None)
 				elif possible_object is None:
@@ -1322,14 +1322,14 @@ class FlipperApp(object):
 					self.create_edge(self.selected_object[0], new_vertex)
 					self.create_edge(self.selected_object[1], new_vertex)
 					self.select_object(None)
-				elif isinstance(possible_object, flipper.application.Vertex):
+				elif isinstance(possible_object, flipper.application.CanvasVertex):
 					if possible_object != self.selected_object[0] and possible_object != self.selected_object[1]:
 						self.create_edge(self.selected_object[0], possible_object)
 						self.create_edge(self.selected_object[1], possible_object)
 						self.select_object(None)
 					else:
 						self.select_object(possible_object)
-				elif isinstance(possible_object, flipper.application.Edge):
+				elif isinstance(possible_object, flipper.application.CanvasEdge):
 					if (self.selected_object.free_sides() == 1 or self.selected_object.equivalent_edge is not None) and (possible_object.free_sides() == 1 or possible_object.equivalent_edge is not None):
 						self.destroy_edge_identification(self.selected_object)
 						self.destroy_edge_identification(possible_object)
@@ -1371,10 +1371,10 @@ class FlipperApp(object):
 		focus = self.parent.focus_get()
 		if key in ('Delete', 'BackSpace'):
 			if focus == self.canvas:
-				if isinstance(self.selected_object, flipper.application.Vertex):
+				if isinstance(self.selected_object, flipper.application.CanvasVertex):
 					self.destroy_vertex(self.selected_object)
 					self.select_object(None)
-				elif isinstance(self.selected_object, flipper.application.Edge):
+				elif isinstance(self.selected_object, flipper.application.CanvasEdge):
 					self.destroy_edge(self.selected_object)
 					self.select_object(None)
 				elif isinstance(self.selected_object, flipper.application.CurveComponent):

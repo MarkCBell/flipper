@@ -53,7 +53,7 @@ class DrawableObject(object):
 		self.colour = None
 		self.drawn = None
 	
-	# Note that this means that Triangle will NOT have the same convention as abstracttriangle,
+	# Note that this means that CanvasTriangle will NOT have the same convention as AbstractTriangle,
 	# there iterating and index accesses return edges.
 	def __getitem__(self, index):
 		return self.vertices[index % len(self)]
@@ -79,9 +79,9 @@ class DrawableObject(object):
 	def update(self):
 		self.canvas.coords(self.drawn, *[c for v in self for c in v])
 
-class Vertex(DrawableObject):
+class CanvasVertex(DrawableObject):
 	def __init__(self, canvas, vertex, options):
-		super(Vertex, self).__init__(canvas, [vertex], options)
+		super(CanvasVertex, self).__init__(canvas, [vertex], options)
 		self.default_colour = self.colour = DEFAULT_VERTEX_COLOUR
 		self.vertex = list(vertex)
 		self.drawn = self.canvas.create_oval([p + scale*self.options.dot_size for scale in [-1, 1] for p in self], outline=self.default_colour, fill=self.default_colour, tag='oval')
@@ -105,9 +105,9 @@ class Vertex(DrawableObject):
 	def update(self):
 		self.canvas.coords(self.drawn, *[p + scale*self.options.dot_size for scale in [-1, 1] for p in self])
 
-class Edge(DrawableObject):
+class CanvasEdge(DrawableObject):
 	def __init__(self, canvas, vertices, options):
-		super(Edge, self).__init__(canvas, vertices, options)
+		super(CanvasEdge, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_EDGE_COLOUR
 		self.drawn = self.canvas.create_line([c for v in self for c in v], width=self.options.line_size, fill=self.default_colour, tag='line')
 		self.equivalent_edge = None
@@ -146,9 +146,9 @@ class Edge(DrawableObject):
 	def flip_orientation(self):
 		self.vertices = self.vertices[::-1]
 
-class Triangle(DrawableObject):
+class CanvasTriangle(DrawableObject):
 	def __init__(self, canvas, edges, options):
-		super(Triangle, self).__init__(canvas, list(set([v for e in edges for v in e])), options)
+		super(CanvasTriangle, self).__init__(canvas, list(set([v for e in edges for v in e])), options)
 		self.default_colour = self.colour = DEFAULT_TRIANGLE_COLOUR
 		self.edges = edges
 		

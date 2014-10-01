@@ -12,18 +12,20 @@ it is fastest as a Sage Python module.
 
 Flipper is available on the Python Package Index (PyPI). The preferred method
 for installing the latest stable release is:
-	> python -m pip install flipper-topology --user
+	> python -m pip install flipper-triangulation --user
 If pip is not included in your version of Python then install it using
 get-pip.py available at:
 	http://pip.readthedocs.org/en/latest/installing.html
 
 Flipper can also be installed through the older easy_install:
-	> python -m easy_install flipper-topology
+	> python -m easy_install flipper-triangulation
 
 
 For more information about installing and using flipper see "A users
 guide to flipper" located at:
-	./application/docs/flipper.pdf
+	./docs/flipper.pdf
+Or run:
+	> python -m flipper.help
 
 
 If you find flipper useful in your research, please consider citing it.

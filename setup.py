@@ -12,7 +12,7 @@ flipper_directory = os.path.join(os.path.dirname(__file__), 'flipper_package')
 exec(open(os.path.join(flipper_directory, 'version.py')).read())  # Load in the variable __version__.
 
 setup(
-	name='flipper-topology',  # The name 'flipper' is taken on PyPI.
+	name='flipper-triangulation',  # The name 'flipper' is taken on PyPI.
 	version=__version__,
 	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
 	author='Mark Bell',
@@ -24,7 +24,7 @@ setup(
 	package_data={
 		'': ['README', 'LICENSE'],
 		'flipper': ['docs/*'],
-		'flipper.application': ['icon/*', 'docs/*'],
+		'flipper.application': ['icon/*'],
 		'flipper.load': ['censuses/*.dat']
 		}
 	)

@@ -2,12 +2,12 @@
 syntax:glob
 build/*
 dist/*
+flipper_triangulation.egg-info/*
 __pycache__/*
 *.pyc
 *.bat
 *.swp
 *.orig
-flipper_topology.egg-info/*
 
 htmlcov/*
 

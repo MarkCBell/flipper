@@ -616,15 +616,7 @@ class FlipperApp(object):
 			self.parent.quit()
 	
 	def show_help(self):
-		datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
-		disk_file = os.path.join(datadir, 'docs', 'flipper.pdf')
-		if sys.platform.startswith('darwin'):
-			command = 'open'
-		elif sys.platform.startswith('win'):
-			command = 'start'
-		else:
-			command = 'xdg-open'
-		os.system(command + ' ' + disk_file)
+		flipper.help.open_documentation()
 	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % flipper.__version__)

@@ -6,23 +6,28 @@ It can decide the Nielsen--Thurston type of a given mapping class and,
 for pseudo-Anosov mapping classes, construct a layered, veering
 triangulation of their mapping torus, as described by Agol.
 
-Flipper can be run as a Python 2, Python 3 or Sage Python module.
+Flipper can be run as a Python 2, Python 3 or Sage Python module. Currently
+it is fastest as a Sage Python module.
 
-Flipper is available from:
-	https://bitbucket.org/Mark_Bell/flipper
 
-You can download the latest version directly from:
-	https://bitbucket.org/mark_bell/flipper/get/default.zip
+Flipper is available on the Python Package Index (PyPI). The preferred method
+for installing the latest stable release is:
+	> python -m pip install flipper-topology --user
+If pip is not included in your version of Python then install it using
+get-pip.py available at:
+	http://pip.readthedocs.org/en/latest/installing.html
 
-Alternatively, you can clone the mercurial repository directly:
-	hg clone https://bitbucket.org/mark_bell/flipper
+Flipper can also be installed through the older easy_install:
+	> python -m easy_install flipper-topology
 
-For more information about installing and using flipper see "A users guide to
-flipper" located at:
+
+For more information about installing and using flipper see "A users
+guide to flipper" located at:
 	./application/docs/flipper.pdf
 
-If you find flipper useful in your research, please consider citing it. A
-suggested reference is:
+
+If you find flipper useful in your research, please consider citing it.
+A suggested reference is:
 	Mark Bell. flipper (Computer Software).
 	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>.
 or the BibTeX entry:
@@ -34,13 +39,21 @@ or the BibTeX entry:
 		note = {Version <<version number used>>}
 	}
 
+
 Quick install, test and start the GUI as a Python module:
-> python setup.py install --user
-> python setup.py test
+> python -m pip install flipper-topology --user
+> python -m flipper.test
 > python -m flipper.app
 
 Quick install, test and start the GUI as a Sage module:
-> sage -python setup.py install --user
-> sage -python setup.py test
+> sage -python -m pip install flipper-topology --user
+> sage -python -m flipper.test
 > sage -python -m flipper.app
+
+
+The latest development version of flipper is available from:
+	https://bitbucket.org/Mark_Bell/flipper
+Alternatively, you can clone the mercurial repository directly using
+the command:
+	> hg clone https://bitbucket.org/mark_bell/flipper
 

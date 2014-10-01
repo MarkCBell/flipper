@@ -23,7 +23,7 @@ setup(
 	package_dir={'flipper': flipper_directory},
 	package_data={
 		'': ['README', 'LICENSE'],
-		'flipper': ['docs/*'],
+		'flipper': ['docs/*', 'latex/flipper.pdf'],
 		'flipper.application': ['icon/*'],
 		'flipper.load': ['censuses/*.dat']
 		}

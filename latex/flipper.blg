@@ -1,0 +1,48 @@
+This is BibTeX, Version 0.99d (TeX Live 2013/Debian)
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: flipper.aux
+The style file: plain.bst
+Database file #1: bibliography.bib
+Warning--to sort, need author or key in mercurial
+You've used 4 entries,
+            2118 wiz_defined-function locations,
+            522 strings with 4625 characters,
+and the built_in function-call counts, 1072 in all, are:
+= -- 105
+> -- 39
+< -- 2
++ -- 16
+- -- 12
+* -- 57
+:= -- 171
+add.period$ -- 13
+call.type$ -- 4
+change.case$ -- 16
+chr.to.int$ -- 0
+cite$ -- 5
+duplicate$ -- 44
+empty$ -- 101
+format.name$ -- 12
+if$ -- 237
+int.to.chr$ -- 0
+int.to.str$ -- 4
+missing$ -- 1
+newline$ -- 23
+num.names$ -- 6
+pop$ -- 28
+preamble$ -- 1
+purify$ -- 13
+quote$ -- 0
+skip$ -- 35
+stack$ -- 0
+substring$ -- 39
+swap$ -- 12
+text.length$ -- 2
+text.prefix$ -- 0
+top$ -- 0
+type$ -- 16
+warning$ -- 1
+while$ -- 9
+width$ -- 5
+write$ -- 43
+(There was 1 warning)

@@ -12,6 +12,8 @@ check docstrings using pylint
 redo installation / testing instructions
 now stable install with:
 	python -m pip install flipper-topology (--user)
+upload version with:
+	python setup.py sdist register upload
 
 ### Kernel ###
 make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster

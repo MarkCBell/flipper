@@ -169,7 +169,8 @@ class AlgebraicApproximation(object):
 #### Some special Algebraic approximations we know how to build.
 # These are useful for creating tests.
 
-def algebraic_approximation(string, degree, height):
+def create_algebraic_approximation(string, degree, height):
 	''' A short way of constructing AlgebraicApproximations from a string and degree and height bounds. '''
 	
-	return AlgebraicApproximation(flipper.kernel.interval_from_string(string), log(max(degree, 1)), height)
+	return AlgebraicApproximation(flipper.kernel.create_interval(string), log(max(degree, 1)), height)
+

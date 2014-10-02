@@ -290,13 +290,13 @@ class AbstractTriangulation(object):
 		# #<----------#     #-----------#
 		# |     a    ^^     |\          |
 		# |         / |     | \         |
-		# |  A     /  |     |  \        |
+		# |  A     /  |     |  \     A2 |
 		# |       /   |     |   \       |
 		# |b    e/   d| --> |    \e'    |
 		# |     /     |     |     \     |
 		# |    /      |     |      \    |
 		# |   /       |     |       \   |
-		# |  /     B  |     |        \  |
+		# |  /     B  |     | B2     \  |
 		# | /         |     |         \ |
 		# V/    c     |     |          V|
 		# #---------->#     #-----------#
@@ -459,7 +459,7 @@ class AbstractTriangulation(object):
 		Assumes that such an isometry exists and is unique. '''
 		
 		try:
-			[isometry] = [isom for isom in self.isometries_to(other_triangulation) if isom.label_map[edge_from_label] == edge_to_label]
+			[isometry] = [isom for isom in self.isometries_to(other_triangulation) if isom(edge_from_label) == edge_to_label]
 		except ValueError:
 			raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine a unique isometry.')
 		else:
@@ -535,7 +535,9 @@ class AbstractTriangulation(object):
 		return h
 	
 	def encode_flips_and_close(self, edge_indices, edge_from_label, edge_to_label):
-		''' Return an encoding of the effect of flipping the given sequences of edges followed by the isometry taking edge_from_label to edge_to_label. '''
+		''' Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
+		
+		The isometry used is the one taking edge_from_label to edge_to_label. '''
 		
 		E = self.encode_flips(edge_indices)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
@@ -577,7 +579,7 @@ class AbstractTriangulation(object):
 		
 		return E
 
-def abstract_triangulation(all_labels):
+def create_abstract_triangulation(all_labels):
 	''' Return an AbstractTriangulation from a list of triples of edge labels.
 	
 	Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient

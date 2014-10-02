@@ -985,7 +985,7 @@ class FlipperApp(object):
 		# Must start by calling self.set_edge_indices() so that self.zeta is correctly set.
 		self.set_edge_indices()
 		labels = [[triangle.edges[side].index if triangle[side+1] == triangle.edges[side][0] else ~triangle.edges[side].index for side in range(3)] for triangle in self.triangles]
-		self.equipped_triangulation = flipper.kernel.EquippedTriangulation(flipper.abstract_triangulation(labels), [], [])
+		self.equipped_triangulation = flipper.kernel.EquippedTriangulation(flipper.create_abstract_triangulation(labels), [], [])
 		self.current_lamination = self.equipped_triangulation.triangulation.empty_lamination()
 		self.create_edge_labels()
 		self.menubar.entryconfig('Lamination', state='normal')

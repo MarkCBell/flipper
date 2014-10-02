@@ -25,7 +25,7 @@ import flipper.profile
 import flipper.help
 
 # Set up really short names for the most commonly used classes and functions by users.
-flipper.abstract_triangulation = flipper.kernel.abstract_triangulation
+flipper.create_abstract_triangulation = flipper.kernel.create_abstract_triangulation
 
 flipper.IntegerType = flipper.kernel.IntegerType
 flipper.StringType = flipper.kernel.StringType

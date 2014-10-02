@@ -42,7 +42,7 @@ def perron_frobenius_eigen(matrix, vector):
 	
 	eigenvalue_polynomial = flipper.kernel.Polynomial(eigenvalue_coefficients)
 	d = sum(abs(x) for x in eigenvalue_polynomial)
-	N = flipper.kernel.number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
+	N = flipper.kernel.create_number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
 	return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 
 def perron_frobenius_eigen2(matrix, vector):
@@ -56,7 +56,7 @@ def perron_frobenius_eigen2(matrix, vector):
 		raise flipper.AssumptionError('Largest eigenvalue is not real.')
 	
 	# !?! Check this 100.
-	flipper_eigenvalue = flipper.kernel.algebraic_number(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))
+	flipper_eigenvalue = flipper.kernel.create_algebraic_number(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))
 	
 	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
 	eigenvector = project(vector, (M - lam).right_kernel().basis())
@@ -64,7 +64,7 @@ def perron_frobenius_eigen2(matrix, vector):
 	eigenvector = [entry / norm for entry in eigenvector]
 	
 	# and check this 100 too.
-	flipper_eigenvector = [flipper.kernel.algebraic_number(minpoly_coefficients(entry), approximate(entry, 100)) for entry in eigenvector]
+	flipper_eigenvector = [flipper.kernel.create_algebraic_number(minpoly_coefficients(entry), approximate(entry, 100)) for entry in eigenvector]
 	
 	return flipper_eigenvalue, flipper_eigenvector
 

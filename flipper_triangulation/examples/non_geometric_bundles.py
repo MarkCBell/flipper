@@ -21,7 +21,7 @@ def is_degenerate(manifold):
 ###########################################################################
 
 def Example_H2():
-	T = flipper.abstract_triangulation([[3, 0, ~4], [4, ~5, ~0], [5, 2, ~6], [6, ~7, ~1], [7, 1, ~8], [8, ~3, ~2]])
+	T = flipper.create_abstract_triangulation([[3, 0, ~4], [4, ~5, ~0], [5, 2, ~6], [6, ~7, ~1], [7, 1, ~8], [8, ~3, ~2]])
 	
 	a = T.encode_flips_and_close([4], 3, 3)
 	b = T.encode_flips_and_close([4, 6, 8], 1, 2)

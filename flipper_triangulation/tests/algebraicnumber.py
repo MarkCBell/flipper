@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import flipper
 
-algebraic_number = flipper.kernel.algebraic_number
+algebraic_number = flipper.kernel.create_algebraic_number
 
 def main(verbose=False):
 	if verbose: print('Running algebraic number tests.')

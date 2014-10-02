@@ -31,7 +31,7 @@ class NumberField(object):
 		assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
 		assert(polynomial_root.polynomial.is_monic())
 		
-		if polynomial_root is None: polynomial_root = flipper.kernel.polynomial_root([-1, 1], '1.00')
+		if polynomial_root is None: polynomial_root = flipper.kernel.create_polynomial_root([-1, 1], '1.00')
 		self.polynomial_root = polynomial_root
 		
 		self.height = self.polynomial_root.height
@@ -213,8 +213,8 @@ class NumberFieldElement(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def number_field(coefficients, strn):
+def create_number_field(coefficients, strn):
 	''' A short way of constructing a NumberField from a list of coefficients and a string. '''
 	
-	return flipper.kernel.NumberField(flipper.kernel.polynomial_root(coefficients, strn))
+	return flipper.kernel.NumberField(flipper.kernel.create_polynomial_root(coefficients, strn))
 

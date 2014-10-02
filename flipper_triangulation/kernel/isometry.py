@@ -55,6 +55,8 @@ class Isometry(object):
 			if other not in self.source_triangulation:
 				raise ValueError('Corner no in source triangulation.')
 			return self.corner_map[other]
+		elif isinstance(other, flipper.IntegerType):  # Integers are assumed to be labels.
+			return self.label_map[other]
 		else:
 			return NotImplemented
 	def __mul__(self, other):

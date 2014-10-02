@@ -58,12 +58,12 @@ StringType = types.StringType
 NumberType = types.NumberType
 
 # Functions that help with construction.
-abstract_triangulation = abstracttriangulation.abstract_triangulation
-algebraic_approximation = algebraicapproximation.algebraic_approximation
-polynomial_root = polynomial.polynomial_root
-algebraic_number = algebraicnumber.algebraic_number
-interval_from_string = interval.interval_from_string  # Careful - don't overwrite kernel.interval.
-number_field = numberfield.number_field
+create_abstract_triangulation = abstracttriangulation.create_abstract_triangulation
+create_algebraic_approximation = algebraicapproximation.create_algebraic_approximation
+create_polynomial_root = polynomial.create_polynomial_root
+create_algebraic_number = algebraicnumber.create_algebraic_number
+create_interval = interval.create_interval
+create_number_field = numberfield.create_number_field
 
 package = utilities.package
 product = utilities.product

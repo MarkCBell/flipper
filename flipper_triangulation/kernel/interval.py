@@ -211,7 +211,7 @@ class Interval(object):
 
 #### Some special Intervals we know how to build.
 
-def interval_from_string(string):
+def create_interval(string):
 	''' A short way of constructing Intervals from a string. '''
 	
 	i, r = string.split('.') if '.' in string else (string, '')

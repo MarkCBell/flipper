@@ -6,7 +6,7 @@ import flipper
 def main(verbose=False):
 	if verbose: print('Running number field tests.')
 	
-	N = flipper.kernel.number_field([-2, 0, 1], '1.41')  # QQ(sqrt(2)).
+	N = flipper.kernel.create_number_field([-2, 0, 1], '1.41')  # QQ(sqrt(2)).
 	x = N.lmbda  # sqrt(2)
 	
 	tests = [

@@ -213,8 +213,8 @@ class AlgebraicNumber(object):
 		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
 		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
-def algebraic_number(coefficients, strn):
+def create_algebraic_number(coefficients, strn):
 	''' A short way of constructing an AlgebraicNumber from a list of coefficients and a string. '''
 	
-	return AlgebraicNumber({AlgebraicMonomial([flipper.kernel.polynomial_root(coefficients, strn)]): 1})
+	return AlgebraicNumber({AlgebraicMonomial([flipper.kernel.create_polynomial_root(coefficients, strn)]): 1})
 

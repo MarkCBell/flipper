@@ -330,8 +330,8 @@ class PolynomialRoot(object):
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(accuracy_required), self.log_degree, self.height)
 
-def polynomial_root(coefficients, strn):
+def create_polynomial_root(coefficients, strn):
 	''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''
 	
-	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.interval_from_string(strn))
+	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.create_interval(strn))
 

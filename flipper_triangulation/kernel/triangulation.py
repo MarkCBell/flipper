@@ -256,13 +256,15 @@ class Triangulation(object):
 		
 		return self.triangle_lookup[edge_index] != self.triangle_lookup[~edge_index]
 	
-	def square_about_edge(self, edge_index):
+	def square_about_edge(self, edge_label):
 		''' Return the four edges around the given edge.
 		
 		The chosen edge must be flippable. '''
 		
-		assert(self.is_flippable(edge_index))
+		assert(self.is_flippable(edge_label))
 		
+		# Given the label e, return the edges a, b, c, d in order.
+		#
 		# #<----------#
 		# |     a    ^^
 		# |         / |
@@ -277,7 +279,7 @@ class Triangulation(object):
 		# V/    c     |
 		# #---------->#
 		
-		corner_A, corner_B = self.corner_of_edge(edge_index), self.corner_of_edge(~edge_index)
+		corner_A, corner_B = self.corner_of_edge(edge_label), self.corner_of_edge(~edge_label)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
 	def flip_edge(self, edge_index):

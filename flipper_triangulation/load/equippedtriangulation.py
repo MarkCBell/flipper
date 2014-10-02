@@ -6,7 +6,7 @@
 import flipper
 
 def Example_S_0_4():
-	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1,~4, 5], [~2, ~5, 2]])
+	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1, ~4, 5], [~2, ~5, 2]])
 	
 	a = T.lamination([0, 1, 0, 0, 1, 0])
 	b = T.lamination([1, 0, 1, 2, 2, 2])

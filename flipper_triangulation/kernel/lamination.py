@@ -259,22 +259,19 @@ class Lamination(object):
 		short_lamination = conjugation(self)
 		triangulation = short_lamination.triangulation
 		
-		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		
-		# This is the same trick as in self.encode_flip.
 		a, b, c, d = triangulation.square_about_edge(e1)
-		# If the curve is going vertically through the square then ...
 		if short_lamination[a] == 1 and short_lamination[c] == 1:
-			# swap the labels round so it goes horizontally.
 			e1, e2 = e2, e1
-			a, b, c, e = triangulation.square_about_edge(e1)
+			a, b, c, d = triangulation.square_about_edge(e1)
+		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+			pass
 		
-		# But now we have to go one further and worry about a, b, c, d Vs. c, d, a, b.
 		_, _, z, w = triangulation.square_about_edge(a.label)
 		_, _, x, y = triangulation.square_about_edge(c.label)
 		
-		return z.index == w.index or x.index == w.index
+		return z.index == w.index or x.index == y.index
 	
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''
@@ -585,7 +582,9 @@ class Lamination(object):
 		if short_lamination[a] == 1 and short_lamination[c] == 1:
 			# swap the labels round so it goes horizontally.
 			e1, e2 = e2, e1
-			a, b, c, e = triangulation.square_about_edge(e1)
+			a, b, c, d = triangulation.square_about_edge(e1)
+		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+			pass
 		
 		# We now have:
 		# #<----------#
@@ -628,12 +627,16 @@ class Lamination(object):
 		if short_lamination[a] == 1 and short_lamination[c] == 1:
 			# swap the labels round so it goes horizontally.
 			e1, e2 = e2, e1
-			a, b, c, e = triangulation.square_about_edge(e1)
+			a, b, c, d = triangulation.square_about_edge(e1)
+		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+			pass
 		
-		# But now we have to go one further and worry about a, b, c, d Vs. c, d, a, b.
+		# Get some more edges.
 		_, _, z, w = triangulation.square_about_edge(a.label)
 		_, _, x, y = triangulation.square_about_edge(c.label)
 		
+		# But now we have to go one further and worry about a, b, c, d Vs. c, d, a, b.
+		# We want it so that x == ~y.
 		if z.index == w.index:
 			a, b, c, d = c, d, a, b
 			w, x, y, z = y, z, w, x

@@ -8,6 +8,7 @@ def main(verbose=False):
 	
 	# These need to be changed if the standard example triangulations ever change.
 	num_isometries = [
+		('S_0_4', 2),
 		('S_1_1', 6),
 		('S_1_2', 4),
 		('S_2_1', 2),

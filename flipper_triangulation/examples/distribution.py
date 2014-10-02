@@ -15,6 +15,6 @@ def main(surface, lower, upper, step=1, sample=100):
 		print('')
 
 if __name__ == '__main__':
-	main('S_1_2', 27, 30, sample=500)
-	#main('S_2_1', 10, 20)
+	#main('S_1_2', 27, 30, sample=500)
+	main('S_2_1', 10, 20)
 

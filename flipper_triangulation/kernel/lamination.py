@@ -569,19 +569,16 @@ class Lamination(object):
 		triangulation = short_lamination.triangulation
 		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
-		# But to do a right twist we'll need to switch framing again.
-		if k < 0: e1, e2 = e2, e1
 		
-		# Finally we can encode the twist.
-		forwards = short_lamination.triangulation.encode_flip(e1)
-		short_lamination = forwards(short_lamination)
+		a, b, c, d = triangulation.square_about_edge(e1)
 		
-		# Find the correct isometry to take us back.
-		# !?! TO DO.
-		map_back = [isom for isom in short_lamination.triangulation.isometries_to(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2])][0].encode()
-		T = map_back * forwards
+		# !?! Recheck this is doing a left twist and not a right twist.
+		if short_lamination[b] == 1 and short_lamination[d] == 1:
+			T = triangulation.encode_flips_and_close([e1], a, a)
+		elif short_lamination[a] == 1 and short_lamination[c] == 1:
+			T = triangulation.encode_flips_and_close([a.index], b, b)
+		else:
+			assert(False)
 		
 		return conjugation.inverse() * T**abs(k) * conjugation
 	

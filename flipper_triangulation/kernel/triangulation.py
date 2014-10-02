@@ -249,12 +249,12 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
-	def is_flippable(self, edge_index):
+	def is_flippable(self, edge_label):
 		''' Return if the given edge is flippable.
 		
 		An edge is flippable if and only if it lies in two distinct triangles. '''
 		
-		return self.triangle_lookup[edge_index] != self.triangle_lookup[~edge_index]
+		return self.triangle_lookup[edge_label] != self.triangle_lookup[~edge_label]
 	
 	def square_about_edge(self, edge_label):
 		''' Return the four edges around the given edge.
@@ -479,28 +479,30 @@ class Triangulation(object):
 		
 		return self.lamination([0] * self.zeta)
 	
-	def regular_neighbourhood(self, edge_index):
-		''' Return the lamination which is the boundary of a regular neighbourhood of the chosen edge. '''
+	def regular_neighbourhood(self, edge_label):
+		''' Return the lamination which is the boundary of a regular neighbourhood of the given edge.
 		
-		# This will return the empty lamination if edge_index is not flippable.
+		The given edge must be flippable. '''
+		
+		assert(self.is_flippable(edge_label))
 		
 		vector = [0] * self.zeta
-		for vertex in set(self.vertices_of_edge(edge_index)):
+		for vertex in set(self.vertices_of_edge(edge_label)):
 			for corner in self.corner_class_of_vertex(vertex):
 				vector[corner.indices[2]] += 1
-		vector[norm(edge_index)] = 0
+		vector[norm(edge_label)] = 0
+		
 		return self.lamination(vector)
 	
 	def key_curves(self):
-		''' Return a list of all boundaries of regular neighbourhoods of edges.
+		''' Return a list of all boundaries of regular neighbourhoods of flippable edges.
 		
 		These curves fill so if they are all fixed by a mapping class then it is
 		the identity (or possibly the hyperelliptic if we are on S_{0, 4} or
 		S_{1, 1}). '''
 		
 		# Rememeber to filter out any empty laminations that we get.
-		curves = [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
-		return [curve for curve in curves if not curve.is_empty()]
+		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta) if self.is_flippable(edge_index)]
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''

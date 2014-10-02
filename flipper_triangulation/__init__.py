@@ -7,7 +7,7 @@ for pseudo-Anosov mapping classes, construct a layered, veering
 triangulation of their mapping torus, as described by Agol.
 
 Get started by creating an AbstractTriangulation using the helper function:
-	flipper.abstract_triangulation(...)
+	flipper.create_triangulation(...)
 or by loading one of the provided EquippedTriangulations using:
 	flipper.load.equipped_triangulation(...) '''
 
@@ -20,12 +20,8 @@ import flipper.load
 import flipper.tests
 import flipper.profiles
 
-import flipper.test
-import flipper.profile
-import flipper.help
-
 # Set up really short names for the most commonly used classes and functions by users.
-flipper.create_abstract_triangulation = flipper.kernel.create_abstract_triangulation
+flipper.create_triangulation = flipper.kernel.create_triangulation
 
 flipper.IntegerType = flipper.kernel.IntegerType
 flipper.StringType = flipper.kernel.StringType

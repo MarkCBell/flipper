@@ -1,5 +1,5 @@
 
-''' A module for representing and manipulating maps between AbstractTriangulations.
+''' A module for representing and manipulating maps between Triangulations.
 
 Provides two classes: PartialFunction, PLFunction and Encoding. '''
 
@@ -100,12 +100,12 @@ class PLFunction(object):
 		raise TypeError('Point is not in domain.')
 
 class Encoding(object):
-	''' This represents a map between two AbstractTriagulations.
+	''' This represents a map between two Triagulations.
 	
 	It is given by a sequence of PLFunctions whose composition is the action on the edge weights.'''
 	def __init__(self, source_triangulation, target_triangulation, sequence):
-		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(function, PLFunction) for function in sequence))
 		
 		# Collapse away the PLFunctions of length 1 (the ones with no branching).
@@ -133,7 +133,7 @@ class Encoding(object):
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
 		
-		That is, if it maps to the AbstractTriangulation it came from. '''
+		That is, if it maps to the Triangulation it came from. '''
 		
 		return self.source_triangulation == self.target_triangulation
 	

@@ -3,7 +3,7 @@
 
 Provides one class: Interval.
 
-There is also a helper function: interval_from_string. '''
+There is also a helper function: create_interval. '''
 
 import flipper
 

@@ -38,12 +38,12 @@ def name_objects(objects, skip=None):
 	return zip(string_generator(len(objects), skip), objects)
 
 def package(objects):
-	''' This packages an abstract triangulation, some laminations and mapping classes
+	''' This packages an triangulation, some laminations and mapping classes
 	into a format that can be writen to disk and loaded into an instance of the
 	flipper application at a later date.
 	
 	Objects must be a non-empty list where each item is:
-		1) an abstract triangulation (at most one may be given),
+		1) an triangulation (at most one may be given),
 		2) a Lamination,
 		3) an Encoding,
 		4) a pair (String, Lamination),
@@ -64,7 +64,7 @@ def package(objects):
 		laminations, mapping_classes = {}, {}
 		unnamed_laminations, unnamed_mapping_classes = [], []
 		for item in objects:
-			if isinstance(item, flipper.kernel.AbstractTriangulation):
+			if isinstance(item, flipper.kernel.Triangulation):
 				if triangulation is not None:
 					raise ValueError('Only one triangulation may be given.')
 				triangulation = item
@@ -75,7 +75,7 @@ def package(objects):
 			elif isinstance(item, (list, tuple)) and len(item) == 2:
 				name, item2 = item
 				if isinstance(name, flipper.StringType):
-					if isinstance(item2, flipper.kernel.AbstractTriangulation):
+					if isinstance(item2, flipper.kernel.Triangulation):
 						if triangulation is not None:
 							raise ValueError('Only one triangulation may be given.')
 						triangulation = item2
@@ -94,7 +94,7 @@ def package(objects):
 				else:
 					raise ValueError('Item must be named by a string.')
 			else:
-				raise ValueError('Each item given must be an AbstractTriangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+				raise ValueError('Each item given must be an Triangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
 		
 		for name, lamination in name_objects(unnamed_laminations, laminations):
 			laminations[name] = lamination
@@ -111,11 +111,11 @@ def package(objects):
 				raise ValueError('A triangulation, Lamination or Encoding must be given.')
 		
 		if any(laminations[name].triangulation != triangulation for name in laminations):
-			raise ValueError('All laminations must be on the same abstract triangulations.')
+			raise ValueError('All laminations must be on the same triangulation.')
 		if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
-			raise ValueError('All mapping classes must go from the same abstract triangulations.')
+			raise ValueError('All mapping classes must go from the same triangulation.')
 		if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
-			raise ValueError('All mapping classes must go to the same abstract triangulations.')
+			raise ValueError('All mapping classes must go to the same triangulation.')
 		
 		data = flipper.kernel.EquippedTriangulation(triangulation, laminations, mapping_classes)
 	

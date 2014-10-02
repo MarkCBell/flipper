@@ -1,7 +1,6 @@
 
 ''' The flipper kernel. '''
 
-from . import abstracttriangulation
 from . import algebraicapproximation
 from . import algebraicnumber
 from . import encoding
@@ -16,16 +15,17 @@ from . import permutation
 from . import polynomial
 from . import splittingsequence
 from . import symboliccomputation
-from . import types
+from . import triangulation
 from . import triangulation3
+from . import types
 from . import utilities
 
 # Set up shorter names for all of the different classes.
-AbstractVertex = abstracttriangulation.AbstractVertex
-AbstractEdge = abstracttriangulation.AbstractEdge
-AbstractTriangle = abstracttriangulation.AbstractTriangle
-AbstractTriangulation = abstracttriangulation.AbstractTriangulation
-AbstractCorner = abstracttriangulation.AbstractCorner
+Vertex = triangulation.Vertex
+Edge = triangulation.Edge
+Triangle = triangulation.Triangle
+Triangulation = triangulation.Triangulation
+Corner = triangulation.Corner
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 PartialFunction = encoding.PartialFunction
 PLFunction = encoding.PLFunction
@@ -52,13 +52,13 @@ empty_matrix = matrix.empty_matrix
 id_matrix = matrix.id_matrix
 zero_matrix = matrix.zero_matrix
 height_int = algebraicnumber.height_int
-norm = abstracttriangulation.norm
+norm = triangulation.norm
 IntegerType = types.IntegerType
 StringType = types.StringType
 NumberType = types.NumberType
 
 # Functions that help with construction.
-create_abstract_triangulation = abstracttriangulation.create_abstract_triangulation
+create_triangulation = triangulation.create_triangulation
 create_algebraic_approximation = algebraicapproximation.create_algebraic_approximation
 create_polynomial_root = polynomial.create_polynomial_root
 create_algebraic_number = algebraicnumber.create_algebraic_number

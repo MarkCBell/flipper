@@ -5,7 +5,7 @@ Provides two classes: AlgebraicMonomial and AlgebraicNumber.
 	An AlgebraicMonomial is a product of PolynomialRoots.
 	An AlgebraicNumber is an integer linear combination of AlgebraicMonomials.
 
-There is also a helper function: algebraic_number. '''
+There is also a helper function: create_algebraic_number. '''
 
 import flipper
 

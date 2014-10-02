@@ -257,14 +257,24 @@ class Lamination(object):
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation(self)
+		triangulation = short_lamination.triangulation
 		
+		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		x, y = [edge.index for edge in short_lamination.triangulation.square_about_edge(e1) if edge.index != e2]
-		for triangle in short_lamination.triangulation:
-			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
-				return True
 		
-		return False
+		# This is the same trick as in self.encode_flip.
+		a, b, c, d = triangulation.square_about_edge(e1)
+		# If the curve is going vertically through the square then ...
+		if short_lamination[a] == 1 and short_lamination[c] == 1:
+			# swap the labels round so it goes horizontally.
+			e1, e2 = e2, e1
+			a, b, c, e = triangulation.square_about_edge(e1)
+		
+		# But now we have to go one further and worry about a, b, c, d Vs. c, d, a, b.
+		_, _, z, w = triangulation.square_about_edge(a.label)
+		_, _, x, y = triangulation.square_about_edge(c.label)
+		
+		return z.index == w.index or x.index == w.index
 	
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''
@@ -571,16 +581,31 @@ class Lamination(object):
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
+		# If the curve is going vertically through the square then ...
+		if short_lamination[a] == 1 and short_lamination[c] == 1:
+			# swap the labels round so it goes horizontally.
+			e1, e2 = e2, e1
+			a, b, c, e = triangulation.square_about_edge(e1)
 		
-		# !?! Recheck this is doing a left twist and not a right twist.
-		if short_lamination[b] == 1 and short_lamination[d] == 1:
-			T = triangulation.encode_flips_and_close([e1], a, a)
-		elif short_lamination[a] == 1 and short_lamination[c] == 1:
-			T = triangulation.encode_flips_and_close([a.index], b, b)
-		else:
-			assert(False)
+		# We now have:
+		# #<----------#
+		# |     a    ^^
+		# |         / |
+		# |---->------|
+		# |       /   |
+		# |b    e/   d|
+		# |     /     |
+		# |    /      |
+		# |   /       |
+		# |  /        |
+		# | /         |
+		# V/    c     |
+		# #---------->#
+		# And e.index = e1 and b.index = d.index = e2.
 		
-		return conjugation.inverse() * T**abs(k) * conjugation
+		T = triangulation.encode_flips_and_close([e1], a, a)
+		
+		return conjugation.inverse() * T**k * conjugation
 	
 	def encode_halftwist(self, k=1):
 		''' Return an Encoding of a left half twist about this lamination raised to the power k.
@@ -589,41 +614,62 @@ class Lamination(object):
 		
 		assert(self.is_halftwistable())
 		
+		# This first section is the same as in self.encode_flip.
 		if k == 0: return self.triangulation.id_encoding()
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation(self)
 		
 		triangulation = short_lamination.triangulation
-		# Grab the indices of the two edges we meet.
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
-		# But to do a right twist we'll need to switch framing again.
-		if k < 0: e1, e2 = e2, e1
 		
-		x, y = [edge.index for edge in triangulation.square_about_edge(e1) if edge.indices != e2]
-		for triangle in triangulation:
-			if (x in triangle or y in triangle) and len(set(triangle)) == 2:
-				bottom = x if x in triangle else y
+		a, b, c, d = triangulation.square_about_edge(e1)
+		# If the curve is going vertically through the square then ...
+		if short_lamination[a] == 1 and short_lamination[c] == 1:
+			# swap the labels round so it goes horizontally.
+			e1, e2 = e2, e1
+			a, b, c, e = triangulation.square_about_edge(e1)
 		
-		# Finally we can encode the twist.
-		forwards = short_lamination.triangulation.encode_flip(bottom)
-		short_lamination = forwards(short_lamination)
+		# But now we have to go one further and worry about a, b, c, d Vs. c, d, a, b.
+		_, _, z, w = triangulation.square_about_edge(a.label)
+		_, _, x, y = triangulation.square_about_edge(c.label)
 		
-		forwards2 = short_lamination.triangulation.encode_flip(e1)
-		short_lamination = forwards2(short_lamination)
+		if z.index == w.index:
+			a, b, c, d = c, d, a, b
+			w, x, y, z = y, z, w, x
 		
-		forwards3 = short_lamination.triangulation.encode_flip(e2)
-		short_lamination = forwards3(short_lamination)
+		# So we now have:
+		#       #
+		#      / ^
+		#     /   \
+		#    /w   z\
+		#   /       \
+		#  V         \
+		# #<----------#
+		# |     a    ^^
+		# |         / |
+		# |---->------|
+		# |       /   |
+		# |b    e/   d|
+		# |     /     |
+		# |    /      |
+		# |   /       |
+		# |  /        |
+		# | /         |
+		# V/    c     |
+		# #---------->#
+		#  \         ^
+		#   \       /
+		#    \x   y/
+		#     \   /
+		#      V /
+		#       #
+		# Where e.index = e1 and b.index = d.index = e2,
+		# and additionally x.index = y.index.
 		
-		new_triangulation = short_lamination.triangulation
+		T = triangulation.encode_flips_and_close([c.index, e1, e2], a, a)
 		
-		# Find the correct isometry to take us back.
-		map_back = [isom for isom in new_triangulation.isometries_to(triangulation) if isom.index_map[e1] == e2 and isom.index_map[e2] == bottom and isom.index_map[bottom] == e1 and all(isom.index_map[x] == x for x in range(triangulation.zeta) if x not in [e1, e2, bottom])][0].encode()
-		T = map_back * forwards3 * forwards2 * forwards
-		
-		return conjugation.inverse() * T**abs(k) * conjugation
+		return conjugation.inverse() * T**k * conjugation
 	
 	def geometric_intersection(self, lamination):
 		''' Return the geometric intersection number between this lamination and the given one.

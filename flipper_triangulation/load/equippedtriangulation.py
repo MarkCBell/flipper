@@ -5,6 +5,18 @@
 
 import flipper
 
+def Example_S_0_4():
+	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1,~4, 5], [~2, ~5, 2]])
+	
+	a = T.lamination([0, 1, 0, 0, 1, 0])
+	b = T.lamination([1, 0, 1, 2, 2, 2])
+	
+	return flipper.kernel.EquippedTriangulation(T, [a], {
+		'a': a.encode_twist(), 'b': b.encode_twist(),
+		'w': a.encode_halftwist(), 'x': b.encode_halftwist(),
+		'y': a.encode_halftwist(), 'z': b.encode_halftwist()
+		})
+
 def Example_S_1_1():
 	T = flipper.create_triangulation([[0, 2, 1], [~0, ~2, ~1]])
 	
@@ -17,8 +29,8 @@ def Example_S_1_1m():
 	# Mirror image of S_1_1 and its standard (Twister) curves:
 	T = flipper.create_triangulation([[0, 1, 2], [~0, ~1, ~2]])
 	
-	a = T.lamination([1, 1, 0]).encode_twist()
-	b = T.lamination([0, 1, 1]).encode_twist()
+	a = T.lamination([1, 1, 0])
+	b = T.lamination([0, 1, 1])
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
@@ -146,6 +158,7 @@ def Example_36():
 
 def load(surface):
 	surfaces = {
+		'S_0_4': Example_S_0_4,
 		'S_1_1': Example_S_1_1,
 		'S_1_1m': Example_S_1_1m,
 		'S_1_2': Example_S_1_2,

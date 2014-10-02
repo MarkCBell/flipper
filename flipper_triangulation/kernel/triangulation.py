@@ -482,6 +482,8 @@ class Triangulation(object):
 	def regular_neighbourhood(self, edge_index):
 		''' Return the lamination which is the boundary of a regular neighbourhood of the chosen edge. '''
 		
+		# This will return the empty lamination if edge_index is not flippable.
+		
 		vector = [0] * self.zeta
 		for vertex in set(self.vertices_of_edge(edge_index)):
 			for corner in self.corner_class_of_vertex(vertex):
@@ -496,7 +498,9 @@ class Triangulation(object):
 		the identity (or possibly the hyperelliptic if we are on S_{0, 4} or
 		S_{1, 1}). '''
 		
-		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
+		# Rememeber to filter out any empty laminations that we get.
+		curves = [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta)]
+		return [curve for curve in curves if not curve.is_empty()]
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''

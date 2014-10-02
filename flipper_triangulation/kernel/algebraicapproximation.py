@@ -3,7 +3,7 @@
 
 Provides two classes: AlgebraicApproximation.
 
-There is also a helper function: algebraic_approximation. '''
+There is also a helper function: create_algebraic_approximation. '''
 
 # Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
 # h(f) := log(max(|a_n|)) to be its height and deg(f) := n to be its degree.

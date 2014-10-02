@@ -1,20 +1,20 @@
 
-''' A module for representing laminations on AbstractTriangulations.
+''' A module for representing laminations on Triangulations.
 
 Provides one class: Lamination. '''
 
 import flipper
 
 class Lamination(object):
-	''' This represents a lamination on an abstract triangulation.
+	''' This represents a lamination on an triangulation.
 	
 	You shouldn't create laminations directly but instead should use
-	AbstractTriangulation.lamination() which creates a lamination on that
+	Triangulation.lamination() which creates a lamination on that
 	triangulation. If remove_peripheral is True then the Lamination is
 	allowed to rescale its weights (by a factor of 2) in order to remove
 	any peripheral components / satifsy the triangle inequalities. '''
 	def __init__(self, triangulation, vector, remove_peripheral=True):
-		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(entry, object) for entry in vector))
 		assert(isinstance(remove_peripheral, bool))
 		assert(flipper.kernel.matrix.nonnegative(vector))
@@ -61,7 +61,7 @@ class Lamination(object):
 	def __getitem__(self, item):
 		if isinstance(item, flipper.IntegerType):
 			return self.vector[flipper.kernel.norm(item)]
-		elif isinstance(item, flipper.kernel.AbstractEdge):
+		elif isinstance(item, flipper.kernel.Edge):
 			return self.vector[item.index]
 		else:
 			return NotImplemented
@@ -121,7 +121,7 @@ class Lamination(object):
 	def projectively_equal(self, other_lamination):
 		''' Return if this lamination is projectively equal to other_lamination.
 		
-		other_lamination must be on the same AbstractTriangulation as this lamination. '''
+		other_lamination must be on the same Triangulation as this lamination. '''
 		
 		assert(isinstance(other_lamination, Lamination))
 		assert(other_lamination.triangulation == self.triangulation)
@@ -400,8 +400,8 @@ class Lamination(object):
 		vertex_map = dict()
 		for vertex in self.triangulation.vertices:
 			if vertex != good_vertex and vertex != bad_vertex:
-				vertex_map[vertex] = flipper.kernel.AbstractVertex(vertex.label)
-		vertex_map[good_vertex] = flipper.kernel.AbstractVertex(good_vertex.label)
+				vertex_map[vertex] = flipper.kernel.Vertex(vertex.label)
+		vertex_map[good_vertex] = flipper.kernel.Vertex(good_vertex.label)
 		vertex_map[bad_vertex] = vertex_map[good_vertex]
 		
 		# Now figure out how the edges should be mapped.
@@ -409,41 +409,41 @@ class Lamination(object):
 		edge_map = dict()
 		for edge in self.triangulation.edges:
 			if edge.is_positive() and edge not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]:
-				edge_map[edge] = flipper.kernel.AbstractEdge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
+				edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
 				edge_map[~edge] = ~edge_map[edge]
 				edge_count += 1
 		
 		if a == ~c:  # Collapsing an annulus.
-			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
+			edge_map[~b] = flipper.kernel.Edge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~b]
 			edge_count += 1
 		elif b == ~d:  # An annulus in the other direction.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.Edge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~a]
 			edge_count += 1
 		elif a == ~d:  #Collapsing a bigon.
-			edge_map[~b] = flipper.kernel.AbstractEdge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
+			edge_map[~b] = flipper.kernel.Edge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~b]
 			edge_count += 1
 		elif b == ~c:  # A bigon in the other direction.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.Edge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~a]
 			edge_count += 1
 		else:  # No identification.
-			edge_map[~a] = flipper.kernel.AbstractEdge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
+			edge_map[~a] = flipper.kernel.Edge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~b] = ~edge_map[~a]
 			edge_count += 1
-			edge_map[~c] = flipper.kernel.AbstractEdge(vertex_map[c.target_vertex], vertex_map[c.source_vertex], edge_count)
+			edge_map[~c] = flipper.kernel.Edge(vertex_map[c.target_vertex], vertex_map[c.source_vertex], edge_count)
 			edge_map[~d] = ~edge_map[~c]
 			edge_count += 1
 		
 		triples = [[edge_map[edge] for edge in triangle] for triangle in self.triangulation if e not in triangle and ~e not in triangle]
-		new_triangles = [flipper.kernel.AbstractTriangle(triple) for triple in triples]
+		new_triangles = [flipper.kernel.Triangle(triple) for triple in triples]
 		
 		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
 		new_vector = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
 		
-		return flipper.kernel.AbstractTriangulation(new_triangles).lamination(new_vector)
+		return flipper.kernel.Triangulation(new_triangles).lamination(new_vector)
 	
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.

@@ -1,5 +1,5 @@
 
-''' A module for representing a splitting sequence of abstract triangulations.
+''' A module for representing a splitting sequence of a triangulation.
 
 Provides one class: SplittingSequence. '''
 
@@ -24,7 +24,7 @@ def permutation_from_pair(a, to_a, b, to_b):
 		raise ValueError('Does not represent a gluing.')
 
 class SplittingSequence(object):
-	''' This represents a sequence of flips of an AbstractTriangulation. '''
+	''' This represents a sequence of flips of an Triangulation. '''
 	def __init__(self, initial_lamination, preperiodic, periodic, isometry, periodic_flips):
 		assert(isinstance(initial_lamination, flipper.kernel.Lamination))
 		assert(preperiodic is None or isinstance(preperiodic, flipper.kernel.Encoding))
@@ -67,7 +67,7 @@ class SplittingSequence(object):
 		upper_map = dict((triangleB, triangleA) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
 		
 		# We also use these two functions to quickly tell what a triangle maps to.
-		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.AbstractTriangle)
+		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.Triangle)
 		maps_to_tetrahedron = lambda X: isinstance(X, tuple)  # == not maps_to_triangle(X).
 		
 		for tetrahedron, edge_index in zip(triangulation3, self.periodic_flips):
@@ -82,7 +82,7 @@ class SplittingSequence(object):
 			tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 			
 			# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
-			# WARNINNG: This is reliant on knowing how flipper.kernel.AbstractTriangulation.flip_edge() relabels things!
+			# WARNINNG: This is reliant on knowing how flipper.kernel.Triangulation.flip_edge() relabels things!
 			cornerA = upper_triangulation.corner_of_edge(edge_index)
 			cornerB = upper_triangulation.corner_of_edge(~edge_index)
 			(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)

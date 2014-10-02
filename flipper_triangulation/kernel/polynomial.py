@@ -3,7 +3,7 @@
 
 Provides two classes: Polynomial and PolynomialRoot.
 
-There is also a helper function: polynomial_root. '''
+There is also a helper function: create_polynomial_root. '''
 
 import flipper
 

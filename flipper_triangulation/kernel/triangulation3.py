@@ -291,7 +291,7 @@ class Triangulation3(object):
 						label += 1
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
-			T = flipper.kernel.create_abstract_triangulation(edge_labels)
+			T = flipper.kernel.create_triangulation(edge_labels)
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()

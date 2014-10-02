@@ -10,7 +10,7 @@ from random import choice
 class EquippedTriangulation(object):
 	''' This represents a triangulation along with a collection of named laminations and mapping classes on it. '''
 	def __init__(self, triangulation, laminations, mapping_classes):
-		assert(isinstance(triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(laminations, (dict, list, tuple)))
 		assert(isinstance(mapping_classes, (dict, list, tuple)))
 		

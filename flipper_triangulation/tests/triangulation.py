@@ -4,7 +4,7 @@ from __future__ import print_function
 import flipper
 
 def main(verbose=False):
-	if verbose: print('Running abstract triangulation tests.')
+	if verbose: print('Running triangulation tests.')
 	
 	# These need to be changed if the standard example triangulations ever change.
 	num_isometries = [

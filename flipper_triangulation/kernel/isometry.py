@@ -1,19 +1,19 @@
 
-''' A module for representing isometries between AbstractTriangulations.
+''' A module for representing isometries between Triangulations.
 
 Provides one class: Isometry. '''
 
 import flipper
 
 class Isometry(object):
-	''' This represents an isometry from one AbstractTriangulation to another. '''
+	''' This represents an isometry from one Triangulation to another. '''
 	def __init__(self, source_triangulation, target_triangulation, corner_map):
 		''' This represents an isometry from source_triangulation to target_triangulation.
 		
 		It is given by a map taking each corner of source_triangulation to a corner of target_triangulation. '''
 		
-		assert(isinstance(source_triangulation, flipper.kernel.AbstractTriangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(corner_map, dict))
 		
 		self.source_triangulation = source_triangulation
@@ -39,19 +39,19 @@ class Isometry(object):
 		assert(False)
 		return iter(self.label_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
-		if isinstance(other, flipper.kernel.AbstractVertex):
+		if isinstance(other, flipper.kernel.Vertex):
 			if other not in self.source_triangulation:
 				raise ValueError('Vertex no in source triangulation.')
 			return self.vertex_map[other]
-		elif isinstance(other, flipper.kernel.AbstractEdge):
+		elif isinstance(other, flipper.kernel.Edge):
 			if other not in self.source_triangulation:
 				raise ValueError('Edge no in source triangulation.')
 			return self.edge_map[other]
-		elif isinstance(other, flipper.kernel.AbstractTriangle):
+		elif isinstance(other, flipper.kernel.Triangle):
 			if other not in self.source_triangulation:
 				raise ValueError('Triangle no in source triangulation.')
 			return self.triangle_map[other]
-		elif isinstance(other, flipper.kernel.AbstractCorner):
+		elif isinstance(other, flipper.kernel.Corner):
 			if other not in self.source_triangulation:
 				raise ValueError('Corner no in source triangulation.')
 			return self.corner_map[other]
@@ -71,8 +71,8 @@ class Isometry(object):
 	def adapt(self, new_source_triangulation, new_target_triangulation):
 		''' Return this isometry but mapping from  new_source_triangulation to new_target_triangulation. '''
 		
-		assert(isinstance(new_source_triangulation, flipper.kernel.AbstractTriangulation))
-		assert(isinstance(new_target_triangulation, flipper.kernel.AbstractTriangulation))
+		assert(isinstance(new_source_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(new_target_triangulation, flipper.kernel.Triangulation))
 		
 		return new_source_triangulation.find_isometry(new_target_triangulation, 0, self.label_map[0])
 	def inverse(self):

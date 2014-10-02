@@ -5,7 +5,6 @@
 #    >>> python setup.py test
 # automatically runs all tests listed here.
 
-from . import abstracttriangulation
 from . import algebraicapproximation
 from . import algebraicnumber
 from . import encoding
@@ -16,4 +15,5 @@ from . import matrix
 from . import numberfield
 from . import permutation
 from . import polynomial
+from . import triangulation
 

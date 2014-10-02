@@ -3,7 +3,7 @@
 
 Provides two classes: NumberField and NumberFieldElement.
 
-There is also a helper function: number_field. '''
+There is also a helper function: create_number_field. '''
 
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually

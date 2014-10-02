@@ -1,13 +1,14 @@
 
-''' A module for representing an abstract triangulation of a punctured surface.
+''' A module for representing a triangulation of a punctured surface.
 
-Provides five classes: AbstractVertex, AbstractEdge, AbstractTriangle, AbstractCorner and AbstractTriangulation.
-	An AbstractVertex is a singleton.
-	An AbstractEdge is an ordered pair of AbstractVertices.
-	An AbstractTriangle is an ordered triple of AbstractEdges
-	An AbstractTriangulation is a collection of AbstractTriangles.
+Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
+	An Vertex is a singleton.
+	An Edge is an ordered pair of Vertices.
+	An Triangle is an ordered triple of Edges.
+	A Corner is a Triangle with a chosen side.
+	An Triangulation is a collection of Triangles.
 
-There is also a helper function: abstract_triangulation. '''
+There is also a helper function: create_triangulation. '''
 
 import flipper
 
@@ -18,7 +19,7 @@ def norm(value):
 	
 	return max(value, ~value)
 
-class AbstractVertex(object):
+class Vertex(object):
 	''' This represents a vertex, labelled with an integer. '''
 	def __init__(self, label):
 		assert(isinstance(label, flipper.IntegerType))
@@ -27,22 +28,22 @@ class AbstractVertex(object):
 	def __repr__(self):
 		return str(self.label)
 
-class AbstractEdge(object):
+class Edge(object):
 	''' This represents an oriented edge, labelled with an integer.
 	
 	It is specified by the vertices that it connects from / to.
 	Its inverse edge is created automatically and is labelled with ~its label. '''
 	def __init__(self, source_vertex, target_vertex, label, reversed_edge=None):
-		assert(isinstance(source_vertex, AbstractVertex))
-		assert(isinstance(target_vertex, AbstractVertex))
+		assert(isinstance(source_vertex, Vertex))
+		assert(isinstance(target_vertex, Vertex))
 		assert(isinstance(label, flipper.IntegerType))
-		assert(reversed_edge is None or isinstance(reversed_edge, AbstractEdge))
+		assert(reversed_edge is None or isinstance(reversed_edge, Edge))
 		
 		self.source_vertex = source_vertex
 		self.target_vertex = target_vertex
 		self.label = label
 		self.index = norm(self.label)
-		if reversed_edge is None: reversed_edge = AbstractEdge(self.target_vertex, self.source_vertex, ~self.label, self)
+		if reversed_edge is None: reversed_edge = Edge(self.target_vertex, self.source_vertex, ~self.label, self)
 		self.reversed_edge = reversed_edge
 	
 	def __repr__(self):
@@ -61,13 +62,13 @@ class AbstractEdge(object):
 		
 		return self.reversed_edge
 
-class AbstractTriangle(object):
+class Triangle(object):
 	''' This represents a triangle.
 	
 	It is specified by a list of three edges, ordered anticlockwise. '''
 	def __init__(self, edges):
 		assert(isinstance(edges, (list, tuple)))
-		assert(all(isinstance(edge, AbstractEdge) for edge in edges))
+		assert(all(isinstance(edge, Edge) for edge in edges))
 		assert(len(edges) == 3)
 		
 		# Edges are ordered anti-clockwise.
@@ -75,7 +76,7 @@ class AbstractTriangle(object):
 		self.labels = [edge.label for edge in self]
 		self.indices = [edge.index for edge in self]
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
-		self.corners = [AbstractCorner(self, i) for i in range(3)]
+		self.corners = [Corner(self, i) for i in range(3)]
 	
 	def __repr__(self):
 		return str(tuple(self.edges))
@@ -91,21 +92,21 @@ class AbstractTriangle(object):
 	def __contains__(self, item):
 		if isinstance(item, flipper.IntegerType):
 			return item in self.labels
-		elif isinstance(item, AbstractEdge):
+		elif isinstance(item, Edge):
 			return item in self.edges
-		elif isinstance(item, AbstractVertex):
+		elif isinstance(item, Vertex):
 			return item in self.vertices
-		elif isinstance(item, AbstractCorner):
+		elif isinstance(item, Corner):
 			return item in self.corners
 		else:
 			return NotImplemented
 
-class AbstractCorner(object):
+class Corner(object):
 	''' This represents a corner of a triangulation
 	
 	It is a triangle along with a side number (the side opposite this corner). '''
 	def __init__(self, triangle, side):
-		assert(isinstance(triangle, AbstractTriangle))
+		assert(isinstance(triangle, Triangle))
 		assert(isinstance(side, flipper.IntegerType))
 		
 		self.triangle = triangle
@@ -124,17 +125,17 @@ class AbstractCorner(object):
 	def __repr__(self):
 		return str((self.triangle, self.side))
 
-# Remark: In other places in the code you will often see L(abstract_triangulation). This is the space
-# of laminations on abstract_triangulation with the coordinate system induced by the triangulation.
+# Remark: In other places in the code you will often see L(triangulation). This is the space
+# of laminations on triangulation with the coordinate system induced by the triangulation.
 
-class AbstractTriangulation(object):
+class Triangulation(object):
 	''' This represents a triangulation of a punctured surface.
 	
-	 It is specified by a list of AbstractTriangles. It builds its own
+	 It is specified by a list of Triangles. It builds its own
 	 corners automatically. '''
 	def __init__(self, triangles):
 		assert(isinstance(triangles, (list, tuple)))
-		assert(all(isinstance(triangle, AbstractTriangle) for triangle in triangles))
+		assert(all(isinstance(triangle, Triangle) for triangle in triangles))
 		
 		self.triangles = triangles
 		
@@ -187,28 +188,28 @@ class AbstractTriangulation(object):
 	def __getitem__(self, index):
 		return self.triangles[index]
 	def __contains__(self, item):
-		if isinstance(item, AbstractVertex):
+		if isinstance(item, Vertex):
 			return item in self.vertices
-		elif isinstance(item, AbstractEdge):
+		elif isinstance(item, Edge):
 			return item in self.edges
-		elif isinstance(item, AbstractTriangle):
+		elif isinstance(item, Triangle):
 			return item in self.triangles
-		elif isinstance(item, AbstractCorner):
+		elif isinstance(item, Corner):
 			return item in self.corners
 		else:
 			return NotImplemented
 	
 	def copy(self):
-		''' Return a new copy of this AbstractTriangulation.
+		''' Return a new copy of this Triangulation.
 		
 		Note: This preserves both vertex and edge labels. '''
 		
-		new_vertices = dict((vertex, AbstractVertex(vertex.label)) for vertex in self.vertices)
-		new_edges = dict((edge, AbstractEdge(new_vertices[edge.source_vertex], new_vertices[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
+		new_vertices = dict((vertex, Vertex(vertex.label)) for vertex in self.vertices)
+		new_edges = dict((edge, Edge(new_vertices[edge.source_vertex], new_vertices[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
 		for edge in self.oriented_edges:
 			new_edges[~edge] = ~new_edges[edge]
-		new_triangles = [AbstractTriangle([new_edges[edge] for edge in triangle]) for triangle in self]
-		return AbstractTriangulation(new_triangles)
+		new_triangles = [Triangle([new_edges[edge] for edge in triangle]) for triangle in self]
+		return Triangulation(new_triangles)
 	
 	def vertices_of_edge(self, edge_index):
 		''' Return the two vertices at the ends of the given edge. '''
@@ -302,13 +303,13 @@ class AbstractTriangulation(object):
 		# #---------->#     #-----------#
 		
 		a, b, c, d = self.square_about_edge(edge_index)
-		new_edge = AbstractEdge(a.target_vertex, c.target_vertex, edge_index)
+		new_edge = Edge(a.target_vertex, c.target_vertex, edge_index)
 		
-		triangle_A2 = AbstractTriangle([new_edge, d, a])
-		triangle_B2 = AbstractTriangle([~new_edge, b, c])
+		triangle_A2 = Triangle([new_edge, d, a])
+		triangle_B2 = Triangle([~new_edge, b, c])
 		
 		unchanged_triangles = [triangle for triangle in self if edge_index not in triangle.labels and ~edge_index not in triangle]
-		return AbstractTriangulation(unchanged_triangles + [triangle_A2, triangle_B2])
+		return Triangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
 	def tree_and_dual_tree(self):
 		''' Return a maximal tree in the 1--skeleton of this triangulation and a
@@ -402,7 +403,7 @@ class AbstractTriangulation(object):
 	def isometries_to(self, other_triangulation, respect_vertex_labels=True):
 		''' Return a list of all isometries from this triangulation to other_triangulation. '''
 		
-		assert(isinstance(other_triangulation, AbstractTriangulation))
+		assert(isinstance(other_triangulation, Triangulation))
 		
 		# Isometries are determined by where a single triangle is sent.
 		# We take a corner of smallest degree.
@@ -448,7 +449,7 @@ class AbstractTriangulation(object):
 	def is_isometric_to(self, other_triangulation):
 		''' Return if there are any orientation preserving isometries from this triangulation to other_triangulation. '''
 		
-		assert(isinstance(other_triangulation, AbstractTriangulation))
+		assert(isinstance(other_triangulation, Triangulation))
 		
 		return len(self.isometries_to(other_triangulation)) > 0
 	
@@ -560,12 +561,12 @@ class AbstractTriangulation(object):
 			if triangle in to_puncture:
 				x, y, z = triangle.vertices
 				num_new_vertices += 1
-				w = AbstractVertex(-num_new_vertices)
+				w = Vertex(-num_new_vertices)
 				p, q, r = triangle.edges
-				s, t, u = [AbstractEdge(w, x, zeta), AbstractEdge(w, y, zeta+1), AbstractEdge(w, z, zeta+2)]
-				triangles.append(AbstractTriangle([p, ~u, t]))
-				triangles.append(AbstractTriangle([q, ~s, u]))
-				triangles.append(AbstractTriangle([r, ~t, s]))
+				s, t, u = [Edge(w, x, zeta), Edge(w, y, zeta+1), Edge(w, z, zeta+2)]
+				triangles.append(Triangle([p, ~u, t]))
+				triangles.append(Triangle([q, ~s, u]))
+				triangles.append(Triangle([r, ~t, s]))
 				
 				X = flipper.kernel.zero_matrix(old_zeta, 3).tweak([(0, B), (0, C), (1, A), (1, C), (2, A), (2, B)], [(0, A), (1, B), (2, C)])
 				M = M.join(X)
@@ -574,13 +575,13 @@ class AbstractTriangulation(object):
 			else:
 				triangles.append(triangle)
 		
-		T = flipper.kernel.AbstractTriangulation(triangles)
+		T = flipper.kernel.Triangulation(triangles)
 		E = flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
 		
 		return E
 
-def create_abstract_triangulation(all_labels):
-	''' Return an AbstractTriangulation from a list of triples of edge labels.
+def create_triangulation(all_labels):
+	''' Return an Triangulation from a list of triples of edge labels.
 	
 	Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient
 	and edge e of T and assign an index i(e) in 0, ..., zeta-1. Now to each
@@ -635,7 +636,7 @@ def create_abstract_triangulation(all_labels):
 		vertex_classes.append(new_vertex)
 	
 	num_vertices = len(vertex_classes)
-	vertices = [AbstractVertex(i) for i in range(num_vertices)]
+	vertices = [Vertex(i) for i in range(num_vertices)]
 	
 	def vertexer(edge_label):
 		''' Return the vertex opposite the given edge label. '''
@@ -644,11 +645,11 @@ def create_abstract_triangulation(all_labels):
 			if edge_label in cls:
 				return vertex
 	
-	edges_map = dict((i, AbstractEdge(vertexer(i), vertexer(~i), i)) for i in range(zeta))
+	edges_map = dict((i, Edge(vertexer(i), vertexer(~i), i)) for i in range(zeta))
 	for i in range(zeta):
 		edges_map[~i] = ~edges_map[i]
 	
-	triangles = [AbstractTriangle([edges_map[label] for label in labels]) for labels in all_labels]
+	triangles = [Triangle([edges_map[label] for label in labels]) for labels in all_labels]
 	
-	return AbstractTriangulation(triangles)
+	return Triangulation(triangles)
 

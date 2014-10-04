@@ -164,14 +164,16 @@ class Lamination(object):
 		
 		This lamination must be a multicurve. '''
 		
-		# Repeatedly flip to reduce the weight of this lamination as much as
-		# possible. Assumes that self is a multicurve.
+		# Repeatedly flip to reduce the weight of this lamination as much as possible.
+		# Let [v_i] := f(self), where f is the encoding returned by this method.
 		#
-		# If this lamination is a curve then this will conjugate it to
-		# a curve which meets each edge either:
-		#	once (in which case it meets exactly 2 of them), or
-		#	0 or 2 times.
-		# The latter case happens if and only if a component of S - \gamma has no punctures.
+		# Self is a curve and each component of S - self has a puncture if and only if:
+		#  v_i \in {0, 1} and all bar two v_i's are 0.
+		#
+		# Self is a curve and a component of S - self has no punctures if and only if:
+		#  v_i \in {0, 2} and [v_i // 2] does not correspond to a (multi)curve.
+		#
+		# Otherwise, self is a multicurve.
 		
 		assert(self.is_multicurve())
 		
@@ -184,7 +186,6 @@ class Lamination(object):
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			# By Lee Mosher's work there is a complexity that we will reduce to by doing this.
 			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.triangulation.is_flippable(i)], key=lamination.weight_difference_flip_edge)
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)

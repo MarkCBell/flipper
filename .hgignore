@@ -8,6 +8,7 @@ __pycache__/*
 *.bat
 *.swp
 *.orig
+lint.html
 
 htmlcov/*
 

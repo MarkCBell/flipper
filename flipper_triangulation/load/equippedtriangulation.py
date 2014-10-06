@@ -41,8 +41,14 @@ def Example_S_1_2():
 	a = T.lamination([0, 0, 1, 1, 1, 0])
 	b = T.lamination([1, 0, 0, 0, 1, 1])
 	c = T.lamination([0, 1, 0, 1, 0, 1])
+	x = T.lamination([2, 0, 2, 2, 2, 2])
 	
-	return flipper.kernel.EquippedTriangulation(T, [a, b, c], [a.encode_twist(), b.encode_twist(), c.encode_twist()])
+	return flipper.kernel.EquippedTriangulation(T, {
+		'a': a, 'b': b, 'c': c, 'x': x
+		}, {
+		'a': a.encode_twist(), 'b': b.encode_twist(), 'c': c.encode_twist(),
+		'x': T.encode_flips_and_close([2, 4, 0, 3, 2, 5, 4], 1, ~1)
+		})
 
 def Example_S_2_1():
 	# S_2_1 and its standard (Twister) curves:

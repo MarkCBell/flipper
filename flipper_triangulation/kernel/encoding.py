@@ -151,10 +151,14 @@ class Encoding(object):
 		else:
 			raise TypeError('Invalid argument type.')
 	def __eq__(self, other):
-		return isinstance(other, Encoding) and \
-			self.source_triangulation == other.source_triangulation and \
-			self.target_triangulation == other.target_triangulation and \
-			all(self(curve) == other(curve) for curve in self.source_triangulation.key_curves())
+		if isinstance(other, Encoding):
+			if self.source_triangulation != other.source_triangulation or \
+				self.target_triangulation != other.target_triangulation:
+				raise ValueError('Cannot compare Encodings between different triangulations.')
+			
+			return all(self(curve) == other(curve) for curve in self.source_triangulation.key_curves())
+		else:
+			return NotImplemented
 	def __hash__(self):
 		return hash(tuple(self.sequence))
 	def __call__(self, other):

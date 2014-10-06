@@ -168,7 +168,7 @@ class Lamination(object):
 		# Let [v_i] := f(self), where f is the encoding returned by this method.
 		#
 		# Self is a curve and each component of S - self has a puncture if and only if:
-		#  v_i \in {0, 1} and all bar two v_i's are 0.
+		#  v_i \in {0, 1} and all-bar-two v_i's are 0.
 		#
 		# Self is a curve and a component of S - self has no punctures if and only if:
 		#  v_i \in {0, 2} and [v_i // 2] does not correspond to a (multi)curve.
@@ -543,7 +543,7 @@ class Lamination(object):
 		
 		if target_dilatation not in self._cache['splitting_sequences']:
 			try:
-				self._cache['splitting_sequences'][target_dilatation] = self.splitting_sequences_uncached()
+				self._cache['splitting_sequences'][target_dilatation] = self.splitting_sequences_uncached(target_dilatation)
 			except (flipper.AssumptionError) as error:
 				self._cache['splitting_sequences'][target_dilatation] = error
 		

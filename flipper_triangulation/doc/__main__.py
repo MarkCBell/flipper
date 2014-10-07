@@ -5,7 +5,7 @@ import subprocess
 
 def open_documentation():
 	datadir = os.path.dirname(__file__)
-	disk_file = os.path.join(datadir, 'docs', 'flipper.pdf')
+	disk_file = os.path.join(datadir, 'flipper.pdf')
 	print(disk_file)
 	if sys.platform.startswith('darwin'):
 		command = 'xdg-open'

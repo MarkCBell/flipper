@@ -162,7 +162,12 @@ def Example_36():
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
-def load(surface):
+def load(surface=None):
+	''' Return the requested example EquippedTriangulation.
+	
+	To see a list of avaible surfaces that can be requested, call
+	with no arguement. '''
+	
 	surfaces = {
 		'S_0_4': Example_S_0_4,
 		'S_1_1': Example_S_1_1,
@@ -176,5 +181,9 @@ def load(surface):
 		'E_24': Example_24,
 		'E_36': Example_36
 		}
-	return surfaces[surface]()
+	
+	if surface is None:
+		return sorted(surfaces.keys())
+	else:
+		return surfaces[surface]()
 

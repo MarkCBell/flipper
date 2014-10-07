@@ -2,16 +2,20 @@
 # Provides several Tkinter widgets:
 #	1) Meter - a progress bar, and
 #	2) SplitButton - a button with additional menu of actions.
+#	3) AnimatedCanvas - a canvas that periodically updates.
 
 try:
 	import Tkinter as TK
 	DOWN_ARROW = unichr(9660)
 except ImportError:  # Python 3.
-	try:
-		import tkinter as TK
-		DOWN_ARROW = chr(9660)
-	except ImportError:
-		raise ImportError('Tkinter not available.')
+	import tkinter as TK
+	DOWN_ARROW = chr(9660)
+
+from base64 import b64encode
+
+def extract_contents(files, output_file):
+	contents = ["\t'''" + b64encode(open(file, 'rb').read()) + "'''" for file in files]
+	open(output_file, 'w').write('\nframes_contents = [\n' + ',\n'.join(contents) + '\n\t]\n')
 
 class SplitButton(TK.Frame):
 	def __init__(self, parent, commands, **options):
@@ -52,30 +56,30 @@ class SplitButton(TK.Frame):
 		self.rowconfigure(0, weight=1)
 
 class Meter(TK.Frame):
+	''' A simple progress bar widget for TK.
+	
+	INITIALIZATION OPTIONS:
+	The widget subclasses a TK.Frame and adds:
+	
+		fillcolour -- the colour that is used to indicate the progress of the
+					 corresponding process; default is "orchid1".
+		value -- a float value between 0.0 and 1.0 (corresponding to 0% - 100%)
+				 that represents the current status of the process; values higher
+				 than 1.0 (lower than 0.0) are automagically set to 1.0 (0.0); default is 0.0 .
+		text -- the text that is displayed inside the widget; if set to None the widget
+				displays its value as percentage; if you don't want any text, use text="";
+				default is None.
+		font -- the font to use for the widget's text; the default is system specific.
+		textcolour -- the colour to use for the widget's text; default is "black".
+	
+	WIDGET METHODS:
+	All methods of a TK.Frame can be used; additionally there are two widget specific methods:
+	
+		get() -- returns a tuple of the form (value, text)
+		set(value, text) -- updates the widget's value and the displayed text;
+							if value is omitted it defaults to 0.0 , text defaults to None .
+	'''
 	def __init__(self, master, width=300, height=20, bg='white', fillcolour='midnight blue', value=0.0, text=None, font=None, textcolour='black', *args, **kw):
-		''' A simple progress bar widget for TK.
-		
-		INITIALIZATION OPTIONS:
-		The widget subclasses a TK.Frame and adds:
-		
-			fillcolour -- the colour that is used to indicate the progress of the
-						 corresponding process; default is "orchid1".
-			value -- a float value between 0.0 and 1.0 (corresponding to 0% - 100%)
-					 that represents the current status of the process; values higher
-					 than 1.0 (lower than 0.0) are automagically set to 1.0 (0.0); default is 0.0 .
-			text -- the text that is displayed inside the widget; if set to None the widget
-					displays its value as percentage; if you don't want any text, use text="";
-					default is None.
-			font -- the font to use for the widget's text; the default is system specific.
-			textcolour -- the colour to use for the widget's text; default is "black".
-		
-		WIDGET METHODS:
-		All methods of a TK.Frame can be used; additionally there are two widget specific methods:
-		
-			get() -- returns a tuple of the form (value, text)
-			set(value, text) -- updates the widget's value and the displayed text;
-								if value is omitted it defaults to 0.0 , text defaults to None .
-		'''
 		
 		TK.Frame.__init__(self, master, bg=bg, width=width, height=height, *args, **kw)
 		self._value = value
@@ -112,4 +116,58 @@ class Meter(TK.Frame):
 			self._canv.coords(self._rect, self._canv.winfo_width() * lower_value, 0, self._canv.winfo_width() * value, self._canv.winfo_height())
 			self._canv.itemconfigure(self._text, text=text, fill=textcolour)
 			self._canv.update_idletasks()
+
+class AnimatedCanvas(TK.Canvas, object):
+	''' A simple animated canvas widget for TK which regularly cycles through a sequence of frames.
+	
+	INITIALIZATION OPTIONS:
+	The widget subclasses a TK.Canvas and adds:
+		- frames -- a list of TK.PhotoImages to show.
+		- frames_contensts -- a list of base64 encoded images to show.
+		- frames_path -- a path to a directory containing frames to load.
+		- delay -- the delay (in ms) between showing each frame.
+		- start_animated -- start animating as soon as the widget is created.
+	
+	WIDGET METHODS:
+	All methods of a TK.Canvas can be used; additionally:
+		start() -- start animating the canvas.
+		stop() -- stop animating the canvas. '''
+	def __init__(self, parent, frames_path=None, frames_contents=None, frames=None, delay=85, start_animated=True, **options):
+		self.parent = parent
+		
+		if frames_contents is not None:
+			self._frames = [TK.PhotoImage(data=frame_contents) for frame_contents in frames_contents]
+		elif frames_path is not None:
+			files = sorted(os.listdir(frames_path), key=lambda x: (len(x), x))
+			self._frames = [TK.PhotoImage(file=os.path.join(frames_path, file)) for file in files]
+		elif frames is not None:
+			self._frames = frames
+		else:
+			raise ValueError('frames_path, frames_contents or frames must be given.')
+		
+		w, h = self._frames[0].width(), self._frames[0].height()
+		if 'width' not in options:
+			options['width'] = w + 10
+		if 'height' not in options:
+			options['height'] = h + 10
+		TK.Canvas.__init__(self, parent, **options)
+		
+		self._running = False
+		self._delay = delay
+		self._count = 0
+		if start_animated: self.start()
+	
+	def start(self, even=None):
+		if not self._running:
+			self._running = True
+			self.animate()
+	
+	def stop(self, event=None):
+		self._running = False
+	
+	def animate(self, event=None):
+		if self._running:
+			self.create_image((5,5),anchor='nw',image=self._frames[self._count])
+			self._count = (self._count + 1) % len(self._frames)
+			self.parent.after(self._delay, self.animate)
 

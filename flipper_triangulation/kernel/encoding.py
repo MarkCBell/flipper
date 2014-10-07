@@ -102,7 +102,11 @@ class PLFunction(object):
 class Encoding(object):
 	''' This represents a map between two Triagulations.
 	
-	It is given by a sequence of PLFunctions whose composition is the action on the edge weights.'''
+	If it maps to and from the same triangulation then it represents
+	a mapping class. This can be checked using self.is_mapping_class().
+	
+	The map is given by a sequence of PLFunctions whose composition is
+	the action on the edge weights. '''
 	def __init__(self, source_triangulation, target_triangulation, sequence):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
@@ -133,7 +137,7 @@ class Encoding(object):
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
 		
-		That is, if it maps to the Triangulation it came from. '''
+		That is, if it maps to the triangulation it came from. '''
 		
 		return self.source_triangulation == self.target_triangulation
 	

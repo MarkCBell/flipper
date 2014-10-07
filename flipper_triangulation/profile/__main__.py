@@ -5,9 +5,9 @@ import importlib
 
 def main(verbose=False):
 	total_time = 0
-	for profile_name in dir(flipper.profiles):
-		if not profile_name.startswith('_') and profile_name != 'flipper':
-			profile = importlib.import_module('flipper.profiles.%s' % profile_name)
+	for profile_name in dir(flipper.profile):
+		if not profile_name.startswith('_'):
+			profile = importlib.import_module('flipper.profile.%s' % profile_name)
 			print('Running %s profile...' % profile_name)
 			time = profile.main(verbose=verbose)
 			total_time += time

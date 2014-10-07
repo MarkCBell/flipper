@@ -1,9 +1,6 @@
 
 # This directory provides several profile cases. Eventually there should be one
-# for each module in the kernel. Each one provides a function main(verbose=False)
-# Running:
-#    >>> python setup.py profile
-# automatically runs all profiles listed here.
+# for each module in the kernel. Each one provides a function main(verbose=False).
 
 #from . import algebraicapproximation
 #from . import algebraicnumber

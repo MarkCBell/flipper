@@ -19,12 +19,12 @@ setup(
 	author_email='M.C.Bell@warwick.ac.uk',
 	url='https://bitbucket.org/Mark_Bell/flipper',
 	# Remember to update these if the directory structure changes.
-	packages=['flipper', 'flipper.application', 'flipper.load', 'flipper.examples', 'flipper.kernel', 'flipper.tests', 'flipper.profiles'],
+	packages=['flipper', 'flipper.app', 'flipper.doc', 'flipper.load', 'flipper.examples', 'flipper.kernel', 'flipper.test', 'flipper.profile'],
 	package_dir={'flipper': flipper_directory},
 	package_data={
 		'': ['README', 'LICENSE'],
-		'flipper': ['docs/*', 'latex/flipper.pdf'],
-		'flipper.application': ['icon/*', 'frames/*'],
+		'flipper.doc': ['flipper.pdf'],
+		'flipper.app': ['icon/*', 'frames/*'],
 		'flipper.load': ['censuses/*.dat']
 		}
 	)

@@ -24,9 +24,7 @@ Flipper can also be installed through the older easy_install:
 
 
 For more information about installing and using flipper see "A users
-guide to flipper" located at:
-	./doc/flipper.pdf
-Or run:
+guide to flipper". Open by running:
 	> python -m flipper.doc
 
 

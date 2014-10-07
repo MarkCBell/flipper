@@ -7,9 +7,9 @@ def main(verbose=False):
 	''' Runs all of the tests in the tests directory. '''
 	
 	failed_tests = []
-	for test_name in dir(flipper.tests):
+	for test_name in dir(flipper.test):
 		if not test_name.startswith('_'):
-			test = importlib.import_module('flipper.tests.%s' % test_name)
+			test = importlib.import_module('flipper.test.%s' % test_name)
 			print('Running %s test...' % test_name)
 			result = test.main(verbose=verbose)
 			print('\tPassed' if result else '\tFAILED')

@@ -8,7 +8,10 @@ import flipper
 from random import choice
 
 class EquippedTriangulation(object):
-	''' This represents a triangulation along with a collection of named laminations and mapping classes on it. '''
+	''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
+	
+	Most importantly this object can construct a mapping class from a string descriptor.
+	See self.mapping_class for additional information. '''
 	def __init__(self, triangulation, laminations, mapping_classes):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(laminations, (dict, list, tuple)))
@@ -43,7 +46,12 @@ class EquippedTriangulation(object):
 			self.pos_mapping_classes = dict(list(flipper.kernel.utilities.name_objects(mapping_classes)))
 			self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
+		
+		self.pos_keys = sorted(self.pos_mapping_classes.keys())
+		self.neg_keys = sorted(self.neg_mapping_classes.keys())
 	
+	def __repr__(self):
+		return 'Triangulation with laminations: %s and mapping classes: %s.' % (self.pos_keys, self.neg_keys)
 	def random_word(self, length, positive=True, negative=True):
 		''' Return a random word of the required length.
 		
@@ -53,18 +61,18 @@ class EquippedTriangulation(object):
 		assert(isinstance(length, flipper.IntegerType))
 		
 		if positive and negative:
-			available_letters = list(self.pos_mapping_classes.keys()) + list(self.neg_mapping_classes.keys())
+			available_letters = self.pos_keys + self.neg_keys
 		elif positive and not negative:
-			available_letters = list(self.pos_mapping_classes.keys())
+			available_letters = self.pos_keys
 		elif not positive and negative:
-			available_letters = list(self.neg_mapping_classes.keys())
+			available_letters = self.neg_keys
 		else:
 			raise TypeError('At least one of positive and negative must be allowed.')
 		
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
 	def decompose_word(self, word):
-		''' Return a list of mapping_class keys whose concatenation is word and the keys are chosen greedly.
+		''' Return a list of mapping_classes keys whose concatenation is word and the keys are chosen greedly.
 		
 		Raises a KeyError if the greedy decomposition fails. '''
 		
@@ -86,7 +94,10 @@ class EquippedTriangulation(object):
 		return decomposition
 	
 	def mapping_class(self, word):
-		''' Return the mapping class corresponding to the given word of a random one of given length if word is an integer.
+		''' Return the mapping class corresponding to the given word of a random one of given length if given an integer.
+		
+		The given word is decomposed using self.decompose_word and the composition
+		of the mapping classes involved is returned.
 		
 		Raises a KeyError if the word does not correspond to a mapping class. '''
 		

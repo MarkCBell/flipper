@@ -21,6 +21,7 @@ TrainTrackBlock = pieces.TrainTrackBlock
 ProgressApp = progress.ProgressApp
 SplitButton = widgets.SplitButton
 Meter = widgets.Meter
+AnimatedCanvas = widgets.AnimatedCanvas
 
 lines_intersect = pieces.lines_intersect
 

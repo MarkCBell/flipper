@@ -24,7 +24,7 @@ setup(
 	package_data={
 		'': ['README', 'LICENSE'],
 		'flipper': ['docs/*', 'latex/flipper.pdf'],
-		'flipper.application': ['icon/*'],
+		'flipper.application': ['icon/*', 'frames/*'],
 		'flipper.load': ['censuses/*.dat']
 		}
 	)

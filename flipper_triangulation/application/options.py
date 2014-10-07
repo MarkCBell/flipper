@@ -3,19 +3,13 @@ try:
 	import Tkinter as TK
 	import tkFont as TK_FONT
 except ImportError:  # Python 3.
-	try:
-		import tkinter as TK
-		import tkinter.font as TK_FONT
-	except ImportError:
-		raise ImportError('Tkinter not available.')
+	import tkinter as TK
+	import tkinter.font as TK_FONT
 
 try:
 	import ttk as TTK
 except ImportError:  # Python 3.
-	try:
-		from tkinter import ttk as TTK
-	except ImportError:
-		raise ImportError('Ttk not available.')
+	from tkinter import ttk as TTK
 
 RENDER_LAMINATION_FULL = 'Full'
 RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'

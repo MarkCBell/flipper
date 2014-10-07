@@ -104,9 +104,9 @@ def package(objects):
 		
 		if triangulation is None:
 			if len(laminations) > 0:
-				triangulation = laminations[0][1].triangulation
+				triangulation = list(laminations.values())[0].triangulation
 			elif len(mapping_classes) > 0:
-				triangulation = mapping_classes[0][1].source_triangulation
+				triangulation = list(mapping_classes.values())[0].source_triangulation
 			else:
 				raise ValueError('A triangulation, Lamination or Encoding must be given.')
 		

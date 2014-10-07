@@ -7,6 +7,8 @@ There is also a helper function: create_polynomial_root. '''
 
 import flipper
 
+from time import sleep
+
 from math import log10 as log
 from fractions import gcd
 from functools import reduce as freduce
@@ -120,6 +122,12 @@ class Polynomial(object):
 				rescale = remainder[-1] // other[-1]
 				quotient = quotient + (Polynomial([1]).shift(remainder.degree - other.degree) * rescale)
 				remainder = remainder - (other.shift(remainder.degree - other.degree) * rescale)
+				common_factor = abs(freduce(gcd, list(quotient) + list(remainder) + [scale]))
+				if common_factor != 1:
+					scale = scale // common_factor
+					quotient = Polynomial([x // common_factor for x in quotient])
+					remainder = Polynomial([x // common_factor for x in remainder])
+			
 			return quotient, remainder, scale
 		else:
 			return NotImplemented
@@ -151,8 +159,9 @@ class Polynomial(object):
 	def signs_at_interval_endpoints(self, interval):
 		''' Return the signs of this polynomial at the endpoints of the given polynomial. '''
 		
-		lower_sign = sum(coefficient * interval.lower**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))
-		upper_sign = sum(coefficient * interval.upper**index * 10**(interval.precision*(self.degree - index)) for index, coefficient in enumerate(self))
+		lower, upper, precision = interval.lower, interval.upper, interval.precision
+		lower_sign = sum(coefficient * lower**index * 10**(precision*(self.degree - index)) for index, coefficient in enumerate(self))
+		upper_sign = sum(coefficient * upper**index * 10**(precision*(self.degree - index)) for index, coefficient in enumerate(self))
 		return (-1 if lower_sign < 0 else 0 if lower_sign == 0 else +1), (-1 if upper_sign < 0 else 0 if upper_sign == 0 else +1)
 	
 	def sturm_chain(self):
@@ -300,6 +309,7 @@ class PolynomialRoot(object):
 		
 		while self.interval.accuracy <= accuracy:
 			old_accuracy = self.interval.accuracy
+			# print(accuracy, old_accuracy)
 			try:
 				self.interval = self.newton_raphson_iterate()
 			except (ZeroDivisionError, ValueError):

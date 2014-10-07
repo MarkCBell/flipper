@@ -347,6 +347,7 @@ class Encoding(object):
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
 							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.perron_frobenius_eigen(action_matrix, average_curve)
+							# print(eigenvalue, eigenvector)
 						except flipper.AssumptionError:
 							pass  # Largest eigenvalue was not real.
 						else:

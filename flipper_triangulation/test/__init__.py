@@ -1,9 +1,7 @@
 
 # This directory provides several test cases. Eventually there should be one
 # for each module in the kernel. Each one provides a function main(verbose=False)
-# which returns True if and only if the test succeeds. Running:
-#    >>> python setup.py test
-# automatically runs all tests listed here.
+# which returns True if and only if the test succeeds.
 
 from . import algebraicapproximation
 from . import algebraicnumber

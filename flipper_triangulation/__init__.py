@@ -13,12 +13,12 @@ or by loading one of the provided EquippedTriangulations using:
 
 from flipper.version import __version__
 
-# import flipper.application  # Don't do this import so people without tkinter can still use the kernel.
+# import flipper.app  # Don't do this import so people without tkinter can still use the kernel.
 import flipper.kernel
 import flipper.examples
 import flipper.load
-import flipper.tests
-import flipper.profiles
+import flipper.test
+import flipper.profile
 
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.create_triangulation = flipper.kernel.create_triangulation

@@ -6,7 +6,7 @@ def main():
 	print('To start the flipper GUI use:')
 	print('  > python -m flipper.app')
 	print('To open the flipper documentation use:')
-	print('  > python -m flipper.docs')
+	print('  > python -m flipper.doc')
 	print('To test your installation of flipper use:')
 	print('  > python -m flipper.tests')
 	print('Or start Python and import flipper directly.')

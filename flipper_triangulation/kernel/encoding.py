@@ -198,6 +198,13 @@ class Encoding(object):
 		
 		return Encoding(self.target_triangulation, self.source_triangulation, [A.inverse() for A in reversed(self)])
 	
+	def closing_isometries(self):
+		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.
+		
+		These are the maps that can be used to close this into a mapping class. '''
+		
+		return self.target_triangulation.isometries_to(self.source_triangulation)
+	
 	def find_indices(self, lamination, count_all=True):
 		''' Return the list of indices describing the cell this lamination lies in. '''
 		

@@ -103,18 +103,23 @@ DEFAULT_EDGE_LABEL_COLOUR = 'black'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
+# This helper function should really be inside of
+# update_cache_progression but then it wouldn't be
+# pickleable and so couldn't be passed to the worker
+# thread.
+def helper(instance, method):
+	try:
+		getattr(instance, method)()
+	except (flipper.AssumptionError, flipper.ComputationError):
+		pass
+	return instance
+
 def update_cache_progression(instance, method):
 	# Make instance_copy, a copy of instance.
-	# Compute instance_copy.method() with an indeterminant progress bar.
+	# Compute instance_copy.method() with a progress bar.
 	# Copy instance_copy._cache to instance._cache.
 	# Return instance.
-	def helper():
-		try:
-			getattr(instance, method)()
-		except (flipper.AssumptionError, flipper.ComputationError):
-			pass
-		return instance
-	instance_copy = flipper.app.apply_progression(helper)
+	instance_copy = flipper.app.apply_progression(helper, args=(instance, method))
 	instance._cache = instance_copy._cache
 	return instance
 

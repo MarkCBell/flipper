@@ -47,11 +47,13 @@ class EquippedTriangulation(object):
 			self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
 		
-		self.pos_keys = sorted(self.pos_mapping_classes.keys())
 		self.neg_keys = sorted(self.neg_mapping_classes.keys())
 	
 	def __repr__(self):
-		return 'Triangulation with laminations: %s and mapping classes: %s.' % (self.pos_keys, self.neg_keys)
+		lam_keys = sorted(self.laminations.keys())
+		pos_keys = sorted(self.pos_mapping_classes.keys())
+		return 'Triangulation with laminations: %s and mapping classes: %s.' % (lam_keys, pos_keys)
+	
 	def random_word(self, length, positive=True, negative=True):
 		''' Return a random word of the required length.
 		
@@ -60,12 +62,15 @@ class EquippedTriangulation(object):
 		
 		assert(isinstance(length, flipper.IntegerType))
 		
+		pos_keys = sorted(self.pos_mapping_classes.keys())
+		neg_keys = sorted(self.neg_mapping_classes.keys())
+		
 		if positive and negative:
-			available_letters = self.pos_keys + self.neg_keys
+			available_letters = pos_keys + neg_keys
 		elif positive and not negative:
-			available_letters = self.pos_keys
+			available_letters = pos_keys
 		elif not positive and negative:
-			available_letters = self.neg_keys
+			available_letters = neg_keys
 		else:
 			raise TypeError('At least one of positive and negative must be allowed.')
 		

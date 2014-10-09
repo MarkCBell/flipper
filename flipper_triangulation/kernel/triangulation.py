@@ -355,8 +355,10 @@ class Triangulation(object):
 	def homology_basis(self):
 		''' Return a basis for H_1 of the underlying punctured surface.
 		
-		Each element is given as a path in the dual 1--skeleton and each pair of
-		paths is guaranteed to meet at most once. '''
+		Each element is given as a path in the dual 1--skeleton and corrsponds
+		to a good curve. Each path will meet each edge at most once.
+		
+		Each pair of paths is guaranteed to meet at most once. '''
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		# and a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.

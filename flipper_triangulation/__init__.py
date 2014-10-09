@@ -6,10 +6,13 @@ It can decide the Nielsen--Thurston type of a given mapping class and,
 for pseudo-Anosov mapping classes, construct a layered, veering
 triangulation of their mapping torus, as described by Agol.
 
-Get started by creating an AbstractTriangulation using the helper function:
-	flipper.create_triangulation(...)
+Get started by starting the GUI:
+	> import flipper.app
+	> flipper.app.start()
+or by creating an AbstractTriangulation using the helper function:
+	> flipper.create_triangulation(...)
 or by loading one of the provided EquippedTriangulations using:
-	flipper.load.equipped_triangulation(...) '''
+	> flipper.load.equipped_triangulation(...) '''
 
 from flipper.version import __version__
 

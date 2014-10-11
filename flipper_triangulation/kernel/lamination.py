@@ -5,6 +5,8 @@ Provides one class: Lamination. '''
 
 import flipper
 
+from itertools import combinations
+
 class Lamination(object):
 	''' This represents a lamination on an triangulation.
 	
@@ -179,6 +181,30 @@ class Lamination(object):
 		
 		lamination = self.copy()
 		best_conjugation = conjugation = lamination.triangulation.id_encoding()
+		
+		#while True:
+		#	edge_index = None
+		#	best_weight = lamination.weight()
+		#	for i in range(1, 4):
+		#		for flips in combinations(range(lamination.zeta), i):
+		#			try:
+		#				f = lamination.triangulation.encode_flips(flips)
+		#			except AssertionError:
+		#				pass  # One of the edges wasn't flippable.
+		#			else:
+		#				if f(lamination).weight() < best_weight:
+		#					best_weight = f(lamination).weight()
+		#					edge_index = flips[0]
+		#	
+		#	if edge_index is not None:
+		#		forwards = lamination.triangulation.encode_flip(edge_index)
+		#		conjugation = forwards * conjugation
+		#		lamination = forwards(lamination)
+		#	else:
+		#		break
+		#
+		#return conjugation
+		
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()

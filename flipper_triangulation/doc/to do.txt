@@ -16,7 +16,7 @@ make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field
 laminations  / encodings should include / manipulate algebraic intersection number
-be able to (half) twist along all curves - construct chain
+be able to (half) twist along all curves - construct chain - use H_1 code?
 recheck ALL number theory bounds
 completing the square - problems come from the Birman subgroup, see:
 	#surface, word, target = 'S_2_1', 'abCDEf', 'm160'

@@ -183,6 +183,7 @@ class FlipperApp(object):
 		self.filemenu = TK.Menu(self.menubar, tearoff=0)
 		self.filemenu.add_command(label='New', command=self.initialise, accelerator=COMMAND['new'], font=app_font)
 		self.filemenu.add_command(label='Open', command=self.load, accelerator=COMMAND['open'], font=app_font)
+		self.filemenu.add_command(label='Open example', command=self.load_example, font=app_font)
 		self.filemenu.add_command(label='Save', command=self.save, accelerator=COMMAND['save'], font=app_font)
 		self.exportmenu = TK.Menu(self.menubar, tearoff=0)
 		self.exportmenu.add_command(label='Export kernel file', command=self.export_kernel_file, font=app_font)
@@ -588,6 +589,16 @@ class FlipperApp(object):
 			self.unsaved_work = False
 		except (IndexError, ValueError):
 			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.__version__)
+	
+	def load_example(self):
+		example = flipper.app.get_choice('Open example.', 'Choose example surface to open.', [
+			'S_{0,4}',
+			'S_{1,1}',
+			'S_{1,2}',
+			'S_{2,1}',
+			'S_{3,1}'])
+		if example is not None:
+			self.load(flipper.load.equipped_triangulation(example.replace('{', '').replace('}', '').replace(',', '_')))
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')

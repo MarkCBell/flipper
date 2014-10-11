@@ -7,7 +7,6 @@ from time import time
 
 def main():
 	times = {}
-	S = flipper.load.equipped_triangulation('S_1_2')
 	
 	examples = [
 		('S_2_1', 'AEeadfaCEeCdEBfbCDFC'),  # Cannot estimate!

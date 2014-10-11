@@ -5,7 +5,7 @@ from . import main
 from . import pieces
 from . import options
 from . import inputbox
-from . import combobox
+from . import choicebox
 from . import progress
 from . import widgets
 
@@ -28,5 +28,5 @@ lines_intersect = pieces.lines_intersect
 
 apply_progression = progress.apply_progression
 get_input = inputbox.get_input
-get_choice = combobox.get_choice
+get_choice = choicebox.get_choice
 

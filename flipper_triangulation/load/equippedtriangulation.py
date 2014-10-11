@@ -11,7 +11,7 @@ def Example_S_0_4():
 	a = T.lamination([0, 1, 0, 0, 1, 0])
 	b = T.lamination([1, 0, 1, 2, 2, 2])
 	
-	return flipper.kernel.EquippedTriangulation(T, [a], {
+	return flipper.kernel.EquippedTriangulation(T, [a, b], {
 		'a': a.encode_twist(), 'b': b.encode_twist(),
 		'w': a.encode_halftwist(), 'x': b.encode_halftwist(),
 		'y': a.encode_halftwist(), 'z': b.encode_halftwist()

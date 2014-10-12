@@ -632,7 +632,7 @@ class FlipperApp(object):
 			self.parent.quit()
 	
 	def show_help(self):
-		flipper.help.open_documentation()
+		flipper.doc.open_documentation()
 	
 	def show_about(self):
 		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % flipper.__version__)

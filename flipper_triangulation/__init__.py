@@ -20,6 +20,7 @@ from flipper.version import __version__
 import flipper.kernel
 import flipper.examples
 import flipper.load
+import flipper.doc
 import flipper.test
 import flipper.profile
 

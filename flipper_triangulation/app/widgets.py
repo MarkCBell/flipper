@@ -11,10 +11,11 @@ except ImportError:  # Python 3.
 	import tkinter as TK
 	DOWN_ARROW = chr(9660)
 
+import os
 from base64 import b64encode
 
-def extract_contents(files, output_file):
-	contents = ["\t'''" + b64encode(open(file, 'rb').read()) + "'''" for file in files]
+def extract_contents(paths, output_file):
+	contents = ["\t'''" + b64encode(open(path, 'rb').read()) + "'''" for path in paths]
 	open(output_file, 'w').write('\nframes_contents = [\n' + ',\n'.join(contents) + '\n\t]\n')
 
 class SplitButton(TK.Frame):
@@ -138,8 +139,8 @@ class AnimatedCanvas(TK.Canvas, object):
 		if frames_contents is not None:
 			self._frames = [TK.PhotoImage(data=frame_contents) for frame_contents in frames_contents]
 		elif frames_path is not None:
-			files = sorted(os.listdir(frames_path), key=lambda x: (len(x), x))
-			self._frames = [TK.PhotoImage(file=os.path.join(frames_path, file)) for file in files]
+			paths = sorted(os.listdir(frames_path), key=lambda x: (len(x), x))
+			self._frames = [TK.PhotoImage(file=os.path.join(frames_path, path)) for path in paths]
 		elif frames is not None:
 			self._frames = frames
 		else:
@@ -157,17 +158,17 @@ class AnimatedCanvas(TK.Canvas, object):
 		self._count = 0
 		if start_animated: self.start()
 	
-	def start(self, even=None):
+	def start(self):
 		if not self._running:
 			self._running = True
 			self.animate()
 	
-	def stop(self, event=None):
+	def stop(self):
 		self._running = False
 	
-	def animate(self, event=None):
+	def animate(self):
 		if self._running:
-			self.create_image((5,5),anchor='nw',image=self._frames[self._count])
+			self.create_image((5, 5), anchor='nw', image=self._frames[self._count])
 			self._count = (self._count + 1) % len(self._frames)
 			self.parent.after(self._delay, self.animate)
 

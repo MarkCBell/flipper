@@ -7,8 +7,6 @@ There is also a helper function: create_polynomial_root. '''
 
 import flipper
 
-from time import sleep
-
 from math import log10 as log
 from fractions import gcd
 from functools import reduce as freduce

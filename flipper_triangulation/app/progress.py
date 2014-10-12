@@ -5,7 +5,6 @@ from flipper.app.spinning_icon import SPINNING_ICON
 
 from multiprocessing import Process
 from multiprocessing import JoinableQueue as Queue
-import inspect
 
 try:
 	from Queue import Empty

@@ -2,15 +2,17 @@
 from __future__ import print_function
 
 import flipper
-import snappy
+try:
+	import snappy
+except ImportError:
+	snappy = None
 
 def main():
-	word = 'abC'
+	surface, word = 'S_1_2', 'abC'
 	# Get an example mapping class - this one we know is pseudo-Anosov.
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
-	S = flipper.load.equipped_triangulation('S_1_2')
-	h = S.mapping_class(word)
-	print('Built the mapping class h := \'%s\'.' % word)
+	h = flipper.load.equipped_triangulation(surface).mapping_class(word)
+	print('Built the mapping class h := \'%s\' on %s.' % (word, surface))
 	splittings = h.splitting_sequences()  # A list of splitting sequences.
 	# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 	bundle = splittings[0].bundle()
@@ -30,5 +32,9 @@ def main():
 	print('has these cusps left unfilled.')
 
 if __name__ == '__main__':
-	main()
+	if snappy is None:
+		print('This example requires SnapPy.')
+		print('Please install it and try again.')
+	else:
+		main()
 

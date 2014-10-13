@@ -17,7 +17,6 @@ class Lamination(object):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(entry, object) for entry in vector))
 		assert(isinstance(remove_peripheral, bool))
-		assert(flipper.kernel.matrix.nonnegative(vector))
 		
 		
 		self.triangulation = triangulation
@@ -37,6 +36,8 @@ class Lamination(object):
 			if any(peripheral.values()):
 				# Really should be vector[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
 				vector = [2*vector[i] - sum(peripheral[v] for v in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
+		
+		assert(flipper.kernel.matrix.nonnegative(vector))
 		self.vector = list(vector)
 		
 		self._cache = {}  # For caching hard to compute results.

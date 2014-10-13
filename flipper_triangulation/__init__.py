@@ -18,7 +18,7 @@ from flipper.version import __version__
 
 # import flipper.app  # Don't do this import so people without tkinter can still use the kernel.
 import flipper.kernel
-import flipper.examples
+import flipper.example
 import flipper.load
 import flipper.doc
 import flipper.test

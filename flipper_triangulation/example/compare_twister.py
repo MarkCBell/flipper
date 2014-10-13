@@ -1,6 +1,11 @@
 
+from __future__ import print_function
+
 import flipper
-import snappy
+try:
+	import snappy
+except ImportError:
+	snappy = None
 
 def main():
 	while True:
@@ -26,5 +31,9 @@ def main():
 					print('Mapping class is not pseudo-Anosov.')
 
 if __name__ == '__main__':
-	main()
+	if snappy is None:
+		print('This example requires SnapPy.')
+		print('Please install it and try again.')
+	else:
+		main()
 

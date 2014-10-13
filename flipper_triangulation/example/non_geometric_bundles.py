@@ -1,9 +1,14 @@
 
-from random import randint
-from time import time
+from __future__ import print_function
 
 import flipper
-import snappy
+try:
+	import snappy
+except ImportError:
+	snappy = None
+
+from random import randint
+from time import time
 
 def tetrahedra_shapes(manifold):
 	# Return the exact shapes of the tetrahedra using snap.
@@ -90,6 +95,9 @@ def test3():
 	# h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.
 	# h = S.mapping_class('aabAb')  # 13 tetrahedra (not HIS example?).
 	# h = flipper.load.equipped_triangulation('S_2_1').mapping_class('abbcccDeffD')
+	# On S_1_2 length 6:
+	# BAbAc == bcBA == abCB
+	# cbA == aBC
 	
 	splittings = h.splitting_sequences()
 	print('Saving %d bundles.' % len(splittings))
@@ -98,12 +106,12 @@ def test3():
 		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
 
 if __name__ == '__main__':
-	# test1()
-	# test2()
-	test3()
+	if snappy is None:
+		print('This example requires SnapPy.')
+		print('Please install it and try again.')
+	else:
+		# test1()
+		# test2()
+		test3()
 
-# On S_1_2 length 6:
-# BAbAc == bcBA == abCB
-# cbA == aBC
-# On S_2_1 length ??:
-# 
+

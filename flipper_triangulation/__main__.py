@@ -9,6 +9,8 @@ def main():
 	print('  > python -m flipper.doc')
 	print('To test your installation of flipper use:')
 	print('  > python -m flipper.tests')
+	print('To see a list of included examples use:')
+	print('  > python -m flipper.example')
 	print('Or start Python and import flipper directly.')
 
 if __name__ == '__main__':

@@ -1,9 +1,9 @@
 
 from __future__ import print_function
 
-from time import time
-
 import flipper
+
+from time import time
 
 def main():
 	tests = [('S_2_1', 'abcdeF')]

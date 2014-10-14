@@ -18,7 +18,6 @@ class Lamination(object):
 		assert(all(isinstance(entry, object) for entry in vector))
 		assert(isinstance(remove_peripheral, bool))
 		
-		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
 		if remove_peripheral:

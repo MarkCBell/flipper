@@ -12,6 +12,7 @@ upload version with:
 	python setup.py sdist register upload
 
 ### Kernel ###
+deal with disconnected surfaces
 make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field

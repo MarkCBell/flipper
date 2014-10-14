@@ -138,17 +138,9 @@ def product(iterable, start=1, left=True):
 	
 	return value
 
-def change_base(integer, base=64):
-	''' Return the given number as a string in the given base.
+def encode_binary(sequence):
+	''' Return the given sequence of 0's and 1's as a string in base 64. '''
 	
-	The given base must be less than 95. '''
-	
-	assert(base < len(VISIBLE_CHARACTERS))
-	
-	strn = ''
-	while integer:
-		strn = VISIBLE_CHARACTERS[integer % base] + strn
-		integer = integer // base
-	
-	return strn
+	step = 6  # 2**step <= len(VISABLE_CHARACTERS)
+	return ''.join(VISIBLE_CHARACTERS[int(''.join(str(x) for x in sequence[i:i+step]), base=2)] for i in range(0, len(sequence), step))
 

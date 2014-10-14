@@ -1268,7 +1268,6 @@ class FlipperApp(object):
 				path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 				if path != '':
 					try:
-						disk_file = open(path, 'wb')
 						try:
 							splittings = mapping_class.splitting_sequences()
 						except flipper.AssumptionError:
@@ -1279,7 +1278,8 @@ class FlipperApp(object):
 							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
 							splitting = splittings[0]
 							bundle = splitting.bundle()
-							disk_file.write(bundle.snappy_string())
+							with open(path, 'wb') as disk_file:
+								disk_file.write(bundle.snappy_string())
 							description = 'It was built using the first of %d isometries.\n' % len(splittings) + \
 							'It has %d cusp(s) with the following properties (in order):\n' % bundle.num_cusps + \
 							'Real types: %s\n' % bundle.real_cusps + \

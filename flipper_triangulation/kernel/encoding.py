@@ -219,7 +219,7 @@ class Encoding(object):
 	def find_indices_compressed(self, lamination):
 		''' Return the list of indices describing the cell this lamination lies in as a base64 string. '''
 		
-		return flipper.kernel.utilities.change_base(int(''.join(str(x) for x in self.find_indices(lamination, count_all=False)), 2))
+		return flipper.kernel.utilities.encode_binary(self.find_indices(lamination, count_all=False))
 	
 	def applied_function(self, lamination):
 		''' Return the partial function that will be applied to the lamination. '''
@@ -354,7 +354,6 @@ class Encoding(object):
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
 							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.perron_frobenius_eigen(action_matrix, average_curve)
-							# print(eigenvalue, eigenvector)
 						except flipper.AssumptionError:
 							pass  # Largest eigenvalue was not real.
 						else:

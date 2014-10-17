@@ -503,7 +503,7 @@ class FlipperApp(object):
 				if self.equipped_triangulation is not None and triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
 					isom = self.equipped_triangulation.triangulation.isometries_to(triangulation)[0]
 					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
-					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.edge_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
+					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.index_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
 				else:  # If not then we'll create a triangulation ourselves.
 					vertices, edges = [], []
 					

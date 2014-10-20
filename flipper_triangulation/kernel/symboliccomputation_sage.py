@@ -3,7 +3,7 @@
 
 import flipper
 
-from sage.all import Matrix, Polyhedron, lcm, NumberField, AA
+from sage.all import Matrix, Polyhedron, lcm, NumberField
 from flipper.kernel.symboliccomputation_dummy import project
 
 def minpoly_coefficients(number):

@@ -2,8 +2,6 @@
 
 from __future__ import print_function
 
-import flipper
-
 import os
 
 def main():

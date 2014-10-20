@@ -23,7 +23,7 @@ def main(verbose=False):
 		[0, 0, -1, 1, 2, -1],
 		[0, 0, -1, 0, 4, -2],
 		[0, 0, 0, 0, 1, 0]
-		]), [16, 1, 25, 26, 41, 15]),
+		]), flipper.kernel.id_matrix(6), [16, 1, 25, 26, 41, 15]),
 		(flipper.kernel.Matrix([
 		[-3, 3, -3, 4, -4, 4],
 		[-2, 2, -1, 2, -2, 2],
@@ -31,7 +31,7 @@ def main(verbose=False):
 		[-5, 3, -3, 6, -5, 5],
 		[-5, 3, -3, 5, -4, 5],
 		[-6, 4, -4, 6, -6, 7]
-		]), [52, 29, 41, 70, 67, 81]),
+		]), flipper.kernel.id_matrix(6), [52, 29, 41, 70, 67, 81]),
 		(flipper.kernel.Matrix([
 		[-843, 194, -2990, 844, 2990, -194],
 		[-982, 228, -3478, 982, 3478, -227],
@@ -39,7 +39,7 @@ def main(verbose=False):
 		[-2204, 507, -7813, 2205, 7813, -507],
 		[-2066, 474, -7325, 2066, 7326, -474],
 		[-138, 33, -488, 138, 488, -32]
-		]), [1688, 1965, 2445, 4410, 4133, 277]),
+		]), flipper.kernel.id_matrix(6), [1688, 1965, 2445, 4410, 4133, 277]),
 		(flipper.kernel.Matrix([
 		[0, 2, -1, 2, 0, 0, -1, -1, 0],
 		[-1, 6, -2, 2, 0, 0, -3, -1, 0],
@@ -50,7 +50,7 @@ def main(verbose=False):
 		[-1, 3, -1, 2, 0, 0, -2, -1, 1],
 		[1, 2, -1, 2, 1, -1, -1, -2, 0],
 		[0, 5, -2, 2, 0, 0, -3, -1, 0]
-		]), [28, 96, 42, 12, 58, 20, 56, 40, 74]),
+		]), flipper.kernel.id_matrix(9), [28, 96, 42, 12, 58, 20, 56, 40, 74]),
 		(flipper.kernel.Matrix([
 		[0, 0, 0, 1, 0, 0, 0, -1, 1],
 		[0, 3, -1, 1, 0, 0, -1, -1, 0],
@@ -61,12 +61,12 @@ def main(verbose=False):
 		[1, 2, -1, 1, 0, 0, -1, -1, 0],
 		[0, 0, 0, -1, 0, 1, 1, 0, 0],
 		[0, 2, -1, 1, 0, 0, 0, -1, 0]
-		]), [28, 102, 42, 12, 60, 18, 60, 38, 76])
+		]), flipper.kernel.id_matrix(9), [28, 102, 42, 12, 60, 18, 60, 38, 76])
 		]
 	
-	for matrix, vector in tests:
+	for action_matrix, condition_matrix, vector in tests:
 		try:
-			flipper.kernel.symboliccomputation.perron_frobenius_eigen(matrix, vector)
+			flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix, vector)
 		except flipper.AssumptionError:
 			print('bad test %s' % vector)
 	

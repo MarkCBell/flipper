@@ -15,6 +15,8 @@ import os
 from base64 import b64encode
 
 def extract_contents(paths, output_file):
+	''' Convert a list of images into a single Python script. '''
+	
 	contents = ["\t'''" + b64encode(open(path, 'rb').read()) + "'''" for path in paths]
 	open(output_file, 'w').write('\nframes_contents = [\n' + ',\n'.join(contents) + '\n\t]\n')
 

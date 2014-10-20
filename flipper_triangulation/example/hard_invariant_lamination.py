@@ -29,16 +29,22 @@ def main():
 		('S_2_1', 'ECdEEEaEce'),
 		('S_2_1', 'DCDfCaEd'),
 		('S_2_1', 'BaEcCCeAbC'),
-		('S_3_1', 'abcdeGh')  # Takes ~11 iterations to converge!
+		('S_3_1', 'abcdeGh'),  # Takes ~11 iterations to converge!
+		('S_3_1', 'fAfdBh'),
+		('S_3_1', 'FECC'),
+		('S_3_1', 'FdbEBABaGa'),  # Reducible with 2 pA components.
+		('S_3_1', 'FdbEABAaGa'),  # These have there invariant laminations in the same cell!
+		('S_3_1', 'gEBGhCDHbdgF'),  # The invariant lamination does not have the top eigenvalue.
+		('S_3_1', 'edbcAdgGhdHf'),  # Some of these cells only have complex eigenvalues.
 		]
 	
 	for index, (surface, word) in enumerate(examples):
-		print('%d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
+		print('%3d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
 		S = flipper.load.equipped_triangulation(surface)
 		mapping_class = S.mapping_class(word)
 		start_time = time()
 		try:
-			mapping_class.invariant_lamination()
+			mapping_class.invariant_lamination_uncached()
 		except flipper.AssumptionError:
 			pass  # mapping_class is not pseudo-Anosov.
 		# This can also fail with a flipper.ComputationError if self.invariant_lamination()

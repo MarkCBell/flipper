@@ -13,12 +13,7 @@ The dummy library also includes a basic implementation of the gram-schmidt ortho
 process and project function that other libraries may be able to make use of.
 
 Each library provides one function:
-	perron_frobenius_eigen(matrix, vector):
-		Given a matrix (of type flipper.kernel.Matrix) let L be its dominant eigenvalue and
-		V be its corresponding eigenspace. Let v be the orthogonal projection of vector to
-		V. Return L, v where L is a NumberFieldElement and v is a list of NumberFieldElements.
-		
-		Assumes (and checks) that L is real.
+	directed_eigenvector(action_matrix, condition_matrix, vector)
 
 More interfaces can be added here. '''
 
@@ -40,10 +35,8 @@ def load_library():
 	
 	raise ImportError('No symbolic computation library available.')
 
-def perron_frobenius_eigen(matrix, curve):
+def directed_eigenvector(action_matrix, condition_matrix, curve):
 	''' Apply the perron_frobenius_eigen function from the correct library. '''
 	
-	symbolic_computation_library = load_library()
-	return symbolic_computation_library.perron_frobenius_eigen(matrix, curve)
-	#return symbolic_computation_library.perron_frobenius_eigen(matrix, curve)
+	return load_library().directed_eigenvector(action_matrix, condition_matrix, curve)
 

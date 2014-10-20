@@ -358,14 +358,13 @@ class Encoding(object):
 						try:
 							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix, average_curve)
 						except flipper.ComputationError:
-							pass  # Largest eigenvalue was not real.
+							pass  # Could not find an eigenvector in the cone.
 						except flipper.AssumptionError:
 							raise flipper.AssumptionError('Mapping class is reducible.')
 						else:
 							# Test if the vector we found lies in the cone given by the condition matrix.
 							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
 							# but this is much faster.
-							invariant_lamination = triangulation.lamination(eigenvector)
 							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 								# If it does then we have a projectively invariant lamination.
 								invariant_lamination = triangulation.lamination(eigenvector)

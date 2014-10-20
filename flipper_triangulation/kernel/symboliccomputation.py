@@ -36,7 +36,7 @@ def load_library():
 	raise ImportError('No symbolic computation library available.')
 
 def directed_eigenvector(action_matrix, condition_matrix, curve):
-	''' Apply the perron_frobenius_eigen function from the correct library. '''
+	''' Apply the directed_eigenvector function from the correct library. '''
 	
 	return load_library().directed_eigenvector(action_matrix, condition_matrix, curve)
 

@@ -1,0 +1,18 @@
+
+
+from __future__ import print_function
+
+import flipper
+
+import os
+
+def main():
+	print('Available examples:')
+	for example_name in sorted(os.listdir(os.path.dirname(__file__))):
+		name, extension = os.path.splitext(example_name)
+		if extension == '.py' and not name.startswith('_'):
+			print('\tflipper.example.%s' % name)
+
+if __name__ == '__main__':
+	main()
+

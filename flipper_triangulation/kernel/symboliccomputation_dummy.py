@@ -23,25 +23,37 @@ def project(vector, basis):
 	linear_combination = [dot(vector, row) / dot(row, row) for row in orthogonal_basis]
 	return [sum(a * b[i] for a, b in zip(linear_combination, orthogonal_basis)) for i in range(len(vector))]
 
-def perron_frobenius_eigen(matrix, vector):
-	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace.
+def directed_eigenvector(action_matrix, condition_matrix, vector):
+	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.
 	
-	Assumes (and checks) that the dominant eigenvalue is real. '''
+	This version is imperfect and is NOT as good as the sage version. Examples are
+	known where this function raises a ComputationError while Sage correctly finds
+	a rational eigenvector and so raises an AssumptionError.
+	
+	An eigenvector is interesting if its corresponding eigenvalue is: real, >= 1 and irrational.
+	Raises a ComputationError if it cannot find an interesting vectors in C.
+	
+	vector is guranteed to live inside of C.
+	
+	Assumes that C contains at most one eigenvector and no rational eigenvectors. '''
 	
 	dot = flipper.kernel.matrix.dot
-	eigenvalues = matrix.char_poly().roots()
-	if len(eigenvalues) == 0:
-		raise flipper.AssumptionError('Matrix is not PF, no primitive eigenvalues.')
+	eigenvalues = action_matrix.char_poly().roots()
 	
 	# !?! Check this 30.
-	dominant_eigenvalue = max(eigenvalues, key=lambda x: x.algebraic_approximation(30))
+	for eigenvalue in sorted(eigenvalues, reverse=True, key=lambda x: x.algebraic_approximation(30)):
+		# We will calculate the eigenvector ourselves.
+		N = flipper.kernel.NumberField(eigenvalue)
+		kernel_basis = (action_matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
+		# Can't do division so can't do: eigenvector = project(vector, kernel_basis)
+		row_lengths = [dot(row, row) for row in kernel_basis]
+		product_lengths = [flipper.kernel.product([row_lengths[j] for j in range(len(kernel_basis)) if j != i]) for i in range(len(kernel_basis))]
+		linear_combination = [dot(vector, row) * product_length for row, product_length in zip(kernel_basis, product_lengths)]
+		
+		eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, kernel_basis)) for i in range(action_matrix.width)]
+		
+		if condition_matrix.nonnegative_image(eigenvector):
+			return N.lmbda, eigenvector
 	
-	# We will calculate the eigenvector ourselves.
-	N = flipper.kernel.NumberField(dominant_eigenvalue)
-	kernel_basis = (matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
-	# Can't do division so can't do: eigenvector = project(vector, kernel_basis)
-	row_lengths = [dot(row, row) for row in kernel_basis]
-	product_lengths = [flipper.kernel.product([row_lengths[j] for j in range(len(kernel_basis)) if j != i]) for i in range(len(kernel_basis))]
-	linear_combination = [dot(vector, row) * product_length for row, product_length in zip(kernel_basis, product_lengths)]
-	
-	return N.lmbda, [sum(a * n[i] for a, n in zip(linear_combination, kernel_basis)) for i in range(matrix.width)]
+	raise flipper.ComputationError('No interesting eigenvalues in cell.')
+

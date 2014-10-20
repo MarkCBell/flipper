@@ -319,13 +319,16 @@ class Encoding(object):
 		
 		assert(self.is_mapping_class())
 		
-		if self.is_periodic():  # This is not needed but it provides a fast test.
+		# We start with a fast test for periodicity.
+		# This isn't needed but it means that if we ever discover that
+		# self is not pA then it must be reducible.
+		if self.is_periodic():
 			raise flipper.AssumptionError('Mapping class is periodic.')
 		
 		triangulation = self.source_triangulation
-		
 		curves = [triangulation.key_curves()[0]]
 		
+		# A little helper function to determine how much two vectors differ by.
 		def projective_difference(A, B, error_reciprocal):
 			''' Return if the projective difference between A and B is less than 1 / error_reciprocal. '''
 			
@@ -336,7 +339,7 @@ class Encoding(object):
 		tested_cells = []
 		for i in range(100):
 			new_curve = self(curves[-1])
-			# print(self.find_indices_compressed(new_curve))
+			# print(new_curve)
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
@@ -353,13 +356,16 @@ class Encoding(object):
 						tested_cells.append(partial_function)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
-							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.perron_frobenius_eigen(action_matrix, average_curve)
-						except flipper.AssumptionError:
+							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix, average_curve)
+						except flipper.ComputationError:
 							pass  # Largest eigenvalue was not real.
+						except flipper.AssumptionError:
+							raise flipper.AssumptionError('Mapping class is reducible.')
 						else:
 							# Test if the vector we found lies in the cone given by the condition matrix.
 							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
 							# but this is much faster.
+							invariant_lamination = triangulation.lamination(eigenvector)
 							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 								# If it does then we have a projectively invariant lamination.
 								invariant_lamination = triangulation.lamination(eigenvector)
@@ -378,7 +384,7 @@ class Encoding(object):
 											pass
 					break
 			
-			denominators = [min(new_curve) + 1, i + 1]  # Other strategies: (i // triangulation.max_order) + 1
+			denominators = [min(new_curve) + 1, i + 1, (i // 2) + 1]  # Other strategies: (i // triangulation.max_order) + 1
 			for denominator in denominators:
 				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
 				new_small_curve = small_curve = triangulation.lamination(vector)

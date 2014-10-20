@@ -6,11 +6,11 @@ import flipper
 
 def main(n=100):
 	times = {}
-	surface = 'S_1_2'
+	surface = 'S_3_1'
 	S = flipper.load.equipped_triangulation(surface)
 	for index in range(n):
-		word = S.random_word(50)  # , negative=False)
-		print('%d/%d: %s %s' % (index+1, n, surface, word), end='')
+		word = S.random_word(12)  # , negative=False)
+		print('%3d/%d: %s %s' % (index+1, n, surface, word.replace('.', '')), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()
 		try:
@@ -22,7 +22,7 @@ def main(n=100):
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))
-	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]), max(times.values())))
+	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]).replace('.', ''), max(times.values())))
 
 if __name__ == '__main__':
 	main()

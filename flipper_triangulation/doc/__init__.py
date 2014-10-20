@@ -15,5 +15,7 @@ def open_documentation(verbose=False):
 	else:
 		command = 'xdg-open'
 	
-	subprocess.call([command, disk_file])
+	# Note that the command contains no user provided data.
+	# So setting shell=True should be safe.
+	subprocess.call([command, disk_file], shell=True)
 

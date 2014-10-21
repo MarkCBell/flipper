@@ -15,7 +15,7 @@ def nonnegative(v):
 	return all(x >= 0 for x in v)
 
 def dot(a, b):
-	''' Return the dot product of the two given vectors. '''
+	''' Return the dot product of the two given iterables. '''
 	
 	return sum(x * y for x, y in zip(a, b))
 
@@ -57,6 +57,7 @@ class Matrix(object):
 	def __add__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == other.width and self.height == other.height)
+			return Matrix([[a+b for a,b in zip(r1, r2)] for r1, r2 in zip(self, other)])
 			return Matrix([[self[i][j] + other[i][j] for j in range(self.width)] for i in range(self.height)])
 		else:
 			return self + (id_matrix(self.width) * other)

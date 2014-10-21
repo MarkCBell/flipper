@@ -94,8 +94,7 @@ class Interval(object):
 	def simplify(self):
 		''' Return a simpler interval with the same accuracy. '''
 		
-		d = self.precision - self.accuracy
-		if d > 1:
+		if self.accuracy > 0 and self.precision > self.accuracy + 1:
 			return self.change_denominator(self.accuracy-1)
 		else:
 			return self
@@ -124,7 +123,7 @@ class Interval(object):
 			new_upper = P.upper + Q.upper
 			return Interval(new_lower, new_upper, common_precision)
 		elif isinstance(other, flipper.IntegerType):
-			return Interval(self.lower + other * 10**self.precision, self.upper + other * 10**self.precision, self.precision)
+			return self + Interval(other, other, 0)
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -137,17 +136,21 @@ class Interval(object):
 			new_upper = P.upper - Q.lower
 			return Interval(new_lower, new_upper, common_precision)
 		elif isinstance(other, flipper.IntegerType):
-			return Interval(self.lower - other * 10**self.precision, self.upper - other * 10**self.precision, self.precision)
+			return self - Interval(other, other, 0)
 		else:
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Interval):
-			common_precision = max(self.precision, other.precision)
-			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
-			values = [P.lower * Q.lower, P.upper * Q.lower, P.lower * Q.upper, P.upper * Q.upper]
-			return Interval(min(values), max(values), 2*common_precision)
+			d = abs(self.precision - other.precision)
+			values = [
+				self.lower * other.lower,
+				self.upper * other.lower,
+				self.lower * other.upper,
+				self.upper * other.upper
+				]
+			return  Interval(min(values), max(values), self.precision + other.precision)
 		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)
@@ -169,9 +172,19 @@ class Interval(object):
 		if isinstance(other, Interval):
 			if 0 in other:
 				raise ZeroDivisionError  # Denominator contains 0.
+			
+			# I suspect that there is a lot of optimisation that could be done here.
+			# In particular, if we are willing to make the other interval wider we
+			# might be able to avoid an expensive division, hopefully without giving
+			# up too much accuracy.
 			common_precision = max(self.precision, other.precision)
 			P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)
-			values = [P.lower * 10**common_precision // Q.lower, P.upper * 10**common_precision // Q.lower, P.lower * 10**common_precision // Q.upper, P.upper * 10**common_precision // Q.upper]
+			values = [
+				P.lower * 10**common_precision // Q.lower,
+				P.upper * 10**common_precision // Q.lower,
+				P.lower * 10**common_precision // Q.upper,
+				P.upper * 10**common_precision // Q.upper
+				]
 			return Interval(min(values), max(values), common_precision)
 		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower // other, self.upper // other]

@@ -135,16 +135,12 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
-	def multiplicative_matrix(self):
-		''' Return the matrix describing how this element acts on lmbda^0, ..., lmbda^(degree-1). '''
-		
-		return sum(a * matrix for a, matrix in zip(self, self.number_field.companion_matrices))
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot multiply elements of different number fields.')
 			
-			return self.number_field.element(self.multiplicative_matrix() * other.linear_combination)
+			return self.number_field.element(flipper.kernel.dot(self, self.number_field.companion_matrices) * other.linear_combination)
 		elif isinstance(other, flipper.IntegerType):
 			return self.number_field.element([a * other for a in self])
 		else:
@@ -198,7 +194,7 @@ class NumberFieldElement(object):
 		accuracy = max(accuracy, int(2 * height + d) + 1)
 		
 		if self._algebraic_approximation is None or self.accuracy < accuracy:
-			self._algebraic_approximation = flipper.kernel.matrix.dot(self, N.lmbda_approximations(accuracy))
+			self._algebraic_approximation = flipper.kernel.dot(self, N.lmbda_approximations(accuracy))
 			self.accuracy = self._algebraic_approximation.interval.accuracy
 			# Now if accuracy was not None then self.accuracy >= accuracy.
 		

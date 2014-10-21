@@ -56,7 +56,7 @@ class GetChoiceApp(object):
 		self.host_app_parent.update_idletasks()
 	
 	def get_result(self):
-		self.parent.wait_window(self.parent)
+		self.parent.wait_window(self.parent)  # Wait for the window to be killed.
 		return self.result
 	
 	def ok(self, event=None):

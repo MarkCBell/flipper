@@ -95,7 +95,13 @@ class Polynomial(object):
 			return Polynomial(self.coefficients[power:])
 	
 	def __call__(self, other):
-		return sum(a * other**index for index, a in enumerate(self))
+		# It is significantly more efficient to compute self(other) as:
+		#   a_0 + x*(a_1 + x*( ... + x*(a_n + x * 0) ... ) ).
+		
+		total = 0
+		for coefficient in reversed(list(self)):
+			total = (other * total) + coefficient
+		return total
 	def __divmod__(self, other):
 		''' Return the quotient and remainder (and rescaling) of this polynomial by other.
 		

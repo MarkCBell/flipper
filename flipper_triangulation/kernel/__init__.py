@@ -51,6 +51,7 @@ Triangulation3 = triangulation3.Triangulation3
 empty_matrix = matrix.empty_matrix
 id_matrix = matrix.id_matrix
 zero_matrix = matrix.zero_matrix
+dot = matrix.dot
 height_int = algebraicnumber.height_int
 norm = triangulation.norm
 IntegerType = types.IntegerType

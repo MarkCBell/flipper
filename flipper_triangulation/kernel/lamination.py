@@ -104,7 +104,8 @@ class Lamination(object):
 		
 		assert(isinstance(other_lamination, Lamination))
 		
-		return [isometry for isometry in self.triangulation.isometries_to(other_lamination.triangulation) if other_lamination == isometry.encode()(self)]
+		# We used to just test other_lamination == isom.encode()(self) but this is much faster.
+		return [isom for isom in self.triangulation.isometries_to(other_lamination.triangulation) if all(other_lamination[isom.index_map[i]] == self[i] for i in range(self.zeta))]
 	
 	def self_isometries(self):
 		''' Returns a list of isometries taking this lamination to itself. '''

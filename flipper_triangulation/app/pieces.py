@@ -123,16 +123,12 @@ class CanvasEdge(DrawableObject):
 			Dy = y - self[0][1]
 			dx = self[1][0] - self[0][0]
 			dy = self[1][1] - self[0][1]
-			length = self.length()
+			length = sqrt(dx*dx + dy*dy)
 			A = (Dx*dx + Dy*dy) / length
 			B = (Dy*dx - Dx*dy) / length
 			return -self.options.epsilon < A < length + self.options.epsilon and -self.options.epsilon < B < self.options.epsilon
 		except ZeroDivisionError:
 			return False
-	
-	def length(self):
-		v = self[1] - self[0]
-		return sqrt(dot(v, v))
 	
 	def hide(self, hide=False):
 		self.canvas.itemconfig(self.drawn, state='hidden' if hide else 'normal')
@@ -197,6 +193,24 @@ class CurveComponent(DrawableObject):
 		self.drawn = self.canvas.create_line([c for v in self.vertices for c in v], width=self.options.line_size, fill=self.colour, tag='curve')
 		self.multiplicity = multiplicity
 		self.counted = counted
+	
+	def __contains__(self, point):
+		for a, b in zip(self.vertices, self.vertices[1:]):
+			try:
+				(x, y) = point
+				Dx = x - a[0]
+				Dy = y - a[1]
+				dx = b[0] - a[0]
+				dy = b[1] - a[1]
+				length = sqrt(dx*dx + dy*dy)
+				A = (Dx*dx + Dy*dy) / length
+				B = (Dy*dx - Dx*dy) / length
+				if -self.options.epsilon < A < length + self.options.epsilon and -self.options.epsilon < B < self.options.epsilon:
+					return True
+			except ZeroDivisionError:
+				pass
+		
+		return False
 	
 	def append_point(self, point):
 		self.vertices.append(point)

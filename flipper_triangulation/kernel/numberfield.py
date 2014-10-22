@@ -45,7 +45,7 @@ class NumberField(object):
 		self.accuracy = -1
 		
 		self.one = self.element([1])
-		self.lmbda = self.element([1]) if self.is_QQ() else self.element([0, 1])  # lambda is a Python keyword.
+		self.lmbda = self.element([1]) if self.is_rationals() else self.element([0, 1])  # lambda is a Python keyword.
 	
 	def lmbda_approximations(self, accuracy):
 		''' Return approximations of lmbda^0, ..., lmbda^(degree-1) to the given accuracy. '''
@@ -76,7 +76,7 @@ class NumberField(object):
 		
 		return NumberFieldElement(self, linear_combination)
 	
-	def is_QQ(self):
+	def is_rationals(self):
 		''' Return if this number field is QQ. '''
 		
 		return self.degree == 1

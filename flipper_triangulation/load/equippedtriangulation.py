@@ -5,7 +5,7 @@
 
 import flipper
 
-def Example_S_0_4():
+def example_0_4():
 	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1, ~4, 5], [~2, ~5, 2]])
 	
 	a = T.lamination([0, 1, 0, 0, 1, 0])
@@ -17,7 +17,7 @@ def Example_S_0_4():
 		'y': a.encode_halftwist(), 'z': b.encode_halftwist()
 		})
 
-def Example_S_1_1():
+def example_1_1():
 	T = flipper.create_triangulation([[0, 2, 1], [~0, ~2, ~1]])
 	
 	a = T.lamination([1, 0, 1])
@@ -25,7 +25,7 @@ def Example_S_1_1():
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
-def Example_S_1_1m():
+def example_1_1m():
 	# Mirror image of S_1_1 and its standard (Twister) curves:
 	T = flipper.create_triangulation([[0, 1, 2], [~0, ~1, ~2]])
 	
@@ -34,7 +34,7 @@ def Example_S_1_1m():
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist()])
 
-def Example_S_1_2():
+def example_1_2():
 	# S_1_2 and its standard (Twister) curves:
 	T = flipper.create_triangulation([[1, 3, 2], [~2, 0, 4], [~1, 5, ~0], [~5, ~4, ~3]])
 	
@@ -50,7 +50,7 @@ def Example_S_1_2():
 		'x': T.encode_flips_and_close([2, 4, 0, 3, 2, 5, 4], 1, ~1)
 		})
 
-def Example_S_2_1():
+def example_2_1():
 	# S_2_1 and its standard (Twister) curves:
 	T = flipper.create_triangulation([[0, 4, 1], [5, ~4, ~3], [2, ~5, 6], [7, ~6, ~2], [3, ~7, 8], [~0, ~8, ~1]])
 	
@@ -65,7 +65,7 @@ def Example_S_2_1():
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
-def Example_S_2_1b():
+def example_2_1b():
 	''' Nathans origional version. '''
 	T = flipper.create_triangulation([[1, 2, 4], [5, 3, 0], [~2, 6, ~1], [~3, ~0, 7], [~4, ~5, 8], [~7, ~8, ~6]])
 	
@@ -82,7 +82,7 @@ def Example_S_2_1b():
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
-def Example_S_3_1():
+def example_3_1():
 	T = flipper.create_triangulation([[0, 6, 1], [7, ~6, ~5], [8, 2, ~7], [9, ~8, ~4], [10, 3, ~9], [11, ~10, ~3],
 		[12, 4, ~11], [13, ~12, ~2], [14, 5, ~13], [~0, ~14, ~1]])
 	
@@ -102,7 +102,7 @@ def Example_S_3_1():
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
 
-def Example_S_3_1b():
+def example_3_1b():
 	''' Nathans origional version. '''
 	T = flipper.create_triangulation([[1, 2, 5], [0, 6, 3], [4, ~1, 7], [~3, 8, ~2], [9, ~5, ~6],
 									[10, ~0, ~9], [~10, ~7, ~8], [11, 12, ~4], [~12, 14, 13], [~13, ~11, ~14]])
@@ -123,7 +123,7 @@ def Example_S_3_1b():
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
 
-def Example_12():
+def example_12():
 	# A 12-gon:
 	T = flipper.create_triangulation([[6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0],
 		[14, ~1, ~13], [~14, 15, ~2], [~15, 16, ~3], [~16, 17, ~4], [~6, ~5, ~17]])
@@ -134,7 +134,7 @@ def Example_12():
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
-def Example_24():
+def example_24():
 	# A 24-gon.
 	T = flipper.create_triangulation([[12, 13, 0], [14, 1, ~13], [15, 2, ~14], [~15, 16, 3], [17, 4, ~16],
 		[~17, 18, 5], [~18, 19, 6], [20, 7, ~19], [21, 8, ~20], [~21, 22, 9], [~22, 23, 10], [24, 11, ~23],
@@ -147,7 +147,7 @@ def Example_24():
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
 
-def Example_36():
+def example_36():
 	# A 36-gon
 	T = flipper.create_triangulation([[18, 19, 0], [20, 1, ~19], [21, 2, ~20], [~21, 22, 3], [~22, 23, 4],
 		[24, 5, ~23], [25, 6, ~24], [~25, 26, 7], [27, 8, ~26], [~27, 28, 9], [~28, 29, 10], [30, 11, ~29],
@@ -169,17 +169,17 @@ def load(surface=None):
 	with no arguement. '''
 	
 	surfaces = {
-		'S_0_4': Example_S_0_4,
-		'S_1_1': Example_S_1_1,
-		'S_1_1m': Example_S_1_1m,
-		'S_1_2': Example_S_1_2,
-		'S_2_1': Example_S_2_1,
-		'S_2_1b': Example_S_2_1b,
-		'S_3_1': Example_S_3_1,
-		'S_3_1b': Example_S_3_1b,
-		'E_12': Example_12,
-		'E_24': Example_24,
-		'E_36': Example_36
+		'S_0_4': example_0_4,
+		'S_1_1': example_1_1,
+		'S_1_1m': example_1_1m,
+		'S_1_2': example_1_2,
+		'S_2_1': example_2_1,
+		'S_2_1b': example_2_1b,
+		'S_3_1': example_3_1,
+		'S_3_1b': example_3_1b,
+		'E_12': example_12,
+		'E_24': example_24,
+		'E_36': example_36
 		}
 	
 	if surface is None:

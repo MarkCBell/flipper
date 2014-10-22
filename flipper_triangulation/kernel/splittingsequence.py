@@ -164,7 +164,7 @@ class SplittingSequence(object):
 		#  - Triangulation3.real_cusps
 		#  - Triangulation3.fibre_slopes
 		#  - Triangulation3.degeneracy_slopes
-		cusps = triangulation3.install_longitudes_and_meridians()
+		cusps = triangulation3.install_peripheral_curves()
 		
 		# Now identify each the type of each cusp.
 		for corner_class in upper_triangulation.corner_classes:

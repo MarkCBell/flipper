@@ -1,18 +1,22 @@
 
 ### Application ###
 undo and redo
+autosave session
 have weighted brush for painting laminations (in a given field?)
 show algebraic intersection number
 update examples in application/examples/
 
 ### Documentation ###
 documentation for kernel - sphinx?
+document bad cases for default symbolic libarary
+change `good curves' to `non-isolating curves'
 redo installation / testing instructions
 upload version with:
 	python setup.py sdist register upload
 
 ### Kernel ###
 deal with disconnected surfaces
+extend symboliccomputation_dummy to work in all cases
 make algebraicnumber (symboliccomputation_sage/PF_eigen2) faster
 remove all dependence on sage - Faster Matrix.kernel
 lamination should have an associated number field

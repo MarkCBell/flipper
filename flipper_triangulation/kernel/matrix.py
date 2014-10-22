@@ -57,8 +57,7 @@ class Matrix(object):
 	def __add__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == other.width and self.height == other.height)
-			return Matrix([[a+b for a,b in zip(r1, r2)] for r1, r2 in zip(self, other)])
-			return Matrix([[self[i][j] + other[i][j] for j in range(self.width)] for i in range(self.height)])
+			return Matrix([[a+b for a, b in zip(r1, r2)] for r1, r2 in zip(self, other)])
 		else:
 			return self + (id_matrix(self.width) * other)
 	def __radd__(self, other):

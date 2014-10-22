@@ -49,7 +49,7 @@ class Options(object):
 		self.float_error = 0.001
 		
 		self.vertex_buffer = 0.2  # Must be in (0, 0.5)
-		self.zoom_fraction = 0.9 # Must be in (0, 1)
+		self.zoom_fraction = 0.8 # Must be in (0, 1)
 	
 	def update(self, *args):
 		self.render_lamination = str(self.render_lamination_var.get())

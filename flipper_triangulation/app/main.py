@@ -143,6 +143,7 @@ class FlipperApp(object):
 		self.treeview_objects.bind('<Double-Button-1>', self.treeview_objects_double_left_click)
 		self.treeview_objects.tag_configure('txt', font=self.options.application_font)
 		self.treeview_objects.tag_configure('Heading', font=self.options.application_font)
+		self.treeview_objects.insert('', 'end', 'triangulation', text='Triangulation: Incomplete', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.insert('', 'end', 'laminations', text='Laminations:', open=True, tags=['txt', 'menu'])
 		self.treeview_objects.insert('', 'end', 'mapping_classes', text='Mapping Classes:', open=True, tags=['txt', 'menu'])
 		
@@ -182,47 +183,36 @@ class FlipperApp(object):
 		
 		self.filemenu = TK.Menu(self.menubar, tearoff=0)
 		self.filemenu.add_command(label='New', command=self.initialise, accelerator=COMMAND['new'], font=app_font)
-		self.filemenu.add_command(label='Open', command=self.load, accelerator=COMMAND['open'], font=app_font)
-		self.filemenu.add_command(label='Open example', command=self.load_example, font=app_font)
-		self.filemenu.add_command(label='Save', command=self.save, accelerator=COMMAND['save'], font=app_font)
+		self.filemenu.add_command(label='Open...', command=self.load, accelerator=COMMAND['open'], font=app_font)
+		self.filemenu.add_command(label='Open example...', command=self.load_example, font=app_font)
+		self.filemenu.add_command(label='Save...', command=self.save, accelerator=COMMAND['save'], font=app_font)
 		self.exportmenu = TK.Menu(self.menubar, tearoff=0)
-		self.exportmenu.add_command(label='Export kernel file', command=self.export_kernel_file, font=app_font)
-		self.exportmenu.add_command(label='Export image', command=self.export_image, font=app_font)
+		self.exportmenu.add_command(label='Export image...', command=self.export_image, font=app_font)
+		self.exportmenu.add_command(label='Export kernel file...', command=self.export_kernel_file, font=app_font)
 		self.filemenu.add_cascade(label='Export', menu=self.exportmenu, font=app_font)
 		self.filemenu.add_separator()
 		self.filemenu.add_command(label='Exit', command=self.quit, accelerator=COMMAND['save'], font=app_font)
 		self.menubar.add_cascade(label='File', menu=self.filemenu, font=app_font)
 		
-		self.surfacemenu = TK.Menu(self.menubar, tearoff=0)
-		self.surfacemenu.add_command(label='Create ngon', command=self.initialise_circular_n_gon, font=app_font)
-		self.surfacemenu.add_command(label='Create radial ngon', command=self.initialise_radial_n_gon, font=app_font)
-		self.surfacemenu.add_command(label='Information', command=self.show_surface_information, font=app_font)
-		self.zoommenu = TK.Menu(self.menubar, tearoff=0)
-		self.zoommenu.add_command(label='Zoom in', command=self.zoom_in, accelerator='+', font=app_font)
-		self.zoommenu.add_command(label='Zoom out', command=self.zoom_out, accelerator='-', font=app_font)
-		self.zoommenu.add_command(label='Zoom to drawing', command=self.zoom_to_drawing, accelerator='0', font=app_font)
-		self.surfacemenu.add_cascade(label='Zoom...', menu=self.zoommenu, font=app_font)
-		self.menubar.add_cascade(label='Surface', menu=self.surfacemenu, font=app_font)
+		self.editmenu = TK.Menu(self.menubar, tearoff=0)
+		# Add undo and redo here.
+		#self.editmenu.add_command(label='Undo', command=self.undo, accelerator=COMMAND['undo'], font=app_font)
+		#self.editmenu.add_command(label='Redo', command=self.redo, accelerator=COMMAND['redo'], font=app_font)
+		#self.editmenu.add_separator()
+		self.editmenu.add_command(label='Tighten lamination', command=self.tighten_lamination, font=app_font)
+		self.editmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator=COMMAND['erase'], font=app_font)
+		self.menubar.add_cascade(label='Edit', menu=self.editmenu, font=app_font)
 		
-		self.laminationmenu = TK.Menu(self.menubar, tearoff=0)
-		self.laminationmenu.add_command(label='Store', command=self.store_lamination, accelerator=COMMAND['lamination'], font=app_font)
-		self.laminationmenu.add_command(label='Tighten', command=self.tighten_lamination, font=app_font)
-		self.laminationmenu.add_command(label='Erase', command=self.destroy_lamination, accelerator=COMMAND['erase'], font=app_font)
-		self.menubar.add_cascade(label='Lamination', menu=self.laminationmenu, state='disabled', font=app_font)
-		
+		self.createmenu = TK.Menu(self.menubar, tearoff=0)
+		self.createmenu.add_command(label='Lamination', command=self.store_lamination, accelerator=COMMAND['lamination'], font=app_font)
 		self.mappingclassmenu = TK.Menu(self.menubar, tearoff=0)
-		self.storemappingclassmenu = TK.Menu(self.menubar, tearoff=0)
-		self.storemappingclassmenu.add_command(label='Twist', command=self.store_twist, accelerator=COMMAND['twist'], font=app_font)
-		self.storemappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, accelerator=COMMAND['halftwist'], font=app_font)
-		self.storemappingclassmenu.add_command(label='Isometry', command=self.store_isometry, accelerator=COMMAND['isometry'], font=app_font)
-		self.storemappingclassmenu.add_command(label='Composition', command=self.store_composition, accelerator=COMMAND['compose'], font=app_font)
-		self.mappingclassmenu.add_cascade(label='Store...', menu=self.storemappingclassmenu, font=app_font)
-		self.mappingclassmenu.add_command(label='Apply', command=self.show_apply, font=app_font)
-		self.mappingclassmenu.add_command(label='Order', command=self.order, font=app_font)
-		self.mappingclassmenu.add_command(label='Type', command=self.nielsen_thurston_type, font=app_font)
-		self.mappingclassmenu.add_command(label='Invariant lamination', command=self.invariant_lamination, font=app_font)
-		self.mappingclassmenu.add_command(label='Build bundle', command=self.build_bundle, font=app_font)
-		self.menubar.add_cascade(label='Mapping class', menu=self.mappingclassmenu, state='disabled', font=app_font)
+		self.mappingclassmenu.add_command(label='Twist', command=self.store_twist, accelerator=COMMAND['twist'], font=app_font)
+		self.mappingclassmenu.add_command(label='Half twist', command=self.store_halftwist, accelerator=COMMAND['halftwist'], font=app_font)
+		self.mappingclassmenu.add_command(label='Isometry', command=self.store_isometry, accelerator=COMMAND['isometry'], font=app_font)
+		self.mappingclassmenu.add_command(label='Composition', command=self.store_composition, accelerator=COMMAND['compose'], font=app_font)
+		self.createmenu.add_cascade(label='Mapping class', menu=self.mappingclassmenu, font=app_font)  # state='disabled', font=app_font)
+		self.menubar.add_cascade(label='Create', menu=self.createmenu, font=app_font)
+		
 		
 		##########################################
 		self.settingsmenu = TK.Menu(self.menubar, tearoff=0)
@@ -244,10 +234,17 @@ class FlipperApp(object):
 		self.laminationdrawmenu.add_radiobutton(label=flipper.app.options.RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
 		self.laminationdrawmenu.add_radiobutton(label=flipper.app.options.RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
 		
+		self.zoommenu = TK.Menu(self.menubar, tearoff=0)
+		self.zoommenu.add_command(label='Zoom in', command=self.zoom_in, accelerator='+', font=app_font)
+		self.zoommenu.add_command(label='Zoom out', command=self.zoom_out, accelerator='-', font=app_font)
+		self.zoommenu.add_command(label='Zoom to drawing', command=self.zoom_to_drawing, accelerator='0', font=app_font)
+		
 		self.settingsmenu.add_cascade(label='Sizes', menu=self.sizemenu, font=app_font)
 		self.settingsmenu.add_cascade(label='Edge label', menu=self.edgelabelmenu, font=app_font)
 		self.settingsmenu.add_cascade(label='Draw lamination', menu=self.laminationdrawmenu, font=app_font)
+		self.settingsmenu.add_cascade(label='Zoom', menu=self.zoommenu, font=app_font)
 		self.settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var, font=app_font)
+		
 		self.menubar.add_cascade(label='Settings', menu=self.settingsmenu, font=app_font)
 		
 		self.helpmenu = TK.Menu(self.menubar, tearoff=0)
@@ -393,7 +390,6 @@ class FlipperApp(object):
 			order = mapping_class.order()
 			order_string = 'Infinite' if order == 0 else str(order)
 			type_string = '?' if order == 0 else 'Periodic'
-			invariant_string = '?' if order == 0 else 'x'
 			
 			# Set up all the properties to appear under this label.
 			# We will also set up self.mapping_class_names to point each item under this to <name> too.
@@ -408,7 +404,8 @@ class FlipperApp(object):
 			tagged_properties = [
 				('Order: %s' % order_string, 'mapping_class_order'),
 				('Type: %s' % type_string, 'mapping_class_type'),
-				('Invariant lamination: %s' % invariant_string, 'mapping_class_invariant_lamination')
+				('Invariant lamination...', 'mapping_class_invariant_lamination'),
+				('Bundle...', 'mapping_class_bundle')
 				]
 			for label, tag in tagged_properties:
 				self.mapping_class_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
@@ -591,14 +588,28 @@ class FlipperApp(object):
 			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.__version__)
 	
 	def load_example(self):
-		example = flipper.app.get_choice('Open example.', 'Choose example surface to open.', [
+		example = flipper.app.get_choice('Open example.', 'Choose example to open.', [
+			'Circular n-gon',
+			'Radial n-gon',
 			'S_{0,4}',
 			'S_{1,1}',
 			'S_{1,2}',
 			'S_{2,1}',
 			'S_{3,1}'])
-		if example is not None:
-			self.load(flipper.load.equipped_triangulation(example.replace('{', '').replace('}', '').replace(',', '_')))
+		if example == 'Circular n-gon':
+			self.initialise_circular_n_gon()
+		elif example == 'Radial n-gon':
+			self.initialise_radial_n_gon()
+		elif example == 'S_{0,4}':
+			self.load(flipper.load.equipped_triangulation('S_0_4'))
+		elif example == 'S_{1,1}':
+			self.load(flipper.load.equipped_triangulation('S_1_1'))
+		elif example == 'S_{1,2}':
+			self.load(flipper.load.equipped_triangulation('S_1_2'))
+		elif example == 'S_{2,1}':
+			self.load(flipper.load.equipped_triangulation('S_2_1'))
+		elif example == 'S_{3,1}':
+			self.load(flipper.load.equipped_triangulation('S_3_1'))
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -697,7 +708,7 @@ class FlipperApp(object):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
 	
 	def object_here(self, p):
-		for piece in self.vertices + self.edges + self.triangles:
+		for piece in self.vertices + self.edges + self.curve_components:  # You cant click on triangles.
 			if p in piece:
 				return piece
 		return None
@@ -735,14 +746,14 @@ class FlipperApp(object):
 	
 	
 	def initialise_radial_n_gon(self):
-		gluing = flipper.app.get_input('Surface specification', 'New specification for radial ngon:', validate=self.valid_specification)
+		gluing = flipper.app.get_input('Surface specification', 'Boundary pattern for radial ngon:', validate=self.valid_specification)
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
 				self.parent.update_idletasks()
 				w = int(self.canvas.winfo_width())
 				h = int(self.canvas.winfo_height())
-				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+				r = min(w, h)
 				
 				self.create_vertex((w / 2, h / 2))
 				for i in range(n):
@@ -756,10 +767,12 @@ class FlipperApp(object):
 					if gluing[i] == gluing[j].swapcase():
 						self.create_edge_identification(self.edges[i], self.edges[j])
 				
+				self.zoom_to_drawing()
+				
 				self.unsaved_work = True
 	
 	def initialise_circular_n_gon(self):
-		gluing = flipper.app.get_input('Surface specification', 'New specification for ngon:', validate=self.valid_specification)
+		gluing = flipper.app.get_input('Surface specification', 'Boundary pattern for circular ngon:', validate=self.valid_specification)
 		if gluing is not None:
 			if self.initialise():
 				n = len(gluing)
@@ -783,16 +796,9 @@ class FlipperApp(object):
 					if gluing[i] == gluing[j].swapcase():
 						self.create_edge_identification(self.edges[i], self.edges[j])
 				
+				self.zoom_to_drawing()
+				
 				self.unsaved_work = True
-	
-	def show_surface_information(self):
-		if self.is_complete():
-			num_marked_points = self.equipped_triangulation.triangulation.num_vertices
-			euler_characteristic = self.equipped_triangulation.triangulation.euler_characteristic
-			genus = (2 - euler_characteristic - num_marked_points) // 2
-			tkMessageBox.showinfo('Surface information', 'Underlying surface has genus %d and %d marked point(s). (Euler characteristic %d.)' % (genus, num_marked_points, euler_characteristic))
-		else:
-			tkMessageBox.showwarning('Surface information', 'Cannot compute information about an incomplete surface.')
 	
 	
 	######################################################################
@@ -827,11 +833,15 @@ class FlipperApp(object):
 		self.build_equipped_triangulation()
 	
 	def create_edge(self, v1, v2):
-		# Don't create a new edge if one already exists.
+		# Check that the vertices are distinct
+		if len(set([v1, v2])) != 2:
+			return None
+		
+		# Check that this edge doesn't already exist.
 		if any(set([edge[0], edge[1]]) == set([v1, v2]) for edge in self.edges):
 			return None
 		
-		# Don't create a new edge if it would intersect one that already exists.
+		# Check that this edge doesn't intersect an existing one.
 		if any(flipper.app.lines_intersect(edge[0], edge[1], v1, v2, self.options.float_error, True)[1] for edge in self.edges):
 			return None
 		
@@ -861,18 +871,22 @@ class FlipperApp(object):
 		self.build_equipped_triangulation()
 	
 	def create_triangle(self, e1, e2, e3):
-		assert(e1 != e2 and e1 != e3 and e2 != e3)
+		# Check that the edges are distinct
+		if len(set([e1, e2, e3])) != 3:
+			return None
 		
+		# Check that this triangle doesn't already exist.
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
 		new_triangle = flipper.app.CanvasTriangle(self.canvas, [e1, e2, e3], self.options)
-		self.triangles.append(new_triangle)
 		
+		# Check that there aren't any vertices inside the triangle.
 		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
 		if any(vertex in new_triangle and vertex not in corner_vertices for vertex in self.vertices):
-			self.destroy_triangle(new_triangle)
 			return None
+		
+		self.triangles.append(new_triangle)
 		
 		self.unsaved_work = True
 		self.redraw()
@@ -892,8 +906,11 @@ class FlipperApp(object):
 		self.build_equipped_triangulation()
 	
 	def create_edge_identification(self, e1, e2):
-		assert(e1.equivalent_edge is None and e2.equivalent_edge is None)
-		assert(e1.free_sides() == 1 and e2.free_sides() == 1)
+		if e1.equivalent_edge is not None or e2.equivalent_edge is not None:
+			return None
+		if e1.free_sides() != 1 or e2.free_sides() != 1:
+			return None
+		
 		e1.equivalent_edge, e2.equivalent_edge = e2, e1
 		# Now orient the edges so they match.
 		[t1], [t2] = e1.in_triangles, e2.in_triangles
@@ -1002,10 +1019,15 @@ class FlipperApp(object):
 		self.set_edge_indices()
 		labels = [[triangle.edges[side].index if triangle[side+1] == triangle.edges[side][0] else ~triangle.edges[side].index for side in range(3)] for triangle in self.triangles]
 		self.equipped_triangulation = flipper.kernel.EquippedTriangulation(flipper.create_triangulation(labels), [], [])
+		triangulation = self.equipped_triangulation.triangulation
 		self.current_lamination = self.equipped_triangulation.triangulation.empty_lamination()
 		self.create_edge_labels()
-		self.menubar.entryconfig('Lamination', state='normal')
-		self.menubar.entryconfig('Mapping class', state='normal')
+		self.treeview_objects.item('triangulation', text='Triangulation:')
+		self.treeview_objects.insert('triangulation', 'end', text='Genus: %d' % triangulation.genus, tags=['txt'])
+		self.treeview_objects.insert('triangulation', 'end', text='Punctures: %d' % triangulation.num_vertices, tags=['txt'])
+		self.treeview_objects.insert('triangulation', 'end', text='Euler characteristic: %d' % triangulation.euler_characteristic, tags=['txt'])
+		#self.menubar.entryconfig('Lamination', state='normal')
+		#self.menubar.entryconfig('Mapping class', state='normal')
 	
 	def destroy_equipped_triangulation(self):
 		self.destroy_lamination()
@@ -1019,8 +1041,8 @@ class FlipperApp(object):
 		self.treeview_mapping_classes = []
 		for child in self.treeview_objects.get_children('laminations') + self.treeview_objects.get_children('mapping_classes'):
 			self.treeview_objects.delete(child)
-		self.menubar.entryconfig('Lamination', state='disabled')
-		self.menubar.entryconfig('Mapping class', state='disabled')
+		self.treeview_objects.item('triangulation', text='Triangulation: Incomplete')
+		self.treeview_objects.delete(*self.treeview_objects.get_children('triangulation'))
 	
 	def build_equipped_triangulation(self):
 		if self.is_complete() and self.equipped_triangulation is None:
@@ -1162,6 +1184,8 @@ class FlipperApp(object):
 					self.add_mapping_class(lamination.encode_twist(), name)
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is not a curve with punctured complementary regions.')
+		else:
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute twist on an incomplete triangulation.')
 	
 	def store_halftwist(self, lamination=None):
 		if self.is_complete():
@@ -1174,6 +1198,8 @@ class FlipperApp(object):
 					self.add_mapping_class(lamination.encode_halftwist(), name)
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot half-twist about this, it is not an essential curve bounding a pair of pants with a punctured complement.')
+		else:
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute half twist on an incomplete triangulation.')
 	
 	def store_isometry(self):
 		if self.is_complete():
@@ -1190,106 +1216,20 @@ class FlipperApp(object):
 					name = flipper.app.get_input('Name', 'New isometry name:', validate=self.valid_name)
 					if name is not None:
 						self.add_mapping_class(isometry.encode(), name)
-	
-	def create_composition(self):
-		# Assumes that each of the named mapping classes exist.
-		if self.is_complete():
-			composition = flipper.app.get_input('Composition', 'New composition:', validate=self.valid_composition)
-			if composition is not None:
-				# self.valid_composition made sure that this wont fail.
-				mapping_class = self.equipped_triangulation.mapping_class(composition)
-				
-				return composition, mapping_class
-			else:
-				return None, None
+		else:
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute isometry of an incomplete triangulation.')
 	
 	def store_composition(self):
 		if self.is_complete():
-			_, mapping_class = self.create_composition()
-			if mapping_class is not None:
+			composition = flipper.app.get_input('Composition', 'New composition:', validate=self.valid_composition)
+			if composition is not None:
 				name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
 				if name is not None:
+					# self.valid_composition made sure that this wont fail.
+					mapping_class = self.equipped_triangulation.mapping_class(composition)
 					self.add_mapping_class(mapping_class, name)
-	
-	def show_apply(self, mapping_class=None):
-		if self.is_complete():
-			lamination = self.canvas_to_lamination()
-			if mapping_class is None:
-				_, mapping_class = self.create_composition()
-			
-			if mapping_class is not None:
-				self.lamination_to_canvas(mapping_class(lamination))
-	
-	
-	######################################################################
-	
-	
-	def order(self):
-		if self.is_complete():
-			composition, mapping_class = self.create_composition()
-			if mapping_class is not None:
-				order = mapping_class.order()
-				order_string = 'Infinite' if order == 0 else str(order)
-				tkMessageBox.showinfo('Order', '%s order: %s.' % (composition, order_string))
-	
-	def nielsen_thurston_type(self):
-		if self.is_complete():
-			composition, mapping_class = self.create_composition()
-			if mapping_class is not None:
-				try:
-					nielsen_thurston_type = flipper.app.apply_progression(mapping_class.nielsen_thurston_type)
-					tkMessageBox.showinfo('Nielsen-Thurston type', '%s is %s.' % (composition, nielsen_thurston_type))
-				except flipper.ComputationError:
-					tkMessageBox.showerror('Mapping class', 'Could not find any projectively invariant laminations of %s, it is probably reducible.' % composition)
-				except flipper.AbortError:
-					pass
-	
-	
-	######################################################################
-	
-	
-	def invariant_lamination(self):
-		if self.is_complete():
-			composition, mapping_class = self.create_composition()
-			if mapping_class is not None:
-				try:
-					_, lamination = flipper.app.apply_progression(mapping_class.invariant_lamination)
-				except flipper.AssumptionError:
-					tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations of %s, it is not pseudo-Anosov.' % composition)
-				except flipper.ComputationError:
-					tkMessageBox.showwarning('Lamination', 'Could not find any projectively invariant laminations of %s. It is probably reducible.' % composition)
-				else:
-					self.lamination_to_canvas(lamination)
-	
-	def build_bundle(self):
-		if self.is_complete():
-			composition, mapping_class = self.create_composition()
-			if mapping_class is not None:
-				path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
-				if path != '':
-					try:
-						try:
-							splittings = mapping_class.splitting_sequences()
-						except flipper.AssumptionError:
-							tkMessageBox.showwarning('Lamination', 'Cannot build bundle, %s is not pseudo-Anosov.' % composition)
-						except flipper.ComputationError:
-							tkMessageBox.showwarning('Lamination', 'Could not build bundle, %s is probably reducible.' % composition)
-						else:
-							# There may be more than one isometry, for now let's just pick the first. We'll worry about this eventually.
-							splitting = splittings[0]
-							bundle = splitting.bundle()
-							with open(path, 'wb') as disk_file:
-								disk_file.write(bundle.snappy_string())
-							description = 'It was built using the first of %d isometries.\n' % len(splittings) + \
-							'It has %d cusp(s) with the following properties (in order):\n' % bundle.num_cusps + \
-							'Real types: %s\n' % bundle.real_cusps + \
-							'Fibre slopes: %s\n' % bundle.fibre_slopes + \
-							'Degeneracy slopes: %s\n' % bundle.degeneracy_slopes
-							tkMessageBox.showinfo('Bundle', description)
-					except IOError:
-						tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
-					finally:
-						disk_file.close()
+		else:
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute composition on an incomplete triangulation.')
 	
 	
 	######################################################################
@@ -1316,6 +1256,8 @@ class FlipperApp(object):
 					if possible_object.free_sides() > 0:
 						self.select_object(possible_object)
 				elif isinstance(possible_object, flipper.app.CanvasVertex):
+					self.select_object(possible_object)
+				elif isinstance(possible_object, flipper.app.CurveComponent):
 					self.select_object(possible_object)
 			elif isinstance(self.selected_object, flipper.app.CanvasVertex):
 				if possible_object == self.selected_object:
@@ -1406,9 +1348,9 @@ class FlipperApp(object):
 			self.canvas_right_click(event)
 		elif key == 'F1':
 			self.show_help()
-		elif key == 'Prior' or key == 'equal' or key == 'plus':
+		elif key == 'equal' or key == 'plus':
 			self.zoom_in()
-		elif key == 'Next' or key == 'minus' or key == 'underscore':
+		elif key == 'minus' or key == 'underscore':
 			self.zoom_centre(0.95)
 		elif key == '0':
 			self.zoom_to_drawing()
@@ -1438,9 +1380,9 @@ class FlipperApp(object):
 		if 'show_lamination' in tags:
 			self.lamination_to_canvas(self.equipped_triangulation.laminations[name])
 		elif 'apply_mapping_class' in tags:
-			self.show_apply(self.equipped_triangulation.mapping_classes[name])
+			self.lamination_to_canvas(self.equipped_triangulation.mapping_classes[name](self.canvas_to_lamination()))
 		elif 'apply_mapping_class_inverse' in tags:
-			self.show_apply(self.equipped_triangulation.mapping_classes[name.swapcase()])
+			self.lamination_to_canvas(self.equipped_triangulation.mapping_classes[name.swapcase()](self.canvas_to_lamination()))
 	
 	def treeview_objects_double_left_click(self, event):
 		self.treeview_objects_left_click(event)
@@ -1483,17 +1425,40 @@ class FlipperApp(object):
 				update_cache_progression(mapping_class, 'invariant_lamination')
 				
 				_, lamination = mapping_class.invariant_lamination()
-				self.treeview_objects.item(iid, text='Invariant lamination')
 				self.lamination_to_canvas(lamination)
 				self.unsaved_work = True
 			except flipper.AssumptionError:
-				self.unsaved_work = True
-				self.treeview_objects.item(iid, text='Invariant lamination: x')
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
+				self.unsaved_work = True
 			except flipper.ComputationError:
 				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
+		elif 'mapping_class_bundle' in tags:
+			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
+			if path != '':
+				try:
+					mapping_class = self.equipped_triangulation.mapping_classes[name]
+					update_cache_progression(mapping_class, 'splitting_sequences')
+					
+					splittings = mapping_class.splitting_sequences()
+					splitting = splittings[0]
+					bundle = splitting.bundle()
+					with open(path, 'wb') as disk_file:
+						disk_file.write(bundle.snappy_string())
+					desc = 'It was built using the first of %d isometries.\n' % len(splittings)
+					desc += 'Cusp properties:\n'
+					for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
+						desc += '\tCusp %s (%s): Fibre slope %s, degeneracy slope %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy)
+					tkMessageBox.showinfo('Bundle', desc)
+				except flipper.AssumptionError:
+					tkMessageBox.showwarning('Bundle', 'Cannot build bundle, mapping class is not pseudo-Anosov.')
+				except flipper.ComputationError:
+					tkMessageBox.showwarning('Bundle', 'Could not build bundle, mapping class is probably reducible.')
+				except flipper.AbortError:
+					pass
+				except IOError:
+					tkMessageBox.showwarning('Save Error', 'Could not write to: %s' % path)
 		else:
 			pass
 

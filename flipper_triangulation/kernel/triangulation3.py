@@ -263,7 +263,7 @@ class Triangulation3(object):
 		
 		return intersection_number
 	
-	def install_longitudes_and_meridians(self):
+	def install_peripheral_curves(self):
 		''' Assign a longitude and meridian to each cusp. '''
 		
 		# Install the cusp indices.

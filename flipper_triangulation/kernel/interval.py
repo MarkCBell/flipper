@@ -143,7 +143,6 @@ class Interval(object):
 		return -(self - other)
 	def __mul__(self, other):
 		if isinstance(other, Interval):
-			d = abs(self.precision - other.precision)
 			values = [
 				self.lower * other.lower,
 				self.upper * other.lower,

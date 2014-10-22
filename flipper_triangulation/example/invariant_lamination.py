@@ -6,17 +6,17 @@ import flipper
 
 def main(n=100):
 	times = {}
-	surface = 'S_3_1'
+	surface = 'S_1_2'
 	S = flipper.load.equipped_triangulation(surface)
 	for index in range(n):
-		word = S.random_word(12)  # , negative=False)
+		word = S.random_word(40)  # , negative=False)
 		print('%3d/%d: %s %s' % (index+1, n, surface, word.replace('.', '')), end='')
 		mapping_class = S.mapping_class(word)
 		t = time()
 		try:
 			mapping_class.invariant_lamination()
 		except flipper.AssumptionError:
-			pass  # mapping_class is not pseudo-Anosov.
+			print(', Claim: not pA', end='')
 		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 		# fails to find an invariant lamination.
 		times[word] = time() - t

@@ -25,7 +25,7 @@ def is_degenerate(manifold):
 
 ###########################################################################
 
-def Example_H2():
+def vincents_example():
 	T = flipper.create_triangulation([[3, 0, ~4], [4, ~5, ~0], [5, 2, ~6], [6, ~7, ~1], [7, 1, ~8], [8, ~3, ~2]])
 	
 	a = T.encode_flips_and_close([4], 3, 3)
@@ -50,7 +50,7 @@ possible_examples = [
 ]
 
 def test1():
-	S = Example_H2()
+	S = vincents_example()
 	for word in possible_examples:
 		start_time = time()
 		word = word.strip()
@@ -70,7 +70,7 @@ def test1():
 		print('Time %0.3f' % (time() - start_time))
 
 def test2():
-	S = Example_H2()
+	S = vincents_example()
 	# S = flipper.load.equipped_triangulation('S_2_1')
 	# S = flipper.load.equipped_triangulation('S_1_2')
 	while True:
@@ -89,7 +89,7 @@ def test2():
 			pass  # Mapping class is not pseudo-Anosov.
 
 def test3():
-	S = Example_H2()
+	S = vincents_example()
 	h = S.mapping_class('CbCA')  # 6 tetrahedra.
 	# h = S.mapping_class('Bcc')  # 10 tetrahedra.
 	# h = S.mapping_class('abbbb')  # 13 tetrahedra.  HIS example.

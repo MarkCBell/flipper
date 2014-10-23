@@ -13,9 +13,9 @@ class Lamination(object):
 	triangulation. If remove_peripheral is True then the Lamination is
 	allowed to rescale its weights (by a factor of 2) in order to remove
 	any peripheral components / satifsy the triangle inequalities. '''
-	def __init__(self, triangulation, vector, remove_peripheral=True):
+	def __init__(self, triangulation, geometric, remove_peripheral=True):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
-		assert(all(isinstance(entry, object) for entry in vector))
+		assert(all(isinstance(entry, object) for entry in geometric))
 		assert(isinstance(remove_peripheral, bool))
 		
 		self.triangulation = triangulation
@@ -28,26 +28,26 @@ class Lamination(object):
 			def dual_weight(corner):
 				''' Return double the weight of normal arc corresponding to the given corner. '''
 				
-				return vector[corner.indices[1]] + vector[corner.indices[2]] - vector[corner.index]
+				return geometric[corner.indices[1]] + geometric[corner.indices[2]] - geometric[corner.index]
 			
 			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
 			# If there is any add / remove it.
 			if any(peripheral.values()):
-				# Really should be vector[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
-				vector = [2*vector[i] - sum(peripheral[v] for v in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
+				# Really should be geometric[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
+				geometric = [2*geometric[i] - sum(peripheral[v] for v in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
 		
-		assert(flipper.kernel.matrix.nonnegative(vector))
-		self.vector = list(vector)
+		assert(flipper.kernel.matrix.nonnegative(geometric))
+		self.geometric = list(geometric)
 		
 		self._cache = {}  # For caching hard to compute results.
 	
 	def copy(self):
 		''' Return a copy of this lamination. '''
 		
-		return Lamination(self.triangulation, list(self.vector))
+		return Lamination(self.triangulation, list(self.geometric))
 	
 	def __repr__(self):
-		return str(self.vector)
+		return str(self.geometric)
 	
 	def projective_string(self):
 		''' Return a string describing this lamination in PML. '''
@@ -56,13 +56,13 @@ class Lamination(object):
 		return str([float(x) / w for x in self])
 	
 	def __iter__(self):
-		return iter(self.vector)
+		return iter(self.geometric)
 	
 	def __getitem__(self, item):
 		if isinstance(item, flipper.IntegerType):
-			return self.vector[flipper.kernel.norm(item)]
+			return self.geometric[flipper.kernel.norm(item)]
 		elif isinstance(item, flipper.kernel.Edge):
-			return self.vector[item.index]
+			return self.geometric[item.index]
 		else:
 			return NotImplemented
 	
@@ -76,7 +76,7 @@ class Lamination(object):
 	
 	def __hash__(self):
 		# This should be done better.
-		return hash(tuple(self.vector))
+		return hash(tuple(self.geometric))
 	
 	def __add__(self, other):
 		if isinstance(other, Lamination):
@@ -138,9 +138,9 @@ class Lamination(object):
 		return tuple(sorted([x.algebraic_hash_ratio(w) for x in self]))
 	
 	def weight(self):
-		''' Return the sum of the vector of this lamination. '''
+		''' Return the sum of the geometric of this lamination. '''
 		
-		return sum(self.vector)
+		return sum(self.geometric)
 	
 	def is_multicurve(self):
 		''' Return if this lamination is a multicurve. '''
@@ -450,9 +450,9 @@ class Lamination(object):
 		new_triangles = [flipper.kernel.Triangle(triple) for triple in triples]
 		
 		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
-		new_vector = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
+		new_geometric = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
 		
-		return flipper.kernel.Triangulation(new_triangles).lamination(new_vector)
+		return flipper.kernel.Triangulation(new_triangles).lamination(new_geometric)
 	
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
@@ -467,7 +467,7 @@ class Lamination(object):
 		(yet) know how to describe this by a PLFunction but only happens
 		because we punctured too many triangles to begin with.
 		
-		This requires the entries of self.vector to be NumberFieldElements
+		This requires the entries of self.geometric to be NumberFieldElements
 		(over the same NumberField) or AlgebraicNumbers. '''
 		
 		# Check if the lamination is obviously non-filling.

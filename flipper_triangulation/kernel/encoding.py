@@ -169,7 +169,7 @@ class Encoding(object):
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
-			vector = other.vector
+			vector = other.geometric
 			for A in reversed(self):
 				vector = A(vector)
 			# If other has no peripheral components then self(other) does too.
@@ -208,7 +208,7 @@ class Encoding(object):
 	def find_indices(self, lamination, count_all=True):
 		''' Return the list of indices describing the cell this lamination lies in. '''
 		
-		vector = lamination.vector
+		vector = lamination.geometric
 		indices = []
 		for A in reversed(self):
 			if count_all or len(A) > 1: indices.append(A.applied_index(vector))  # We might not record ones with no choice.

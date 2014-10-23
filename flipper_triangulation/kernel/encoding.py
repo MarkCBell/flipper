@@ -1,7 +1,7 @@
 
 ''' A module for representing and manipulating maps between Triangulations.
 
-Provides two classes: PartialFunction, PLFunction and Encoding. '''
+Provides four classes: PartialFunction, BasicPLFunction, PLFunction and Encoding. '''
 
 import flipper
 

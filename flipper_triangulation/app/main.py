@@ -1080,7 +1080,7 @@ class FlipperApp(object):
 		else:
 			vector = [i / 2 for i in vector]
 		
-		current_vector = self.current_lamination.vector
+		current_vector = self.current_lamination.geometric
 		new_vector = [a+b for a, b in zip(vector, current_vector)]
 		try:
 			self.current_lamination = self.equipped_triangulation.triangulation.lamination(new_vector)

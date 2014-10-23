@@ -28,6 +28,7 @@ Triangulation = triangulation.Triangulation
 Corner = triangulation.Corner
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 PartialFunction = encoding.PartialFunction
+BasicPLFunction = encoding.BasicPLFunction
 PLFunction = encoding.PLFunction
 Encoding = encoding.Encoding
 AbortError = error.AbortError
@@ -48,7 +49,6 @@ Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
 Triangulation3 = triangulation3.Triangulation3
 
-empty_matrix = matrix.empty_matrix
 id_matrix = matrix.id_matrix
 zero_matrix = matrix.zero_matrix
 dot = matrix.dot

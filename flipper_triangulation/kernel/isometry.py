@@ -90,4 +90,6 @@ class Isometry(object):
 		f = [flipper.kernel.PartialFunction(self.permutation().matrix())]
 		b = [flipper.kernel.PartialFunction(self.inverse().permutation().matrix())]
 		
-		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [flipper.kernel.PLFunction(f, b)])
+		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation,
+			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction(f, b)]))
+

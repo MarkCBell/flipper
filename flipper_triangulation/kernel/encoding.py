@@ -20,7 +20,7 @@ class PartialFunction(object):
 		assert(condition is None or isinstance(condition, flipper.kernel.Matrix))
 		
 		self.action = action
-		self.condition = condition if condition is not None else flipper.kernel.empty_matrix()
+		self.condition = condition if condition is not None else flipper.kernel.zero_matrix(self.action.width)
 	
 	def __str__(self):
 		return '%s\n%s' % (self.action, self.condition)
@@ -45,7 +45,7 @@ class PartialFunction(object):
 		
 		raise TypeError('Object is not in domain.')
 
-class PLFunction(object):
+class BasicPLFunction(object):
 	''' This represent the piecewise-linear map from RR^m to RR^n. '''
 	def __init__(self, partial_functions, inverse_partial_functions=None):
 		assert(all(isinstance(function, PartialFunction) for function in partial_functions))
@@ -54,6 +54,7 @@ class PLFunction(object):
 		
 		self.partial_functions = partial_functions
 		self.inverse_partial_functions = inverse_partial_functions if inverse_partial_functions is not None else []
+		self.zeta = self.partial_functions[0].action.width
 	
 	def __iter__(self):
 		return iter(self.partial_functions)
@@ -65,10 +66,10 @@ class PLFunction(object):
 		return self.partial_functions[index]
 	
 	def __mul__(self, other):
-		if isinstance(other, PLFunction):
+		if isinstance(other, BasicPLFunction):
 			partial_functions = [func1 * func2 for func1 in self for func2 in other]
 			inverse_partial_functions = [func2 * func1 for func1 in self.inverse_partial_functions for func2 in other.inverse_partial_functions]
-			return PLFunction(partial_functions, inverse_partial_functions)
+			return BasicPLFunction(partial_functions, inverse_partial_functions)
 		else:
 			return NotImplemented
 	
@@ -86,7 +87,7 @@ class PLFunction(object):
 		if not self.inverse_partial_functions:
 			raise TypeError('Function is not invertible.')
 		
-		return PLFunction(self.inverse_partial_functions, self.partial_functions)
+		return BasicPLFunction(self.inverse_partial_functions, self.partial_functions)
 	def applied_index(self, vector):
 		''' Return the index of the partial function that would be applied to this vector. '''
 		
@@ -99,19 +100,9 @@ class PLFunction(object):
 		
 		raise TypeError('Point is not in domain.')
 
-class Encoding(object):
-	''' This represents a map between two Triagulations.
-	
-	If it maps to and from the same triangulation then it represents
-	a mapping class. This can be checked using self.is_mapping_class().
-	
-	The map is given by a sequence of PLFunctions whose composition is
-	the action on the edge weights. '''
-	def __init__(self, source_triangulation, target_triangulation, sequence):
-		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-		assert(all(isinstance(function, PLFunction) for function in sequence))
-		
+class PLFunction(object):
+	''' This represents the composition of a sequence of BasicPLFunctions. '''
+	def __init__(self, sequence):
 		# Collapse away the PLFunctions of length 1 (the ones with no branching).
 		new_sequence = []
 		current = None
@@ -128,8 +119,96 @@ class Encoding(object):
 		sequence = new_sequence
 		
 		self.sequence = sequence
+		self.zeta = self.sequence[0].zeta
+	
+	def __len__(self):
+		return len(self.sequence)
+	def __repr__(self):
+		return 'PLfunction (made from %d BasicPLFunctions)' % len(self)
+	def __iter__(self):
+		return iter(self.sequence)
+	def __getitem__(self, key):
+		if isinstance(key, slice):
+			return PLFunction(self.sequence[key])
+		elif isinstance(key, flipper.IntegerType):
+			return self.sequence[key]
+		else:
+			raise TypeError('Invalid argument type.')
+	def __hash__(self):
+		return hash(tuple(self.sequence))
+	def __call__(self, vector):
+		for A in reversed(self):
+			vector = A(vector)
+		return vector
+	def __mul__(self, other):
+		if isinstance(other, PLFunction):
+			return PLFunction(self.sequence + other.sequence)
+		else:
+			return NotImplemented
+	def __pow__(self, power):
+		if power == 0:
+			return self * self.inverse()  # Just to make sure we remember the dimensions.
+		elif power > 0:
+			return PLFunction(self.sequence * power)
+		else:
+			return PLFunction(self.sequence * abs(power)).inverse()
+	
+	def inverse(self):
+		''' Return the inverse of this encoding. '''
+		
+		return PLFunction([A.inverse() for A in reversed(self)])
+	
+	def find_indices(self, vector, count_all=True):
+		''' Return the list of indices describing the cell this lamination lies in. '''
+		
+		indices = []
+		for A in reversed(self):
+			if count_all or len(A) > 1: indices.append(A.applied_index(vector))  # We might not record ones with no choice.
+			vector = A(vector)
+		
+		return indices
+	
+	def find_indices_compressed(self, vector):
+		''' Return the list of indices describing the cell this lamination lies in as a base64 string. '''
+		
+		return flipper.kernel.utilities.encode_binary(self.find_indices(vector, count_all=False))
+	
+	def applied_function(self, vector):
+		''' Return the partial function that will be applied to the lamination. '''
+		
+		return self.expand_indices(self.find_indices(vector))
+	
+	
+	def expand_indices(self, indices):
+		''' Return the partial function corresponding to the given list of indices.
+		
+		Note: Given indices = [a_0, ..., a_k] this returns choice[a_k] * ... * choice[a_0].
+		Be careful about the order in which you give the indices. '''
+		
+		As = flipper.kernel.id_matrix(self.zeta)
+		Cs = flipper.kernel.zero_matrix(self.zeta, 1)
+		for E, i in zip(reversed(self), indices):
+			Cs = Cs.join(E[i].condition * As)
+			As = E[i].action * As
+		
+		return PartialFunction(As, Cs)
+
+class Encoding(object):
+	''' This represents a map between two Triagulations.
+	
+	If it maps to and from the same triangulation then it represents
+	a mapping class. This can be checked using self.is_mapping_class().
+	
+	The map is given by a sequence of PLFunctions whose composition is
+	the action on the edge weights. '''
+	def __init__(self, source_triangulation, target_triangulation, geometric):
+		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(geometric, PLFunction))
+		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
+		self.geometric = geometric
 		self.zeta = self.source_triangulation.zeta
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -142,18 +221,10 @@ class Encoding(object):
 		return self.source_triangulation == self.target_triangulation
 	
 	def __len__(self):
-		return len(self.sequence)
+		return len(self.geometric)
 	def __repr__(self):
-		return 'PLfunction (%d flips)' % len(self)
-	def __iter__(self):
-		return iter(self.sequence)
-	def __getitem__(self, key):
-		if isinstance(key, slice):
-			return Encoding(self.sequence[key])
-		elif isinstance(key, flipper.IntegerType):
-			return self.sequence[key]
-		else:
-			raise TypeError('Invalid argument type.')
+		return 'Encoding (%d flips)' % len(self)
+	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.source_triangulation or \
@@ -163,15 +234,13 @@ class Encoding(object):
 			return all(self(curve) == other(curve) for curve in self.source_triangulation.key_curves())
 		else:
 			return NotImplemented
-	def __hash__(self):
-		return hash(tuple(self.sequence))
+	def __ne__(self, other):
+		return not (self == other)
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
-			vector = other.geometric
-			for A in reversed(self):
-				vector = A(vector)
+			vector = self.geometric(other.geometric)
 			# If other has no peripheral components then self(other) does too.
 			# Hence we can skip this check and save ~25% of the work.
 			return self.target_triangulation.lamination(vector, remove_peripheral=False)
@@ -181,7 +250,8 @@ class Encoding(object):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
-			return Encoding(other.source_triangulation, self.target_triangulation, self.sequence + other.sequence)
+			return Encoding(other.source_triangulation, self.target_triangulation,
+				self.geometric * other.geometric)
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -189,14 +259,14 @@ class Encoding(object):
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
-			return Encoding(self.source_triangulation, self.target_triangulation, self.sequence * k)
+			return Encoding(self.source_triangulation, self.target_triangulation, self.geometric**k)
 		else:
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
 		''' Return the inverse of this encoding. '''
 		
-		return Encoding(self.target_triangulation, self.source_triangulation, [A.inverse() for A in reversed(self)])
+		return Encoding(self.target_triangulation, self.source_triangulation, self.geometric.inverse())
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.
@@ -204,42 +274,6 @@ class Encoding(object):
 		These are the maps that can be used to close this into a mapping class. '''
 		
 		return self.target_triangulation.isometries_to(self.source_triangulation)
-	
-	def find_indices(self, lamination, count_all=True):
-		''' Return the list of indices describing the cell this lamination lies in. '''
-		
-		vector = lamination.geometric
-		indices = []
-		for A in reversed(self):
-			if count_all or len(A) > 1: indices.append(A.applied_index(vector))  # We might not record ones with no choice.
-			vector = A(vector)
-		
-		return indices
-	
-	def find_indices_compressed(self, lamination):
-		''' Return the list of indices describing the cell this lamination lies in as a base64 string. '''
-		
-		return flipper.kernel.utilities.encode_binary(self.find_indices(lamination, count_all=False))
-	
-	def applied_function(self, lamination):
-		''' Return the partial function that will be applied to the lamination. '''
-		
-		return self.expand_indices(self.find_indices(lamination))
-	
-	
-	def expand_indices(self, indices):
-		''' Return the partial function corresponding to the given list of indices.
-		
-		Note: Given indices = [a_0, ..., a_k] this returns choice[a_k] * ... * choice[a_0].
-		Be careful about the order in which you give the indices. '''
-		
-		As = flipper.kernel.id_matrix(self.zeta)
-		Cs = flipper.kernel.empty_matrix()
-		for E, i in zip(reversed(self), indices):
-			Cs = Cs.join(E[i].condition * As)
-			As = E[i].action * As
-		
-		return PartialFunction(As, Cs)
 	
 	def order(self):
 		''' Return the order of this mapping class.
@@ -350,8 +384,8 @@ class Encoding(object):
 				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
-					# print('%s - %d, %d' % (self.find_indices_compressed(average_curve), i, j))
-					partial_function = (self**j).applied_function(average_curve)
+					# print('%s - %d, %d' % (self.geometric.find_indices_compressed(average_curve.geometric), i, j))
+					partial_function = (self**j).geometric.applied_function(average_curve.geometric)
 					if partial_function not in tested_cells:
 						tested_cells.append(partial_function)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition

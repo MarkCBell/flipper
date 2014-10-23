@@ -511,7 +511,8 @@ class Triangulation(object):
 		''' Return an encoding of the identity map on this triangulation. '''
 		
 		f = b = [flipper.kernel.PartialFunction(flipper.kernel.id_matrix(self.zeta))]
-		return flipper.kernel.Encoding(self, self, [flipper.kernel.PLFunction(f, b)])
+		id_pl_function = flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction(f, b)])
+		return flipper.kernel.Encoding(self, self, id_pl_function)
 	
 	def encode_flip(self, edge_index):
 		''' Return an encoding of the effect of flipping the given edge.
@@ -530,13 +531,11 @@ class Triangulation(object):
 		A2 = flipper.kernel.id_matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
 		C2 = flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		
-		f = flipper.kernel.PartialFunction(A1, C1)
-		g = flipper.kernel.PartialFunction(A2, C2)
+		f = f_inv = flipper.kernel.PartialFunction(A1, C1)
+		g = g_inv = flipper.kernel.PartialFunction(A2, C2)
 		
-		f_inv = flipper.kernel.PartialFunction(A1, C1)
-		g_inv = flipper.kernel.PartialFunction(A2, C2)
-		
-		return flipper.kernel.Encoding(self, new_triangulation, [flipper.kernel.PLFunction([f, g], [f_inv, g_inv])])
+		return flipper.kernel.Encoding(self, new_triangulation,
+			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([f, g], [f_inv, g_inv])]))
 	
 	def encode_flips(self, edge_indices):
 		''' Return an encoding of the effect of flipping the given sequences of edges. '''
@@ -587,7 +586,8 @@ class Triangulation(object):
 				triangles.append(triangle)
 		
 		T = flipper.kernel.Triangulation(triangles)
-		E = flipper.kernel.Encoding(self, T, [flipper.kernel.PLFunction([flipper.kernel.PartialFunction(M)])])
+		E = flipper.kernel.Encoding(self, T,
+			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([flipper.kernel.PartialFunction(M)])]))
 		
 		return E
 

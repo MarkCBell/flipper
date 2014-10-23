@@ -3,7 +3,7 @@
 
 Provides one class: Matrix.
 
-There are also helper functions: id_matrix, zero_matrix and empty_matrix. '''
+There are also helper functions: id_matrix and zero_matrix. '''
 
 import flipper
 
@@ -257,9 +257,4 @@ def zero_matrix(width, height=None):
 	
 	if height is None: height = width
 	return Matrix([[0] * width for _ in range(height)])
-
-def empty_matrix():
-	''' Return the empty matrix. '''
-	
-	return Matrix([])
 

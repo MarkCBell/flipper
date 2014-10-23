@@ -5,6 +5,7 @@ import flipper
 
 from sage.all import Matrix, Polyhedron, lcm, NumberField
 from flipper.kernel.symboliccomputation_dummy import project
+from math import log10 as log
 
 def minpoly_coefficients(number):
 	''' Return the list of coefficients of the minimal polynomial of the given number. '''
@@ -51,7 +52,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 					scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coeffs()]))
 					eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coeffs()] for entry in eigenvector]
 					
-					d = sum(abs(x) for x in eigenvalue_coefficients)
+					d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1
 					N = flipper.kernel.create_number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
 					return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 			else:

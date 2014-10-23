@@ -278,6 +278,14 @@ class PolynomialRoot(object):
 	def __repr__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	
+	def __eq__(self, other):
+		assert(isinstance(other, PolynomialRoot))
+		
+		accuracy_needed = self.height + self.log_degree + other.height + other.log_degree + 5
+		return self.algebraic_approximation(accuracy_needed) == other.algebraic_approximation(accuracy_needed)
+	def __ne__(self, other):
+		return not (self == other)
+	
 	def subdivide_iterate(self):
 		''' Return a subinterval of self.interval which contains a root of self.polynomial.
 		

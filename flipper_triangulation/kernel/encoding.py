@@ -440,6 +440,32 @@ class Encoding(object):
 				else:
 					return NT_TYPE_REDUCIBLE
 	
+	def is_conjugate_to(self, other):
+		''' Return if this mapping class is conjugate to other.
+		
+		Assumes that both encodings are pseudo-Anosov mapping classes. '''
+		
+		assert(self.is_mapping_class())
+		assert(isinstance(other, Encoding))
+		assert(other.is_mapping_class())
+		
+		splitting1 = self.splitting_sequences()[0]
+		splitting2 = other.splitting_sequences()[0]
+		
+		source_lamination = splitting1.initial_lamination
+		target_lamination = splitting2.initial_lamination
+		for edge_index in splitting2.periodic_flips:
+			try:
+				if source_lamination.all_projective_isometries(target_lamination):
+					return True
+			except TypeError:  # We cannot do arithmetic with these numbers because they lie in different fields.
+				return False
+			
+			f = target_lamination.triangulation.encode_flip(edge_index)
+			target_lamination = f(target_lamination)
+		
+		return False
+	
 	def dilatation(self, lamination):
 		''' Return the dilatation of this mapping class on the given lamination.
 		

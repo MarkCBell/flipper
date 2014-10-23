@@ -250,8 +250,7 @@ class Encoding(object):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
-			return Encoding(other.source_triangulation, self.target_triangulation,
-				self.geometric * other.geometric)
+			return Encoding(other.source_triangulation, self.target_triangulation, self.geometric * other.geometric)
 		else:
 			return NotImplemented
 	def __pow__(self, k):

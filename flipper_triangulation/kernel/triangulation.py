@@ -442,7 +442,8 @@ class Triangulation(object):
 			else:
 				isometries.append(flipper.kernel.Isometry(self, other_triangulation, corner_map))
 		
-		if respect_vertex_labels: isometries = [isom for isom in isometries if all((vertex.label >= 0) == (isom.vertex_map[vertex].label >= 0) for vertex in self.vertices)]
+		if respect_vertex_labels:
+			isometries = [isom for isom in isometries if all((vertex.label >= 0) == (isom.vertex_map[vertex].label >= 0) for vertex in self.vertices)]
 		return isometries
 	
 	def self_isometries(self):

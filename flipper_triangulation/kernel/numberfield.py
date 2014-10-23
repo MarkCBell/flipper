@@ -69,7 +69,9 @@ class NumberField(object):
 	def __repr__(self):
 		return 'QQ[%s]' % str(self.polynomial)
 	def __eq__(self, other):
-		return self.polynomial == other.polynomial
+		return self.polynomial == other.polynomial and self.polynomial_root == other.polynomial_root
+	def __ne__(self, other):
+		return not (self == other)
 	
 	def element(self, linear_combination):
 		''' Return a new element of this number field. '''

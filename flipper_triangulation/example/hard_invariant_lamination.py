@@ -36,7 +36,7 @@ def main():
 		('S_3_1', 'FdbEABAaGa'),  # These have there invariant laminations in the same cell!
 		('S_3_1', 'gEBGhCDHbdgF'),  # The invariant lamination does not have the top eigenvalue.
 		('S_3_1', 'edbcAdgGhdHf'),  # Some of these cells only have complex eigenvalues.
-		('S_1_2', 'axCxaCACABCcBXbxabCAACACxCCXXXacXCCCXcac')  # Takes a long time, like 200s long.
+		('S_1_2', 'axCxaCACABCcBXbxabCAACACxCCXXXacXCCCXcac'),  # Use to take a long time thanks to overestimated bounds.
 		]
 	
 	for index, (surface, word) in enumerate(examples):
@@ -47,7 +47,7 @@ def main():
 		try:
 			mapping_class.invariant_lamination_uncached()
 		except flipper.AssumptionError:
-			pass  # mapping_class is not pseudo-Anosov.
+			print(', Claim: not pA', end='')
 		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
 		# fails to find an invariant lamination. This is very bad so we wont try and catch
 		# this exception.

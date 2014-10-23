@@ -1161,17 +1161,15 @@ class FlipperApp(object):
 	
 	def tighten_lamination(self):
 		if self.is_complete():
-			lamination = self.canvas_to_lamination()
-			self.lamination_to_canvas(lamination)
+			self.lamination_to_canvas(self.canvas_to_lamination())
 	
-	def store_lamination(self, lamination=None):
+	def store_lamination(self):
 		if self.is_complete():
-			if lamination is None:  # Use the one currently drawn.
-				lamination = self.canvas_to_lamination()
-			
 			name = flipper.app.get_input('Name', 'New lamination name:', validate=self.valid_name)
 			if name is not None:
-				self.add_lamination(lamination, name)
+				self.add_lamination(self.canvas_to_lamination(), name)
+		else:
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot store lamination when triangulation is incomplete.')
 	
 	def store_twist(self, lamination=None):
 		if self.is_complete():
@@ -1185,7 +1183,7 @@ class FlipperApp(object):
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot twist about this, it is not a curve with punctured complementary regions.')
 		else:
-			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute twist on an incomplete triangulation.')
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute twist when triangulation is incomplete.')
 	
 	def store_halftwist(self, lamination=None):
 		if self.is_complete():
@@ -1199,7 +1197,7 @@ class FlipperApp(object):
 			else:
 				tkMessageBox.showwarning('Curve', 'Cannot half-twist about this, it is not an essential curve bounding a pair of pants with a punctured complement.')
 		else:
-			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute half twist on an incomplete triangulation.')
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute half twist when triangulation is incomplete.')
 	
 	def store_isometry(self):
 		if self.is_complete():
@@ -1217,7 +1215,7 @@ class FlipperApp(object):
 					if name is not None:
 						self.add_mapping_class(isometry.encode(), name)
 		else:
-			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute isometry of an incomplete triangulation.')
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute isometry when triangulation is incomplete.')
 	
 	def store_composition(self):
 		if self.is_complete():
@@ -1229,7 +1227,7 @@ class FlipperApp(object):
 					mapping_class = self.equipped_triangulation.mapping_class(composition)
 					self.add_mapping_class(mapping_class, name)
 		else:
-			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute composition on an incomplete triangulation.')
+			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute composition when triangulation is incomplete.')
 	
 	
 	######################################################################

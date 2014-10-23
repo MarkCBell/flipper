@@ -313,7 +313,6 @@ class PolynomialRoot(object):
 		
 		while self.interval.accuracy <= accuracy:
 			old_accuracy = self.interval.accuracy
-			# print(accuracy, old_accuracy)
 			try:
 				self.interval = self.newton_raphson_iterate()
 			except (ZeroDivisionError, ValueError):

@@ -443,12 +443,24 @@ class Encoding(object):
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.
 		
-		Assumes that both encodings are pseudo-Anosov mapping classes. '''
+		Currently, this doesn't quite work as it returns that
+		self ~~ self * p when p is a periodic mapping class which fixes
+		the stable lamination of self.
+		
+		It would also be straightforward to check if self^i ~~ other^j
+		for some i, j.
+		
+		Both encodings must be mapping classes.
+		
+		Assumes (and checks) that both mapping classes are pseudo-Anosov. '''
 		
 		assert(self.is_mapping_class())
 		assert(isinstance(other, Encoding))
 		assert(other.is_mapping_class())
 		
+		# This will fail with an Assumption error if the map is not pA.
+		# This can also fail with a flipper.ComputationError if
+		# self.invariant_lamination() fails to find an invariant lamination.
 		splitting1 = self.splitting_sequences()[0]
 		splitting2 = other.splitting_sequences()[0]
 		

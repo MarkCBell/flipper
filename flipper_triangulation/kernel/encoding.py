@@ -9,6 +9,22 @@ NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
+class LFunction(object):
+	''' Represents an invertible linear function from RR^m to RR^n. '''
+	def __init__(self, action, inverse_action):
+		self.action = action
+		self.inverse_action = inverse_action
+	def __call__(self, other):
+		return self.action * other
+	def __mul__(self, other):
+		return LFunction(self.action * other.action, other.inverse_action * self.inverse_action)
+	def __pow__(self, power):
+		return LFunction(self.action**power, self.inverse_action**power)
+	def inverse(self):
+		''' Return the inverse of this L function. '''
+		
+		return LFunction(self.inverse_action, self.action)
+
 class PartialFunction(object):
 	''' This represents a linear function from a subset of RR^m to RR^n.
 	
@@ -84,7 +100,7 @@ class BasicPLFunction(object):
 	def inverse(self):
 		''' Return the inverse of this PL function. '''
 		
-		if not self.inverse_partial_functions:
+		if self.inverse_partial_functions is None:
 			raise TypeError('Function is not invertible.')
 		
 		return BasicPLFunction(self.inverse_partial_functions, self.partial_functions)
@@ -201,14 +217,16 @@ class Encoding(object):
 	
 	The map is given by a sequence of PLFunctions whose composition is
 	the action on the edge weights. '''
-	def __init__(self, source_triangulation, target_triangulation, geometric):
+	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(geometric, PLFunction))
+		assert(isinstance(algebraic, LFunction))
 		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.geometric = geometric
+		self.algebraic = algebraic
 		self.zeta = self.source_triangulation.zeta
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -240,17 +258,19 @@ class Encoding(object):
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
-			vector = self.geometric(other.geometric)
+			geometric = self.geometric(other.geometric)
+			algebraic = self.algebraic(other.algebraic)
 			# If other has no peripheral components then self(other) does too.
 			# Hence we can skip this check and save ~25% of the work.
-			return self.target_triangulation.lamination(vector, remove_peripheral=False)
+			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic, remove_peripheral=False)
 		else:
 			return NotImplemented
 	def __mul__(self, other):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
-			return Encoding(other.source_triangulation, self.target_triangulation, self.geometric * other.geometric)
+			return Encoding(other.source_triangulation, self.target_triangulation,
+				self.geometric * other.geometric, self.algebraic * other.algebraic)
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -258,14 +278,14 @@ class Encoding(object):
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
-			return Encoding(self.source_triangulation, self.target_triangulation, self.geometric**k)
+			return Encoding(self.source_triangulation, self.target_triangulation, self.geometric**k, self.algebraic**k)
 		else:
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
 		''' Return the inverse of this encoding. '''
 		
-		return Encoding(self.target_triangulation, self.source_triangulation, self.geometric.inverse())
+		return Encoding(self.target_triangulation, self.source_triangulation, self.geometric.inverse(), self.algebraic.inverse())
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.
@@ -549,4 +569,13 @@ class Encoding(object):
 		
 		# Eventually we should choose only one of the splittings.
 		return splittings
+
+def id_l_function(dim):
+	id_matrix = flipper.kernel.id_matrix(dim)
+	return LFunction(id_matrix, id_matrix)
+
+def id_pl_function(dim):
+	id_partial = PartialFunction(flipper.kernel.id_matrix(dim))
+	f = BasicPLFunction([id_partial], [id_partial])
+	return PLFunction([f])
 

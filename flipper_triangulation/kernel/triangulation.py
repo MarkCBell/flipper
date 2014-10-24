@@ -472,10 +472,13 @@ class Triangulation(object):
 			return isometry
 	
 	# Laminations we can build on the triangulation.
-	def lamination(self, vector, remove_peripheral=True):
+	def lamination(self, geometric, algebraic=None, remove_peripheral=True):
 		''' Return a new lamination on this surface assigning the specified weight to each edge. '''
 		
-		return flipper.kernel.Lamination(self, vector, remove_peripheral)
+		if algebraic is None: algebraic = [0] * self.zeta
+		# If we have a curve we should compute the algebraic intersection numbers.
+		
+		return flipper.kernel.Lamination(self, geometric, algebraic, remove_peripheral)
 	
 	def empty_lamination(self):
 		''' Return an empty lamination on this surface. '''
@@ -510,9 +513,7 @@ class Triangulation(object):
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
 		
-		f = b = [flipper.kernel.PartialFunction(flipper.kernel.id_matrix(self.zeta))]
-		id_pl_function = flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction(f, b)])
-		return flipper.kernel.Encoding(self, self, id_pl_function)
+		return flipper.kernel.Encoding(self, self, flipper.kernel.id_pl_function(self.zeta), flipper.kernel.id_l_function(self.zeta))
 	
 	def encode_flip(self, edge_index):
 		''' Return an encoding of the effect of flipping the given edge.
@@ -531,11 +532,13 @@ class Triangulation(object):
 		A2 = flipper.kernel.id_matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
 		C2 = flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		
+		# These functions are their own inverses.
 		f = f_inv = flipper.kernel.PartialFunction(A1, C1)
 		g = g_inv = flipper.kernel.PartialFunction(A2, C2)
 		
 		return flipper.kernel.Encoding(self, new_triangulation,
-			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([f, g], [f_inv, g_inv])]))
+			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([f, g], [f_inv, g_inv])]),
+			flipper.kernel.id_l_function(self.zeta))  # !?! TO DO.
 	
 	def encode_flips(self, edge_indices):
 		''' Return an encoding of the effect of flipping the given sequences of edges. '''
@@ -552,44 +555,7 @@ class Triangulation(object):
 		
 		E = self.encode_flips(edge_indices)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
-	
-	def encode_puncture_triangles(self, to_puncture):
-		''' Return an encoding from this triangulation to one in which each triangle
-		on the list to_puncture has been punctured, that is the triangulation obtained
-		by applying 1-->3 Pachner moves to the given triangles. '''
-		
-		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
-		
-		old_zeta = self.zeta
-		M = flipper.kernel.id_matrix(old_zeta) * 2
-		
-		zeta = self.zeta
-		triangles = []
-		num_new_vertices = 0
-		for triangle in self:
-			A, B, C = triangle.indices
-			if triangle in to_puncture:
-				x, y, z = triangle.vertices
-				num_new_vertices += 1
-				w = Vertex(-num_new_vertices)
-				p, q, r = triangle.edges
-				s, t, u = [Edge(w, x, zeta), Edge(w, y, zeta+1), Edge(w, z, zeta+2)]
-				triangles.append(Triangle([p, ~u, t]))
-				triangles.append(Triangle([q, ~s, u]))
-				triangles.append(Triangle([r, ~t, s]))
-				
-				X = flipper.kernel.zero_matrix(old_zeta, 3).tweak([(0, B), (0, C), (1, A), (1, C), (2, A), (2, B)], [(0, A), (1, B), (2, C)])
-				M = M.join(X)
-				
-				zeta += 3
-			else:
-				triangles.append(triangle)
-		
-		T = flipper.kernel.Triangulation(triangles)
-		E = flipper.kernel.Encoding(self, T,
-			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([flipper.kernel.PartialFunction(M)])]))
-		
-		return E
+
 
 def create_triangulation(all_labels):
 	''' Return an Triangulation from a list of triples of edge labels.

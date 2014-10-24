@@ -71,12 +71,18 @@ class Matrix(object):
 	def __rsub__(self, other):
 		return -(self - other)
 	
+	def __call__(self, other):
+		assert(isinstance(other, (list, tuple)))
+		assert(self.width == 0 or self.width == len(other))
+		return [dot(row, other) for row in self]
+	
 	def __mul__(self, other):
 		if isinstance(other, Matrix):
 			assert(self.width == 0 or self.width == len(other))
 			other_transpose = other.transpose()
 			return Matrix([[dot(a, b) for b in other_transpose] for a in self])
 		elif isinstance(other, list):  # other is a vector.
+			assert(False)
 			assert(self.width == 0 or self.width == len(other))
 			return [dot(row, other) for row in self]
 		else:  # Multiply entry wise.

@@ -15,7 +15,7 @@ class LFunction(object):
 		self.action = action
 		self.inverse_action = inverse_action
 	def __call__(self, other):
-		return self.action * other
+		return self.action(other)
 	def __mul__(self, other):
 		return LFunction(self.action * other.action, other.inverse_action * self.inverse_action)
 	def __pow__(self, power):
@@ -57,7 +57,7 @@ class PartialFunction(object):
 	
 	def __call__(self, other):
 		if self.condition.nonnegative_image(other):
-			return self.action * other
+			return self.action(other)
 		
 		raise TypeError('Object is not in domain.')
 

@@ -295,53 +295,6 @@ class Lamination(object):
 		
 		return self[corner.indices[1]] + self[corner.indices[2]] == self[corner.indices[0]]
 	
-	def open_bipod(self, corner):
-		''' Return an encoding flipping the edge opposite this corner along with a new corner class.
-		
-		This lamination must be a bipod wrt the given corner. '''
-		
-		assert(self.is_bipod(corner))
-		assert(self.triangulation.is_flippable(corner.label))
-		# #-----------#     #-----------#
-		# |c    l    /|     |\C2       A|
-		# |         / |     | \         |
-		# |        /  |     |C1\        |
-		# |       /   |     |   \       |
-		# |r    e/    | --> |    \e'    |
-		# |     /     |     |     \     |
-		# |    /      |     |      \    |
-		# |   /       |     |       \   |
-		# |  /        |     |        \  |
-		# | /         |     |         \ |
-		# |/          |     |B         \|
-		# #-----------#     #-----------#
-		
-		edge = corner.label
-		left, right = corner.labels[1], corner.labels[2]
-		encoding = self.triangulation.encode_flip(edge)
-		new_lamination = encoding(self)
-		new_triangulation = new_lamination.triangulation
-		for corner in [new_triangulation.corner_of_edge(edge), new_triangulation.corner_of_edge(~edge)]:
-			for side in range(3):
-				if corner.labels[side] == left and new_lamination.is_bipod(corner.rotate(-1)):
-					return encoding, corner.rotate(-1)
-				if corner.labels[side] == right and new_lamination.is_bipod(corner.rotate(1)):
-					return encoding, corner.rotate(1)
-		
-		return encoding, None
-	
-	def repeatedly_open_bipod(self, corner):
-		''' Return the encoding which opens the given bipod until it is no longer a bipod. '''
-		
-		encoding = self.triangulation.id_encoding()
-		lamination = self
-		while corner is not None:
-			open_encoding, corner = lamination.open_bipod(corner)
-			encoding = open_encoding * encoding
-			lamination = open_encoding(lamination)
-		
-		return encoding
-	
 	def is_tripod(self, triangle):
 		''' Return if the lamination looks like a tripod in this triangle. '''
 		

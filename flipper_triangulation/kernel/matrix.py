@@ -88,13 +88,17 @@ class Matrix(object):
 		
 		if power == 0:
 			return id_matrix(self.width)
-		if power > 0:
+		elif power == 1:
+			return self
+		elif power > 1:
 			sqrt = self**(power//2)
 			square = sqrt * sqrt
 			if power % 2 == 1:
 				return self * square
 			else:
 				return square
+		else:  # power < 0.
+			raise TypeError('Can only raise matrices to positive powers.')
 	
 	def is_square(self):
 		''' Return if this matrix is square. '''

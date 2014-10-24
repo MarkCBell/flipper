@@ -13,7 +13,7 @@ class Lamination(object):
 	triangulation. If remove_peripheral is True then the Lamination is
 	allowed to rescale its weights (by a factor of 2) in order to remove
 	any peripheral components / satifsy the triangle inequalities. '''
-	def __init__(self, triangulation, geometric, remove_peripheral=True):
+	def __init__(self, triangulation, geometric, algebraic, remove_peripheral=True):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(entry, object) for entry in geometric))
 		assert(isinstance(remove_peripheral, bool))
@@ -38,13 +38,14 @@ class Lamination(object):
 		
 		assert(flipper.kernel.matrix.nonnegative(geometric))
 		self.geometric = list(geometric)
+		self.algebraic = algebraic
 		
 		self._cache = {}  # For caching hard to compute results.
 	
 	def copy(self):
 		''' Return a copy of this lamination. '''
 		
-		return Lamination(self.triangulation, list(self.geometric))
+		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic))
 	
 	def __repr__(self):
 		return str(self.geometric)
@@ -355,10 +356,42 @@ class Lamination(object):
 		
 		return [triangle for triangle in self.triangulation if self.is_tripod(triangle)]
 	
-	def is_tripod_free(self):
-		''' Return if this lamination has a tripod in any triangle. '''
+	def puncture_tripods(self):
+		''' Return the lamination obtained by puncturing each triangle where self is a tripod'''
 		
-		return not any(self.tripod_regions())
+		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
+		
+		to_puncture = self.tripod_regions()
+		old_zeta = self.zeta
+		geometric = [2*entry for entry in self]
+		
+		zeta = self.zeta
+		triangles = []
+		num_new_vertices = 0
+		for triangle in self.triangulation:
+			A, B, C = triangle.indices
+			if triangle in to_puncture:
+				x, y, z = triangle.vertices
+				num_new_vertices += 1
+				w = flipper.kernel.Vertex(-num_new_vertices)
+				p, q, r = triangle.edges
+				s, t, u = [flipper.kernel.Edge(w, x, zeta), flipper.kernel.Edge(w, y, zeta+1), flipper.kernel.Edge(w, z, zeta+2)]
+				triangles.append(flipper.kernel.Triangle([p, ~u, t]))
+				triangles.append(flipper.kernel.Triangle([q, ~s, u]))
+				triangles.append(flipper.kernel.Triangle([r, ~t, s]))
+				
+				geometric.append(self[B] + self[C] - self[A])
+				geometric.append(self[C] + self[A] - self[B])
+				geometric.append(self[A] + self[B] - self[C])
+				
+				zeta += 3
+			else:
+				triangles.append(triangle)
+		
+		algebraic = [0] * zeta
+		
+		T = flipper.kernel.Triangulation(triangles)
+		return Lamination(T, geometric, algebraic, remove_peripheral=False)
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index.
@@ -474,11 +507,10 @@ class Lamination(object):
 		if any(v == 0 for v in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
-		# If not given, puncture all the triangles where the lamination is a tripod.
-		puncture_encoding = self.triangulation.encode_puncture_triangles(self.tripod_regions())
-		lamination = puncture_encoding(self)
+		# Puncture all the triangles where the lamination is a tripod.
+		lamination = self.puncture_tripods()
 		
-		encodings = [puncture_encoding]
+		encodings = [None]
 		laminations = [lamination]
 		num_isometries = [len(lamination.self_isometries())]
 		flips = []

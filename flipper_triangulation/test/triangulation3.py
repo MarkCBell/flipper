@@ -15,7 +15,7 @@ def test(surface, word, target):
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')
 	
-	if snappy is None:  # !?! We should also check that the version is > 2.0.4 so that twister exists.
+	if snappy is None:  # We really should check that the version is > 2.0.4 so that twister exists.
 		print('SnapPy required but unavailable, tests skipped.')
 		return True
 	

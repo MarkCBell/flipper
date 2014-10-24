@@ -475,15 +475,17 @@ class Triangulation(object):
 	def lamination(self, geometric, algebraic=None, remove_peripheral=True):
 		''' Return a new lamination on this surface assigning the specified weight to each edge. '''
 		
-		if algebraic is None: algebraic = [0] * self.zeta
+		lamination = flipper.kernel.Lamination(self, geometric, [0] * self.zeta if algebraic is None else algebraic, remove_peripheral)
 		# If we have a curve we should compute the algebraic intersection numbers.
-		
-		return flipper.kernel.Lamination(self, geometric, algebraic, remove_peripheral)
+		if algebraic is None and lamination.is_curve():
+			return lamination.with_algebraic()
+		else:
+			return lamination
 	
 	def empty_lamination(self):
 		''' Return an empty lamination on this surface. '''
 		
-		return self.lamination([0] * self.zeta)
+		return flipper.kernel.Lamination(self, [0] * self.zeta, [0] * self.zeta, remove_peripheral=False)
 	
 	def regular_neighbourhood(self, edge_label):
 		''' Return the lamination which is the boundary of a regular neighbourhood of the given edge.
@@ -492,13 +494,32 @@ class Triangulation(object):
 		
 		assert(self.is_flippable(edge_label))
 		
-		vector = [0] * self.zeta
-		for vertex in set(self.vertices_of_edge(edge_label)):
-			for corner in self.corner_class_of_vertex(vertex):
-				vector[corner.indices[2]] += 1
-		vector[norm(edge_label)] = 0
+		endpoints = self.vertices_of_edge(edge_label)
 		
-		return self.lamination(vector)
+		geometric = [0] * self.zeta
+		algebraic = [0] * self.zeta
+		if len(set(endpoints)) == 1:
+			recoding = False
+			vertex = endpoints[0]  # They are the same so it doesn't matter which we take.
+			for corner in self.corner_class_of_vertex(vertex) * 2:
+				label = corner.labels[2]
+				index = norm(label)
+				if not recoding and label == edge_label:
+					recoding = True
+				elif recoding and label == ~edge_label:
+					break
+				elif recoding:
+					geometric[index] += 1
+					algebraic[index] += 1 if index == corner.labels[2] else -1
+		else:
+			for vertex in endpoints:
+				for corner in self.corner_class_of_vertex(vertex):
+					index = corner.indices[2]
+					if index != norm(edge_label):
+						geometric[index] += 1
+						algebraic[index] += 1 if index == corner.labels[2] else -1
+		
+		return flipper.kernel.Lamination(self, geometric, algebraic, remove_peripheral=False)
 	
 	def key_curves(self):
 		''' Return a list of all boundaries of regular neighbourhoods of flippable edges.
@@ -524,21 +545,29 @@ class Triangulation(object):
 		
 		new_triangulation = self.flip_edge(edge_index)
 		
+		I = flipper.kernel.id_matrix(self.zeta)
+		Z = flipper.kernel.zero_matrix(self.zeta, 1)
+		
 		a, b, c, d = [edge.index for edge in self.square_about_edge(edge_index)]
 		e = norm(edge_index)  # Give it a shorter name.
-		A1 = flipper.kernel.id_matrix(self.zeta).tweak([(e, a), (e, c)], [(e, e), (e, e)])
-		C1 = flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, a), (0, c)], [(0, b), (0, d)])
+		A1 = I.tweak([(e, a), (e, c)], [(e, e), (e, e)])
+		C1 = Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
 		
-		A2 = flipper.kernel.id_matrix(self.zeta).tweak([(e, b), (e, d)], [(e, e), (e, e)])
-		C2 = flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, b), (0, d)], [(0, a), (0, c)])
+		A2 = I.tweak([(e, b), (e, d)], [(e, e), (e, e)])
+		C2 = Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		
 		# These functions are their own inverses.
 		f = f_inv = flipper.kernel.PartialFunction(A1, C1)
 		g = g_inv = flipper.kernel.PartialFunction(A2, C2)
 		
+		w, x, y, z = [edge.label for edge in self.square_about_edge(edge_index)]
+		A = I.tweak([(e, norm(i)) for i in [x, y] if norm(i) == i], [(e, norm(i)) for i in [x, y] if norm(i) != i] + [(e, e)])
+		B = I.tweak([(e, norm(i)) for i in [y, z] if norm(i) == i], [(e, norm(i)) for i in [y, z] if norm(i) != i] + [(e, e)])
+		# Note that B is not A.inverse() as there are some relations in homology().
+		
 		return flipper.kernel.Encoding(self, new_triangulation,
 			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([f, g], [f_inv, g_inv])]),
-			flipper.kernel.id_l_function(self.zeta))  # !?! TO DO.
+			flipper.kernel.LFunction(A, B))
 	
 	def encode_flips(self, edge_indices):
 		''' Return an encoding of the effect of flipping the given sequences of edges. '''

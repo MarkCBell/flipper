@@ -14,6 +14,8 @@ class LFunction(object):
 	def __init__(self, action, inverse_action):
 		self.action = action
 		self.inverse_action = inverse_action
+	def __repr__(self):
+		return str(self.action)
 	def __call__(self, other):
 		return self.action(other)
 	def __mul__(self, other):

@@ -80,17 +80,24 @@ class Isometry(object):
 		
 		inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
 		return Isometry(self.target_triangulation, self.source_triangulation, inverse_corner_map)
-	def permutation(self):
+	def permutation_matrix(self):
 		''' Return the permutation on edges induced by this isometry. '''
 		
-		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)])
+		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix()
+	def signed_permutation_matrix(self):
+		''' Return the permutation on oriented edges induced by this isometry. '''
+		
+		return flipper.kernel.Matrix([[0 if i != self.index_map[j] else +1 if i == self.label_map[j] else -1 for j in range(self.zeta)] for i in range(self.zeta)])
+	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''
 		
-		f = [flipper.kernel.PartialFunction(self.permutation().matrix())]
-		b = [flipper.kernel.PartialFunction(self.inverse().permutation().matrix())]
+		inv = self.inverse()
+		
+		f = [flipper.kernel.PartialFunction(self.permutation_matrix())]
+		b = [flipper.kernel.PartialFunction(inv.permutation_matrix())]
 		
 		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation,
 			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction(f, b)]),
-			flipper.kernel.id_l_function(self.zeta))  # !?! TO DO.
+			flipper.kernel.LFunction(self.signed_permutation_matrix(), inv.signed_permutation_matrix()))
 

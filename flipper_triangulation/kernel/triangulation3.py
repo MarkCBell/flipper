@@ -54,7 +54,10 @@ class Tetrahedron(object):
 		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)
 	
 	def glue(self, side, target, permutation):
-		''' Glue the given side of this tetrahedron to target via the given permutation. '''
+		''' Glue the given side of this tetrahedron to target via the given permutation.
+		
+		You are not supposed to unglue tetrahedra as they automatically install a lot
+		of additional structure.'''
 		
 		if self.glued_to[side] is None:
 			assert(self.glued_to[side] is None)
@@ -77,15 +80,6 @@ class Tetrahedron(object):
 					assert(my_edge_veering == his_edge_veering)
 		else:
 			assert((target, permutation) == self.glued_to[side])
-	
-	def unglue(self, side):
-		''' Unglue the given side of this tetrahedron. '''
-		
-		# Actually this is never used.
-		if self.glued_to[side] is not None:
-			other, perm = self.glued_to[side]
-			other.glued_to[perm(side)] = None
-			self.glued_to[side] = None
 	
 	def get_edge_label(self, a, b):
 		''' Return the label on edge (a) -- (b) of this tetrahedron. '''

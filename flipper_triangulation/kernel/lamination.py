@@ -8,11 +8,22 @@ import flipper
 class Lamination(object):
 	''' This represents a lamination on an triangulation.
 	
-	You shouldn't create laminations directly but instead should use
-	Triangulation.lamination() which creates a lamination on that
-	triangulation. If remove_peripheral is True then the Lamination is
-	allowed to rescale its weights (by a factor of 2) in order to remove
-	any peripheral components / satifsy the triangle inequalities. '''
+	It is given by a list of its geometric intersection numbers and a
+	list of its algebraic intersection numbers with the (oriented) edges
+	of underlying triangulation. Note that:
+	     ^L
+	     |
+	-----|------> e
+	     |
+	has algebraic intersection +1.
+	
+	Users should use Triangulation.lamination() to create laminations with,
+	when the lamination is a curve, its algebraic intersection computed
+	automatically.
+	
+	If remove_peripheral is True then the Lamination is allowed to rescale
+	its weights (by a factor of 2) in order to remove any peripheral
+	components / satifsy the triangle inequalities. '''
 	def __init__(self, triangulation, geometric, algebraic, remove_peripheral=True):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(entry, object) for entry in geometric))
@@ -38,6 +49,7 @@ class Lamination(object):
 		
 		assert(flipper.kernel.matrix.nonnegative(geometric))
 		self.geometric = list(geometric)
+		# We should check that algebraic satisfies reasonable relations too.
 		self.algebraic = algebraic
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -45,7 +57,7 @@ class Lamination(object):
 	def copy(self):
 		''' Return a copy of this lamination. '''
 		
-		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic))
+		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic), remove_peripheral=False)
 	
 	def __repr__(self):
 		return str(self.geometric)
@@ -71,7 +83,9 @@ class Lamination(object):
 		return self.zeta
 	
 	def __eq__(self, other):
-		return self.triangulation == other.triangulation and all(bool(v == w) for v, w in zip(self, other))
+		return self.triangulation == other.triangulation and \
+			all(v == w for v, w in zip(self, other)) and \
+			all(v == w for v, w in zip(self.algebraic, other.algebraic))
 	def __ne__(self, other):
 		return not self == other
 	
@@ -81,17 +95,24 @@ class Lamination(object):
 	
 	def __add__(self, other):
 		if isinstance(other, Lamination):
-			if other.triangulation == self.triangulation:
-				return self.triangulation.lamination([x + y for x, y in zip(self, other)])
-			else:
+			if other.triangulation != self.triangulation:
 				raise ValueError('Laminations must be on the same triangulation to add them.')
+			
+			geometric = [x + y for x, y in zip(self, other)]
+			algebraic = [x + y for x, y in zip(self.algebraic, other.algebraic)]
+			return Lamination(self.triangulation, geometric, algebraic)
 		else:
-			return self.triangulation.lamination([x + other for x in self])
+			if other == 0:  # So we can use sum.
+				return self
+			else:
+				return NotImplemented
 	def __radd__(self, other):
 		return self + other
 	
 	def __mul__(self, other):
-		return self.triangulation.lamination([other * x for x in self])
+		geometric = [other * x for x in self]
+		algebraic = [other * x for x in self.algebraic]
+		return Lamination(self.triangulation, geometric, algebraic, remove_peripheral=False)
 	def __rmul__(self, other):
 		return self * other
 	
@@ -235,8 +256,8 @@ class Lamination(object):
 		if any(vertex_numbers.values()): return False
 		
 		# So either we have a single curve or we have a multicurve with two parallel components.
-		# We can test for the latter by seeing if the halved curve is still a multicurve.
-		if triangulation.lamination([v // 2 for v in short_lamination]).is_multicurve():
+		# We can test for the latter by seeing if the halved curve has the correct weight.
+		if triangulation.lamination([v // 2 for v in short_lamination]).weight() == short_lamination.weight() // 2:
 			return False
 		
 		return True
@@ -275,6 +296,33 @@ class Lamination(object):
 		_, _, x, y = triangulation.square_about_edge(c.label)
 		
 		return z.index == w.index or x.index == y.index
+	
+	def with_algebraic(self):
+		
+		assert(self.is_curve())
+		
+		conjugation = self.conjugate_short()
+		short_lamination = conjugation(self)
+		triangulation = short_lamination.triangulation
+		
+		# Grab the indices of the two edges we meet.
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+		
+		a, b, c, d = triangulation.square_about_edge(e1)
+		# If the curve is going vertically through the square then ...
+		if short_lamination[a] == 1 and short_lamination[c] == 1:
+			# swap the labels round so it goes horizontally.
+			e1, e2 = e2, e1
+			a, b, c, d = triangulation.square_about_edge(e1)
+		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+			pass
+		
+		algebraic = [0] * self.zeta
+		algebraic[e1] = +1
+		algebraic[b.index] = -1 if b.is_positive() else +1
+		short_lamination.algebraic = algebraic
+		
+		return conjugation.inverse()(short_lamination)
 	
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''
@@ -436,9 +484,12 @@ class Lamination(object):
 		new_triangles = [flipper.kernel.Triangle(triple) for triple in triples]
 		
 		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
-		new_geometric = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
+		geometric = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
 		
-		return flipper.kernel.Triangulation(new_triangles).lamination(new_geometric)
+		T = flipper.kernel.Triangulation(new_triangles)
+		algebraic = [0] * len(geometric)
+		
+		return Lamination(T, geometric, algebraic, remove_peripheral=False)
 	
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
@@ -502,19 +553,12 @@ class Lamination(object):
 						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
 							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
 							if num_isometries[-1] == max(num_isometries[index:]):
-								if None in encodings:
-									pp_encoding = None
-								else:
-									pp_encoding = flipper.kernel.product(encodings[:index+1], start=self.triangulation.id_encoding())
-									assert(pp_encoding.source_triangulation == self.triangulation)
-									assert(pp_encoding.target_triangulation == old_lamination.triangulation)
+								# A quick fencepost error check.
 								p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
-								p_flips = flips[index:]
-								
 								assert(p_encoding.source_triangulation == old_lamination.triangulation)
 								assert(p_encoding.target_triangulation == lamination.triangulation)
 								
-								return [flipper.kernel.SplittingSequence(old_lamination, pp_encoding, p_encoding, isom, p_flips) for isom in isometries]
+								return [flipper.kernel.SplittingSequence(old_lamination, flips[index:], isom) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)
@@ -696,4 +740,7 @@ class Lamination(object):
 		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
 		
 		return intersection_number
+	
+	def homology_rep(self, tree):
+		algebraic = list(self.algebraic)
 

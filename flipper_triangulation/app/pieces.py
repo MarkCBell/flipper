@@ -76,6 +76,9 @@ class DrawableObject(object):
 		self.colour = colour
 		self.set_current_colour(self.colour)
 	
+	def centre(self):
+		return (sum(x[0] for x in self.vertices) / len(self), sum(x[1] for x in self.vertices) / len(self))
+	
 	def update(self):
 		self.canvas.coords(self.drawn, *[c for v in self for c in v])
 
@@ -187,12 +190,11 @@ class CanvasTriangle(DrawableObject):
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
 
 class CurveComponent(DrawableObject):
-	def __init__(self, canvas, vertices, options, multiplicity=1, counted=False):
+	def __init__(self, canvas, vertices, options, multiplicity=1):
 		super(CurveComponent, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_CURVE_COLOUR
 		self.drawn = self.canvas.create_line([c for v in self.vertices for c in v], width=self.options.line_size, fill=self.colour, tag='curve')
 		self.multiplicity = multiplicity
-		self.counted = counted
 	
 	def __contains__(self, point):
 		for a, b in zip(self.vertices, self.vertices[1:]):
@@ -227,10 +229,9 @@ class CurveComponent(DrawableObject):
 		self.update()
 
 class TrainTrackBlock(DrawableObject):
-	def __init__(self, canvas, vertices, options, multiplicity=1, counted=False):
+	def __init__(self, canvas, vertices, options, multiplicity=1):
 		super(TrainTrackBlock, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_TRAIN_TRACK_BLOCK_COLOUR
 		self.drawn = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
 		self.multiplicity = multiplicity
-		self.counted = counted
 

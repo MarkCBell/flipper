@@ -299,11 +299,7 @@ class Encoding(object):
 	def order(self):
 		''' Return the order of this mapping class.
 		
-		If this has infinite order then returns 0. Note: if the
-		underlying surface is S_0_4 or S_1_1 then this might be
-		off by a factor of 2 due to the hyperelliptic. Eventuallly,
-		when algebraic intersection numbers are implemented, this
-		problem will be solved.
+		If this has infinite order then return 0.
 		
 		This encoding must be a mapping class. '''
 		
@@ -528,8 +524,8 @@ class Encoding(object):
 			except TypeError:  # We cannot do arithmetic with these numbers because they lie in different fields.
 				return False
 			
-			f = target_lamination.triangulation.encode_flip(edge_index)
-			target_lamination = f(target_lamination)
+			# Cycle round to the next possible match.
+			target_lamination = target_lamination.triangulation.encode_flip(edge_index)(target_lamination)
 		
 		return False
 	

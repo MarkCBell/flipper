@@ -490,6 +490,9 @@ class Triangulation(object):
 	def regular_neighbourhood(self, edge_label):
 		''' Return the lamination which is the boundary of a regular neighbourhood of the given edge.
 		
+		If the given edge actually forms a loop then only the `left' boundary component of a regular
+		neighbourhood of it is returned.
+		
 		The given edge must be flippable. '''
 		
 		assert(self.is_flippable(edge_label))

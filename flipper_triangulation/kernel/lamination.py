@@ -263,7 +263,7 @@ class Lamination(object):
 		return True
 	
 	def is_twistable(self):
-		''' Return if this lamination is a twistable. '''
+		''' Return if this lamination is a twistable curve. '''
 		
 		# This is based off of self.encode_twist(). See the documentation there as to why this works.
 		if not self.is_curve(): return False
@@ -274,7 +274,7 @@ class Lamination(object):
 		return short_lamination.weight() == 2
 	
 	def is_halftwistable(self):
-		''' Return if this lamination is a half twistable. '''
+		''' Return if this lamination is a half twistable curve. '''
 		
 		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
 		if not self.is_twistable(): return False
@@ -301,28 +301,31 @@ class Lamination(object):
 		
 		assert(self.is_curve())
 		
-		conjugation = self.conjugate_short()
-		short_lamination = conjugation(self)
-		triangulation = short_lamination.triangulation
-		
-		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-		
-		a, b, c, d = triangulation.square_about_edge(e1)
-		# If the curve is going vertically through the square then ...
-		if short_lamination[a] == 1 and short_lamination[c] == 1:
-			# swap the labels round so it goes horizontally.
-			e1, e2 = e2, e1
+		if not self.is_twistable():
+			return Lamination(self.triangulation, self.geometric, [0] * self.zeta)
+		else:
+			conjugation = self.conjugate_short()
+			short_lamination = conjugation(self)
+			triangulation = short_lamination.triangulation
+			
+			# Grab the indices of the two edges we meet.
+			e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+			
 			a, b, c, d = triangulation.square_about_edge(e1)
-		elif short_lamination[b] == 1 and short_lamination[d] == 1:
-			pass
-		
-		algebraic = [0] * self.zeta
-		algebraic[e1] = +1
-		algebraic[b.index] = -1 if b.is_positive() else +1
-		short_lamination.algebraic = algebraic
-		
-		return conjugation.inverse()(short_lamination)
+			# If the curve is going vertically through the square then ...
+			if short_lamination[a] == 1 and short_lamination[c] == 1:
+				# swap the labels round so it goes horizontally.
+				e1, e2 = e2, e1
+				a, b, c, d = triangulation.square_about_edge(e1)
+			elif short_lamination[b] == 1 and short_lamination[d] == 1:
+				pass
+			
+			algebraic = [0] * self.zeta
+			algebraic[e1] = +1
+			algebraic[b.index] = -1 if b.is_positive() else +1
+			short_lamination.algebraic = algebraic
+			
+			return conjugation.inverse()(short_lamination)
 	
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''

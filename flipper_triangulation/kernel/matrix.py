@@ -127,7 +127,7 @@ class Matrix(object):
 		
 		This matrix must be square. '''
 		
-		# For why this works see self.char_poly().
+		# For why this works see self.characteristic_polynomial().
 		
 		assert(self.is_square())
 		
@@ -190,7 +190,7 @@ class Matrix(object):
 					if i: A[j][k] = A[j][k] // A[i-1][i-1]  # Division is exact.
 		
 		return scale * A[self.width-1][self.width-1]
-	def char_poly(self):
+	def characteristic_polynomial(self):
 		''' Return the characteristic polynomial of this matrix.
 		
 		Based off of the Faddeev-Leverrier method. See:

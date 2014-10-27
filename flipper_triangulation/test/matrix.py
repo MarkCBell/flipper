@@ -11,7 +11,7 @@ def main(verbose=False):
 	
 	tests = [
 		M * N == flipper.kernel.id_matrix(2),
-		M.char_poly() == flipper.kernel.Polynomial([1, -3, 1]),
+		M.characteristic_polynomial() == flipper.kernel.Polynomial([1, -3, 1]),
 		M.determinant() == 1
 		]
 	

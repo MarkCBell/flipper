@@ -148,6 +148,14 @@ class Polynomial(object):
 		return self.__div__(other)
 	def __floordiv__(self, other):
 		return self.__div__(other)
+	def divides(self, other):
+		''' Return if self divides other. '''
+		
+		try:
+			other // self
+			return True
+		except ValueError:
+			return False
 	
 	def rescale(self):
 		''' Return a possibly simpler polynomial with the same roots. '''
@@ -277,11 +285,13 @@ class PolynomialRoot(object):
 	
 	def __repr__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
+	def __float__(self):
+		return float(self.algebraic_approximation())
 	
 	def __eq__(self, other):
 		assert(isinstance(other, PolynomialRoot))
 		
-		accuracy_needed = self.height + self.log_degree + other.height + other.log_degree + 5
+		accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
 		return self.algebraic_approximation(accuracy_needed) == other.algebraic_approximation(accuracy_needed)
 	def __ne__(self, other):
 		return not (self == other)
@@ -345,6 +355,8 @@ class PolynomialRoot(object):
 	
 	def algebraic_approximation(self, accuracy=0):
 		''' Return an AlgebraicApproximation of this root to at least the requested accuracy. '''
+		
+		assert(isinstance(accuracy, flipper.IntegerType))
 		
 		accuracy_needed = int(self.height) + int(self.log_degree) + 2  # This ensures the AlgebraicApproximation is well defined.
 		accuracy_required = max(accuracy, accuracy_needed)

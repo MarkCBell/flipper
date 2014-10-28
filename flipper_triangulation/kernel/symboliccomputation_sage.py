@@ -46,15 +46,20 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 			
 			if len(right_kernel) == 1:  # If rank(kernel) == 1.
 				[eigenvector] = right_kernel
-				if condition_matrix.nonnegative_image(eigenvector):
-					eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
-					
-					scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coeffs()]))
-					eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coeffs()] for entry in eigenvector]
-					
-					d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1
-					N = flipper.kernel.create_number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
-					return N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
+				
+				scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coeffs()]))
+				eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coeffs()] for entry in eigenvector]
+				
+				eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
+				d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1
+				N = flipper.kernel.create_number_field(eigenvalue_coefficients, approximate(eigenvalue, d))
+				flipper_ev, flipper_eigenvector = N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
+				
+				# We can't rely on Sage to check this lies in the cone as for elements of NumberFields:
+				#  x > y returns True
+				# See: https://groups.google.com/forum/#!topic/sage-devel/9eAZnOBvBHM
+				if flipper.kernel.matrix.nonnegative(flipper_eigenvector) and condition_matrix.nonnegative_image(flipper_eigenvector):
+					return flipper_ev, flipper_eigenvector
 			else:
 				eqns = [[0] + list(row) for row in (M - eigenvalue)]
 				ieqs = [[0] + list(row) for row in condition_matrix]

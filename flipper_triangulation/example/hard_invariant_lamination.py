@@ -37,6 +37,7 @@ def main():
 		('S_3_1', 'gEBGhCDHbdgF'),  # The invariant lamination does not have the top eigenvalue.
 		('S_3_1', 'edbcAdgGhdHf'),  # Some of these cells only have complex eigenvalues.
 		('S_1_2', 'axCxaCACABCcBXbxabCAACACxCCXXXacXCCCXcac'),  # Use to take a long time thanks to overestimated bounds.
+		('S_3_1', 'fEbDGFAdagBhAdceCfeE'),  # This has 1 dim eigenspaces that don't lie in the cone.
 		]
 	
 	for index, (surface, word) in enumerate(examples):

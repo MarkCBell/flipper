@@ -407,7 +407,8 @@ class Encoding(object):
 						tested_cells.append(partial_function)
 						action_matrix, condition_matrix = partial_function.action, partial_function.condition
 						try:
-							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix, average_curve)
+							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
+								action_matrix, condition_matrix, average_curve)
 						except flipper.ComputationError:
 							pass  # Could not find an eigenvector in the cone.
 						except flipper.AssumptionError:

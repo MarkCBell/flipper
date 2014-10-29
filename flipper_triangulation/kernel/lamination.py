@@ -743,7 +743,4 @@ class Lamination(object):
 		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
 		
 		return intersection_number
-	
-	def homology_rep(self, tree):
-		algebraic = list(self.algebraic)
 

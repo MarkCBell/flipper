@@ -5,7 +5,7 @@ from time import time
 import flipper
 
 def stratum(splitting):
-	lamination = splitting.initial_lamination
+	lamination = splitting.lamination
 	stratum_orders = lamination.stratum_orders()
 	vertex_orders = [stratum_orders[vertex] for vertex in lamination.triangulation.vertices]
 	# A vertex is real if and only if its label is non-negative.

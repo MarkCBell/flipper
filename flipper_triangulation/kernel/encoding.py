@@ -516,8 +516,8 @@ class Encoding(object):
 		splitting1 = self.splitting_sequences()[0]
 		splitting2 = other.splitting_sequences()[0]
 		
-		source_lamination = splitting1.initial_lamination
-		target_lamination = splitting2.initial_lamination
+		source_lamination = splitting1.lamination
+		target_lamination = splitting2.lamination
 		for edge_index in splitting2.periodic_flips:
 			try:
 				if source_lamination.all_projective_isometries(target_lamination):

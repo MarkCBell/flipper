@@ -66,10 +66,12 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 				
 				# This is really slow.
 				P = Polyhedron(eqns=eqns, ieqs=ieqs)
-				# If dim(P) == 1 then an extremal vertex of the cone is an eigenvalue.
+				# If dim(P) == 1 then an extremal ray of the cone is an eigenvector.
 				# As this is a rational vector it must correspond to a fixed curve.
 				# If dim(P)  > 1 then there is a high dimensional invariant subspace.
-				if P.dim() > 0:
+				# However, we must be careful of peripheral curves, so we will only raise
+				# an AssumptionError if eigenvalue > 1 too.
+				if eigenvalue > 1 and P.dim() > 0:
 					raise flipper.AssumptionError('Subspace is reducible.')
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')

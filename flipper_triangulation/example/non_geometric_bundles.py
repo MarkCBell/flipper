@@ -80,11 +80,13 @@ def test2():
 		try:
 			splittings = h.splitting_sequences()
 			for M in [snappy.Manifold(splitting.bundle().snappy_string(filled=False)) for splitting in splittings]:
-				if M.solution_type() != 'all tetrahedra positively oriented':
+				if M.solution_type() != 'all tetrahedra positively oriented' and is_degenerate(M):
 					print('##############################')
 					print('(POSSIBLY) NON GEOMETRIC')
 					print(word, M.num_tetrahedra())
 					print('##############################')
+					if M.num_tetrahedra() < 13:
+						exit(1)
 		except flipper.AssumptionError:
 			pass  # Mapping class is not pseudo-Anosov.
 
@@ -111,7 +113,7 @@ if __name__ == '__main__':
 		print('Please install it and try again.')
 	else:
 		# test1()
-		# test2()
-		test3()
+		test2()
+		# test3()
 
 

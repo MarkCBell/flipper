@@ -502,11 +502,6 @@ class Lamination(object):
 		This is the flips the edges of maximal weight until you reach a
 		projectively periodic sequence (with required dilatation if given).
 		
-		The splitting sequence will have self.preperiodic_encoding set to
-		None if and only if an edge collapse occurs. This is because we don't
-		(yet) know how to describe this by a PLFunction but only happens
-		because we punctured too many triangles to begin with.
-		
 		This requires the entries of self.geometric to be NumberFieldElements
 		(over the same NumberField) or AlgebraicNumbers. '''
 		

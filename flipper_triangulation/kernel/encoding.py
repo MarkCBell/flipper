@@ -435,10 +435,12 @@ class Encoding(object):
 											pass
 					break
 			
+			# See if we are close to an invariant curve.
 			denominators = [min(new_curve) + 1, i + 1, (i // 2) + 1]  # Other strategies: (i // triangulation.max_order) + 1
 			for denominator in denominators:
 				vector = [int(round(float(x) / denominator, 0)) for x in new_curve]
-				new_small_curve = small_curve = triangulation.lamination(vector)
+				# We won't care about the algebraic intersection numbers in this stage.
+				new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
 				if not small_curve.is_empty():
 					for j in range(1, triangulation.max_order+1):
 						new_small_curve = self(new_small_curve)

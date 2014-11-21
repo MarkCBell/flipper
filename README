@@ -29,7 +29,7 @@ guide to flipper". Open by running:
 If you find flipper useful in your research, please consider citing it.
 A suggested reference is:
 	Mark Bell. flipper (Computer Software).
-	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>.
+	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>
 or the BibTeX entry:
 	@Misc{flipper,
 		author = {Bell, Mark},
@@ -38,15 +38,19 @@ or the BibTeX entry:
 		year = {2013--2014},
 		note = {Version <<version number used>>}
 	}
+or the BibItem:
+	\bibitem{flipper} Mark bell: \emph{flipper (Computer Software)},
+		\url{https://bitbucket.org/Mark_Bell/flipper/}}, (2013--2014),
+		Version <<version number used>>
 
 
 Quick install, test and start the GUI as a Python module:
-> python -m pip install flipper-topology --user
+> python -m pip install flipper-topology --user --upgrade
 > python -m flipper.test
 > python -m flipper.app
 
 Quick install, test and start the GUI as a Sage module:
-> sage -python -m pip install flipper-topology --user
+> sage -python -m pip install flipper-topology --user --upgrade
 > sage -python -m flipper.test
 > sage -python -m flipper.app
 

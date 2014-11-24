@@ -233,6 +233,7 @@ class FlipperApp(object):
 		self.settingsmenu.add_cascade(label='Draw lamination', menu=self.laminationdrawmenu, font=app_font)
 		self.settingsmenu.add_cascade(label='Zoom', menu=self.zoommenu, font=app_font)
 		self.settingsmenu.add_checkbutton(label='Show internal edges', var=self.options.show_internals_var, font=app_font)
+		self.settingsmenu.add_checkbutton(label='Show edge orientations', var=self.options.show_orientations_var, font=app_font)
 		
 		self.menubar.add_cascade(label='Settings', menu=self.settingsmenu, font=app_font)
 		
@@ -709,6 +710,8 @@ class FlipperApp(object):
 			vertex.update()
 		self.canvas.itemconfig('line', width=self.options.line_size)
 		self.canvas.itemconfig('curve', width=self.options.line_size)
+		self.canvas.itemconfig('line', arrow='last' if self.options.show_orientations else '')
+		self.canvas.itemconfig('line', arrowshape=self.options.arrow_shape)
 		
 		for edge in self.edges:
 			edge.hide(not self.options.show_internals and edge.is_internal())

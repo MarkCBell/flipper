@@ -4,6 +4,7 @@ import flipper.app
 from flipper.app.spinning_icon import SPINNING_ICON
 
 from multiprocessing import Process
+from threading import Thread
 from multiprocessing import JoinableQueue as Queue
 
 try:
@@ -16,8 +17,6 @@ try:
 except ImportError:  # Python 3.
 	import tkinter as TK
 
-CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
-
 # Note: Because of how memory is managed in Python the _worker_thread
 # works with a copy of the main memory. Therefore any changes it makes to the
 # objects involved, such as caching results, will NOT be done to the origional
@@ -25,9 +24,9 @@ CATEGORY_RESULT, CATEGORY_PROGRESS, CATEGORY_ERROR = range(3)
 def _worker_thread(function, args, answer):
 	try:
 		result = function(*args)
-		answer.put((CATEGORY_RESULT, result))
+		answer.put(result)
 	except Exception as error:
-		answer.put((CATEGORY_ERROR, error))  # Return any errors that occur.
+		answer.put(error)  # Return any errors that occur.
 
 class ProgressApp(object):
 	def __init__(self, host_app_parent=None):
@@ -79,15 +78,15 @@ class ProgressApp(object):
 		
 		while self.running:  # So long as the calculation hasn't been aborted.
 			try:
-				category, value = answer.get(True, 0.05)  # Try and get some more information.
-				if category == CATEGORY_RESULT:  # We got the answer.
-					self.cancel()
-					return value
-				elif category == CATEGORY_ERROR:  # An error occurred.
-					self.cancel()
-					raise value
+				result = answer.get(True, 0.05)  # Try and get some more information.
 			except Empty:
 				self.host_app_parent.update()
+			else:
+				self.cancel()
+				if isinstance(result, Exception):
+					raise result
+				else:
+					return result
 		
 		# If we reach this point then the calculation was aborted.
 		raise flipper.AbortError

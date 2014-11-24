@@ -14,7 +14,7 @@ def tetrahedra_shapes(manifold):
 	# Return the exact shapes of the tetrahedra using snap.
 	T = snappy.snap.tetrahedra_field_gens(manifold)
 	_, generator, shapes = T.find_field(prec=100, degree=20, optimize=True)
-	generator_approximation = generator.f(100)
+	generator_approximation = generator(100)
 	return [shape(generator_approximation).imag() for shape in shapes]
 
 def is_geometric(manifold):

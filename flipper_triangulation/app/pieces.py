@@ -87,7 +87,10 @@ class CanvasVertex(DrawableObject):
 		super(CanvasVertex, self).__init__(canvas, [vertex], options)
 		self.default_colour = self.colour = DEFAULT_VERTEX_COLOUR
 		self.vertex = list(vertex)
-		self.drawn = self.canvas.create_oval([p + scale*self.options.dot_size for scale in [-1, 1] for p in self], outline=self.default_colour, fill=self.default_colour, tag='oval')
+		self.drawn = self.canvas.create_oval(
+			[p + scale*self.options.dot_size for scale in [-1, 1] for p in self],
+			outline=self.default_colour, fill=self.default_colour, tag='oval'
+			)
 	
 	def __sub__(self, other):
 		return (self[0] - other[0], self[1] - other[1])
@@ -112,7 +115,12 @@ class CanvasEdge(DrawableObject):
 	def __init__(self, canvas, vertices, options):
 		super(CanvasEdge, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_EDGE_COLOUR
-		self.drawn = self.canvas.create_line([c for v in self for c in v], width=self.options.line_size, fill=self.default_colour, tag='line')
+		self.drawn = self.canvas.create_line(
+			[c for v in self for c in v],
+			width=self.options.line_size,
+			fill=self.default_colour,
+			tag='line'
+			)
 		self.equivalent_edge = None
 		self.in_triangles = []
 		self.index = -1
@@ -144,6 +152,7 @@ class CanvasEdge(DrawableObject):
 	
 	def flip_orientation(self):
 		self.vertices = self.vertices[::-1]
+		self.update()
 
 class CanvasTriangle(DrawableObject):
 	def __init__(self, canvas, edges, options):

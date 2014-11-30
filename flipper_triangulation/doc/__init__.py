@@ -17,5 +17,5 @@ def open_documentation(verbose=False):
 	
 	# Note that the command contains no user provided data.
 	# So setting shell=True should be safe.
-	subprocess.call([command, disk_file], shell=True)
+	subprocess.call([command, disk_file])
 

@@ -53,6 +53,8 @@ class Polynomial(object):
 	
 	def __iter__(self):
 		return iter(self.coefficients)
+	def __hash__(self):
+		return hash(tuple(self))
 	
 	def __getitem__(self, item):
 		return self.coefficients[item]
@@ -287,6 +289,8 @@ class PolynomialRoot(object):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	def __float__(self):
 		return float(self.algebraic_approximation())
+	def __hash__(self):
+		return hash(self.polynomial)
 	
 	def __eq__(self, other):
 		assert(isinstance(other, PolynomialRoot))

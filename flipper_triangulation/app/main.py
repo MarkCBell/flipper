@@ -448,8 +448,7 @@ class FlipperApp(object):
 		
 		We can load from:
 			- the path to a flipper file,
-			- the contents of flipper file,
-			- a file objects, or
+			- the contents of flipper file, or
 			- something that flipper.package can eat.
 		If given nothing it asks the user to select a flipper (kernel) file.
 		
@@ -464,8 +463,6 @@ class FlipperApp(object):
 				if load_from == '':  # Cancelled the dialog.
 					return
 				string_contents = open(load_from, 'rb').read()
-			elif isinstance(load_from, file):
-				string_contents = load_from.read()
 			elif isinstance(load_from, flipper.StringType):
 				try:
 					string_contents = open(load_from, 'rb').read()

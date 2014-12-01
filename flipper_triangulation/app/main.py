@@ -695,7 +695,7 @@ class FlipperApp(object):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
 	
 	def object_here(self, p):
-		for piece in self.vertices + self.edges + self.curve_components:  # You cant click on triangles.
+		for piece in self.curve_components + self.vertices + self.edges + self.triangles:
 			if p in piece:
 				return piece
 		return None

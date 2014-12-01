@@ -112,6 +112,9 @@ def helper(glob, instance, method):
 	
 	return glob, result
 
+def dot(a, b):
+	return a[0] * b[0] + a[1] * b[1]
+
 class FlipperApp(object):
 	def __init__(self, parent, return_slot=None):
 		self.parent = parent
@@ -860,7 +863,7 @@ class FlipperApp(object):
 		self.build_equipped_triangulation()
 	
 	def create_triangle(self, e1, e2, e3):
-		# Check that the edges are distinct
+		# Check that there are 3 edges.
 		if len(set([e1, e2, e3])) != 3:
 			return None
 		
@@ -868,14 +871,32 @@ class FlipperApp(object):
 		if any([set(triangle.edges) == set([e1, e2, e3]) for triangle in self.triangles]):
 			return None
 		
-		new_triangle = flipper.app.CanvasTriangle(self.canvas, [e1, e2, e3], self.options)
-		
-		# Check that there aren't any vertices inside the triangle.
-		corner_vertices = [e[0] for e in [e1, e2, e3]] + [e[1] for e in [e1, e2, e3]]
-		if any(vertex in new_triangle and vertex not in corner_vertices for vertex in self.vertices):
+		# Check that there are 3 vertices.
+		corner_vertices = list(set([v for e in [e1, e2, e3] for v in e]))
+		if len(corner_vertices) != 3:
 			return None
 		
-		self.triangles.append(new_triangle)
+		# Check that there aren't any vertices inside the triangle.
+		v0 = corner_vertices[2] - corner_vertices[0]
+		v1 = corner_vertices[1] - corner_vertices[0]
+		for vertex in self.vertices:
+			if vertex not in corner_vertices:
+				v2 = vertex - corner_vertices[0]
+				
+				dot00 = dot(v0, v0)
+				dot01 = dot(v0, v1)
+				dot02 = dot(v0, v2)
+				dot11 = dot(v1, v1)
+				dot12 = dot(v1, v2)
+				
+				invDenom = 1.0 / (dot00 * dot11 - dot01 * dot01)
+				u = (dot11 * dot02 - dot01 * dot12) * invDenom
+				v = (dot00 * dot12 - dot01 * dot02) * invDenom
+				
+				if (u >= 0) and (v >= 0) and (u + v <= 1):
+					return None
+		
+		self.triangles.append(flipper.app.CanvasTriangle(self.canvas, [e1, e2, e3], self.options))
 		
 		self.unsaved_work = True
 		self.redraw()

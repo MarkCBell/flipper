@@ -567,10 +567,12 @@ class FlipperApp(object):
 			
 			self.equipped_triangulation = equipped_triangulation
 			
-			for name, lamination in sorted(self.equipped_triangulation.laminations.items()):
+			for name, lamination in sorted(self.equipped_triangulation.laminations.items(),
+				key=lambda (name, _): (len(name), name)):
 				self.add_lamination(lamination, name)
 			
-			for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items()):
+			for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items(),
+				key=lambda (name, _): (len(name), name)):
 				self.add_mapping_class(mapping_class, name)
 			
 			self.unsaved_work = False

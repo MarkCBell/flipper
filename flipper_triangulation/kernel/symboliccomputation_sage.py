@@ -18,10 +18,15 @@ def approximate(number, accuracy):
 	''' Return a string approximating the given number to the given accuracy. '''
 	
 	s = str(number.n(digits=1))
-	i, _ = s.split('.') if '.' in s else (s, '')
-	s2 = str(number.n(digits=len(i)+accuracy))
-	i2, r2 = s2.split('.') if '.' in s2 else (s2, '')
-	return i2 + '.' + r2[:accuracy]
+	mantissa, exponent = s.split('e') if 'e' in s else (s, '0')
+	(integer, decimal), exponent = (mantissa.split('.') if '.' in mantissa else (mantissa, '')), int(exponent)
+	s = str(number.n(digits=len(integer)+int(exponent)+accuracy))
+	mantissa, exponent = s.split('e') if 'e' in s else (s, '0')
+	(integer, decimal), exponent = (mantissa.split('.') if '.' in mantissa else (mantissa, '')), int(exponent)
+	if exponent >= 0:
+		return integer + decimal[:exponent] + '.' + decimal[exponent:exponent+accuracy]
+	else:
+		return '0.' + '0' * (-exponent-1) + decimal[:accuracy]
 
 def directed_eigenvector(action_matrix, condition_matrix, vector):
 	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.

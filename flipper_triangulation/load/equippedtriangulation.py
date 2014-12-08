@@ -212,11 +212,15 @@ def example_braid_sphere(n):
 	
 	return flipper.kernel.EquippedTriangulation(T, laminations, mapping_classes)
 
-def load(surface=None):
+def load(surface):
 	''' Return the requested example EquippedTriangulation.
 	
-	To see a list of avaible surfaces that can be requested, call
-	with no arguement. '''
+	Available surfaces:
+		'S_0_4', 'S_1_1', 'S_1_1m', 'S_1_2',
+		'S_2_1', 'S_2_1b', 'S_3_1', 'S_3_1b',
+		'E_12', 'E_24', 'E_36', and
+		'B_n' where n is an integer >= 3. '''
+	assert(isinstance(surface, flipper.StringType))
 	
 	surfaces = {
 		'S_0_4': example_0_4,
@@ -232,9 +236,7 @@ def load(surface=None):
 		'E_36': example_36
 		}
 	
-	if surface is None:
-		return sorted(surfaces.keys())
-	elif surface in surfaces:
+	if surface in surfaces:
 		return surfaces[surface]()
 	elif REGEX_IS_BRAID.match(surface):
 		return example_braid_sphere(int(REGEX_IS_BRAID.match(surface).groupdict()['num_strands']))

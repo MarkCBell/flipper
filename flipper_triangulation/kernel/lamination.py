@@ -209,7 +209,7 @@ class Lamination(object):
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			edge_index = min([i for i in range(lamination.zeta) if lamination[i] > 0 and lamination.triangulation.is_flippable(i)], key=lamination.weight_difference_flip_edge)
+			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination[i] > 0], key=lamination.weight_difference_flip_edge)
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			conjugation = forwards * conjugation

@@ -256,6 +256,11 @@ class Triangulation(object):
 		
 		return self.triangle_lookup[edge_label] != self.triangle_lookup[~edge_label]
 	
+	def flippable_edges(self):
+		''' Return this list of flippable edges of this triangulation. '''
+		
+		return [i for i in range(self.zeta) if self.is_flippable(i)]
+	
 	def square_about_edge(self, edge_label):
 		''' Return the four edges around the given edge.
 		
@@ -532,7 +537,7 @@ class Triangulation(object):
 		S_{1, 1}). '''
 		
 		# Rememeber to filter out any empty laminations that we get.
-		return [self.regular_neighbourhood(edge_index) for edge_index in range(self.zeta) if self.is_flippable(edge_index)]
+		return [self.regular_neighbourhood(edge_index) for edge_index in self.flippable_edges()]
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''

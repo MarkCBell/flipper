@@ -6,6 +6,8 @@ import flipper
 import pickle
 import itertools
 from string import ascii_lowercase, digits, ascii_letters, punctuation
+from fractions import gcd as gcd2
+from functools import reduce as freduce
 
 VISIBLE_CHARACTERS = digits + ascii_letters + punctuation
 
@@ -143,4 +145,7 @@ def encode_binary(sequence):
 	
 	step = 6  # 2**step <= len(VISABLE_CHARACTERS)
 	return ''.join(VISIBLE_CHARACTERS[int(''.join(str(x) for x in sequence[i:i+step]), base=2)] for i in range(0, len(sequence), step))
+
+def gcd(X):
+	return freduce(gcd2, X)
 

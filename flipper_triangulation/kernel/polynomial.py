@@ -8,8 +8,6 @@ There is also a helper function: create_polynomial_root. '''
 import flipper
 
 from math import log10 as log
-from fractions import gcd
-from functools import reduce as freduce
 try:
 	from itertools import izip_longest as zip_longest
 except ImportError:  # Python 3.
@@ -128,7 +126,7 @@ class Polynomial(object):
 				rescale = remainder[-1] // other[-1]
 				quotient = quotient + (Polynomial([1]).shift(remainder.degree - other.degree) * rescale)
 				remainder = remainder - (other.shift(remainder.degree - other.degree) * rescale)
-				common_factor = abs(freduce(gcd, list(quotient) + list(remainder) + [scale]))
+				common_factor = abs(flipper.kernel.gcd(list(quotient) + list(remainder) + [scale]))
 				if common_factor != 1:
 					scale = scale // common_factor
 					quotient = Polynomial([x // common_factor for x in quotient])
@@ -162,13 +160,13 @@ class Polynomial(object):
 	def rescale(self):
 		''' Return a possibly simpler polynomial with the same roots. '''
 		
-		c = max(abs(freduce(gcd, self)), 1)  # Avoid a possible division by 0.
+		c = max(abs(flipper.kernel.gcd(self)), 1)  # Avoid a possible division by 0.
 		return Polynomial([coefficient // c for coefficient in self])
 	
 	def square_free(self):
 		''' Return the polynomial with the same roots but each with multiplicity one. '''
 		
-		return self // gcd(self, self.derivative())
+		return self // flipper.kernel.gcd([self, self.derivative()])
 	
 	def signs_at_interval_endpoints(self, interval):
 		''' Return the signs of this polynomial at the endpoints of the given polynomial. '''

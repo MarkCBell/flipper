@@ -255,6 +255,17 @@ class Matrix(object):
 		''' Return if self * v >= 0. '''
 		
 		return all(dot(row, v) >= 0 for row in self)
+	
+	def simplify(self):
+		''' Return a simpler matrix defining the same cone. '''
+		
+		# Remove nonnegative rows.
+		rows = [row for row in self if any(entry < 0 for entry in row)]
+		# Remove dupliates.
+		rows = list(set(tuple(row) for row in rows))
+		# Remove dominated rows.
+		rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
+		return Matrix(rows)
 
 #### Some special Matrices we know how to build.
 

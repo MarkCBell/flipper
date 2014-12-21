@@ -34,7 +34,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	This version is perfect, that is a ComputationError is raised if and only if
 	C contains no interesting eigenvectors.
 	
-	An eigenvector is interesting if its corresponding eigenvalue is: real, >= 1 and irrational.
+	An eigenvector is interesting if its corresponding eigenvalue is: real, > 1 and irrational.
 	Raises a ComputationError if it cannot find an interesting vectors in C.
 	
 	vector is guranteed to live inside of C.
@@ -45,7 +45,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	# We have to check ALL eigenspaces. So we do it in order of decreasing real part.
 	for eigenvalue in sorted(M.eigenvalues(), reverse=True, key=lambda z: complex(z).real):
 		# Only bother checking the real eigenspaces.
-		if eigenvalue.imag() == 0 and eigenvalue >= 1:
+		if eigenvalue.imag() == 0 and eigenvalue > 1:
 			[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
 			right_kernel = (M-lam).right_kernel().basis()
 			
@@ -74,8 +74,6 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 				# If dim(P) == 1 then an extremal ray of the cone is an eigenvector.
 				# As this is a rational vector it must correspond to a fixed curve.
 				# If dim(P)  > 1 then there is a high dimensional invariant subspace.
-				# However, we must be careful of peripheral curves, so we will only raise
-				# an AssumptionError if eigenvalue > 1 too.
 				if eigenvalue > 1 and P.dim() > 0:
 					raise flipper.AssumptionError('Subspace is reducible.')
 	

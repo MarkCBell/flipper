@@ -10,6 +10,8 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
 
 There is also a helper function: create_triangulation. '''
 
+from random import choice
+
 import flipper
 
 def norm(value):
@@ -476,68 +478,122 @@ class Triangulation(object):
 		else:
 			return isometry
 	
-	# Laminations we can build on the triangulation.
+	# Laminations we can build on this triangulation.
 	def lamination(self, geometric, algebraic=None, remove_peripheral=True):
 		''' Return a new lamination on this surface assigning the specified weight to each edge. '''
 		
-		lamination = flipper.kernel.Lamination(self, geometric, [0] * self.zeta if algebraic is None else algebraic, remove_peripheral)
-		# If we have a curve we should compute the algebraic intersection numbers.
-		if algebraic is None and lamination.is_curve():
-			return lamination.with_algebraic()
+		if remove_peripheral:
+			# Compute how much peripheral component there is on each corner class.
+			# This will also check that the triangle inequalities are satisfied. When
+			# they fail one of peripheral.values() is negative, which is non-zero and
+			# so triggers the correction.
+			def dual_weight(corner):
+				''' Return double the weight of normal arc corresponding to the given corner. '''
+				
+				return geometric[corner.indices[1]] + geometric[corner.indices[2]] - geometric[corner.index]
+			
+			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.corner_class_of_vertex(vertex))) for vertex in self.vertices)
+			if any(peripheral.values()):  # Is there any to add / remove?
+				# Really should be geometric[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
+				geometric = [2*geometric[i] - sum(peripheral[v] for v in self.vertices_of_edge(i)) for i in range(self.zeta)]
+		
+		if algebraic is not None:
+			return flipper.kernel.Lamination(self, geometric, algebraic)
 		else:
-			return lamination
+			lamination = flipper.kernel.Lamination(self, geometric, [0] * self.zeta)
+			# If we have a curve we should compute the algebraic intersection numbers.
+			# Note that if the curve is not twistable then its algebraic intersection numbers
+			# are all zero and so we can just return lamination.
+			if lamination.is_curve() and lamination.is_twistable():
+				conjugation = lamination.conjugate_short()
+				short_lamination = conjugation(lamination)
+				triangulation = short_lamination.triangulation
+				
+				# Grab the indices of the two edges we meet.
+				e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+				
+				a, b, c, d = triangulation.square_about_edge(e1)
+				# If the curve is going vertically through the square then ...
+				if short_lamination[a] == 1 and short_lamination[c] == 1:
+					# swap the labels round so it goes horizontally.
+					e1, e2 = e2, e1
+					a, b, c, d = triangulation.square_about_edge(e1)
+				elif short_lamination[b] == 1 and short_lamination[d] == 1:
+					pass
+				
+				# Currently short_lamination.algebraic == [0, 0, ..., 0].
+				short_lamination.algebraic[e1] = +1
+				short_lamination.algebraic[b.index] = -1 if b.is_positive() else +1
+				
+				return conjugation.inverse()(short_lamination)
+			else:
+				return lamination
 	
 	def empty_lamination(self):
 		''' Return an empty lamination on this surface. '''
 		
-		return flipper.kernel.Lamination(self, [0] * self.zeta, [0] * self.zeta, remove_peripheral=False)
+		return self.lamination([0] * self.zeta, [0] * self.zeta)
 	
-	def regular_neighbourhood(self, edge_label):
-		''' Return the lamination which is the boundary of a regular neighbourhood of the given edge.
+	def random_curve(self, num_flips):
+		''' Return a random curve on this surface. '''
 		
-		If the given edge actually forms a loop then only the `left' boundary component of a regular
-		neighbourhood of it is returned.
+		h = self.id_encoding()
+		for _ in range(num_flips):
+			T = h.target_triangulation
+			h = T.encode_flip(choice(T.flippable_edges())) * h
 		
-		The given edge must be flippable. '''
-		
-		assert(self.is_flippable(edge_label))
-		
-		endpoints = self.vertices_of_edge(edge_label)
-		
-		geometric = [0] * self.zeta
-		algebraic = [0] * self.zeta
-		if len(set(endpoints)) == 1:
-			recoding = False
-			vertex = endpoints[0]  # They are the same so it doesn't matter which we take.
-			for corner in self.corner_class_of_vertex(vertex) * 2:
-				label = corner.labels[2]
-				index = norm(label)
-				if not recoding and label == edge_label:
-					recoding = True
-				elif recoding and label == ~edge_label:
-					break
-				elif recoding:
-					geometric[index] += 1
-					algebraic[index] += 1 if index == corner.labels[2] else -1
-		else:
-			for vertex in endpoints:
-				for corner in self.corner_class_of_vertex(vertex):
-					index = corner.indices[2]
-					if index != norm(edge_label):
-						geometric[index] += 1
-						algebraic[index] += 1 if index == corner.labels[2] else -1
-		
-		return flipper.kernel.Lamination(self, geometric, algebraic, remove_peripheral=False)
+		c = h.target_triangulation.key_curves()[0]
+		return h.inverse()(c)
 	
 	def key_curves(self):
-		''' Return a list of all boundaries of regular neighbourhoods of flippable edges.
+		''' Return a list of curves which fill the underlying surface.
 		
-		These curves fill so if they are all fixed by a mapping class then it is
-		the identity (or possibly the hyperelliptic if we are on S_{0, 4} or
-		S_{1, 1}). '''
+		As these fill, by Alexander's trick a mapping class is the identity
+		if and only if it fixes all of them. '''
 		
-		# Rememeber to filter out any empty laminations that we get.
-		return [self.regular_neighbourhood(edge_index) for edge_index in self.flippable_edges()]
+		curves = []
+		
+		for edge_index in range(self.zeta):
+	 		# Build the curve which is the boundary of a regular neighbourhood of this edge.
+			endpoints = self.vertices_of_edge(edge_index)
+			
+			# If the given edge actually forms a loop then we will build two curves, one for
+			# each side of the regular neighbourhood.
+			if len(set(endpoints)) == 1:
+				left = False
+				geometric = [[0] * self.zeta, [0] * self.zeta]
+				algebraic = [[0] * self.zeta, [0] * self.zeta]
+				for corner in self.corner_class_of_vertex(endpoints[0]):  # They are the same so it doesn't matter which we take.
+					index = corner.indices[2]
+					if index == edge_index:
+						left = not left
+					else:
+						geometric[0 if left else 1][index] += 1
+						algebraic[0 if left else 1][index] += 1 if index == corner.labels[2] else -1
+				
+				curves.append(self.lamination(geometric[0], algebraic[0]))
+				curves.append(self.lamination(geometric[1], algebraic[1]))
+			else:
+				geometric = [0] * self.zeta
+				algebraic = [0] * self.zeta
+				for vertex in endpoints:
+					for corner in self.corner_class_of_vertex(vertex):
+						index = corner.indices[2]
+						geometric[index] += 1
+						algebraic[index] += 1 if index == corner.labels[2] else -1
+				
+				geometric[edge_index] = 0
+				algebraic[edge_index] = 0
+				if not self.is_flippable(edge_index):
+					# We also need to zero out the curve enclosing this edge.
+					[boundary_edge] = [index for index in self.corner_of_edge(edge_index).indices if index != edge_index]
+					geometric[boundary_edge] = 0
+					algebraic[boundary_edge] = 0
+				
+				curves.append(self.lamination(geometric, algebraic))
+		
+		# Filter out any empty laminations that we get.
+		return [curve for curve in curves if not curve.is_empty()]
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''

@@ -71,4 +71,5 @@ create_number_field = numberfield.create_number_field
 
 package = utilities.package
 product = utilities.product
+gcd = utilities.gcd
 

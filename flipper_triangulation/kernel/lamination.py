@@ -24,32 +24,15 @@ class Lamination(object):
 	If remove_peripheral is True then the Lamination is allowed to rescale
 	its weights (by a factor of 2) in order to remove any peripheral
 	components / satifsy the triangle inequalities. '''
-	def __init__(self, triangulation, geometric, algebraic, remove_peripheral=True):
+	def __init__(self, triangulation, geometric, algebraic):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
 		assert(all(isinstance(entry, object) for entry in geometric))
-		assert(isinstance(remove_peripheral, bool))
+		assert(flipper.kernel.matrix.nonnegative(geometric))
+		# We should check that algebraic satisfies reasonable relations too.
 		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
-		if remove_peripheral:
-			# Compute how much peripheral component there is on each corner class.
-			# This will also check that the triangle inequalities are satisfied. When
-			# they fail one of peripheral.values() is negative, which is non-zero and
-			# so triggers the correction.
-			def dual_weight(corner):
-				''' Return double the weight of normal arc corresponding to the given corner. '''
-				
-				return geometric[corner.indices[1]] + geometric[corner.indices[2]] - geometric[corner.index]
-			
-			peripheral = dict((vertex, min(dual_weight(corner) for corner in self.triangulation.corner_class_of_vertex(vertex))) for vertex in self.triangulation.vertices)
-			# If there is any add / remove it.
-			if any(peripheral.values()):
-				# Really should be geometric[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
-				geometric = [2*geometric[i] - sum(peripheral[v] for v in self.triangulation.vertices_of_edge(i)) for i in range(self.zeta)]
-		
-		assert(flipper.kernel.matrix.nonnegative(geometric))
 		self.geometric = list(geometric)
-		# We should check that algebraic satisfies reasonable relations too.
 		self.algebraic = algebraic
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -57,7 +40,7 @@ class Lamination(object):
 	def copy(self):
 		''' Return a copy of this lamination. '''
 		
-		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic), remove_peripheral=False)
+		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic))
 	
 	def __repr__(self):
 		return str(self.geometric)
@@ -112,7 +95,7 @@ class Lamination(object):
 	def __mul__(self, other):
 		geometric = [other * x for x in self]
 		algebraic = [other * x for x in self.algebraic]
-		return Lamination(self.triangulation, geometric, algebraic, remove_peripheral=False)
+		return Lamination(self.triangulation, geometric, algebraic)
 	def __rmul__(self, other):
 		return self * other
 	
@@ -297,36 +280,6 @@ class Lamination(object):
 		
 		return z.index == w.index or x.index == y.index
 	
-	def with_algebraic(self):
-		
-		assert(self.is_curve())
-		
-		if not self.is_twistable():
-			return Lamination(self.triangulation, self.geometric, [0] * self.zeta)
-		else:
-			conjugation = self.conjugate_short()
-			short_lamination = conjugation(self)
-			triangulation = short_lamination.triangulation
-			
-			# Grab the indices of the two edges we meet.
-			e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
-			
-			a, b, c, d = triangulation.square_about_edge(e1)
-			# If the curve is going vertically through the square then ...
-			if short_lamination[a] == 1 and short_lamination[c] == 1:
-				# swap the labels round so it goes horizontally.
-				e1, e2 = e2, e1
-				a, b, c, d = triangulation.square_about_edge(e1)
-			elif short_lamination[b] == 1 and short_lamination[d] == 1:
-				pass
-			
-			algebraic = [0] * self.zeta
-			algebraic[e1] = +1
-			algebraic[b.index] = -1 if b.is_positive() else +1
-			short_lamination.algebraic = algebraic
-			
-			return conjugation.inverse()(short_lamination)
-	
 	def weight_difference_flip_edge(self, edge_index):
 		''' Return how much the weight would change by if this flip was done. '''
 		
@@ -395,7 +348,7 @@ class Lamination(object):
 		algebraic = [0] * zeta
 		
 		T = flipper.kernel.Triangulation(triangles)
-		return Lamination(T, geometric, algebraic, remove_peripheral=False)
+		return Lamination(T, geometric, algebraic)
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index.
@@ -492,7 +445,7 @@ class Lamination(object):
 		T = flipper.kernel.Triangulation(new_triangles)
 		algebraic = [0] * len(geometric)
 		
-		return Lamination(T, geometric, algebraic, remove_peripheral=False)
+		return Lamination(T, geometric, algebraic)
 	
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.

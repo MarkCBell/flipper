@@ -46,6 +46,8 @@ class EquippedTriangulation(object):
 			self.pos_mapping_classes = dict(list(flipper.kernel.utilities.name_objects(mapping_classes)))
 			self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
+		
+		self.zeta = self.triangulation.zeta
 	
 	def __repr__(self):
 		lam_keys = sorted(self.laminations.keys())

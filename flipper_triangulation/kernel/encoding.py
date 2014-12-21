@@ -40,7 +40,7 @@ class PartialFunction(object):
 		self.action = action
 		self.condition = condition if condition is not None else flipper.kernel.zero_matrix(self.action.width)
 	
-	def __str__(self):
+	def __repr__(self):
 		return '%s\n%s' % (self.action, self.condition)
 	
 	def __eq__(self, other):
@@ -264,7 +264,7 @@ class Encoding(object):
 			algebraic = self.algebraic(other.algebraic)
 			# If other has no peripheral components then self(other) does too.
 			# Hence we can skip this check and save ~25% of the work.
-			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic, remove_peripheral=False)
+			return self.target_triangulation.lamination(geometric, algebraic, remove_peripheral=False)
 		else:
 			return NotImplemented
 	def __mul__(self, other):

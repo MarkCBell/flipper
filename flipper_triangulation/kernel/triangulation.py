@@ -320,7 +320,7 @@ class Triangulation(object):
 		unchanged_triangles = [triangle for triangle in self if edge_index not in triangle.labels and ~edge_index not in triangle]
 		return Triangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
-	def tree_and_dual_tree(self):
+	def tree_and_dual_tree(self, respect_vertex_labels=False):
 		''' Return a maximal tree in the 1--skeleton of this triangulation and a
 		maximal tree in 1--skeleton of the dual of this triangulation.
 		
@@ -329,7 +329,14 @@ class Triangulation(object):
 		
 		tree = [False] * self.zeta
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
-		vertices_used[self.vertices[0]] = True
+		# Get some starting vertices.
+		for vertex in self.vertices:
+			if vertex.label >= 0:
+				vertices_used[vertex] = True
+				if not respect_vertex_labels:
+					# Stop as soon as we've marked one.
+					break
+		
 		while True:
 			for edge_index in range(self.zeta):
 				if not tree[edge_index]:
@@ -410,6 +417,36 @@ class Triangulation(object):
 				homology_generators.append(generator)
 		
 		return homology_generators
+	def homology_matrix(self, respect_vertex_labels=True):
+		''' Return a matrix M such that two curves X and Y are homologous
+		if and only if M * X.algebraic == M * Y.algebraic. '''
+		
+		matrix = flipper.kernel.id_matrix(self.zeta)
+		
+		tree, _ = self.tree_and_dual_tree(respect_vertex_labels)
+		vertices_used = dict((vertex, False) for vertex in self.vertices)
+		# Get some starting vertices.
+		for vertex in self.vertices:
+			if vertex.label >= 0:
+				vertices_used[vertex] = True
+				if not respect_vertex_labels:
+					# Stop as soon as we've marked one.
+					break
+		
+		while True:
+			for edge in self.edges:
+				if tree[edge.index]:
+					source, target = edge.source_vertex, edge.target_vertex
+					if vertices_used[source] and not vertices_used[target]:
+						vertices_used[target] = True
+						for edge2 in self.edges:
+							if edge2 != edge and edge2 != ~edge and edge2.source_vertex == target and edge2.target_vertex != target:
+								matrix = matrix.elementary(edge2.index, edge.index, +1 if edge2.is_positive() else -1)
+						break
+			else:
+				break  # If there are no more to add then our tree is maximal.
+		
+		return flipper.kernel.Matrix([matrix[i] for i in range(self.zeta) if not tree[i]])
 	
 	def isometries_to(self, other_triangulation, respect_vertex_labels=True):
 		''' Return a list of all isometries from this triangulation to other_triangulation. '''

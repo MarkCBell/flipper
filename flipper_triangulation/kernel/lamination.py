@@ -717,4 +717,15 @@ class Lamination(object):
 		
 		# short_lamination.algebraic(a) == -short_lamination.algebraic(c).
 		return short.algebraic(e1) * short_lamination.algebraic(a)
+	
+	def is_homologous_to(self, lamination, respect_vertex_labels=True):
+		''' Return if this lamination is homologous to the given one.
+		
+		This lamination and the given one must be defined on the same triangulation. '''
+		
+		assert(isinstance(lamination, Lamination))
+		assert(self.triangulation == lamination.triangulation)
+		
+		M = self.triangulation.homology_matrix(respect_vertex_labels)
+		return M(self.algebraic) == M(lamination.algebraic)
 

@@ -213,6 +213,11 @@ class Matrix(object):
 		sign = +1 if self.width % 2 == 0 else -1
 		return flipper.kernel.Polynomial(p[::-1]) * sign
 	
+	def elementary(self, i, j, k=1):
+		''' Return the matrix obtained by performing the elementary move:
+			replace row i by row i + k * row j. '''
+		
+		return Matrix([self[n] if n != i else [x+k*y for x, y in zip(self[i], self[j])] for n in range(self.height)])
 	def row_reduce(self, zeroing_width=None):
 		''' Return this matrix after applying elementary row operations
 		so that in each row each non-zero entry either:

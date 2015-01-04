@@ -578,12 +578,18 @@ class Encoding(object):
 		
 		This encoding must be a mapping class. '''
 		
-		p = 0
-		for splitting in self.splitting_sequences():
-			if all(splitting.preperiodic(self.inverse()(curve)).is_homologous_to(splitting.mapping_class(splitting.preperiodic(curve))) for curve in self.source_triangulation.key_curves()):
-				p += 1
+		# We get a list of all possible splitting sequences from
+		# self.splitting_sequences(). From there we use the fact that each
+		# of these differ by a periodic mapping class, which cannot be in the
+		# Torelli subgroup and so acts non-trivially on H_1(S).
+		# Thus we look for the map whose action on H_1(S) is conjugate to self
+		# via splitting.preperiodic.
 		
-		assert(p == 1)
+		# To do this we take sufficiently many curves (the key_curves() of the
+		# underlying triangulation) and look for the splitting sequence in which
+		# they are mapped to homologous curves by:
+		#	preperiodic . self^{-1} and periodic . preperiodic.
+		# Note that we must use self.inverse().
 		
 		for splitting in self.splitting_sequences():
 			if all(splitting.preperiodic(self.inverse()(curve)).is_homologous_to(splitting.mapping_class(splitting.preperiodic(curve))) for curve in self.source_triangulation.key_curves()):

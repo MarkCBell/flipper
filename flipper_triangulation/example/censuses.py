@@ -26,13 +26,13 @@ def test(surface, word, target):
 	return False
 
 def main():
-	database = 'census_monodromies'  # We could also load('knot_monodromies').
+	database = 'knot_monodromies'  # We could also load('knot_monodromies').
 	print('Building mapping tori for each monodromy in:')
 	print('\t%s' % database)
 	
 	unmatched = []
 	
-	for surface, word, target in flipper.load.database(database):
+	for surface, word, target in list(flipper.load.database(database))[303:]:
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		if not test(surface, word, target):

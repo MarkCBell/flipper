@@ -314,14 +314,11 @@ class Lamination(object):
 		return [triangle for triangle in self.triangulation if self.is_tripod(triangle)]
 	
 	def puncture_tripods(self):
-		''' Return the lamination obtained by puncturing each triangle where self is a tripod'''
+		''' Return the encoding corresponding to puncturing the tripods of this lamination. '''
 		
 		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
 		
 		to_puncture = self.tripod_regions()
-		old_zeta = self.zeta
-		# geometric = [2*entry for entry in self]
-		# algebraic = [0] * zeta
 		geometric = 2 * flipper.kernel.id_matrix(self.zeta)
 		algebraic = flipper.kernel.id_matrix(self.zeta)
 		
@@ -340,10 +337,6 @@ class Lamination(object):
 				triangles.append(flipper.kernel.Triangle([p, ~u, t]))
 				triangles.append(flipper.kernel.Triangle([q, ~s, u]))
 				triangles.append(flipper.kernel.Triangle([r, ~t, s]))
-				
-				#geometric.append(self[B] + self[C] - self[A])
-				#geometric.append(self[C] + self[A] - self[B])
-				#geometric.append(self[A] + self[B] - self[C])
 				
 				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, B), (0, C)], [(0, A)]))
 				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, C), (0, A)], [(0, B)]))
@@ -369,7 +362,6 @@ class Lamination(object):
 		
 		T = flipper.kernel.Triangulation(triangles)
 		return flipper.kernel.Encoding(self.triangulation, T, pl, l)
-		# return Lamination(T, geometric, algebraic)
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index

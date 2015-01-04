@@ -10,19 +10,18 @@ except ImportError:
 from time import time
 
 def test(surface, word, target):
-	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
+	splitting = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequence()
 	# M = snappy.twister.Surface(surface).bundle(word)  # These should be the same.
 	M = snappy.Manifold(target)
-	for splitting in splittings:
-		N = snappy.Manifold(splitting.bundle().snappy_string())
-		for _ in range(100):
-			try:
-				if M.is_isometric_to(N):
-					return True
-			except RuntimeError:
-				pass  # SnapPy couldn't decide if these are isometric or not.
-			M.randomize()
-			N.randomize()
+	N = snappy.Manifold(splitting.bundle().snappy_string())
+	for _ in range(100):
+		try:
+			if M.is_isometric_to(N):
+				return True
+		except RuntimeError:
+			pass  # SnapPy couldn't decide if these are isometric or not.
+		M.randomize()
+		N.randomize()
 	
 	return False
 

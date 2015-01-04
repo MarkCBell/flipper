@@ -25,7 +25,7 @@ def permutation_from_pair(a, to_a, b, to_b):
 
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an Triangulation. '''
-	def __init__(self, lamination, periodic_flips, isometry):
+	def __init__(self, lamination, periodic_flips, isometry, preperiodic, periodic):
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(all(isinstance(flip, flipper.IntegerType) for flip in periodic_flips))
 		assert(isinstance(isometry, flipper.kernel.Isometry))
@@ -33,10 +33,10 @@ class SplittingSequence(object):
 		self.lamination = lamination
 		self.periodic_flips = periodic_flips
 		self.isometry = isometry
+		self.preperiodic = preperiodic
 		self.triangulation = self.lamination.triangulation
-		self.periodic = self.triangulation.encode_flips(self.periodic_flips)
-		I = self.isometry.adapt(self.periodic.target_triangulation, self.periodic.source_triangulation)
-		self.mapping_class = I.encode() * self.periodic
+		self.periodic = periodic
+		self.mapping_class = self.isometry.encode() * self.periodic
 	
 	def dilatation(self):
 		''' Return the dilatation of the corresponding mapping class (as a float). '''

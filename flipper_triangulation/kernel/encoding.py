@@ -121,6 +121,9 @@ class BasicPLFunction(object):
 class PLFunction(object):
 	''' This represents the composition of a sequence of BasicPLFunctions. '''
 	def __init__(self, sequence):
+		assert(isinstance(sequence, (list, tuple)))
+		assert(all(isinstance(element, BasicPLFunction) for element in sequence))
+		
 		# Collapse away the PLFunctions of length 1 (the ones with no branching).
 		new_sequence = []
 		current = None
@@ -550,9 +553,6 @@ class Encoding(object):
 	def splitting_sequences(self, take_roots=False):
 		''' Return a list of splitting sequences associated to this mapping class.
 		
-		Eventually this should return the unique splitting sequence associated, in which
-		case the name might change.
-		
 		Assumes (and checks) that the mapping class is pseudo-Anosov.
 		
 		This encoding must be a mapping class. '''
@@ -570,6 +570,25 @@ class Encoding(object):
 		
 		# Eventually we should choose only one of the splittings.
 		return splittings
+	
+	def splitting_sequence(self):
+		''' Return the splitting sequence associated to this mapping class.
+		
+		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
+		
+		p = 0
+		for splitting in self.splitting_sequences():
+			if all(splitting.preperiodic(self.inverse()(curve)).is_homologous_to(splitting.mapping_class(splitting.preperiodic(curve))) for curve in self.source_triangulation.key_curves()):
+				p += 1
+		
+		assert(p == 1)
+		
+		for splitting in self.splitting_sequences():
+			if all(splitting.preperiodic(self.inverse()(curve)).is_homologous_to(splitting.mapping_class(splitting.preperiodic(curve))) for curve in self.source_triangulation.key_curves()):
+				return splitting
+
 
 def id_l_function(dim):
 	id_matrix = flipper.kernel.id_matrix(dim)
@@ -578,5 +597,12 @@ def id_l_function(dim):
 def id_pl_function(dim):
 	id_partial = PartialFunction(flipper.kernel.id_matrix(dim))
 	f = BasicPLFunction([id_partial], [id_partial])
+	return PLFunction([f])
+
+def zero_pl_function(width, height=None):
+	if height is None: height = width
+	zero_partial = PartialFunction(flipper.kernel.zero_matrix(width, height))
+	zero_partial_inverse = PartialFunction(flipper.kernel.zero_matrix(height, width))
+	f = BasicPLFunction([zero_partial], [zero_partial_inverse])
 	return PLFunction([f])
 

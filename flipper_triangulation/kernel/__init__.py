@@ -57,6 +57,7 @@ height_int = algebraicnumber.height_int
 norm = triangulation.norm
 id_l_function = encoding.id_l_function
 id_pl_function = encoding.id_pl_function
+zero_pl_function = encoding.zero_pl_function
 IntegerType = types.IntegerType
 StringType = types.StringType
 NumberType = types.NumberType

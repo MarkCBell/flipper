@@ -16,10 +16,10 @@ def main(verbose=False):
 	for surface, word, target in flipper.load.database('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
-		splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
-		# One of the bundles should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
+		splitting = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequence()
+		# This should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
-		print('\tAll: %s, Real: %s' % stratum(splittings[0]))
+		print('\tAll: %s, Real: %s' % stratum(splitting))
 		if verbose: print('\tComputed in %0.3fs' % (time() - start_time))
 
 if __name__ == '__main__':

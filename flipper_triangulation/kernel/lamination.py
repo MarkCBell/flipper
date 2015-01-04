@@ -320,12 +320,16 @@ class Lamination(object):
 		
 		to_puncture = self.tripod_regions()
 		old_zeta = self.zeta
-		geometric = [2*entry for entry in self]
+		# geometric = [2*entry for entry in self]
+		# algebraic = [0] * zeta
+		geometric = 2 * flipper.kernel.id_matrix(self.zeta)
+		algebraic = flipper.kernel.id_matrix(self.zeta)
 		
 		zeta = self.zeta
 		triangles = []
 		num_new_vertices = 0
 		for triangle in self.triangulation:
+			a, b, c = triangle.labels
 			A, B, C = triangle.indices
 			if triangle in to_puncture:
 				x, y, z = triangle.vertices
@@ -337,21 +341,39 @@ class Lamination(object):
 				triangles.append(flipper.kernel.Triangle([q, ~s, u]))
 				triangles.append(flipper.kernel.Triangle([r, ~t, s]))
 				
-				geometric.append(self[B] + self[C] - self[A])
-				geometric.append(self[C] + self[A] - self[B])
-				geometric.append(self[A] + self[B] - self[C])
+				#geometric.append(self[B] + self[C] - self[A])
+				#geometric.append(self[C] + self[A] - self[B])
+				#geometric.append(self[A] + self[B] - self[C])
+				
+				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, B), (0, C)], [(0, A)]))
+				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, C), (0, A)], [(0, B)]))
+				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, A), (0, B)], [(0, C)]))
+				
+				algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1))
+				if c == C:
+					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, C)], []))
+				else:
+					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([], [(0, C)]))
+				if b != B:
+					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, B)], []))
+				else:
+					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([], [(0, B)]))
 				
 				zeta += 3
 			else:
 				triangles.append(triangle)
 		
-		algebraic = [0] * zeta
+		l = flipper.kernel.LFunction(algebraic, flipper.kernel.zero_matrix(zeta, self.zeta))
+		partial = flipper.kernel.PartialFunction(geometric)
+		pl = flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([partial])])
 		
 		T = flipper.kernel.Triangulation(triangles)
-		return Lamination(T, geometric, algebraic)
+		return flipper.kernel.Encoding(self.triangulation, T, pl, l)
+		# return Lamination(T, geometric, algebraic)
 	
 	def collapse_trivial_weight(self, edge_index):
-		''' Return this lamination on the triangulation obtained by collapsing edge edge_index.
+		''' Return this lamination on the triangulation obtained by collapsing edge edge_index
+		and an encoding which is at least algebraically correct.
 		
 		This assumes (and checks) that:
 			- self.triangulation is not S_{0,3},
@@ -383,13 +405,11 @@ class Lamination(object):
 		# Now the only remaining possibilities are:
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
-		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
-		near_vertices = e.source_vertex, e.target_vertex
-		
 		# We'll replace the labels on the corner class with lower labels with the label from the higher.
 		# This ensures that any non-negative vertex survives.
-		bad_vertex, good_vertex = sorted(near_vertices, key=lambda v: v.label)
+		bad_vertex, good_vertex = [e.source_vertex, e.target_vertex] if e.source_vertex.label < 0 else [e.target_vertex, e.source_vertex]
 		
+		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
 		# If we collapse together two real vertices (or a vertex with itself) then there is a loop
 		# dijoint to this lamination and so this is not filling.
 		if (good_vertex.label >= 0 and bad_vertex.label >= 0) or good_vertex == bad_vertex:
@@ -438,14 +458,34 @@ class Lamination(object):
 		
 		triples = [[edge_map[edge] for edge in triangle] for triangle in self.triangulation if e not in triangle and ~e not in triangle]
 		new_triangles = [flipper.kernel.Triangle(triple) for triple in triples]
+		T = flipper.kernel.Triangulation(new_triangles)
 		
 		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
 		geometric = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
+		algebraic = [0] * edge_count
+		lamination = Lamination(T, geometric, algebraic)
 		
-		T = flipper.kernel.Triangulation(new_triangles)
-		algebraic = [0] * len(geometric)
+		# Now compute the encoding describing this. We will only bother to get the algebraic part correct
+		# as the geometric part is not a PL function with only finitely many pieces.
+		matrix = flipper.kernel.id_matrix(self.zeta)
+		for edge in self.triangulation.edges:
+			if edge != e and edge != ~e and edge.source_vertex == bad_vertex and edge.target_vertex != bad_vertex:
+				matrix = matrix.elementary(edge.index, edge_index, +1 if edge.is_positive() != (e.source_vertex == bad_vertex) else -1)
 		
-		return Lamination(T, geometric, algebraic)
+		matrix2 = flipper.kernel.zero_matrix(self.zeta, edge_count)
+		for edge in self.triangulation.edges:
+			if edge not in bad_edges:
+				target_edge = edge_map[edge]
+				if not any(matrix2[target_edge.index]):
+					matrix2[target_edge.index][edge.index] = +1 if edge.is_positive() == target_edge.is_positive() else -1
+		
+		algebraic_matrix = matrix2 * matrix
+		algebraic_action = flipper.kernel.LFunction(algebraic_matrix, flipper.kernel.zero_matrix(edge_count, self.zeta))
+		geometric_action = flipper.kernel.zero_pl_function(self.zeta, edge_count)
+		
+		encoding = flipper.kernel.Encoding(self.triangulation, T, geometric_action, algebraic_action)
+		
+		return lamination, encoding
 	
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
@@ -463,9 +503,10 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Puncture all the triangles where the lamination is a tripod.
-		lamination = self.puncture_tripods()
+		encoding = self.puncture_tripods()
+		lamination = encoding(self)
 		
-		encodings = [None]
+		encodings = [encoding]
 		laminations = [lamination]
 		num_isometries = [len(lamination.self_isometries())]
 		flips = []
@@ -485,9 +526,9 @@ class Lamination(object):
 			if lamination[edge_index] == 0:
 				try:
 					# If this fails it's because the lamination isn't filling.
-					lamination = lamination.collapse_trivial_weight(edge_index)
+					lamination, E2 = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the encoding or flip so we'll just stick in a None.
-					encodings.append(None)
+					encodings.append(E2)
 					laminations.append(lamination)
 					num_isometries.append(len(lamination.self_isometries()))
 					flips.append(None)
@@ -505,11 +546,14 @@ class Lamination(object):
 							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
 							if num_isometries[-1] == max(num_isometries[index:]):
 								# A quick fencepost error check.
+								pp_encoding = flipper.kernel.product(encodings[:index+1], start=self.triangulation.id_encoding())
 								p_encoding = flipper.kernel.product(encodings[index+1:], start=old_lamination.triangulation.id_encoding())
+								assert(pp_encoding.source_triangulation == self.triangulation)
+								assert(pp_encoding.target_triangulation == p_encoding.source_triangulation)
 								assert(p_encoding.source_triangulation == old_lamination.triangulation)
 								assert(p_encoding.target_triangulation == lamination.triangulation)
 								
-								return [flipper.kernel.SplittingSequence(old_lamination, flips[index:], isom) for isom in isometries]
+								return [flipper.kernel.SplittingSequence(old_lamination, flips[index:], isom, pp_encoding, p_encoding) for isom in isometries]
 						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
 							assert(False)
 				seen[target].append(len(laminations)-1)
@@ -718,14 +762,43 @@ class Lamination(object):
 		# short_lamination.algebraic(a) == -short_lamination.algebraic(c).
 		return short.algebraic(e1) * short_lamination.algebraic(a)
 	
-	def is_homologous_to(self, lamination, respect_vertex_labels=True):
+	def is_homologous_to(self, lamination, relative_boundary=False):
 		''' Return if this lamination is homologous to the given one.
+		
+		The the homology class is computed relative to the fake punctures, unless relative_boundary
+		is set to True in which case it is done relative to all vertices.
 		
 		This lamination and the given one must be defined on the same triangulation. '''
 		
 		assert(isinstance(lamination, Lamination))
 		assert(self.triangulation == lamination.triangulation)
 		
-		M = self.triangulation.homology_matrix(respect_vertex_labels)
+		matrix = flipper.kernel.id_matrix(self.zeta)
+		
+		triangulation = self.triangulation
+		tree, dual_tree = triangulation.tree_and_dual_tree(not relative_boundary)
+		vertices_used = dict((vertex, False) for vertex in triangulation.vertices)
+		# Get some starting vertices.
+		for vertex in triangulation.vertices:
+			if vertex.label >= 0:
+				vertices_used[vertex] = True
+				if relative_boundary:
+					# Stop as soon as we've marked one.
+					break
+		
+		while True:
+			for edge in triangulation.edges:
+				if tree[edge.index]:
+					source, target = edge.source_vertex, edge.target_vertex
+					if vertices_used[source] and not vertices_used[target]:
+						vertices_used[target] = True
+						for edge2 in triangulation.edges:
+							if edge2 != edge and edge2 != ~edge and edge2.source_vertex == target and edge2.target_vertex != target:
+								matrix = matrix.elementary(edge2.index, edge.index, +1 if edge2.is_positive() == edge.is_positive() else -1)
+						break
+			else:
+				break  # If there are no more to add then we've dealt with every edge.
+		
+		M = flipper.kernel.Matrix([matrix[i] for i in range(self.zeta) if not tree[i] and not dual_tree[i]])
 		return M(self.algebraic) == M(lamination.algebraic)
 

@@ -144,7 +144,7 @@ class Matrix(object):
 			(self )
 			(-----)
 			(other)
-		This is the same as sages Matrix.stack() function. '''
+		This is the same as Sages Matrix.stack() function. '''
 		
 		return Matrix(self.rows + other.rows)
 	def tweak(self, increment, decrement):

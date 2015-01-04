@@ -13,11 +13,11 @@ except ImportError:
 
 def test(mapping_class):
 	try:
-		splittings = mapping_class.splitting_sequences()
-		for splitting in splittings:
-			M = snappy.Manifold(splitting.bundle().snappy_string(filled=False))
-			M.canonize()
-			print(M.num_tetrahedra(), len(splitting.periodic_flips))
+		splitting = mapping_class.splitting_sequence()
+		M = snappy.Manifold(splitting.bundle().snappy_string(filled=False))
+		M.canonize()
+		print('Bundle size: %d' % len(splitting.periodic_flips))
+		print('Canonical bundle size: %d' % M.num_tetrahedra())
 	except flipper.AssumptionError:
 		pass  # Mapping class is not pseudo-Anosov.
 

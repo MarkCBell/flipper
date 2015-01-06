@@ -4,7 +4,6 @@
 import flipper
 
 from sage.all import Matrix, Polyhedron, lcm, NumberField
-from flipper.kernel.symboliccomputation_dummy import project
 from math import log10 as log
 
 def minpoly_coefficients(number):

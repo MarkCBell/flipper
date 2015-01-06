@@ -728,32 +728,6 @@ class Lamination(object):
 		
 		return intersection_number
 	
-	def algebraic_intersection(self, lamination):
-		''' Return the algebraic intersection number between this lamination and the given one.
-		
-		Assumes that this is a twistable lamination. '''
-		
-		assert(isinstance(lamination, Lamination))
-		assert(lamination.triangulation == self.triangulation)
-		
-		if not self.is_twistable():
-			raise flipper.AssumptionError('Can only compute geometric intersection number between a twistable curve and a lamination.')
-		
-		conjugator = self.conjugate_short()
-		
-		short = conjugator(self)
-		short_lamination = conjugator(lamination)
-		
-		triangulation = short.triangulation
-		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]
-		# We might need to swap these edge indices so we have a good frame of reference.
-		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
-		
-		a, b, c, d = triangulation.square_about_edge(e1)
-		
-		# short_lamination.algebraic(a) == -short_lamination.algebraic(c).
-		return short.algebraic(e1) * short_lamination.algebraic(a)
-	
 	def is_homologous_to(self, lamination, relative_boundary=False):
 		''' Return if this lamination is homologous to the given one.
 		

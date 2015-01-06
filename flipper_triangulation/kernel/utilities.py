@@ -146,6 +146,8 @@ def encode_binary(sequence):
 	step = 6  # 2**step <= len(VISABLE_CHARACTERS)
 	return ''.join(VISIBLE_CHARACTERS[int(''.join(str(x) for x in sequence[i:i+step]), base=2)] for i in range(0, len(sequence), step))
 
-def gcd(X):
-	return freduce(gcd2, X)
+def gcd(numbers):
+	''' Return the gcd of a list of numbers. '''
+	
+	return freduce(gcd2, numbers)
 

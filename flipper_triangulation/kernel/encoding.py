@@ -597,15 +597,21 @@ class Encoding(object):
 
 
 def id_l_function(dim):
+	''' Return the identity linear function on RR^dim. '''
+	
 	id_matrix = flipper.kernel.id_matrix(dim)
 	return LFunction(id_matrix, id_matrix)
 
 def id_pl_function(dim):
+	''' Return the identity piecewise-linear function on RR^dim. '''
+	
 	id_partial = PartialFunction(flipper.kernel.id_matrix(dim))
 	f = BasicPLFunction([id_partial], [id_partial])
 	return PLFunction([f])
 
 def zero_pl_function(width, height=None):
+	''' Return the zero piecewise-linear function from RR^width to RR^height. '''
+	
 	if height is None: height = width
 	zero_partial = PartialFunction(flipper.kernel.zero_matrix(width, height))
 	zero_partial_inverse = PartialFunction(flipper.kernel.zero_matrix(height, width))

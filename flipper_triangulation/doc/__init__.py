@@ -4,6 +4,8 @@ import sys
 import subprocess
 
 def open_documentation(verbose=False):
+	''' Open the flipper users guide using the default pdf viewer. '''
+	
 	datadir = os.path.dirname(__file__)
 	disk_file = os.path.join(datadir, 'flipper.pdf')
 	if verbose: print('Opening:')

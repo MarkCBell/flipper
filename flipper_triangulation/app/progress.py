@@ -4,7 +4,6 @@ import flipper.app
 from flipper.app.spinning_icon import SPINNING_ICON
 
 from multiprocessing import Process
-from threading import Thread
 from multiprocessing import JoinableQueue as Queue
 
 try:

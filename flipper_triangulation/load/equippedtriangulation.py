@@ -7,7 +7,7 @@ import re
 
 import flipper
 
-REGEX_IS_BRAID = re.compile('B_(?P<num_strands>\d+)$')
+REGEX_IS_BRAID = re.compile(r'B_(?P<num_strands>\d+)$')
 
 def example_0_4():
 	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1, ~4, 5], [~2, ~5, 2]])

@@ -2,7 +2,6 @@
 ''' The flipper kernel. '''
 
 from . import algebraicapproximation
-from . import algebraicnumber
 from . import encoding
 from . import error
 from . import equippedtriangulation
@@ -43,8 +42,6 @@ Lamination = lamination.Lamination
 Matrix = matrix.Matrix
 NumberField = numberfield.NumberField
 PolynomialRoot = polynomial.PolynomialRoot
-AlgebraicMonomial = algebraicnumber.AlgebraicMonomial
-AlgebraicNumber = algebraicnumber.AlgebraicNumber
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
@@ -53,7 +50,7 @@ Triangulation3 = triangulation3.Triangulation3
 id_matrix = matrix.id_matrix
 zero_matrix = matrix.zero_matrix
 dot = matrix.dot
-height_int = algebraicnumber.height_int
+height_int = numberfield.height_int
 norm = triangulation.norm
 id_l_function = encoding.id_l_function
 id_pl_function = encoding.id_pl_function
@@ -66,7 +63,6 @@ NumberType = types.NumberType
 create_triangulation = triangulation.create_triangulation
 create_algebraic_approximation = algebraicapproximation.create_algebraic_approximation
 create_polynomial_root = polynomial.create_polynomial_root
-create_algebraic_number = algebraicnumber.create_algebraic_number
 create_interval = interval.create_interval
 create_number_field = numberfield.create_number_field
 

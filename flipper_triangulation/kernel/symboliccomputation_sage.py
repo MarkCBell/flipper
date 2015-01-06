@@ -79,26 +79,3 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')
 
-def directed_eigenvector2(matrix, vector):
-	''' Return the dominant eigenvalue of matrix and the projection of vector to its corresponding eigenspace.
-	
-	Assumes (and checks) that the dominant eigenvalue is real. '''
-	
-	M = Matrix(matrix.rows)
-	eigenvalue = max(M.eigenvalues(), key=lambda z: (z.abs(), z.real()))
-	if eigenvalue.imag() != 0:  # Make sure that the eigenvalue that we've got is real.
-		raise flipper.AssumptionError('Largest eigenvalue is not real.')
-	
-	# !?! Check this 100.
-	flipper_eigenvalue = flipper.kernel.create_algebraic_number(minpoly_coefficients(eigenvalue), str(eigenvalue.n(digits=100)))
-	
-	[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
-	eigenvector = project(vector, (M - lam).right_kernel().basis())
-	norm = sum(eigenvector)
-	eigenvector = [entry / norm for entry in eigenvector]
-	
-	# and check this 100 too.
-	flipper_eigenvector = [flipper.kernel.create_algebraic_number(minpoly_coefficients(entry), approximate(entry, 100)) for entry in eigenvector]
-	
-	return flipper_eigenvalue, flipper_eigenvector
-

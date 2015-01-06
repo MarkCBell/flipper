@@ -21,6 +21,13 @@ from math import log10 as log
 LOG_2 = log(2)
 HASH_DENOMINATOR = 30
 
+def height_int(number):
+	''' Return the height of the given integer. '''
+	
+	assert(isinstance(number, flipper.IntegerType))
+	
+	return log(max(abs(number), 1))
+
 class NumberField(object):
 	''' This represents a number field QQ(lambda).
 	

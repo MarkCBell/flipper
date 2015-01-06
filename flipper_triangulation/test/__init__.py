@@ -4,7 +4,6 @@
 # which returns True if and only if the test succeeds.
 
 from . import algebraicapproximation
-from . import algebraicnumber
 from . import encoding
 from . import interval
 from . import lamination

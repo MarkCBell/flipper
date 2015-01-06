@@ -3,9 +3,8 @@
 undo and redo
 autosave session
 have weighted brush for painting laminations (in a given field?)
-show algebraic intersection number
 update examples in application/examples/
-add arrows showing edge orientation
+correct arrows showing edge orientation
 
 ### Documentation ###
 documentation for kernel - sphinx?

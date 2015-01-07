@@ -24,9 +24,9 @@ def main(verbose=False):
 		('S_1_2', 'bbaCBAaBabcABB', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
 		('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
-		# ('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Really slow.
-		# ('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
-		# ('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow useful for profiling. Current best time 102s.
+		('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
+		('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
+		('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
 		]
 	
 	for surface, word, _ in tests:

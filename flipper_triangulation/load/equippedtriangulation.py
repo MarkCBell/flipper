@@ -136,7 +136,9 @@ def example_12():
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/12 click.
 	
-	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], {
+		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()
+		})
 
 def example_24():
 	# A 24-gon.
@@ -149,7 +151,9 @@ def example_24():
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/24 click.
 	
-	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], {
+		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()
+		})
 
 def example_36():
 	# A 36-gon
@@ -164,7 +168,9 @@ def example_36():
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	p = T.self_isometries()[1] # This is a 1/36 click.
 	
-	return flipper.kernel.EquippedTriangulation(T, [a, b], [a.encode_twist(), b.encode_twist(), p.encode()])
+	return flipper.kernel.EquippedTriangulation(T, [a, b], {
+		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()
+		})
 
 def example_braid_sphere(n):
 	# A triangulation of S_{0,n+1}.

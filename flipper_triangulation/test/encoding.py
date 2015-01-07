@@ -21,16 +21,15 @@ def main(verbose=False):
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
 		('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
 		('S_2_1', 'abcdeF', NT_TYPE_PSEUDO_ANOSOV),
-		# ('E_12', 'aaaaBBc', NT_TYPE_PSEUDO_ANOSOV),  # Really slow.
-		# ('E_12', 'aaBaaBBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow.
-		# ('E_12', 'aaaaBBaBaBc', NT_TYPE_PSEUDO_ANOSOV)  # Really slow useful for profiling. Current best time 102s.
+		#('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
+		#('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
+		#('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
 		]
 	
 	for surface, word, mapping_class_type in tests:
 		if verbose: print(word)
 		S = flipper.load.equipped_triangulation(surface)
-		mapping_class = S.mapping_class(word)
-		if mapping_class.nielsen_thurston_type() != mapping_class_type:
+		if S.mapping_class(word).nielsen_thurston_type() != mapping_class_type:
 			return False
 	
 	return True

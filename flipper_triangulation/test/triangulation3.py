@@ -8,9 +8,10 @@ except ImportError:
 import flipper
 
 def test(surface, word, target):
-	splittings = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequences()
+	splitting = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequence()
+	snappy_string = splitting.bundle().snappy_string()
 	# Snappy can fail with a RuntimeError.
-	return any(snappy.Manifold(splitting.bundle().snappy_string()).is_isometric_to(target) for splitting in splittings)
+	return snappy.Manifold(snappy_string).is_isometric_to(target)
 
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')
@@ -20,11 +21,15 @@ def main(verbose=False):
 		return True
 	
 	tests = [
-		('S_1_1', 'aB', 'm003'), ('S_1_1', 'aB', 'm004'),
-		('S_1_1', 'Ba', 'm003'), ('S_1_1', 'Ba', 'm004'),
-		('S_1_1', 'Ab', 'm003'), ('S_1_1', 'Ab', 'm004'),
-		('S_1_1', 'bA', 'm003'), ('S_1_1', 'bA', 'm004'),
-		('S_1_1', 'aBaB', 'm206'), ('S_1_1', 'aBaB', 'm207'),  # Double covers.
+		('S_1_1', 'aBababab', 'm003'),
+		('S_1_1', 'Baababab', 'm003'),
+		('S_1_1', 'Abababab', 'm003'),
+		('S_1_1', 'bAababab', 'm003'),
+		('S_1_1', 'aB', 'm004'),
+		('S_1_1', 'Ba', 'm004'),
+		('S_1_1', 'Ab', 'm004'),
+		('S_1_1', 'bA', 'm004'),
+		('S_1_1', 'aBaB', 'm206'), ('S_1_1', 'aBaBababab', 'm207'),  # Double covers.
 		('S_2_1', 'aaabcd', 'm036'),
 		('S_2_1', 'abcdeF', 'm038')
 		]

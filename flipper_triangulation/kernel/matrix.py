@@ -17,6 +17,11 @@ def nonnegative(v):
 def dot(a, b):
 	''' Return the dot product of the two given iterables. '''
 	
+	# Is it significantly faster to do:
+	#c = 0
+	#for x, y in zip(a, b):
+	#	c += x * y
+	#return c
 	return sum(x * y for x, y in zip(a, b))
 
 class Matrix(object):

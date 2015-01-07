@@ -146,9 +146,6 @@ class Triangulation3(object):
 	def __iter__(self):
 		return iter(self.tetrahedra)
 	
-	def __contains__(self, other):
-		return other in self.tetrahedra
-	
 	def clear_temp_peripheral_structure(self):
 		''' Remove all TEMP peripheral curves. '''
 		

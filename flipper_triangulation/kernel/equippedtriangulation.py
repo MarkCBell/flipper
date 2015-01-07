@@ -96,16 +96,16 @@ class EquippedTriangulation(object):
 				for letter in letters:
 					if not reduced or not prefix or letter != prefix[-1].swapcase():
 						prefix2 = prefix + [letter]
-						prefix2_inv = [x.swapcase() for x in prefix2[::-1]]
 						lp = len(prefix2)
 						if not conjugate or all(prefix2[i:2*i] >= prefix2[:min(i, len(prefix2)-i)] for i in range(lp // 2, lp)):
 							for word in self.all_words(length-1, reduced, conjugate, inverse, prefix2, letters, False):
 								yield word
 			else:
+				lp = len(prefix)
 				prefix_inv = [x.swapcase() for x in prefix[::-1]]
 				if not conjugate or not prefix or prefix[0] != prefix[-1].swapcase():
-					if not conjugate or all(prefix[i:] + prefix[:i] >= prefix for i in range(len(prefix))):
-						if not inverse or any(x not in letters for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(len(prefix))):
+					if not conjugate or all(prefix[i:] + prefix[:i] >= prefix for i in range(lp)):
+						if not inverse or any(x not in letters for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(lp)):
 							yield prefix
 		
 		return

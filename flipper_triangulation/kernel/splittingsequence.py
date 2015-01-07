@@ -26,10 +26,13 @@ def permutation_from_pair(a, to_a, b, to_b):
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an Triangulation. '''
 	def __init__(self, laminations, encodings, isometry, index):
-		#assert(isinstance(lamination, flipper.kernel.Lamination))
-		#assert(all(isinstance(flip, flipper.IntegerType) for flip in periodic_flips))
+		assert(isinstance(laminations, (list, tuple)))
+		assert(all(isinstance(lamination, flipper.kernel.Lamination) for lamination in laminations))
+		assert(isinstance(encodings, (list, tuple)))
+		assert(all(edge_index is None or isinstance(edge_index, flipper.IntegerType) for edge_index, _ in encodings))
+		assert(all(isinstance(encoding, flipper.kernel.Encoding) for _, encoding in encodings))
 		assert(isinstance(isometry, flipper.kernel.Isometry))
-		
+		assert(isinstance(index, flipper.IntegerType))
 		
 		self.laminations = laminations
 		self.edge_flips, self.encodings = zip(*encodings)

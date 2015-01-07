@@ -501,8 +501,11 @@ class Lamination(object):
 		encodings = [(None, E)]
 		laminations = [self, lamination]
 		num_isometries = [len(lamination.self_isometries())]
-		flips = [None]
-		seen = {self.projective_hash(): [0], lamination.projective_hash(): [1]}
+		seen = {lamination.projective_hash(): [1]}
+		# We start indexing at 1 to help keep the indices aligned.
+		# We don't want to include self as the first lamination just incase
+		# it is already on the axis and the puncture_tripods does nothing,
+		# misaligning the indices.
 		while True:
 			# Find the index of the largest entry.
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])
@@ -511,7 +514,6 @@ class Lamination(object):
 			lamination = E(lamination)
 			laminations.append(lamination)
 			num_isometries.append(len(lamination.self_isometries()))
-			flips.append(edge_index)
 			
 			# Check if we have created any edges of weight 0.
 			# It is enough to just check edge_index.
@@ -523,7 +525,6 @@ class Lamination(object):
 					encodings.append((None, E2))
 					laminations.append(lamination)
 					num_isometries.append(len(lamination.self_isometries()))
-					flips.append(None)
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
 			

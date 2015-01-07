@@ -259,6 +259,21 @@ class Encoding(object):
 			return NotImplemented
 	def __ne__(self, other):
 		return not (self == other)
+	def is_homologous_to(self, other):
+		''' Return if this encoding and other induce the same map from
+		H_1(source_triangulation) to H_1(target_triangulation). '''
+		
+		
+		if isinstance(other, Encoding):
+			if self.source_triangulation != other.source_triangulation or \
+				self.target_triangulation != other.target_triangulation:
+				raise ValueError('Cannot compare Encodings between different triangulations.')
+			
+			return all(self(curve).is_homologous_to(other(curve)) for curve in self.source_triangulation.key_curves())
+		else:
+			return NotImplemented
+		
+		
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
@@ -591,7 +606,7 @@ class Encoding(object):
 		# Note that we must use self.inverse().
 		
 		for splitting in self.splitting_sequences():
-			if all(splitting.preperiodic(self.inverse()(curve)).is_homologous_to(splitting.mapping_class(splitting.preperiodic(curve))) for curve in self.source_triangulation.key_curves()):
+			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
 				return splitting
 
 

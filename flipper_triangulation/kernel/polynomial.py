@@ -40,7 +40,7 @@ class Polynomial(object):
 		return ' + '.join('%d*x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 	def __bool__(self):
 		return not self.is_zero()
-	def __nonzero__(self):
+	def __nonzero__(self):  # For Python2.
 		return self.__bool__()
 	def __eq__(self, other):
 		return (self - other).is_zero()
@@ -81,7 +81,7 @@ class Polynomial(object):
 			return Polynomial([a * other for a in self])
 		else:
 			return NotImplemented
-	def __rmull__(self, other):
+	def __rmul__(self, other):
 		return self * other
 	
 	def shift(self, power):

@@ -1,4 +1,6 @@
 
+''' Opens the flipper documentation. '''
+
 import flipper
 
 if __name__ == '__main__':

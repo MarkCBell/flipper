@@ -1,7 +1,10 @@
 
+''' A simple starting point for flipper. '''
+
 import flipper
 
 def main():
+	''' Describe how to start flipper. '''
 	print('flipper %s' % flipper.__version__)
 	print('To start the flipper GUI use:')
 	print('  > python -m flipper.app')

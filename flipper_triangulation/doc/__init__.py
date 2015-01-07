@@ -1,4 +1,6 @@
 
+''' Stores the documentation for flipper. '''
+
 import os
 import sys
 import subprocess

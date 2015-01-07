@@ -1,7 +1,7 @@
 
-# Some standard example surfaces with mapping classes defined on them.
-# Mainly used for running tests on. These can be accessed through
-# the load(SURFACE) function.
+''' Some standard example surfaces with mapping classes defined on them.
+Mainly used for running tests on. These can be accessed through
+the load(SURFACE) function. '''
 
 import re
 

@@ -25,18 +25,27 @@ def permutation_from_pair(a, to_a, b, to_b):
 
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an Triangulation. '''
-	def __init__(self, lamination, periodic_flips, isometry, preperiodic, periodic):
-		assert(isinstance(lamination, flipper.kernel.Lamination))
-		assert(all(isinstance(flip, flipper.IntegerType) for flip in periodic_flips))
+	def __init__(self, laminations, encodings, isometry, index):
+		#assert(isinstance(lamination, flipper.kernel.Lamination))
+		#assert(all(isinstance(flip, flipper.IntegerType) for flip in periodic_flips))
 		assert(isinstance(isometry, flipper.kernel.Isometry))
 		
-		self.lamination = lamination
-		self.periodic_flips = periodic_flips
+		
+		self.laminations = laminations
+		self.edge_flips, self.encodings = zip(*encodings)
 		self.isometry = isometry
-		self.preperiodic = preperiodic
+		
+		self.index = index
+		self.lamination = self.laminations[index]
 		self.triangulation = self.lamination.triangulation
-		self.periodic = periodic
+		self.periodic_flips = self.edge_flips[self.index:]
+		
+		self.preperiodic = flipper.kernel.product(self.encodings[:self.index])
+		self.periodic = flipper.kernel.product(self.encodings[self.index:])
 		self.mapping_class = self.isometry.encode() * self.periodic
+		
+		self.preperiodic_length = sum(1 for edge in self.edge_flips[:self.index] if edge is not None)
+		self.periodic_length = len(self.edge_flips) - self.index  # == sum(1 for edge in self.edge_flips[self.index:] if edge is not None)
 	
 	def dilatation(self):
 		''' Return the dilatation of the corresponding mapping class (as a float). '''

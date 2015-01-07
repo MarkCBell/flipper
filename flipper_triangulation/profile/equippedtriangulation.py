@@ -17,12 +17,13 @@ def main(verbose=False):
 	# Add more tests here.
 	
 	tests = [
-		('S_1_1', 10),
-		('S_1_2', 6),
+		('S_1_1', 10, None),
+		('S_1_2', 6, None),
+		('S_0_4', 4, ['a', 'b']),
 		]
 	
-	for surface, depth in tests:
-		sum(1 for _ in flipper.load.equipped_triangulation(surface).all_words(depth))
+	for surface, depth, letters in tests:
+		sum(1 for _ in flipper.load.equipped_triangulation(surface).all_words(depth, letters=letters))
 	
 	return time() - start_time
 

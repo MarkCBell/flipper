@@ -76,7 +76,7 @@ class EquippedTriangulation(object):
 		
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
-	def all_words(self, length, reduced=True, conjugate=True, inverse=True, prefix=None, _first=True):
+	def all_words(self, length, reduced=True, conjugate=True, inverse=True, prefix=None, letters=None, _first=True):
 		''' Yield all words of given length.
 		
 		If reduced is set then obviously freely reducible words are skipped.
@@ -86,25 +86,26 @@ class EquippedTriangulation(object):
 		
 		if prefix is None: prefix = []
 		if inverse: conjugate = True
+		letters = set(self.mapping_classes) if letters is None else set(letters)
 		
 		if _first:
-			for word in self.all_words(length, reduced, conjugate, inverse, prefix, False):
+			for word in self.all_words(length, reduced, conjugate, inverse, prefix, letters, False):
 				yield '.'.join(word)
 		else:
 			if length > 0:
-				for letter in self.mapping_classes:
+				for letter in letters:
 					if not reduced or not prefix or letter != prefix[-1].swapcase():
 						prefix2 = prefix + [letter]
 						prefix2_inv = [x.swapcase() for x in prefix2[::-1]]
 						lp = len(prefix2)
 						if not conjugate or all(prefix2[i:2*i] >= prefix2[:min(i, len(prefix2)-i)] for i in range(lp // 2, lp)):
-							for word in self.all_words(length-1, reduced, conjugate, inverse, prefix2, False):
+							for word in self.all_words(length-1, reduced, conjugate, inverse, prefix2, letters, False):
 								yield word
 			else:
 				prefix_inv = [x.swapcase() for x in prefix[::-1]]
 				if not conjugate or not prefix or prefix[0] != prefix[-1].swapcase():
 					if not conjugate or all(prefix[i:] + prefix[:i] >= prefix for i in range(len(prefix))):
-						if not inverse or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(len(prefix))):
+						if not inverse or any(x not in letters for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(len(prefix))):
 							yield prefix
 		
 		return

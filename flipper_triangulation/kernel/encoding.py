@@ -500,10 +500,6 @@ class Encoding(object):
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.
 		
-		Currently, this doesn't quite work as it returns that
-		self ~~ self * p when p is a periodic mapping class which fixes
-		the stable lamination of self.
-		
 		It would also be straightforward to check if self^i ~~ other^j
 		for some i, j.
 		
@@ -518,13 +514,16 @@ class Encoding(object):
 		# This will fail with an Assumption error if the map is not pA.
 		# This can also fail with a flipper.ComputationError if
 		# self.invariant_lamination() fails to find an invariant lamination.
-		splitting1 = self.splitting_sequences()[0]
-		splitting2 = other.splitting_sequences()[0]
+		splitting1 = self.splitting_sequence()
+		splitting2 = other.splitting_sequence()
 		
 		source_lamination = splitting1.lamination
 		target_lamination = splitting2.lamination
 		for edge_index in splitting2.periodic_flips:
 			try:
+				# !?! Should the only allowed isometry be the identity map?
+				# That is, should we do:
+				# if source_lamination.projectively_equal(target_lamination):
 				if source_lamination.all_projective_isometries(target_lamination):
 					return True
 			except TypeError:  # We cannot do arithmetic with these numbers because they lie in different fields.

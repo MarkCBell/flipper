@@ -134,7 +134,7 @@ def example_12():
 	
 	a = T.lamination([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
 	b = T.lamination([1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0])
-	p = T.self_isometries()[1] # This is a 1/12 click.
+	p = T.find_isometry(T, 7, ~6)  # This is a 1/12 click.
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], {
 		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()
@@ -149,7 +149,7 @@ def example_24():
 	
 	a = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = T.lamination([0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.self_isometries()[1] # This is a 1/24 click.
+	p = T.find_isometry(T, 13, ~12)  # This is a 1/24 click.
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], {
 		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()
@@ -166,7 +166,7 @@ def example_36():
 	
 	a = T.lamination([1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
 	b = T.lamination([0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0])
-	p = T.self_isometries()[1] # This is a 1/36 click.
+	p = T.find_isometry(T, 19, ~18)  # This is a 1/36 click.
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b], {
 		'a': a.encode_twist(), 'b': b.encode_twist(), 'p': p.encode()

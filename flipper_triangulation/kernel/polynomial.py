@@ -8,10 +8,6 @@ There is also a helper function: create_polynomial_root. '''
 import flipper
 
 from math import log10 as log
-try:
-	from itertools import izip_longest as zip_longest
-except ImportError:  # Python 3.
-	from itertools import zip_longest
 
 class Polynomial(object):
 	''' This represents an integral polynomial in one variable.
@@ -51,6 +47,8 @@ class Polynomial(object):
 	
 	def __iter__(self):
 		return iter(self.coefficients)
+	def __len__(self):
+		return len(self.coefficients)
 	def __hash__(self):
 		return hash(tuple(self))
 	
@@ -64,14 +62,16 @@ class Polynomial(object):
 	
 	def __add__(self, other):
 		if isinstance(other, Polynomial):
-			return Polynomial([a + b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
+			# Remember to pad the coefficients to ensure none are missed.
+			return Polynomial([a + b for a, b in zip(self.coefficients + [0] * len(other), other.coefficients + [0] * len(self))])
 		elif isinstance(other, flipper.IntegerType):
 			return Polynomial([self[0] + other] + self.coefficients[1:])
 		else:
 			return NotImplemented
 	def __sub__(self, other):
 		if isinstance(other, Polynomial):
-			return Polynomial([a - b for a, b in zip_longest(self.coefficients, other.coefficients, fillvalue=0)])
+			# Remember to pad the coefficients to ensure none are missed.
+			return Polynomial([a - b for a, b in zip(self.coefficients + [0] * len(other), other.coefficients + [0] * len(self))])
 		elif isinstance(other, flipper.IntegerType):
 			return Polynomial([self[0] - other] + self.coefficients[1:])
 		else:
@@ -132,17 +132,20 @@ class Polynomial(object):
 					quotient = Polynomial([x // common_factor for x in quotient])
 					remainder = Polynomial([x // common_factor for x in remainder])
 			
-			return quotient, remainder, scale
+			if scale >= 0:
+				return quotient, remainder
+			else:
+				return -quotient, -remainder
 		else:
 			return NotImplemented
 	def __mod__(self, other):
-		_, remainder, scale = self.__divmod__(other)
-		return remainder if scale >= 0 else -remainder
+		_, remainder = divmod(self, other)
+		return remainder
 	def __div__(self, other):
-		quotient, remainder, scale = self.__divmod__(other)
+		quotient, remainder = divmod(self, other)
 		if not remainder.is_zero():  # Division isn't perfect.
 			raise ValueError('Polynomials do not divide.')
-		return quotient if scale >= 0 else -quotient
+		return quotient
 	def __truediv__(self, other):
 		return self.__div__(other)
 	def __floordiv__(self, other):
@@ -150,11 +153,8 @@ class Polynomial(object):
 	def divides(self, other):
 		''' Return if self divides other. '''
 		
-		try:
-			other // self
-			return True
-		except ValueError:
-			return False
+		_, remainder = divmod(self, other)
+		return remainder.is_zero()
 	
 	def rescale(self):
 		''' Return a possibly simpler polynomial with the same roots. '''

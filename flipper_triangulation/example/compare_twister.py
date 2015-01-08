@@ -22,8 +22,7 @@ def main():
 				try:
 					M = snappy.twister.Surface(surface).bundle(word)
 					mapping_class = S.mapping_class(word)
-					splitting = mapping_class.splitting_sequence()
-					match = M.is_isometric_to(snappy.Manifold(splitting.bundle().snappy_string()))
+					match = M.is_isometric_to(snappy.Manifold(mapping_class.bundle().snappy_string()))
 					print('Match: %s' % match)
 				except KeyError:
 					print('Not a valid mapping class.')

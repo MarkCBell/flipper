@@ -13,9 +13,8 @@ def main():
 	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
 	h = flipper.load.equipped_triangulation(surface).mapping_class(word)
 	print('Built the mapping class h := \'%s\' on %s.' % (word, surface))
-	# Get the maximal splitting sequence of h.
-	splitting = h.splitting_sequence()
-	bundle = splitting.bundle()
+	# Get the bundle of h.
+	bundle = h.bundle()
 	print('Built the bundle with monodromy h.')
 	# Of course there may be more than one sister.
 	splittings = h.splitting_sequences()  # A list of splitting sequences.

@@ -4,9 +4,6 @@ from time import time
 
 import flipper
 
-def stratum(splitting):
-	return vertex_orders, real_vertex_orders
-
 def main(verbose=False):
 	for surface, word, target in flipper.load.database('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
@@ -18,7 +15,7 @@ def main(verbose=False):
 		real_vertex_orders = [stratum_orders[vertex] for vertex in lamination.triangulation.vertices if vertex.label >= 0]
 		# This should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
-		print('\tAll: %s, Real: %s' % stratum(splitting))
+		print('\tAll: %s, Real: %s' % (vertex_orders, real_vertex_orders))
 		if verbose: print('\tComputed in %0.3fs' % (time() - start_time))
 
 if __name__ == '__main__':

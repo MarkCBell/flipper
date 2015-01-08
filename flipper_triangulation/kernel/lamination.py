@@ -367,7 +367,7 @@ class Lamination(object):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index
 		and an encoding which is at least algebraically correct.
 		
-		This assumes (and checks) that:
+		Assumes (and checks) that:
 			- self.triangulation is not S_{0,3},
 			- the given edge does not connect between two real vertices, (with non-negative label), and
 			- edge_index is the only edge of weight 0. '''
@@ -482,7 +482,7 @@ class Lamination(object):
 	def splitting_sequences_uncached(self, target_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
-		This assumes (and checks) that this lamination is filling.
+		Assumes (and checks) that this lamination is filling.
 		
 		This is the flips the edges of maximal weight until you reach a
 		projectively periodic sequence (with required dilatation if given).
@@ -688,7 +688,7 @@ class Lamination(object):
 	def geometric_intersection(self, lamination):
 		''' Return the geometric intersection number between this lamination and the given one.
 		
-		Assumes that this is a twistable lamination. '''
+		Assumes (and checks) that this is a twistable lamination. '''
 		
 		assert(isinstance(lamination, Lamination))
 		assert(lamination.triangulation == self.triangulation)

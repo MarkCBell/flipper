@@ -476,7 +476,7 @@ class Triangulation(object):
 		''' Return the isometry from this triangulation to other_triangulation that sends edge_from_label to
 		to edge_to_label.
 		
-		Assumes that such an isometry exists and is unique. '''
+		Assumes (and checks) that such an isometry exists and is unique. '''
 		
 		try:
 			[isometry] = [isom for isom in self.isometries_to(other_triangulation) if isom(edge_from_label) == edge_to_label]

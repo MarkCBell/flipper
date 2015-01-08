@@ -552,8 +552,7 @@ class Encoding(object):
 	def dilatation(self, lamination):
 		''' Return the dilatation of this mapping class on the given lamination.
 		
-		Assumes (and checks) that the given lamination is projectively invariant.
-		
+		Assumes (and checks) that the given lamination is projectively invariant.  
 		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())

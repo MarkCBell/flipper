@@ -29,6 +29,7 @@ def main(verbose=False):
 		('S_1_1', 'Ab', 'm004'),
 		('S_1_1', 'bA', 'm004'),
 		('S_1_1', 'aBaB', 'm206'), ('S_1_1', 'aBaBababab', 'm207'),  # Double covers.
+		('S_1_2', 'abC', 'm129'),
 		('S_2_1', 'aaabcd', 'm036'),
 		('S_2_1', 'abcdeF', 'm038')
 		]

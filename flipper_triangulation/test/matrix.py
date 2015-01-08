@@ -12,7 +12,8 @@ def main(verbose=False):
 	tests = [
 		M * N == flipper.kernel.id_matrix(2),
 		M.characteristic_polynomial() == flipper.kernel.Polynomial([1, -3, 1]),
-		M.determinant() == 1
+		M.determinant() == 1,
+		M.kernel() == flipper.kernel.Matrix([]),
 		]
 	
 	return all(tests)

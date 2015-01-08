@@ -86,10 +86,6 @@ class Matrix(object):
 			assert(self.width == 0 or self.width == len(other))
 			other_transpose = other.transpose()
 			return Matrix([[dot(a, b) for b in other_transpose] for a in self])
-		elif isinstance(other, list):  # other is a vector.
-			assert(False)
-			assert(self.width == 0 or self.width == len(other))
-			return [dot(row, other) for row in self]
 		else:  # Multiply entry wise.
 			return Matrix([[entry * other for entry in row] for row in self])
 	def __rmul__(self, other):

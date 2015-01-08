@@ -45,12 +45,12 @@ or the BibItem:
 
 
 Quick install, test and start the GUI as a Python module:
-> python -m pip install flipper-topology --user --upgrade
+> python -m pip install flipper-triangulation --user --upgrade
 > python -m flipper.test
 > python -m flipper.app
 
 Quick install, test and start the GUI as a Sage module:
-> sage -python -m pip install flipper-topology --user --upgrade
+> sage -python -m pip install flipper-triangulation --user --upgrade
 > sage -python -m flipper.test
 > sage -python -m flipper.app
 

@@ -41,7 +41,7 @@ class Polynomial(object):
 	def __eq__(self, other):
 		return (self - other).is_zero()
 	def __ne__(self, other):
-		return not (self - other).is_zero()
+		return not (self == other)
 	def __neg__(self):
 		return Polynomial([-x for x in self])
 	
@@ -49,8 +49,6 @@ class Polynomial(object):
 		return iter(self.coefficients)
 	def __len__(self):
 		return len(self.coefficients)
-	def __hash__(self):
-		return hash(tuple(self))
 	
 	def __getitem__(self, item):
 		return self.coefficients[item]
@@ -286,8 +284,6 @@ class PolynomialRoot(object):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	def __float__(self):
 		return float(self.algebraic_approximation())
-	def __hash__(self):
-		return hash(self.polynomial)
 	
 	def __eq__(self, other):
 		assert(isinstance(other, PolynomialRoot))

@@ -139,9 +139,8 @@ class Polynomial(object):
 		_, remainder, scale = self.__divmod__(other)
 		return remainder if scale >= 0 else -remainder
 	def __div__(self, other):
-		# Assumes that the division is perfect.
 		quotient, remainder, scale = self.__divmod__(other)
-		if not remainder.is_zero():
+		if not remainder.is_zero():  # Division isn't perfect.
 			raise ValueError('Polynomials do not divide.')
 		return quotient if scale >= 0 else -quotient
 	def __truediv__(self, other):

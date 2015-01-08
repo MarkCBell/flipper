@@ -38,7 +38,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	
 	vector is guranteed to live inside of C.
 	
-	Assumes that C contains at most one eigenvector and no rational eigenvectors. '''
+	Assumes that C contains at most one interesting eigenvector. '''
 	
 	M = Matrix(action_matrix.rows)
 	# We have to check ALL eigenspaces. So we do it in order of decreasing real part.

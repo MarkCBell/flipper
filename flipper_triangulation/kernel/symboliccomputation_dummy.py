@@ -35,7 +35,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	
 	vector is guranteed to live inside of C.
 	
-	Assumes that C contains at most one eigenvector and no rational eigenvectors. '''
+	Assumes that C contains at most one interesting eigenvector. '''
 	
 	dot = flipper.kernel.dot
 	eigenvalues = action_matrix.characteristic_polynomial().roots()

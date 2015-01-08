@@ -8,8 +8,7 @@ except ImportError:
 import flipper
 
 def test(surface, word, target):
-	splitting = flipper.load.equipped_triangulation(surface).mapping_class(word).splitting_sequence()
-	snappy_string = splitting.bundle().snappy_string()
+	snappy_string = flipper.load.equipped_triangulation(surface).mapping_class(word).bundle().snappy_string()
 	# Snappy can fail with a RuntimeError.
 	return snappy.Manifold(snappy_string).is_isometric_to(target)
 

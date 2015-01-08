@@ -13,8 +13,7 @@ except ImportError:
 
 def test(mapping_class):
 	try:
-		splitting = mapping_class.splitting_sequence()
-		M = snappy.Manifold(splitting.bundle().snappy_string(filled=False))
+		M = snappy.Manifold(mapping_class.bundle().snappy_string(filled=False))
 		M.canonize()
 		print('Bundle size: %d' % len(splitting.periodic_flips))
 		print('Canonical bundle size: %d' % M.num_tetrahedra())

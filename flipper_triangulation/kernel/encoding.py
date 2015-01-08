@@ -581,7 +581,6 @@ class Encoding(object):
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
-		# Eventually we should choose only one of the splittings.
 		return splittings
 	
 	def splitting_sequence(self):
@@ -607,6 +606,15 @@ class Encoding(object):
 		for splitting in self.splitting_sequences():
 			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
 				return splitting
+	
+	def bundle(self):
+		''' Return the bundle associated to this mapping class.
+		
+		Assumes (and checks) that this mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
+		
+		return self.splitting_sequence().bundle()
 
 
 def id_l_function(dim):

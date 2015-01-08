@@ -25,6 +25,7 @@ be able to (half) twist along all curves - construct chain - use H_1 code?
 recheck ALL number theory bounds
 Add function to convert Twister surface files to flipper.EquippedTriangulations
 Rewrite AlgebraicNumber
+Should utilities.package be equippedtriangulation.create_equipped_triangulation?
 
 ### Tests ###
 add more tests

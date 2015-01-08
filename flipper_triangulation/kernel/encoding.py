@@ -263,7 +263,6 @@ class Encoding(object):
 		''' Return if this encoding and other induce the same map from
 		H_1(source_triangulation) to H_1(target_triangulation). '''
 		
-		
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.source_triangulation or \
 				self.target_triangulation != other.target_triangulation:

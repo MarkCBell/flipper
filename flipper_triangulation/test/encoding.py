@@ -13,6 +13,8 @@ def main(verbose=False):
 	# Add more tests here.
 	tests = [
 		('S_1_1', 'a', NT_TYPE_REDUCIBLE),
+		('S_1_1', 'ab', NT_TYPE_PERIODIC),
+		('S_1_1', 'aB', NT_TYPE_PSEUDO_ANOSOV),
 		('S_1_2', 'a', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'b', NT_TYPE_REDUCIBLE),
 		('S_1_2', 'c', NT_TYPE_REDUCIBLE),

@@ -2,7 +2,7 @@
 syntax:glob
 build/*
 dist/*
-flipper_triangulation.egg-info/*
+flipper.egg-info/*
 __pycache__/*
 *.pyc
 *.bat

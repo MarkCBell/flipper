@@ -41,7 +41,7 @@
 \begin{framed}
   To get, install, test and start the flipper application under Python using Pip:
   \begin{lstlisting}
-  > python -m pip install flipper-triangulation --user --upgrade
+  > python -m pip install flipper --user --upgrade
   > python -m flipper.test
   > python -m flipper.app
   \end{lstlisting}
@@ -49,7 +49,7 @@
 \end{minipage}
 \end{center}
 
-Flipper is a program for computing the action of mapping classes on laminations on a punctured surface using ideal triangulation coordinates. It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol \cite{Agol}. Flipper is currently under development and this users guide will be based on flipper 0.6.8.
+Flipper is a program for computing the action of mapping classes on laminations on a punctured surface using ideal triangulation coordinates. It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol \cite{Agol}. Flipper is currently under development and this users guide will be based on flipper 0.7.1.
 
 
 Flipper can be run as a Python 2, Python 3 or Sage Python module \cite{sage}. It has been tested on:
@@ -70,13 +70,13 @@ Some of its features require exact arithmetic. Although these calculations can b
 
 Flipper is available on the Python Package Index (PyPI). The preferred method for installing the latest stable release is to use pip:
 \begin{lstlisting}
-> python -m pip install flipper-triangulation --user --upgrade
+> python -m pip install flipper --user --upgrade
 \end{lstlisting}
 Pip can be installed using get-pip.py from \url{http://pip.readthedocs.org/en/latest/installing.html} and is included in Python 3.4 by default.
 
 Flipper can also be installed through the older easy\_install:
 \begin{lstlisting}
-> python -m easy_install flipper-triangulation
+> python -m easy_install flipper
 \end{lstlisting}
 
 Some basic commands that can be run once flipper has been installed are listed in Table~\ref{tbl:package_commands}.

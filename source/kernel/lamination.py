@@ -432,7 +432,7 @@ class Lamination(object):
 			edge_map[~a] = flipper.kernel.Edge(vertex_map[a.target_vertex], vertex_map[a.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~a]
 			edge_count += 1
-		elif a == ~d:  #Collapsing a bigon.
+		elif a == ~d:  # Collapsing a bigon.
 			edge_map[~b] = flipper.kernel.Edge(vertex_map[b.target_vertex], vertex_map[b.source_vertex], edge_count)
 			edge_map[~c] = ~edge_map[~b]
 			edge_count += 1

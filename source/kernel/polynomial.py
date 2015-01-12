@@ -83,14 +83,14 @@ class Polynomial(object):
 		return self * other
 	
 	def shift(self, power):
-		''' Return this polynomial multiplied by x^power. '''
+		''' Return this polynomial multiplied by x^power.
 		
-		if power > 0:
-			return Polynomial([0] * power + self.coefficients)
-		elif power == 0:
-			return self
-		elif power < 0:
-			return Polynomial(self.coefficients[power:])
+		Power must be an integer >= 0. '''
+		
+		assert(isinstance(power, flipper.IntegerType))
+		assert(power >= 0)
+		
+		return Polynomial([0] * power + self.coefficients)
 	
 	def __call__(self, other):
 		# It is significantly more efficient to compute self(other) as:
@@ -178,8 +178,8 @@ class Polynomial(object):
 		
 		This is a finite list of polynomials p_0, p_1, ..., p_m of decreasing degree
 		with these following properties:
-			p0 = p is square free,
-			if p(x) = 0, then sign(p_1(x)) = sign(p'(x)),
+			p_0 = p is square free,
+			if p(x) = 0 then sign(p_1(x)) = sign(p'(x)),
 			if p_i(x) = 0 then sign(p_{i-1}(x)) = -sign(p_{i+1}(x)), and
 			p_m has constant sign.
 		We use Sturm's method for constructing such a chain based off of the Euclidean algorithm, see:

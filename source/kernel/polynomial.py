@@ -32,7 +32,7 @@ class Polynomial(object):
 		
 		return Polynomial(self.coefficients)
 	
-	def __repr__(self):
+	def __str__(self):
 		return ' + '.join('%d*x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
 	def __bool__(self):
 		return not self.is_zero()
@@ -280,7 +280,7 @@ class PolynomialRoot(object):
 		if self.polynomial.num_roots(self.interval) != 1:
 			raise flipper.ApproximationError('Interval contains %d roots, not one.' % self.polynomial.num_roots(self.interval))
 	
-	def __repr__(self):
+	def __str__(self):
 		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
 	def __float__(self):
 		return float(self.algebraic_approximation())

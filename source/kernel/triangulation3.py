@@ -47,7 +47,7 @@ class Tetrahedron(object):
 		self.edge_labels = dict((vertex_pair, VEERING_UNKNOWN) for vertex_pair in combinations(range(4), r=2))
 		self.vertex_labels = [None, None, None, None]
 	
-	def __repr__(self):
+	def __str__(self):
 		return str(self.label)
 	
 	def __str__(self):
@@ -140,7 +140,7 @@ class Triangulation3(object):
 		
 		return new_triangulation
 	
-	def __repr__(self):
+	def __str__(self):
 		return '\n'.join(str(tetrahedron) for tetrahedron in self)
 	
 	def __iter__(self):

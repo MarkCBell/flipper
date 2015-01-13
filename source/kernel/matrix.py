@@ -40,7 +40,7 @@ class Matrix(object):
 		return Matrix(self.rows)
 	def __getitem__(self, index):
 		return self.rows[index]
-	def __repr__(self):
+	def __str__(self):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
 	def __float__(self):
 		return Matrix([[float(x) for x in row] for row in self])

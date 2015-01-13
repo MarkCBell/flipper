@@ -18,8 +18,6 @@ class Permutation(object):
 		
 		self.permutation = tuple(permutation)
 	def __str__(self):
-		return str(self.permutation)
-	def __repr__(self):
 		return self.compressed_string()
 	def compressed_string(self):
 		''' Return this permutation as a single concatenated string. '''

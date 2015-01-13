@@ -58,8 +58,8 @@ class AlgebraicApproximation(object):
 		if self.accuracy < self.accuracy_needed:
 			raise flipper.kernel.ApproximationError('An algebraic number with log(degree) at most %0.3f and height at most %0.3f requires an interval with accuracy at least %d not %d.' % (self.log_degree, self.height, self.accuracy_needed, self.accuracy))
 	
-	def __repr__(self):
-		return repr((self.interval, self.log_degree, self.height))
+	def __str__(self):
+		return str(float(self))
 	
 	def __float__(self):
 		return float(self.interval)

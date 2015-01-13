@@ -5,6 +5,7 @@
 
 from . import algebraicapproximation
 from . import encoding
+from . import equippedtriangulation
 from . import interval
 from . import lamination
 from . import matrix

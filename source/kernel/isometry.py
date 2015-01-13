@@ -35,9 +35,6 @@ class Isometry(object):
 			self.label_map == other.label_map
 	def __ne__(self, other):
 		return not (self == other)
-	def __iter__(self):
-		assert(False)
-		return iter(self.label_map)  # Iteration is over ORIENTED EDGES!
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Vertex):
 			if other not in self.source_triangulation:

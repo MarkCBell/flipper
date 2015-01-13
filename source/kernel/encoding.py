@@ -14,7 +14,7 @@ class LFunction(object):
 	def __init__(self, action, inverse_action):
 		self.action = action
 		self.inverse_action = inverse_action
-	def __repr__(self):
+	def __str__(self):
 		return str(self.action)
 	def __call__(self, other):
 		return self.action(other)
@@ -40,16 +40,8 @@ class PartialFunction(object):
 		self.action = action
 		self.condition = condition if condition is not None else flipper.kernel.zero_matrix(self.action.width)
 	
-	def __repr__(self):
+	def __str__(self):
 		return '%s\n%s' % (self.action, self.condition)
-	
-	def __eq__(self, other):
-		if isinstance(other, PartialFunction):
-			return self.action == other.action and self.condition == other.condition
-		else:
-			return NotImplemented
-	def __ne__(self, other):
-		return not (self == other)
 	
 	def __mul__(self, other):
 		if isinstance(other, PartialFunction):
@@ -144,7 +136,7 @@ class PLFunction(object):
 	
 	def __len__(self):
 		return len(self.sequence)
-	def __repr__(self):
+	def __str__(self):
 		return 'PLfunction (made from %d BasicPLFunctions)' % len(self)
 	def __iter__(self):
 		return iter(self.sequence)
@@ -245,7 +237,7 @@ class Encoding(object):
 	
 	def __len__(self):
 		return len(self.geometric)
-	def __repr__(self):
+	def __str__(self):
 		return 'Encoding (%d flips)' % len(self)
 	
 	def __eq__(self, other):
@@ -279,7 +271,7 @@ class Encoding(object):
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
 			geometric = self.geometric(other.geometric)
 			algebraic = self.algebraic(other.algebraic)
-			# If other has no peripheral components then self(other) does too.
+			# If other has no peripheral components then neither does self(other).
 			# Hence we can skip this check and save ~25% of the work.
 			return self.target_triangulation.lamination(geometric, algebraic, remove_peripheral=False)
 		else:

@@ -64,9 +64,6 @@ class DrawableObject(object):
 	def __len__(self):
 		return len(self.vertices)
 	
-	def __str__(self):
-		return str(self.vertices)
-	
 	def set_current_colour(self, colour=None):
 		if colour is None: colour = self.colour
 		self.canvas.itemconfig(self.drawn, fill=colour)

@@ -27,7 +27,7 @@ class Vertex(object):
 		assert(isinstance(label, flipper.IntegerType))
 		self.label = label
 	
-	def __repr__(self):
+	def __str__(self):
 		return str(self.label)
 
 class Edge(object):
@@ -48,7 +48,7 @@ class Edge(object):
 		if reversed_edge is None: reversed_edge = Edge(self.target_vertex, self.source_vertex, ~self.label, self)
 		self.reversed_edge = reversed_edge
 	
-	def __repr__(self):
+	def __str__(self):
 		return ('' if self.is_positive() else '~') + str(self.index)
 	
 	def __invert__(self):
@@ -80,7 +80,7 @@ class Triangle(object):
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
 		self.corners = [Corner(self, i) for i in range(3)]
 	
-	def __repr__(self):
+	def __str__(self):
 		return str(tuple(self.edges))
 	
 	# Note that this is NOT the same convention as used in pieces.
@@ -124,7 +124,7 @@ class Corner(object):
 		self.vertex = self.vertices[0]
 		self.edge = self.edges[0]
 	
-	def __repr__(self):
+	def __str__(self):
 		return str((self.triangle, self.side))
 
 # Remark: In other places in the code you will often see L(triangulation). This is the space
@@ -183,7 +183,7 @@ class Triangulation(object):
 		self.genus = (2 - self.euler_characteristic - self.num_vertices) // 2
 		self.max_order = 6 - 4 * self.euler_characteristic  # The maximum order of a periodic mapping class.
 	
-	def __repr__(self):
+	def __str__(self):
 		return str(list(self))
 	def __iter__(self):
 		return iter(self.triangles)

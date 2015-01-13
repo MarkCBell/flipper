@@ -10,7 +10,7 @@ class AbortError(Exception):
 		super(AbortError, self).__init__()
 		self.code = code
 	def __str__(self):
-		return repr(self.code)
+		return str(self.code)
 
 class ComputationError(Exception):
 	''' An exception for when computations fail. '''
@@ -19,7 +19,7 @@ class ComputationError(Exception):
 		super(ComputationError, self).__init__()
 		self.code = code
 	def __str__(self):
-		return repr(self.code)
+		return str(self.code)
 
 class AssumptionError(Exception):
 	''' An exception for when an assumptions is false. '''
@@ -28,7 +28,7 @@ class AssumptionError(Exception):
 		super(AssumptionError, self).__init__()
 		self.code = code
 	def __str__(self):
-		return repr(self.code)
+		return str(self.code)
 
 class ApproximationError(Exception):
 	''' An exception for when a calculation has been done to insufficient accuracy. '''
@@ -37,4 +37,4 @@ class ApproximationError(Exception):
 		super(ApproximationError, self).__init__()
 		self.code = code
 	def __str__(self):
-		return repr(self.code)
+		return str(self.code)

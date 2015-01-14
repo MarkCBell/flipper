@@ -70,7 +70,7 @@ class Lamination(object):
 			all(v == w for v, w in zip(self, other)) and \
 			all(v == w for v, w in zip(self.algebraic, other.algebraic))
 	def __ne__(self, other):
-		return not self == other
+		return not (self == other)
 	
 	def __hash__(self):
 		# This should be done better.

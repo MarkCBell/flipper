@@ -25,7 +25,7 @@ def main():
 		('S_2_1', 'bbdcecbcFA'),  # Reducible with 2 pseudo-Anosov components which are swapped.
 		('S_2_1', 'FEFdFCBA'),
 		('S_2_1', 'acdCccbBcf'),
-		('S_2_1', 'ACBBaF'),
+		('S_2_1', 'ACBBaF'),  # !?!
 		('S_2_1', 'ECdEEEaEce'),
 		('S_2_1', 'DCDfCaEd'),
 		('S_2_1', 'BaEcCCeAbC'),

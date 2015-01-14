@@ -35,7 +35,8 @@ class SplittingSequence(object):
 		assert(isinstance(index, flipper.IntegerType))
 		
 		self.laminations = laminations
-		self.edge_flips, self.encodings = zip(*encodings)
+		self.edge_flips = [edge_index for edge_index, _ in encodings]
+		self.encodings = [encoding for _, encoding in encodings]
 		self.isometry = isometry
 		
 		self.index = index

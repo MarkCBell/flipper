@@ -42,12 +42,6 @@ class Matrix(object):
 		return self.rows[index]
 	def __str__(self):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
-	def __float__(self):
-		return Matrix([[float(x) for x in row] for row in self])
-	def is_empty(self):
-		''' Return if this matrix is empty. '''
-		
-		return self.width == 0
 	def __len__(self):
 		return self.height
 	def __iter__(self):
@@ -128,14 +122,11 @@ class Matrix(object):
 		
 		This matrix must be square. '''
 		
-		# For why this works see self.characteristic_polynomial().
-		
 		assert(self.is_square())
 		
-		A = self.copy()
-		for i in range(1, self.width-1):
-			A = self * (A - (A.trace() // i))
-		return A - (A.trace() // (self.width-1))
+		P = self.characteristic_polynomial()
+		return flipper.kernel.Polynomial([x // -P[0] for x in P[1:]])(self)
+	
 	def transpose(self):
 		''' Return the transpose of this matrix. '''
 		

@@ -141,12 +141,7 @@ class PLFunction(object):
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):
-		if isinstance(key, slice):
-			return PLFunction(self.sequence[key])
-		elif isinstance(key, flipper.IntegerType):
-			return self.sequence[key]
-		else:
-			raise TypeError('Invalid argument type.')
+		return self.sequence[key]
 	def __hash__(self):
 		return hash(tuple(self.sequence))
 	def __call__(self, vector):
@@ -511,34 +506,50 @@ class Encoding(object):
 		
 		Both encodings must be mapping classes.
 		
-		Assumes (and checks) that both mapping classes are pseudo-Anosov. '''
+		Assumes that both mapping classes are pseudo-Anosov. '''
 		
 		assert(self.is_mapping_class())
 		assert(isinstance(other, Encoding))
 		assert(other.is_mapping_class())
 		
-		# This will fail with an Assumption error if the map is not pA.
-		# This can also fail with a flipper.ComputationError if
-		# self.invariant_lamination() fails to find an invariant lamination.
-		splitting1 = self.splitting_sequence()
-		splitting2 = other.splitting_sequence()
+		# Nielsen-Thurston type is a conjugacy invariant.
+		if self.nielsen_thurston_type() != other.nielsen_thurston_type():
+			return False
 		
-		source_lamination = splitting1.lamination
-		target_lamination = splitting2.lamination
-		for edge_index in splitting2.periodic_flips:
-			try:
-				# !?! Should the only allowed isometry be the identity map?
-				# That is, should we do:
-				# if source_lamination.projectively_equal(target_lamination):
-				if source_lamination.all_projective_isometries(target_lamination):
-					return True
-			except TypeError:  # We cannot do arithmetic with these numbers because they lie in different fields.
+		if self.nielsen_thurston_type() == NT_TYPE_PERIODIC:
+			if self.order() != other.order():
 				return False
 			
-			# Cycle round to the next possible match.
-			target_lamination = target_lamination.triangulation.encode_flip(edge_index)(target_lamination)
-		
-		return False
+			# Could also use action on H_1(S) as a conjugacy invaraiant.
+			
+			raise flipper.AssumptionError('Mapping class is periodic.')
+		elif self.nielsen_thurston_type() == NT_TYPE_REDUCIBLE:
+			
+			
+			raise flipper.AssumptionError('Mapping class is reducible.')
+		elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
+			splitting1 = self.splitting_sequence()
+			splitting2 = other.splitting_sequence()
+			
+			if splitting1.periodic_length != splitting2.periodic_length:
+				return False
+			
+			source_lamination = splitting1.lamination
+			
+			mapping_class1 = splitting1.mapping_class
+			
+			encodings2 = splitting2.encodings[splitting2.index:]
+			isometry2 = splitting2.isometry
+			
+			for i in range(splitting2.periodic_length):
+				target_lamination = splitting2.laminations[splitting2.index+i]
+				mapping_class2 = flipper.kernel.product(encodings2[i:] + [isometry2.encode()] +encodings2[:i])
+				
+				for isom in source_lamination.all_projective_isometries(target_lamination):
+					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
+						return True
+			
+			return False
 	
 	def dilatation(self, lamination):
 		''' Return the dilatation of this mapping class on the given lamination.

@@ -120,12 +120,15 @@ class Matrix(object):
 	def inverse(self):
 		''' Return the inverse of this matrix.
 		
-		This matrix must be square. '''
+		This matrix must be square and have determinant +/-1. '''
 		
 		assert(self.is_square())
 		
 		P = self.characteristic_polynomial()
-		return flipper.kernel.Polynomial([x // -P[0] for x in P[1:]])(self)
+		assert(abs(P[0]) == 1)  # Check that the determinant is +/-1.
+		# In the next line we should do x // -P[0], but as we know that P[0] == +/-1
+		# 1/-P[0] == -P[0] and so we can use a cheaper multiplication.
+		return flipper.kernel.Polynomial([x * -P[0] for x in P[1:]])(self)
 	
 	def transpose(self):
 		''' Return the transpose of this matrix. '''

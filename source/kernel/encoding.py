@@ -440,10 +440,16 @@ class Encoding(object):
 					break
 			
 			# See if we are close to an invariant curve.
-			denominators = [min(new_curve) + 1, i + 1, (i // 2) + 1]  # Other strategies: (i // triangulation.max_order) + 1
-			for denominator in denominators:
-				vector = [int(float(x) / denominator) for x in new_curve]
-				# We won't care about the algebraic intersection numbers in this stage.
+			# Build some different vectors which are good candidates for reducing curves.
+			vectors = [
+				[int(float(x) / (min(new_curve) + 1)) for x in new_curve],
+				[int(float(x) / (i + 1)) for x in new_curve],
+				[int(float(x) / (i // 2 + 1)) for x in new_curve],
+				# [int(float(x) / (i // triangulation.max_order + 1)) for x in new_curve],
+				] + \
+				[[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[-j-min(triangulation.max_order, len(curves)):]]
+			
+			for vector in vectors:
 				new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
 				if not small_curve.is_empty():
 					for j in range(1, triangulation.max_order+1):

@@ -18,6 +18,7 @@ def main(verbose=False):
 		h**6 == i,
 		h**-3 == h**3,
 		h**0 == i,
+		h.order() == 6,
 		f != g,
 		f.is_conjugate_to(g),
 		not f.is_conjugate_to(h),

@@ -381,6 +381,7 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is periodic.')
 		
 		triangulation = self.source_triangulation
+		max_order = triangulation.max_order
 		curves = [triangulation.key_curves()[0]]
 		
 		# A little helper function to determine how much two vectors differ by.
@@ -401,7 +402,7 @@ class Encoding(object):
 				raise flipper.AssumptionError('Mapping class is reducible.')
 			
 			curves.append(new_curve)
-			for j in range(1, min(triangulation.max_order, len(curves))):
+			for j in range(1, min(max_order, len(curves))):
 				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
@@ -441,18 +442,12 @@ class Encoding(object):
 			
 			# See if we are close to an invariant curve.
 			# Build some different vectors which are good candidates for reducing curves.
-			vectors = [
-				[int(float(x) / (min(new_curve) + 1)) for x in new_curve],
-				[int(float(x) / (i + 1)) for x in new_curve],
-				[int(float(x) / (i // 2 + 1)) for x in new_curve],
-				# [int(float(x) / (i // triangulation.max_order + 1)) for x in new_curve],
-				] + \
-				[[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[-j-min(triangulation.max_order, len(curves)):]]
+			vectors = [[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[-j-min(max_order, len(curves)):]]
 			
 			for vector in vectors:
 				new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
 				if not small_curve.is_empty():
-					for j in range(1, triangulation.max_order+1):
+					for j in range(1, max_order+1):
 						new_small_curve = self(new_small_curve)
 						if new_small_curve == small_curve:
 							raise flipper.AssumptionError('Mapping class is reducible.')

@@ -1,36 +1,49 @@
 
-Flipper is a program for computing the action of mapping classes on
-laminations on punctured surfaces using ideal triangulation coordinates.
+Flipper is a program for computing the action of mapping classes on laminations
+on punctured surfaces using ideal triangulation coordinates. It can decide the
+Nielsen-Thurston type of a given mapping class and, for pseudo-Anosov mapping
+classes, construct a layered, veering triangulation of their mapping torus, as
+described by Agol.
 
-It can decide the Nielsen--Thurston type of a given mapping class and,
-for pseudo-Anosov mapping classes, construct a layered, veering
-triangulation of their mapping torus, as described by Agol.
+Flipper can be run as a Python 2, Python 3 or `Sage Python
+<http://www.sagemath.org/>`_ module. Currently, it is fastest when run through Sage.
 
-Flipper can be run as a Python 2, Python 3 or Sage Python module. Currently
-it is fastest as a Sage Python module.
+Installation
+============
 
+`Flipper <https://pypi.python.org/flipper>`_ is available on the `Python Package
+Index <https://pypi.python.org>`_. The preferred method for installing the latest
+stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.html>`_
+(included in Python 2.7.9 and Python 3.4 by default)::
 
-Flipper is available on the Python Package Index (PyPI). The preferred method
-for installing the latest stable release is to use pip:
 	> python -m pip install flipper --user --upgrade
-Pip can be installed using get-pip.py from
-	http://pip.readthedocs.org/en/latest/installing.html
-and is included in Python 3.4 by default.
 
-Flipper can also be installed through the older easy_install:
-	> python -m easy_install flipper
+Usage
+=====
 
+Once installed, start the flipper GUI by using::
 
-For more information about installing and using flipper see "A users
-guide to flipper". Open by running:
+	> python -m flipper.app
+
+Run the flipper test suite by using::
+
+	> python -m flipper.test
+
+Open the flipper documentation by using::
+
 	> python -m flipper.doc
 
+Citing
+======
 
-If you find flipper useful in your research, please consider citing it.
-A suggested reference is:
+If you find flipper useful in your research, please consider citing it. A suggested
+reference is::
+
 	Mark Bell. flipper (Computer Software).
 	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>
-or the BibTeX entry:
+
+the BibTeX entry::
+
 	@Misc{flipper,
 		author = {Bell, Mark},
 		title = {flipper (Computer Software)},
@@ -38,26 +51,20 @@ or the BibTeX entry:
 		year = {2013--2014},
 		note = {Version <<version number used>>}
 	}
-or the BibItem:
+
+or the BibItem::
+
 	\bibitem{flipper} Mark bell: \emph{flipper (Computer Software)},
 		\url{https://bitbucket.org/Mark_Bell/flipper/}}, (2013--2014),
 		Version <<version number used>>
 
+Development
+===========
 
-Quick install, test and start the GUI as a Python module:
-> python -m pip install flipper --user --upgrade
-> python -m flipper.test
-> python -m flipper.app
-
-Quick install, test and start the GUI as a Sage module:
-> sage -python -m pip install flipper --user --upgrade
-> sage -python -m flipper.test
-> sage -python -m flipper.app
-
-
-The latest development version of flipper is available from:
-	https://bitbucket.org/Mark_Bell/flipper
+The latest development version of flipper is available from
+https://bitbucket.org/Mark_Bell/flipper
 Alternatively, you can clone the mercurial repository directly using
-the command:
+the command::
+
 	> hg clone https://bitbucket.org/mark_bell/flipper
 

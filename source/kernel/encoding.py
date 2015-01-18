@@ -209,16 +209,18 @@ class Encoding(object):
 	
 	The map is given by a sequence of PLFunctions whose composition is
 	the action on the edge weights. '''
-	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
+	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic, name=None):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(geometric, PLFunction))
 		assert(isinstance(algebraic, LFunction))
+		assert(name is None or isinstance(name, flipper.StringType))
 		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.geometric = geometric
 		self.algebraic = algebraic
+		self.name = name
 		self.zeta = self.source_triangulation.zeta
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -232,6 +234,8 @@ class Encoding(object):
 	
 	def __len__(self):
 		return len(self.geometric)
+	def __repr__(self):
+		return self.name
 	def __str__(self):
 		return 'Encoding (%d flips)' % len(self)
 	
@@ -258,8 +262,7 @@ class Encoding(object):
 			return all(self(curve).is_homologous_to(other(curve)) for curve in self.source_triangulation.key_curves())
 		else:
 			return NotImplemented
-		
-		
+	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
 			if self.source_triangulation != other.triangulation:
@@ -276,7 +279,8 @@ class Encoding(object):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
 			return Encoding(other.source_triangulation, self.target_triangulation,
-				self.geometric * other.geometric, self.algebraic * other.algebraic)
+				self.geometric * other.geometric, self.algebraic * other.algebraic,
+				other.name + '.' + self.name if self.name is not None and other.name is not None else None)
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -535,6 +539,12 @@ class Encoding(object):
 			if splitting1.periodic_length != splitting2.periodic_length:
 				return False
 			
+			if splitting1.number_field != splitting2.number_field:
+				return False
+			
+			if self.dilatation() != other.dilatation():
+				return False
+			
 			source_lamination = splitting1.lamination
 			
 			mapping_class1 = splitting1.mapping_class
@@ -552,19 +562,20 @@ class Encoding(object):
 			
 			return False
 	
-	def dilatation(self, lamination):
-		''' Return the dilatation of this mapping class on the given lamination.
+	def dilatation(self):
+		''' Return the dilatation of this mapping class.
 		
-		Assumes (and checks) that the given lamination is projectively invariant.  
+		Assumes and checks that this mapping class is pseudo-Anosov.
+		
 		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
 		
-		new_lamination = self(lamination)
-		if not lamination.projectively_equal(new_lamination):
-			raise flipper.AssumptionError('Lamination is not projectively invariant.')
-		
-		return float(new_lamination.weight()) / float(lamination.weight())
+		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
+			return 0
+		else:
+			lmbda, _ = self.invariant_lamination()
+			return lmbda
 	
 	def splitting_sequences(self, take_roots=False):
 		''' Return a list of splitting sequences associated to this mapping class.

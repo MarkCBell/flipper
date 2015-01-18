@@ -47,6 +47,11 @@ class EquippedTriangulation(object):
 			self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
 			self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
 		
+		# Assign a name to any mapping classes missing one.
+		for mapping_class in self.mapping_classes:
+			if self.mapping_classes[mapping_class].name is None:
+				self.mapping_classes[mapping_class].name = mapping_class
+		
 		self.zeta = self.triangulation.zeta
 	
 	def __str__(self):

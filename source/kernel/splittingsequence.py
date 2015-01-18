@@ -50,6 +50,7 @@ class SplittingSequence(object):
 		
 		self.preperiodic_length = sum(1 for edge in self.edge_flips[:self.index] if edge is not None)
 		self.periodic_length = len(self.edge_flips) - self.index  # == sum(1 for edge in self.edge_flips[self.index:] if edge is not None)
+		self.number_field = self.laminations[0][0].number_field
 	
 	def dilatation(self):
 		''' Return the dilatation of the corresponding mapping class (as a float). '''

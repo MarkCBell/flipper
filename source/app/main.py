@@ -103,14 +103,6 @@ DEFAULT_EDGE_LABEL_COLOUR = 'black'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 
-def helper(glob, instance, method):
-	# This little helper function for FlipperApp.update_cache
-	# needs to be here so that it is picklable and so can be
-	# piped to other threads.
-	
-	result = getattr(instance, method)()
-	
-	return glob, result
 
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
@@ -575,6 +567,9 @@ class FlipperApp(object):
 			for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items(),
 				key=lambda (name, _): (len(name), name)):
 				self.add_mapping_class(mapping_class, name)
+			
+			# Get the correct empty lamination.
+			self.destroy_lamination()
 			
 			self.unsaved_work = False
 		except (IndexError, ValueError):
@@ -1413,7 +1408,7 @@ class FlipperApp(object):
 			self.store_halftwist(self.equipped_triangulation.laminations[name])
 		elif 'filling_lamination' in tags:
 			try:
-				result = self.update_cache(self.equipped_triangulation.laminations[name], 'is_filling')
+				result = self.update_cache(self.equipped_triangulation.laminations[name].is_filling)
 				
 				self.treeview_objects.item(iid, text='Filling: %s' % result)
 				self.unsaved_work = True
@@ -1421,7 +1416,7 @@ class FlipperApp(object):
 				pass
 		elif 'mapping_class_type' in tags:
 			try:
-				result = self.update_cache(self.equipped_triangulation.mapping_classes[name], 'nielsen_thurston_type')
+				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].nielsen_thurston_type)
 				
 				self.treeview_objects.item(iid, text='Type: %s' % result)
 				self.unsaved_work = True
@@ -1431,7 +1426,7 @@ class FlipperApp(object):
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
 			try:
-				result = self.update_cache(self.equipped_triangulation.mapping_classes[name], 'invariant_lamination')
+				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].invariant_lamination)
 				
 				_, lamination = result
 				self.lamination_to_canvas(lamination)
@@ -1448,17 +1443,12 @@ class FlipperApp(object):
 				list(sorted(set(self.mapping_class_names.values()))))
 			if other is not None:
 				try:
-					try:
-						self.update_cache(self.equipped_triangulation.mapping_classes[name], 'nielsen_thurston_type')
-					except flipper.AssumptionError:
-						pass
+					result = self.update_cache(
+						self.equipped_triangulation.mapping_classes[name].is_conjugate_to,
+						args=(self.equipped_triangulation.mapping_classes[other],)
+						)
 					
-					try:
-						self.update_cache(self.equipped_triangulation.mapping_classes[other], 'nielsen_thurston_type')
-					except flipper.AssumptionError:
-						pass
-					
-					if self.equipped_triangulation.mapping_classes[name].is_conjugate_to(self.equipped_triangulation.mapping_classes[other]):
+					if result:
 						tkMessageBox.showinfo('Conjugate', '%s and %s are conjugate.' % (name, other))
 					else:
 						tkMessageBox.showinfo('Conjugate', '%s and %s are not conjugate.' % (name, other))
@@ -1475,8 +1465,7 @@ class FlipperApp(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':
 				try:
-					splittings = self.update_cache(self.equipped_triangulation.mapping_classes[name], 'splitting_sequences')
-					splitting = splittings[0]
+					splitting = self.update_cache(self.equipped_triangulation.mapping_classes[name], 'splitting_sequence')
 					bundle = splitting.bundle()
 					with open(path, 'wb') as disk_file:
 						disk_file.write(bundle.snappy_string())
@@ -1496,7 +1485,7 @@ class FlipperApp(object):
 		else:
 			pass
 	
-	def update_cache(self, instance, method):
+	def update_cache(self, method, args=None):
 		# So we need to be really careful here. Linux uses copy-on-write (COW) so
 		# when we spawn a new thread in a preogress bar if we ever do something
 		# non-pure and write into that datastructure a copy is taken first.
@@ -1504,7 +1493,13 @@ class FlipperApp(object):
 		# now exist on a copy of this triangulation.
 		#
 		# I guess this is a strong argument in favour of making functions / methods pure.
-		self.equipped_triangulation, result = flipper.app.apply_progression(helper, args=(self.equipped_triangulation, instance, method))
+		def helper(glob, method, args):
+			result = method(*args)
+			
+			return glob, result
+		
+		if args is None: args = []
+		self.equipped_triangulation, result = flipper.app.apply_progression(helper, args=(self.equipped_triangulation, method, args))
 		
 		# Don't forget that what is drawn on the canvas is still thought of as a lamination on the old triangulation.
 		self.canvas_to_lamination()

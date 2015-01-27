@@ -3,7 +3,6 @@
 undo and redo
 autosave session
 have weighted brush for painting laminations (in a given field?)
-update examples in application/examples/
 correct arrows showing edge orientation
 
 ### Documentation ###
@@ -24,7 +23,7 @@ lamination should have an associated number field
 be able to (half) twist along all curves - construct chain - use H_1 code?
 recheck ALL number theory bounds
 Add function to convert Twister surface files to flipper.EquippedTriangulations
-Rewrite AlgebraicNumber
+Add is_orientable to lamination
 Should utilities.package be equippedtriangulation.create_equipped_triangulation?
 
 ### Tests ###

@@ -398,6 +398,7 @@ class FlipperApp(object):
 				('Order: %s' % order_string, 'mapping_class_order'),
 				('Type: %s' % type_string, 'mapping_class_type'),
 				('Invariant lamination...', 'mapping_class_invariant_lamination'),
+				('Conjugate to...', 'mapping_class_conjugate'),
 				('Bundle...', 'mapping_class_bundle')
 				]
 			for label, tag in tagged_properties:
@@ -1442,6 +1443,34 @@ class FlipperApp(object):
 				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
+		elif 'mapping_class_conjugate' in tags:
+			other = flipper.app.get_choice('Conjugate.', 'Is this mapping class conjugate to...',
+				list(sorted(set(self.mapping_class_names.values()))))
+			if other is not None:
+				try:
+					try:
+						self.update_cache(self.equipped_triangulation.mapping_classes[name], 'nielsen_thurston_type')
+					except flipper.AssumptionError:
+						pass
+					
+					try:
+						self.update_cache(self.equipped_triangulation.mapping_classes[other], 'nielsen_thurston_type')
+					except flipper.AssumptionError:
+						pass
+					
+					if self.equipped_triangulation.mapping_classes[name].is_conjugate_to(self.equipped_triangulation.mapping_classes[other]):
+						tkMessageBox.showinfo('Conjugate', '%s and %s are conjugate.' % (name, other))
+					else:
+						tkMessageBox.showinfo('Conjugate', '%s and %s are not conjugate.' % (name, other))
+					
+					self.unsaved_work = True
+				except flipper.AssumptionError:
+					tkMessageBox.showwarning('Conjugate', 'Could not determine conjugacy, mapping class is not pseudo-Anosov.')
+					self.unsaved_work = True
+				except flipper.ComputationError:
+					tkMessageBox.showerror('Conjugate', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
+				except flipper.AbortError:
+					pass
 		elif 'mapping_class_bundle' in tags:
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':

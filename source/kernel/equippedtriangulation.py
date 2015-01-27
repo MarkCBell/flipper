@@ -81,39 +81,56 @@ class EquippedTriangulation(object):
 		
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
-	def all_words(self, length, reduced=True, conjugate=True, inverse=True, prefix=None, letters=None, _first=True):
+	def all_words_unjoined(self, length, prefix, **options):
 		''' Yield all words of given length.
 		
-		If reduced is set then obviously freely reducible words are skipped.
-		If conjugate is set then obviously cyclically reducible words are skipped.
-		If inverse is set then words that can be made earlier by inverting are skipped.
+		Users should not call directly but should use self.all_words(...) instead.
+		Assumes that various options have been set. '''
+		
+		if not options['exact'] or length == 0:
+			lp = len(prefix)
+			prefix_inv = [x.swapcase() for x in prefix[::-1]]
+			if not options['conjugate'] or not prefix or prefix[0] != prefix[-1].swapcase():
+				if not options['conjugate'] or all(prefix[i:] + prefix[:i] >= prefix for i in range(lp)):
+					if not options['inverse'] or any(x not in options['letters'] for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(lp)):
+						yield prefix
+		
+		if length > 0:
+			for letter in options['letters']:
+				if not options['reduced'] or not prefix or letter != prefix[-1].swapcase():
+					prefix2 = prefix + [letter]
+					lp = len(prefix2)
+					if not options['conjugate'] or all(prefix2[i:2*i] >= prefix2[:min(i, len(prefix2)-i)] for i in range(lp // 2, lp)):
+						for word in self.all_words_unjoined(length-1, prefix2, **options):
+							yield word
+		
+		return
+	
+	def all_words(self, length, prefix=None, **options):
+		''' Yield all words of given length.
+		
+		Valid options and their defaults:
+			reduced=True -- skip obviously freely reducible words.
+			conjugate=True -- skip obviously cyclically reducible words.
+			inverse=True -- skip words that can be made earlier by inverting them.
+			exact=False -- skip words that do not have exactly the required length.
 		Inverse implies conjugate. '''
 		
 		if prefix is None: prefix = []
-		if inverse: conjugate = True
-		letters = set(self.mapping_classes) if letters is None else set(letters)
 		
-		if _first:
-			for word in self.all_words(length, reduced, conjugate, inverse, prefix, letters, False):
-				yield '.'.join(word)
-		else:
-			if length > 0:
-				for letter in letters:
-					if not reduced or not prefix or letter != prefix[-1].swapcase():
-						prefix2 = prefix + [letter]
-						lp = len(prefix2)
-						if not conjugate or all(prefix2[i:2*i] >= prefix2[:min(i, len(prefix2)-i)] for i in range(lp // 2, lp)):
-							for word in self.all_words(length-1, reduced, conjugate, inverse, prefix2, letters, False):
-								yield word
-			else:
-				lp = len(prefix)
-				prefix_inv = [x.swapcase() for x in prefix[::-1]]
-				if not conjugate or not prefix or prefix[0] != prefix[-1].swapcase():
-					if not conjugate or all(prefix[i:] + prefix[:i] >= prefix for i in range(lp)):
-						if not inverse or any(x not in letters for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(lp)):
-							yield prefix
+		default_options = {
+			'reduced': True,
+			'conjugate': True,
+			'inverse': True,
+			'letters': set(self.mapping_classes),
+			'exact': False
+			}
 		
-		return
+		for option in default_options:
+			if option not in options: options[option] = default_options[option]
+		
+		for word in self.all_words_unjoined(length, prefix, **options):
+			yield '.'.join(word)
 	
 	def decompose_word(self, word):
 		''' Return a list of mapping_classes keys whose concatenation is word and the keys are chosen greedly.

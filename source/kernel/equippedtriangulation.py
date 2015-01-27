@@ -110,11 +110,16 @@ class EquippedTriangulation(object):
 		''' Yield all words of given length.
 		
 		Valid options and their defaults:
-			reduced=True -- skip obviously freely reducible words.
-			conjugate=True -- skip obviously cyclically reducible words.
-			inverse=True -- skip words that can be made earlier by inverting them.
+			reduced=True -- skip words that can be simplified by free reduction.
+			conjugate=True -- skip words that can be simplified by cyclic reduction.
+			inverse=True -- skip words that can be simplified by inverting reduction
 			exact=False -- skip words that do not have exactly the required length.
-		Inverse implies conjugate. '''
+			letters=self.mapping_classes - a list of available letters to use in alphabetical order.
+		
+		Notes:
+			- By default letters are sorted by length, then by lower case and
+				then by swapcase.
+			- Inverse implies conjugate and conjugate implies reduced. '''
 		
 		if prefix is None: prefix = []
 		
@@ -122,13 +127,14 @@ class EquippedTriangulation(object):
 			'reduced': True,
 			'conjugate': True,
 			'inverse': True,
-			'letters': set(self.mapping_classes),
+			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
 			'exact': False
 			}
 		
 		for option in default_options:
 			if option not in options: options[option] = default_options[option]
 		
+		print(options['letters'])
 		for word in self.all_words_unjoined(length, prefix, **options):
 			yield '.'.join(word)
 	

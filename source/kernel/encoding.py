@@ -612,8 +612,10 @@ class Encoding(object):
 			for i in range(len(encodings2)):
 				mapping_class2 = flipper.kernel.product(encodings2[i:] + encodings2[:i])
 				
+				# Would could get away with only looking at those that projectively preserve the
+				# lamination but that involves comparing algebraic numbers and so is generally
+				# slower in practice.
 				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
-				#for isom in source_lamination.all_projective_isometries(target_lamination):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True
 			

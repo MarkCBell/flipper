@@ -134,7 +134,6 @@ class EquippedTriangulation(object):
 		for option in default_options:
 			if option not in options: options[option] = default_options[option]
 		
-		print(options['letters'])
 		for word in self.all_words_unjoined(length, prefix, **options):
 			yield '.'.join(word)
 	

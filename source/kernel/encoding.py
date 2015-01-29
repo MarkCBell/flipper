@@ -503,6 +503,64 @@ class Encoding(object):
 				else:
 					return NT_TYPE_REDUCIBLE
 	
+	
+	def splitting_sequences(self, take_roots=False):
+		''' Return a list of splitting sequences associated to this mapping class.
+		
+		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
+		
+		assert(self.is_mapping_class())
+		
+		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
+			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+		
+		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
+		try:
+			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
+		except flipper.AssumptionError:  # Lamination is not filling.
+			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+		
+		return splittings
+	
+	def splitting_sequence(self):
+		''' Return the splitting sequence associated to this mapping class.
+		
+		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
+		
+		# We get a list of all possible splitting sequences from
+		# self.splitting_sequences(). From there we use the fact that each
+		# of these differ by a periodic mapping class, which cannot be in the
+		# Torelli subgroup and so acts non-trivially on H_1(S).
+		# Thus we look for the map whose action on H_1(S) is conjugate to self
+		# via splitting.preperiodic.
+		
+		# To do this we take sufficiently many curves (the key_curves() of the
+		# underlying triangulation) and look for the splitting sequence in which
+		# they are mapped to homologous curves by:
+		#	preperiodic . self^{-1} and periodic . preperiodic.
+		# Note that we must use self.inverse().
+		
+		for splitting in self.splitting_sequences():
+			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
+				return splitting
+	
+	def dilatation(self):
+		''' Return the dilatation of this mapping class.
+		
+		This encoding must be a mapping class. '''
+		
+		assert(self.is_mapping_class())
+		
+		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
+			return 0
+		else:
+			lmbda, _ = self.invariant_lamination()
+			return lmbda
+	
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.
 		
@@ -549,77 +607,31 @@ class Encoding(object):
 			
 			mapping_class1 = splitting1.mapping_class
 			
-			encodings2 = splitting2.encodings[splitting2.index:]
-			isometry2 = splitting2.isometry
+			encodings2 = splitting2.encodings[splitting2.index:] + [splitting2.isometry.encode()]
 			
-			for i in range(splitting2.periodic_length):
-				target_lamination = splitting2.laminations[splitting2.index+i]
-				mapping_class2 = flipper.kernel.product(encodings2[i:] + [isometry2.encode()] +encodings2[:i])
+			for i in range(len(encodings2)):
+				mapping_class2 = flipper.kernel.product(encodings2[i:] + encodings2[:i])
 				
-				for isom in source_lamination.all_projective_isometries(target_lamination):
+				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
+				#for isom in source_lamination.all_projective_isometries(target_lamination):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True
 			
 			return False
 	
-	def dilatation(self):
-		''' Return the dilatation of this mapping class.
+	def stratum(self):
+		''' Return a dictionary mapping each singularity to its stratum order.
 		
-		Assumes and checks that this mapping class is pseudo-Anosov.
+		This is the number of bipods incident to the vertex.
 		
-		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
-		
-		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
-			return 0
-		else:
-			lmbda, _ = self.invariant_lamination()
-			return lmbda
-	
-	def splitting_sequences(self, take_roots=False):
-		''' Return a list of splitting sequences associated to this mapping class.
-		
-		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		Assumes (and checks) that this mapping class is pseudo-Anosov.
 		
 		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
 		
-		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
-			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		
-		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
-		try:
-			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
-		except flipper.AssumptionError:  # Lamination is not filling.
-			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
-		
-		return splittings
-	
-	def splitting_sequence(self):
-		''' Return the splitting sequence associated to this mapping class.
-		
-		Assumes (and checks) that the mapping class is pseudo-Anosov.
-		
-		This encoding must be a mapping class. '''
-		
-		# We get a list of all possible splitting sequences from
-		# self.splitting_sequences(). From there we use the fact that each
-		# of these differ by a periodic mapping class, which cannot be in the
-		# Torelli subgroup and so acts non-trivially on H_1(S).
-		# Thus we look for the map whose action on H_1(S) is conjugate to self
-		# via splitting.preperiodic.
-		
-		# To do this we take sufficiently many curves (the key_curves() of the
-		# underlying triangulation) and look for the splitting sequence in which
-		# they are mapped to homologous curves by:
-		#	preperiodic . self^{-1} and periodic . preperiodic.
-		# Note that we must use self.inverse().
-		
-		for splitting in self.splitting_sequences():
-			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
-				return splitting
+		# This can fail with an flipper.AssumptionError.
+		return self.splitting_sequence().lamination.stratum()
 	
 	def bundle(self):
 		''' Return the bundle associated to this mapping class.
@@ -628,6 +640,9 @@ class Encoding(object):
 		
 		This encoding must be a mapping class. '''
 		
+		assert(self.is_mapping_class())
+		
+		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().bundle()
 
 

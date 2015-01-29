@@ -286,7 +286,7 @@ class Lamination(object):
 		a, b, c, d = self.triangulation.square_about_edge(edge_index)
 		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
 	
-	def stratum_orders(self):
+	def stratum(self):
 		''' Return a dictionary mapping each vertex of the underlying triangulation to the number of stratum exiting it.
 		
 		This is the number of bipods incident to the vertex. '''

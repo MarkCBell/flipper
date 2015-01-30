@@ -594,21 +594,10 @@ class Encoding(object):
 			splitting1 = self.splitting_sequence()
 			splitting2 = other.splitting_sequence()
 			
-			if splitting1.periodic_length != splitting2.periodic_length:
-				return False
-			
-			if splitting1.number_field != splitting2.number_field:
-				return False
-			
-			if self.dilatation() != other.dilatation():
-				return False
-			
-			source_lamination = splitting1.lamination
-			
 			mapping_class1 = splitting1.mapping_class
 			
+			# The product of these is mapping_class2 = splitting2.mapping_class.
 			encodings2 = splitting2.encodings[splitting2.index:] + [splitting2.isometry.encode()]
-			
 			for i in range(len(encodings2)):
 				mapping_class2 = flipper.kernel.product(encodings2[i:] + encodings2[:i])
 				

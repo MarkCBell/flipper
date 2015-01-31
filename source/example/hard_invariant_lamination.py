@@ -5,6 +5,10 @@ import flipper
 
 from time import time
 
+# The purpose of this example is to demonstrate that:
+#   even for atypical mapping classes, Encoding.invariant_lamination() does
+#   not raise flipper.ComputationErrors.
+
 def main():
 	times = {}
 	

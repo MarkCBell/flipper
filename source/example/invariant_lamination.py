@@ -4,6 +4,9 @@ from time import time
 
 import flipper
 
+# The purpose of this example is to demonstrate that:
+#   generically Encoding.invariant_lamination() does not raise flipper.ComputationErrors.
+
 def main(n=100):
 	times = {}
 	surface = 'S_3_1'

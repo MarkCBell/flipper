@@ -41,14 +41,11 @@ class Tetrahedron(object):
 		assert(isinstance(label, flipper.IntegerType))
 		
 		self.label = label
-		self.glued_to = [None] * 4 # Each entry is either: None or (Tetrahedron, permutation).
+		self.glued_to = [None] * 4  # Each entry is either: None or (Tetrahedron, permutation).
 		self.cusp_indices = [-1, -1, -1, -1]
 		self.peripheral_curves = [[[0, 0, 0, 0] for _ in range(4)] for _ in PERIPHERAL_TYPES]
 		self.edge_labels = dict((vertex_pair, VEERING_UNKNOWN) for vertex_pair in combinations(range(4), r=2))
 		self.vertex_labels = [None, None, None, None]
-	
-	def __str__(self):
-		return str(self.label)
 	
 	def __str__(self):
 		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)

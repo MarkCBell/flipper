@@ -562,16 +562,6 @@ class Lamination(object):
 		else:
 			return self._cache['splitting_sequences'][target_dilatation]
 	
-	def is_filling(self):
-		''' Return if this lamination is filling. '''
-		
-		try:
-			self.splitting_sequences()
-		except flipper.AssumptionError:
-			return False
-		else:
-			return True
-	
 	def encode_twist(self, k=1):
 		''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.
 		

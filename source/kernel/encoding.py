@@ -410,7 +410,6 @@ class Encoding(object):
 				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
-					# print('%s - %d, %d' % (self.geometric.find_indices_compressed(average_curve.geometric), i, j))
 					partial_function = (self**j).geometric.applied_function(average_curve.geometric)
 					if partial_function not in tested_cells:
 						tested_cells.append(partial_function)
@@ -432,6 +431,8 @@ class Encoding(object):
 								if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 									if j == 1:
 										if eigenvalue == 1:
+											# We could raise an AssumptionError as this actually shows that self is reducible.
+											return eigenvalue, invariant_lamination
 											raise flipper.AssumptionError('Mapping class is reducible.')
 										else:
 											return eigenvalue, invariant_lamination
@@ -446,7 +447,7 @@ class Encoding(object):
 			
 			# See if we are close to an invariant curve.
 			# Build some different vectors which are good candidates for reducing curves.
-			vectors = [[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[-j-min(max_order, len(curves)):]]
+			vectors = [[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[max(len(curves) - max_order, 0):]]
 			
 			for vector in vectors:
 				new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
@@ -454,7 +455,8 @@ class Encoding(object):
 					for j in range(1, max_order+1):
 						new_small_curve = self(new_small_curve)
 						if new_small_curve == small_curve:
-							raise flipper.AssumptionError('Mapping class is reducible.')
+							# We could raise an AssumptionError as this actually shows that self is reducible.
+							return 1, small_curve
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
@@ -471,38 +473,6 @@ class Encoding(object):
 			raise self._cache['invariant_lamination']
 		else:
 			return self._cache['invariant_lamination']
-	
-	def nielsen_thurston_type(self):
-		''' Return the Nielsen--Thurston type of this encoding.
-		
-		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
-		
-		# We used to do:
-		# if self.is_periodic():
-		#	return NT_TYPE_PERIODIC
-		# elif self.is_reducible(log_progress=log_progress):
-		#	return NT_TYPE_REDUCIBLE
-		# else:
-		#	return NT_TYPE_PSEUDO_ANOSOV
-		# but this uses self.is_reducible() and so took exponential time.
-		
-		if self.is_periodic():
-			return NT_TYPE_PERIODIC
-		else:
-			try:
-				# This can also fail with a flipper.ComputationError if
-				# self.invariant_lamination() fails to find an invariant lamination.
-				_, lamination = self.invariant_lamination()
-			except flipper.AssumptionError:
-				return NT_TYPE_REDUCIBLE
-			else:
-				if lamination.is_filling():
-					return NT_TYPE_PSEUDO_ANOSOV
-				else:
-					return NT_TYPE_REDUCIBLE
-	
 	
 	def splitting_sequences(self, take_roots=False):
 		''' Return a list of splitting sequences associated to this mapping class.
@@ -548,6 +518,41 @@ class Encoding(object):
 			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
 				return splitting
 	
+	def nielsen_thurston_type(self):
+		''' Return the Nielsen--Thurston type of this encoding.
+		
+		This encoding must be a mapping class. '''
+		
+		assert(self.is_mapping_class())
+		
+		if self.is_periodic():
+			return NT_TYPE_PERIODIC
+		
+		try:
+			# This can also fail with a flipper.ComputationError if
+			# self.invariant_lamination() fails to find an invariant lamination.
+			self.splitting_sequence()
+		except flipper.AssumptionError:
+			return NT_TYPE_REDUCIBLE
+		
+		return NT_TYPE_PSEUDO_ANOSOV
+	
+	def is_Abelian(self):
+		''' Return if this mapping class corresponds to an Abelian differential.
+		
+		This is an Abelian differential (rather than a quadratic differential) if and
+		only if its stable lamination is orientable.
+		
+		Assumes (and checks) that the mapping class is pseudo-Anosov.
+		
+		This encoding must be a mapping class. '''
+		
+		# Because the lamination meets each triangle in a bipod, it is orientable
+		# if and only if each singularity of the lamination has an even number of prongs.
+		
+		stratum = self.stratum()
+		return all(stratum[singularity] % 2 == 0 for singularity in stratum)
+	
 	def dilatation(self):
 		''' Return the dilatation of this mapping class.
 		
@@ -583,11 +588,11 @@ class Encoding(object):
 			if self.order() != other.order():
 				return False
 			
-			# Could also use action on H_1(S) as a conjugacy invaraiant.
+			# We could also use action on H_1(S) as a conjugacy invaraiant.
 			
 			raise flipper.AssumptionError('Mapping class is periodic.')
 		elif self.nielsen_thurston_type() == NT_TYPE_REDUCIBLE:
-			
+			# There's more to do here.
 			
 			raise flipper.AssumptionError('Mapping class is reducible.')
 		elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:

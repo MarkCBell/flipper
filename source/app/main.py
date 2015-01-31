@@ -320,30 +320,8 @@ class FlipperApp(object):
 	def add_lamination(self, lamination, name):
 		if self.remove_lamination(name):
 			self.equipped_triangulation.laminations[name] = lamination
-			iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination'])
+			iid = self.treeview_objects.insert('laminations', 'end', text=name, tags=['txt', 'lamination', 'show_lamination'])
 			self.lamination_names[iid] = name
-			multicurve_string = lamination.is_multicurve()
-			twistable_string = lamination.is_twistable()
-			halftwistable_string = lamination.is_halftwistable()
-			filling_string = '?' if not multicurve_string else 'False'
-			
-			# Set up all the properties to appear under this label.
-			# We will also set up self.lamination_names to point each item under this to <name> too.
-			tagged_actions = [
-				('Show', 'show_lamination'),
-				]
-			for label, tag in tagged_actions:
-				self.lamination_names[self.treeview_objects.insert(iid, 'end', text=label, tags=['txt', tag])] = name
-			
-			iid_properties = self.treeview_objects.insert(iid, 'end', text='Properties', tags=['txt', 'properties'])
-			tagged_properties = [
-				('Multicurve: %s' % multicurve_string, 'multicurve_lamination'),
-				('Twistable: %s' % twistable_string, 'twist_lamination'),
-				('Half twistable: %s' % halftwistable_string, 'half_twist_lamination'),
-				('Filling: %s' % filling_string, 'filling_lamination')
-				]
-			for label, tag in tagged_properties:
-				self.lamination_names[self.treeview_objects.insert(iid_properties, 'end', text=label, tags=['txt', tag])] = name
 			
 			self.treeview_laminations.append(name)
 			
@@ -1402,19 +1380,7 @@ class FlipperApp(object):
 		else:
 			name = None
 		
-		if 'twist_lamination' in tags:
-			self.store_twist(self.equipped_triangulation.laminations[name])
-		elif 'half_twist_lamination' in tags:
-			self.store_halftwist(self.equipped_triangulation.laminations[name])
-		elif 'filling_lamination' in tags:
-			try:
-				result = self.update_cache(self.equipped_triangulation.laminations[name].is_filling)
-				
-				self.treeview_objects.item(iid, text='Filling: %s' % result)
-				self.unsaved_work = True
-			except flipper.AbortError:
-				pass
-		elif 'mapping_class_type' in tags:
+		if 'mapping_class_type' in tags:
 			try:
 				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].nielsen_thurston_type)
 				

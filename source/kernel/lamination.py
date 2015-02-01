@@ -494,6 +494,9 @@ class Lamination(object):
 		if any(v == 0 for v in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
+		if all(isinstance(v, flipper.IntegerType) for v in self):
+			raise flipper.AssumptionError('Lamination is not filling.')
+		
 		# Puncture all the triangles where the lamination is a tripod.
 		E = self.puncture_tripods()
 		lamination = E(self)

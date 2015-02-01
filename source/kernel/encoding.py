@@ -433,7 +433,6 @@ class Encoding(object):
 										if eigenvalue == 1:
 											# We could raise an AssumptionError as this actually shows that self is reducible.
 											return eigenvalue, invariant_lamination
-											raise flipper.AssumptionError('Mapping class is reducible.')
 										else:
 											return eigenvalue, invariant_lamination
 									else:

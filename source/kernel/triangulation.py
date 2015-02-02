@@ -746,9 +746,9 @@ def triangulation_from_iso_sig(signature):
 	
 	assert(isinstance(signature, flipper.StringType))
 	
-	CHAR = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
-	CHAR_LOOKUP = dict((letter, index) for index, letter in enumerate(CHAR))
-	PERM_LOOKUP = {
+	char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+	char_lookup = dict((letter, index) for index, letter in enumerate(char))
+	perm_lookup = {
 		0: flipper.kernel.Permutation([0, 1, 2]),
 		1: flipper.kernel.Permutation([0, 2, 1]),
 		2: flipper.kernel.Permutation([1, 0, 2]),
@@ -760,7 +760,7 @@ def triangulation_from_iso_sig(signature):
 	def debase(digits, base=64):
 		return sum(digit * base**index for index, digit in enumerate(digits))
 	
-	values = [CHAR_LOOKUP[letter] for letter in signature]
+	values = [char_lookup[letter] for letter in signature]
 	
 	if values[0] < 63:
 		num_chars = 1
@@ -774,27 +774,25 @@ def triangulation_from_iso_sig(signature):
 	assert(num_chars > 0)
 	assert(num_simplex > 0)
 	
-	start2 = start + num_simplex // 2
-	start3 = start2 + num_chars * (1 + num_simplex // 2)
-	start4 = start3 + (1 + num_simplex // 2)
-	# Type sequence is [start:start2].
-	# Destination sequence is [start:start2].
-	# Permutation sequence is [start2:start3].
+	start2 = start + num_simplex // 2  # Type sequence is [start:start2].
+	start3 = start2 + num_chars * (1 + num_simplex // 2)  # Destination sequence is [start2:start3].
+	start4 = start3 + (1 + num_simplex // 2)  # Permutation sequence is [start3:start4].
 	assert(start4 == len(values))
 	
 	type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
 	destination_sequence = [debase(values[i:i+num_chars]) for i in range(start2, start3, num_chars)]
-	permutation_sequence = [PERM_LOOKUP[value] for value in values[start3:start4]]
+	permutation_sequence = [perm_lookup[value] for value in values[start3:start4]]
 	
+	zeta = 0
 	num_simplices_used = 1
 	type_index, destination_index, permutation_index = 0, 0, 0
-	table = [[None, None, None] for _ in range(num_simplex)]
+	edge_labels = [[None, None, None] for _ in range(num_simplex)]
 	for i in range(num_simplex):
 		for j in range(3):
-			if table[i][j] is None:  # Otherwise we have filled in this entry from the other side.
+			if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
 				# We could also do type 0 in order to handle triangulations with boundary.
 				if type_sequence[type_index] == 1:
-					target, gluing = num_simplices_used, PERM_LOOKUP[0]
+					target, gluing = num_simplices_used, perm_lookup[0]
 					
 					num_simplices_used += 1
 				elif type_sequence[type_index] == 2:
@@ -806,21 +804,12 @@ def triangulation_from_iso_sig(signature):
 					raise TypeError('Each gluing must be type 1 or 2 to give a closed triangulation.')
 				type_index += 1
 				
-				table[i][j] = (target, gluing)
-				table[target][gluing(j)] = (i, gluing.inverse())
-	
-	# Check there are no unglued edges.
-	assert(all(all(entry is not None for entry in row) for row in table))
-	
-	zeta = 0
-	edge_labels = [[None, None, None] for _ in range(num_simplex)]
-	for i in range(num_simplex):
-		for j in range(3):
-			if edge_labels[i][j] is None:
-				target, gluing = table[i][j]
 				edge_labels[i][j] = zeta
 				edge_labels[target][gluing(j)] = ~zeta
 				zeta += 1
+	
+	# Check there are no unglued edges.
+	assert(all(all(entry is not None for entry in row) for row in edge_labels))
 	
 	return create_triangulation(edge_labels)
 

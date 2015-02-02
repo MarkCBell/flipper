@@ -15,19 +15,6 @@ import string
 
 import flipper
 
-# Some constants for understanding isomorphism signatures.
-CHAR = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
-
-CHAR_LOOKUP = dict((letter, index) for index, letter in enumerate(CHAR))
-PERM_LOOKUP = {
-	0: flipper.kernel.Permutation([0, 1, 2]),
-	1: flipper.kernel.Permutation([0, 2, 1]),
-	2: flipper.kernel.Permutation([1, 0, 2]),
-	3: flipper.kernel.Permutation([1, 2, 0]),
-	4: flipper.kernel.Permutation([2, 0, 1]),
-	5: flipper.kernel.Permutation([2, 1, 0])
-	}
-
 def norm(value):
 	''' A map taking an edges label to its index.
 	
@@ -758,6 +745,17 @@ def triangulation_from_iso_sig(signature):
 	# variables and simplify proceedings.
 	
 	assert(isinstance(signature, flipper.StringType))
+	
+	CHAR = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+	CHAR_LOOKUP = dict((letter, index) for index, letter in enumerate(CHAR))
+	PERM_LOOKUP = {
+		0: flipper.kernel.Permutation([0, 1, 2]),
+		1: flipper.kernel.Permutation([0, 2, 1]),
+		2: flipper.kernel.Permutation([1, 0, 2]),
+		3: flipper.kernel.Permutation([1, 2, 0]),
+		4: flipper.kernel.Permutation([2, 0, 1]),
+		5: flipper.kernel.Permutation([2, 1, 0])
+		}
 	
 	def debase(digits, base=64):
 		return sum(digit * base**index for index, digit in enumerate(digits))

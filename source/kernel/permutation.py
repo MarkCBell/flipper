@@ -19,6 +19,8 @@ class Permutation(object):
 		self.permutation = tuple(permutation)
 	def __str__(self):
 		return self.compressed_string()
+	def __repr__(self):
+		return 'Perm(%s)' % ','.join(str(p) for p in self)
 	def compressed_string(self):
 		''' Return this permutation as a single concatenated string. '''
 		

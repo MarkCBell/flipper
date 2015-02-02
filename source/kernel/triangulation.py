@@ -11,8 +11,22 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
 There is also a helper function: create_triangulation. '''
 
 from random import choice
+import string
 
 import flipper
+
+# Some constants for understanding isomorphism signatures.
+CHAR = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+
+CHAR_LOOKUP = dict((letter, index) for index, letter in enumerate(CHAR))
+PERM_LOOKUP = {
+	0: flipper.kernel.Permutation([0, 1, 2]),
+	1: flipper.kernel.Permutation([0, 2, 1]),
+	2: flipper.kernel.Permutation([1, 0, 2]),
+	3: flipper.kernel.Permutation([1, 2, 0]),
+	4: flipper.kernel.Permutation([2, 0, 1]),
+	5: flipper.kernel.Permutation([2, 1, 0])
+	}
 
 def norm(value):
 	''' A map taking an edges label to its index.
@@ -666,7 +680,7 @@ def create_triangulation(all_labels):
 		- e_1, e_2, e_3 are the edges of t, ordered acording to the orientation of t, and
 		- j(e) = {  i(e) if the orientation of e agrees with that of t, and
 		         { ~i(e) otherwise.
-		    Here ~x = -1 - x, the two's complement of x.
+		    Here ~x := -1 - x, the two's complement of x.
 	
 	We may describe T by the list [j(t) for t in T]. This function reconstructs
 	T from such a list.
@@ -729,4 +743,86 @@ def create_triangulation(all_labels):
 	triangles = [Triangle([edges_map[label] for label in labels]) for labels in all_labels]
 	
 	return Triangulation(triangles)
+
+
+def triangulation_from_iso_sig(signature):
+	''' Return the triangulation described by the given isomorphism signature.
+	
+	See the appendix of:
+		Simplification paths in the Pachner graphs of closed orientable
+		3-manifold triangulations
+	for a more detailed description of this construction. '''
+	
+	# We will specialise this function for loading isomorphism signatures
+	# of closed 2--manifolds only. This will enable us to remove a lot of
+	# variables and simplify proceedings.
+	
+	assert(isinstance(signature, flipper.StringType))
+	
+	def debase(digits, base=64):
+		return sum(digit * base**index for index, digit in enumerate(digits))
+	
+	values = [CHAR_LOOKUP[letter] for letter in signature]
+	
+	if values[0] < 63:
+		num_chars = 1
+		num_simplex = values[0]
+		start = 1
+	else:
+		num_chars = values[1]  # This must be > 1.
+		num_simplex = debase(values[1:num_chars])
+		start = 1 + num_chars
+	
+	assert(num_chars > 0)
+	assert(num_simplex > 0)
+	
+	start2 = start + num_simplex // 2
+	start3 = start2 + num_chars * (1 + num_simplex // 2)
+	start4 = start3 + (1 + num_simplex // 2)
+	# Type sequence is [start:start2].
+	# Destination sequence is [start:start2].
+	# Permutation sequence is [start2:start3].
+	assert(start4 == len(values))
+	
+	type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
+	destination_sequence = [debase(values[i:i+num_chars]) for i in range(start2, start3, num_chars)]
+	permutation_sequence = [PERM_LOOKUP[value] for value in values[start3:start4]]
+	
+	num_simplices_used = 1
+	type_index, destination_index, permutation_index = 0, 0, 0
+	table = [[None, None, None] for _ in range(num_simplex)]
+	for i in range(num_simplex):
+		for j in range(3):
+			if table[i][j] is None:  # Otherwise we have filled in this entry from the other side.
+				# We could also do type 0 in order to handle triangulations with boundary.
+				if type_sequence[type_index] == 1:
+					target, gluing = num_simplices_used, PERM_LOOKUP[0]
+					
+					num_simplices_used += 1
+				elif type_sequence[type_index] == 2:
+					target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
+					
+					destination_index += 1
+					permutation_index += 1
+				else:
+					raise TypeError('Each gluing must be type 1 or 2 to give a closed triangulation.')
+				type_index += 1
+				
+				table[i][j] = (target, gluing)
+				table[target][gluing(j)] = (i, gluing.inverse())
+	
+	# Check there are no unglued edges.
+	assert(all(all(entry is not None for entry in row) for row in table))
+	
+	zeta = 0
+	edge_labels = [[None, None, None] for _ in range(num_simplex)]
+	for i in range(num_simplex):
+		for j in range(3):
+			if edge_labels[i][j] is None:
+				target, gluing = table[i][j]
+				edge_labels[i][j] = zeta
+				edge_labels[target][gluing(j)] = ~zeta
+				zeta += 1
+	
+	return create_triangulation(edge_labels)
 

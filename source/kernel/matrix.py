@@ -40,6 +40,8 @@ class Matrix(object):
 		return Matrix(self.rows)
 	def __getitem__(self, index):
 		return self.rows[index]
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
 	def __len__(self):
@@ -267,7 +269,8 @@ class Matrix(object):
 		rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
 		return Matrix(rows)
 
-#### Some special Matrices we know how to build.
+#################################################
+#### Some helper functions for building matrices.
 
 def id_matrix(dim):
 	''' Return the identity matrix of given dimension. '''

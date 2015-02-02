@@ -54,6 +54,8 @@ class EquippedTriangulation(object):
 		
 		self.zeta = self.triangulation.zeta
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		lam_keys = sorted(self.laminations.keys())
 		pos_keys = sorted(self.pos_mapping_classes.keys())

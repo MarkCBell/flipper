@@ -73,6 +73,8 @@ class NumberField(object):
 		
 		return self._algebraic_approximations
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return 'QQ[%s]' % str(self.polynomial)
 	def __eq__(self, other):
@@ -107,6 +109,8 @@ class NumberFieldElement(object):
 		self._algebraic_approximation = None
 		self.accuracy = -1
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return str(float(self.algebraic_approximation()))
 	def __iter__(self):

@@ -41,6 +41,8 @@ class Interval(object):
 		
 		self.log_bound = log(max(abs(self.upper), abs(self.lower), 1)) - self.precision
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return self.approximate_string(6)
 	

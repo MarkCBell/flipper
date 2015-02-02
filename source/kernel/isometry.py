@@ -27,6 +27,8 @@ class Isometry(object):
 		self.index_map = dict((corner.index, self.corner_map[corner].index) for corner in self.corner_map)
 		self.label_map = dict((corner.label, self.corner_map[corner].label) for corner in self.corner_map)
 		
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return str(self.edge_map)
 	def __eq__(self, other):

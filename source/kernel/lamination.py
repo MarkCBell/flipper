@@ -42,6 +42,8 @@ class Lamination(object):
 		
 		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic))
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return str(self.geometric)
 	

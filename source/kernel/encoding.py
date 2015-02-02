@@ -14,8 +14,6 @@ class LFunction(object):
 	def __init__(self, action, inverse_action):
 		self.action = action
 		self.inverse_action = inverse_action
-	def __str__(self):
-		return str(self.action)
 	def __call__(self, other):
 		return self.action(other)
 	def __mul__(self, other):
@@ -39,9 +37,6 @@ class PartialFunction(object):
 		
 		self.action = action
 		self.condition = condition if condition is not None else flipper.kernel.zero_matrix(self.action.width)
-	
-	def __str__(self):
-		return '%s\n%s' % (self.action, self.condition)
 	
 	def __mul__(self, other):
 		if isinstance(other, PartialFunction):
@@ -68,8 +63,6 @@ class BasicPLFunction(object):
 	
 	def __iter__(self):
 		return iter(self.partial_functions)
-	def __str__(self):
-		return '\n'.join(str(function) for function in self.partial_functions)
 	def __len__(self):
 		return len(self.partial_functions)
 	def __getitem__(self, index):
@@ -136,8 +129,6 @@ class PLFunction(object):
 	
 	def __len__(self):
 		return len(self.sequence)
-	def __str__(self):
-		return 'PLfunction (made from %d BasicPLFunctions)' % len(self)
 	def __iter__(self):
 		return iter(self.sequence)
 	def __getitem__(self, key):
@@ -235,9 +226,9 @@ class Encoding(object):
 	def __len__(self):
 		return len(self.geometric)
 	def __repr__(self):
-		return self.name
+		return str(self)
 	def __str__(self):
-		return 'Encoding (%d flips)' % len(self)
+		return self.name
 	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):

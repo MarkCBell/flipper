@@ -47,6 +47,8 @@ class Tetrahedron(object):
 		self.edge_labels = dict((vertex_pair, VEERING_UNKNOWN) for vertex_pair in combinations(range(4), r=2))
 		self.vertex_labels = [None, None, None, None]
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)
 	
@@ -137,6 +139,8 @@ class Triangulation3(object):
 		
 		return new_triangulation
 	
+	def __repr__(self):
+		return str(self)
 	def __str__(self):
 		return '\n'.join(str(tetrahedron) for tetrahedron in self)
 	
@@ -339,6 +343,9 @@ class Triangulation3(object):
 		along the fibre slope.
 		
 		This triangulation must be closed. '''
+		
+		assert(isinstance(name, flipper.StringType))
+		assert(isinstance(filled, bool))
 		
 		assert(self.is_closed())
 		

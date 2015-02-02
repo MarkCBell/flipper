@@ -26,6 +26,7 @@ import flipper.profile
 
 # Set up really short names for the most commonly used classes and functions by users.
 flipper.create_triangulation = flipper.kernel.create_triangulation
+flipper.triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 
 flipper.IntegerType = flipper.kernel.IntegerType
 flipper.StringType = flipper.kernel.StringType

@@ -262,6 +262,39 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
+	def iso_sig(self):
+		''' Return the isomorphism signature of this triangulation. '''
+		
+		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+		perm_lookup = {
+			flipper.kernel.Permutation([0, 1, 2]): 0,
+			flipper.kernel.Permutation([0, 2, 1]): 1,
+			flipper.kernel.Permutation([1, 0, 2]): 2,
+			flipper.kernel.Permutation([1, 2, 0]): 3,
+			flipper.kernel.Permutation([2, 0, 1]): 4,
+			flipper.kernel.Permutation([2, 1, 0]): 5
+			}
+		
+		best = None
+		num_tri = self.num_tri
+		
+		for start_triangle in self:
+			for perm in flipper.kernel.permutation.all_permutations(3):
+				s = [num_tri]
+				queue = Queue()
+				queue.put(start_triangle)
+				
+				
+				# TO DO.
+				
+				pass
+				
+				
+				
+				if best is None or s < best:
+					best = s
+		
+	
 	def is_flippable(self, edge_label):
 		''' Return if the given edge is flippable.
 		
@@ -670,23 +703,15 @@ class Triangulation(object):
 	def bundle(self, flips, isometry):
 		''' Return the corresponding veering layered triangulation of the corresponding mapping torus. '''
 		
+		all_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
 		def permutation_from_pair(a, to_a, b, to_b):
 			''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
 			
-			image = [None] * 4
-			image[a] = to_a
-			image[b] = to_b
-			c, d = set(range(4)).difference([a, b])
-			to_c, to_d = set(range(4)).difference([to_a, to_b])
+			for perm in all_permutations:
+				if perm(a) == to_a and perm(b) == to_b:
+					return perm
 			
-			perm1 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_c, d: to_d}[i] for i in range(4)])
-			perm2 = flipper.kernel.Permutation([{a: to_a, b: to_b, c: to_d, d: to_c}[i] for i in range(4)])
-			if not perm1.is_even():
-				return perm1
-			elif not perm2.is_even():
-				return perm2
-			else:
-				raise ValueError('Does not represent a gluing.')
+			raise ValueError('Does not represent a gluing.')
 		
 		# Move over a lot of data.
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
@@ -774,10 +799,14 @@ class Triangulation(object):
 			target_triangle = target_corner.triangle
 			perm = flipper.kernel.permutation.cyclic_permutation(target_corner.side-0, 3)
 			
+			c = 0
 			while maps_to_triangle(lower_map[target_triangle]):
 				new_target_corner = isometry(lower_map[target_triangle].corners[0])
 				target_triangle = new_target_corner.triangle
 				perm = flipper.kernel.permutation.cyclic_permutation(new_target_corner.side-0, 3) * perm
+				c += 1
+				if c > 3 * upper_triangulation.zeta:
+					raise flipper.AssumptionError('Isometry does not define a bundle.')
 			full_forwards[source_triangle] = (target_triangle, perm)
 		
 		# Now close the bundle up.

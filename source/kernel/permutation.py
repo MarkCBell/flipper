@@ -7,7 +7,7 @@ There are also two helper functions: Id_permutation and cyclic_permutation. '''
 
 import flipper
 
-from itertools import combinations
+from itertools import permutations, combinations
 
 class Permutation(object):
 	''' This represents a permutation in Sym(n). '''
@@ -87,3 +87,13 @@ def cyclic_permutation(cycle, n):
 	''' Return the cyclic permutation sending 1 |--> cycle in Sym(n). '''
 	
 	return Permutation([(cycle + i) % n for i in range(n)])
+
+def all_permutations(n, odd=True, even=True):
+	''' Return a list containing all permutations on n elements.
+	
+	If even is False then even permutations are omitted. If odd is False
+	them odd permutations are omitted. '''
+	
+	all_perms = [Permutation(perm) for perm in permutations(range(n), n)]
+	return [perm for perm in all_perms if (odd and not perm.is_even()) or (even and perm.is_even())]
+

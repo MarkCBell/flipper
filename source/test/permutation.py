@@ -4,14 +4,11 @@ from itertools import product, permutations
 
 import flipper
 
-def all_permutations(n):
-	return [flipper.kernel.Permutation(perm) for perm in permutations(range(n), n)]
-
 def main(verbose=False, n=4):
 	if verbose: print('Running permutation tests.')
 	
 	# Get some example permutations.
-	all_perms = all_permutations(n)
+	all_perms = flipper.kernel.permutation.all_permutations(n)
 	
 	# Check that there are the same number of odd and even permutations.
 	if not (len([perm for perm in all_perms if perm.is_even()]) == len([perm for perm in all_perms if not perm.is_even()])): return False

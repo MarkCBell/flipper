@@ -13,7 +13,7 @@ def open_documentation(verbose=False):
 	if verbose: print('Opening:')
 	if verbose: print(disk_file)
 	if sys.platform.startswith('darwin'):
-		command = 'xdg-open'
+		command = 'open'
 	elif sys.platform.startswith('win'):
 		command = 'start'
 	else:

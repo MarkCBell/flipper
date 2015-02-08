@@ -25,6 +25,12 @@ def main(verbose=False):
 		T = S.triangulation
 		if len(T.self_isometries()) != num_isoms > 0:
 			return False
+		# Check that isomorphism signatures work.
+		T2 = flipper.triangulation_from_iso_sig(T.iso_sig())
+		if not T.is_isometric_to(T2):
+			return False
+		if T.iso_sig() != T2.iso_sig():
+			return False
 	
 	return True
 

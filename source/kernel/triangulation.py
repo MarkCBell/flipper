@@ -266,14 +266,6 @@ class Triangulation(object):
 	def iso_sig(self):
 		''' Return the isomorphism signature of this triangulation. '''
 		
-		# perm_lookup = {
-			# flipper.kernel.Permutation([0, 1, 2]): 0,
-			# flipper.kernel.Permutation([0, 2, 1]): 1,
-			# flipper.kernel.Permutation([1, 0, 2]): 2,
-			# flipper.kernel.Permutation([1, 2, 0]): 3,
-			# flipper.kernel.Permutation([2, 0, 1]): 4,
-			# flipper.kernel.Permutation([2, 1, 0]): 5
-			# }
 		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
 		transition_perm_lookup = {
 			(0, 0): flipper.kernel.Permutation([0, 2, 1]),
@@ -1050,19 +1042,19 @@ def triangulation_from_iso_sig(signature):
 	
 	if values[0] < 63:
 		num_chars = 1
-		num_simplex = values[0]
+		num_tri = values[0]
 		start = 1
 	else:
 		num_chars = values[1]  # This must be > 1.
-		num_simplex = debase(values[1:num_chars])
+		num_tri = debase(values[1:num_chars])
 		start = 1 + num_chars
 	
 	assert(num_chars > 0)
-	assert(num_simplex > 0)
+	assert(num_tri > 0)
 	
-	start2 = start + num_simplex // 2  # Type sequence is [start:start2].
-	start3 = start2 + num_chars * (1 + num_simplex // 2)  # Destination sequence is [start2:start3].
-	start4 = start3 + (1 + num_simplex // 2)  # Permutation sequence is [start3:start4].
+	start2 = start + num_tri // 2  # Type sequence is [start:start2].
+	start3 = start2 + num_chars * (1 + num_tri // 2)  # Destination sequence is [start2:start3].
+	start4 = start3 + (1 + num_tri // 2)  # Permutation sequence is [start3:start4].
 	assert(start4 == len(values))
 	
 	type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
@@ -1070,21 +1062,21 @@ def triangulation_from_iso_sig(signature):
 	permutation_sequence = [perm_lookup[value] for value in values[start3:start4]]
 	
 	zeta = 0
-	num_simplices_used = 1
+	num_tri_used = 1
 	type_index, destination_index, permutation_index = 0, 0, 0
-	edge_labels = [[None, None, None] for _ in range(num_simplex)]
-	triangle_reversed = [None] * num_simplex
+	edge_labels = [[None, None, None] for _ in range(num_tri)]
+	triangle_reversed = [None] * num_tri
 	triangle_reversed[0] = False
-	for i in range(num_simplex):
+	for i in range(num_tri):
 		for j in range(3):
 			if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
 				try:
 					# We could also do type 0 in order to handle triangulations with boundary.
 					if type_sequence[type_index] == 1:
-						target, gluing = num_simplices_used, perm_lookup[0]
+						target, gluing = num_tri_used, perm_lookup[0]
 						triangle_reversed[target] = not triangle_reversed[i]
 						
-						num_simplices_used += 1
+						num_tri_used += 1
 					elif type_sequence[type_index] == 2:
 						target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
 						
@@ -1100,11 +1092,11 @@ def triangulation_from_iso_sig(signature):
 				edge_labels[target][gluing(j)] = ~zeta
 				zeta += 1
 	
-	assert(num_simplices_used == num_simplex)
+	assert(num_tri_used == num_tri)
 	# Check there are no unglued edges.
 	assert(all(all(entry is not None for entry in row) for row in edge_labels))
 	
-	edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_simplex)]
+	edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_tri)]
 	
 	return create_triangulation(edge_labels)
 

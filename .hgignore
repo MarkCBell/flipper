@@ -4,6 +4,7 @@ build/*
 dist/*
 flipper.egg-info/*
 __pycache__/*
+experiments/*
 *.pyc
 *.bat
 *.swp
@@ -11,4 +12,5 @@ __pycache__/*
 lint.html
 .coverage
 htmlcov/*
+test.py
 

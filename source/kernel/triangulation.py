@@ -12,6 +12,7 @@ There is also a helper function: create_triangulation. '''
 
 from random import choice
 import string
+from math import log
 
 import flipper
 
@@ -265,35 +266,87 @@ class Triangulation(object):
 	def iso_sig(self):
 		''' Return the isomorphism signature of this triangulation. '''
 		
-		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
-		perm_lookup = {
-			flipper.kernel.Permutation([0, 1, 2]): 0,
-			flipper.kernel.Permutation([0, 2, 1]): 1,
-			flipper.kernel.Permutation([1, 0, 2]): 2,
-			flipper.kernel.Permutation([1, 2, 0]): 3,
-			flipper.kernel.Permutation([2, 0, 1]): 4,
-			flipper.kernel.Permutation([2, 1, 0]): 5
+		# perm_lookup = {
+			# flipper.kernel.Permutation([0, 1, 2]): 0,
+			# flipper.kernel.Permutation([0, 2, 1]): 1,
+			# flipper.kernel.Permutation([1, 0, 2]): 2,
+			# flipper.kernel.Permutation([1, 2, 0]): 3,
+			# flipper.kernel.Permutation([2, 0, 1]): 4,
+			# flipper.kernel.Permutation([2, 1, 0]): 5
+			# }
+		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
+		transition_perm_lookup = {
+			(0, 0): flipper.kernel.Permutation([0, 2, 1]),
+			(0, 1): flipper.kernel.Permutation([1, 0, 2]),
+			(0, 2): flipper.kernel.Permutation([2, 1, 0]),
+			(1, 0): flipper.kernel.Permutation([1, 0, 2]),
+			(1, 1): flipper.kernel.Permutation([2, 1, 0]),
+			(1, 2): flipper.kernel.Permutation([0, 2, 1]),
+			(2, 0): flipper.kernel.Permutation([2, 1, 0]),
+			(2, 1): flipper.kernel.Permutation([0, 2, 1]),
+			(2, 2): flipper.kernel.Permutation([1, 0, 2])
 			}
 		
 		best = None
-		num_tri = self.num_tri
+		num_tri = self.num_triangles
 		
 		for start_triangle in self:
-			for perm in flipper.kernel.permutation.all_permutations(3):
-				s = [num_tri]
-				queue = Queue()
-				queue.put(start_triangle)
+			for start_perm in flipper.kernel.permutation.all_permutations(3):
+				type_sequence = []
+				target_sequence = []
+				permutation_sequence = []
 				
+				queue = [start_triangle]
+				triangle_labels = {start_triangle: (0, start_perm)}
 				
-				# TO DO.
+				for i in range(num_tri):
+					triangle = queue[i]
+					_, perm = triangle_labels[triangle]
+					perm_inv = perm.inverse()
+					
+					for j in range(3):
+						side = perm_inv(j)
+						target_corner = self.corner_of_edge(~triangle.labels[side])
+						target_triangle = target_corner.triangle
+						target_side = target_corner.side
+						if target_triangle not in triangle_labels:
+							target_perm = perm * transition_perm_lookup[(target_side, side)]
+							triangle_labels[target_triangle] = (len(queue), target_perm)
+							queue.append(target_triangle)
+							
+							type_sequence.append(1)
+							# We don't need to record the follow as they are implied.
+							# target_sequence.append(len(queue))
+							# permutation_sequence.append(perm_lookup[id_perm])
+						else:
+							target_index, target_perm = triangle_labels[target_triangle]
+							k = target_perm(target_side)
+							if target_index > i or (target_index == i and k > j):  # We've not done this gluing yet.
+								transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
+								
+								type_sequence.append(2)
+								target_sequence.append(target_index)
+								permutation_sequence.append(perm_lookup[transition_perm])
 				
-				pass
-				
-				
-				
-				if best is None or s < best:
-					best = s
+				sequence = (type_sequence, target_sequence, permutation_sequence)
+				if best is None or sequence < best:
+					best = sequence
 		
+		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+		
+		type_sequence, target_sequence, permutation_sequence = best
+		type_sequence = type_sequence + [0] * (len(type_sequence) % 3)
+		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
+		char_perm = ''.join(char[p] for p in permutation_sequence)
+		if num_tri < 63:
+			char_start = char[num_tri]
+			char_target = ''.join(char[target] for target in target_sequence)
+		else:
+			digits = int(log(num_tri) / log(64)) + 1
+			char_start = char[63] + char[digits] + ''.join(char[(num_tri // 64**i) % 64] for i in range(digits))
+			char_target = ''.join(char[(target // 64**i) % 64] for target in target_sequence for i in range(digits))
+		
+		return char_start + char_type + char_target  + char_perm
 	
 	def is_flippable(self, edge_label):
 		''' Return if the given edge is flippable.
@@ -988,14 +1041,7 @@ def triangulation_from_iso_sig(signature):
 	
 	char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 	char_lookup = dict((letter, index) for index, letter in enumerate(char))
-	perm_lookup = {
-		0: flipper.kernel.Permutation([0, 1, 2]),
-		1: flipper.kernel.Permutation([0, 2, 1]),
-		2: flipper.kernel.Permutation([1, 0, 2]),
-		3: flipper.kernel.Permutation([1, 2, 0]),
-		4: flipper.kernel.Permutation([2, 0, 1]),
-		5: flipper.kernel.Permutation([2, 1, 0])
-		}
+	perm_lookup = flipper.kernel.permutation.all_permutations(3)
 	
 	def debase(digits, base=64):
 		return sum(digit * base**index for index, digit in enumerate(digits))
@@ -1027,29 +1073,38 @@ def triangulation_from_iso_sig(signature):
 	num_simplices_used = 1
 	type_index, destination_index, permutation_index = 0, 0, 0
 	edge_labels = [[None, None, None] for _ in range(num_simplex)]
+	triangle_reversed = [None] * num_simplex
+	triangle_reversed[0] = False
 	for i in range(num_simplex):
 		for j in range(3):
 			if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
-				# We could also do type 0 in order to handle triangulations with boundary.
-				if type_sequence[type_index] == 1:
-					target, gluing = num_simplices_used, perm_lookup[0]
-					
-					num_simplices_used += 1
-				elif type_sequence[type_index] == 2:
-					target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
-					
-					destination_index += 1
-					permutation_index += 1
-				else:
-					raise TypeError('Each gluing must be type 1 or 2 to give a closed triangulation.')
+				try:
+					# We could also do type 0 in order to handle triangulations with boundary.
+					if type_sequence[type_index] == 1:
+						target, gluing = num_simplices_used, perm_lookup[0]
+						triangle_reversed[target] = not triangle_reversed[i]
+						
+						num_simplices_used += 1
+					elif type_sequence[type_index] == 2:
+						target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
+						
+						destination_index += 1
+						permutation_index += 1
+					else:
+						raise TypeError('Each gluing must be type 1 or 2 to give a closed triangulation.')
+				except IndexError:
+					raise ValueError('String does not correspond to a isomorphism signature.')
 				type_index += 1
 				
 				edge_labels[i][j] = zeta
 				edge_labels[target][gluing(j)] = ~zeta
 				zeta += 1
 	
+	assert(num_simplices_used == num_simplex)
 	# Check there are no unglued edges.
 	assert(all(all(entry is not None for entry in row) for row in edge_labels))
+	
+	edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_simplex)]
 	
 	return create_triangulation(edge_labels)
 

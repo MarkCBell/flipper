@@ -421,11 +421,8 @@ class Encoding(object):
 								invariant_lamination = triangulation.lamination(eigenvector)
 								if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 									if j == 1:
-										if eigenvalue == 1:
-											# We could raise an AssumptionError as this actually shows that self is reducible.
-											return eigenvalue, invariant_lamination
-										else:
-											return eigenvalue, invariant_lamination
+										# We could raise an AssumptionError as this actually shows that self is reducible.
+										return eigenvalue, invariant_lamination
 									else:
 										if not invariant_lamination.projectively_equal(self(invariant_lamination)):
 											raise flipper.AssumptionError('Mapping class is reducible.')
@@ -445,8 +442,11 @@ class Encoding(object):
 					for j in range(1, max_order+1):
 						new_small_curve = self(new_small_curve)
 						if new_small_curve == small_curve:
-							# We could raise an AssumptionError as this actually shows that self is reducible.
-							return 1, small_curve
+							if j == 1:
+								# We could raise an AssumptionError in this case too as this also shows that self is reducible.
+								return 1, small_curve
+							else:
+								raise flipper.AssumptionError('Mapping class is reducible.')
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	

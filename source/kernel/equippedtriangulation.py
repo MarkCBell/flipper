@@ -3,9 +3,10 @@
 
 Provides one class: EquippedTriangulation. '''
 
-import flipper
-
 from random import choice
+import re
+
+import flipper
 
 class EquippedTriangulation(object):
 	''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
@@ -157,7 +158,7 @@ class EquippedTriangulation(object):
 					word = word[len(letter):]
 					break
 			else:
-				raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % (decomposition, word))
+				raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
 		
 		return decomposition
 	
@@ -173,6 +174,29 @@ class EquippedTriangulation(object):
 		
 		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)
+		
+		# Expand out parenthesis powers.
+		# This can fail with a KeyError.
+		old_word = None
+		while word != old_word:  # While a change was made.
+			old_word = word
+			for subword, power in re.findall(r'(\([\w_\.]*\))\^(-?\d+)', word):
+				decompose = self.decompose_word(subword[1:-1])
+				int_power = int(power)
+				if int_power > 0:
+					replacement = '.'.join(decompose) * int_power
+				else:
+					replacement = '.'.join(letter.swapcase() for letter in decompose[::-1]) * abs(int_power)
+				word = word.replace(subword + '^' + power, replacement)
+		
+		# Expand out powers without parenthesis. Here we use a greedy algorithm and take the
+		# longest mapping class occuring before the power. Note that we only do one pass and so
+		# only all pure powers to be expanded once, that is 'aBBB^2^3' is not recognised.
+		available_letters = sorted(self.mapping_classes, key=len, reverse=True)
+		for letter in available_letters:
+			for subword, power in re.findall(r'(%s)\^(-?\d+)' % letter, word):
+				int_power = int(power)
+				word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
 		
 		# This can fail with a KeyError.
 		decomposition = [self.mapping_classes[letter] for subword in word.split('.') for letter in self.decompose_word(subword)]

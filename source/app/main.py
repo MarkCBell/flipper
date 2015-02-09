@@ -43,7 +43,7 @@ if sys.platform in ['darwin']:
 		'twist': 'Command+T',
 		'halftwist': 'Command+H',
 		'isometry': 'Command+I',
-		'compose': 'Command+O'
+		'compose': 'Command+M'
 		}
 	COMMAND_KEY = {
 		'new': '<Command-n>',
@@ -145,7 +145,6 @@ class FlipperApp(object):
 		self.canvas = TK.Canvas(self.frame_draw, height=1, bg='#dcecff', takefocus=True)
 		self.canvas.pack(padx=6, pady=6, fill='both', expand=True)
 		self.canvas.bind('<Button-1>', self.canvas_left_click)
-		self.canvas.bind('<Double-Button-1>', self.canvas_double_left_click)
 		self.canvas.bind('<Button-3>', self.canvas_right_click)
 		self.canvas.bind('<Motion>', self.canvas_move)
 		self.canvas.bind('<FocusOut>', self.canvas_focus_lost)
@@ -673,9 +672,9 @@ class FlipperApp(object):
 	def is_complete(self):
 		return len(self.triangles) > 0 and all(edge.free_sides() == 0 for edge in self.edges)
 	
-	def object_here(self, p):
-		for piece in self.curve_components + self.vertices + self.edges + self.triangles:
-			if p in piece:
+	def object_here(self, point):
+		for piece in self.vertices + self.edges + self.triangles:
+			if point in piece:
 				return piece
 		return None
 	
@@ -1070,6 +1069,8 @@ class FlipperApp(object):
 			geometric = [i / 2 for i in geometric]
 		
 		self.current_lamination = self.equipped_triangulation.triangulation.lamination(geometric)
+		if self.current_lamination.geometric != geometric:
+			print('CAUTION')
 		
 		return self.current_lamination
 	
@@ -1226,10 +1227,15 @@ class FlipperApp(object):
 		
 		if self.is_complete() and not shift_pressed:
 			if self.selected_object is None:
-				self.select_object(self.create_curve_component([(x, y), (x, y)]))
+				if possible_object is None:
+					self.select_object(self.create_curve_component([(x, y), (x, y)]))
 			elif isinstance(self.selected_object, flipper.app.CurveComponent):
-				self.selected_object.append_point((x, y))
-				self.canvas_to_lamination()
+				if possible_object is not None:
+					self.selected_object.append_point((x, y))
+					self.canvas_to_lamination()
+				else:
+					self.canvas_to_lamination()
+					self.select_object(None)
 		else:
 			if self.selected_object is None:
 				if possible_object is None:
@@ -1292,14 +1298,6 @@ class FlipperApp(object):
 				self.canvas_to_lamination()
 			else:
 				self.select_object(None)
-	
-	def canvas_double_left_click(self, event):
-		if self.selected_object is not None:
-			if isinstance(self.selected_object, flipper.app.CurveComponent):
-				self.selected_object.pop_point()
-				self.canvas_to_lamination()
-			
-			self.select_object(None)
 	
 	def canvas_move(self, event):
 		x, y = int(self.canvas.canvasx(event.x)), int(self.canvas.canvasy(event.y))

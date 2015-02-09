@@ -8,8 +8,9 @@ except ImportError:
 	print('Unable to import setuptools, using distutils instead.')
 	from distutils.core import setup, Command
 
-flipper_directory = os.path.join(os.path.dirname(__file__), 'source')
-exec(open(os.path.join(flipper_directory, 'version.py')).read())  # Load in the variable __version__.
+this_directory = os.path.dirname(__file__)
+source_directory = os.path.join(this_directory, 'source')
+exec(open(os.path.join(source_directory, 'version.py')).read())  # Load in the variable __version__.
 
 setup(
 	name='flipper',
@@ -20,7 +21,7 @@ setup(
 	url='https://bitbucket.org/Mark_Bell/flipper',
 	# Remember to update these if the directory structure changes.
 	packages=['flipper', 'flipper.app', 'flipper.doc', 'flipper.load', 'flipper.example', 'flipper.kernel', 'flipper.test', 'flipper.profile'],
-	package_dir={'flipper': flipper_directory},
+	package_dir={'flipper': source_directory},
 	package_data={
 		'': ['README.rst', 'LICENSE'],
 		'flipper.doc': ['flipper.pdf'],

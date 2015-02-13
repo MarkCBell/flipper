@@ -11,6 +11,8 @@ Get started by starting the GUI:
 	> flipper.app.start()
 or by creating an AbstractTriangulation using the helper function:
 	> flipper.create_triangulation(...)
+or from an isomorphism signature:
+	> flipper.create_triangulation_from_iso_sig(...)
 or by loading one of the provided EquippedTriangulations using:
 	> flipper.load.equipped_triangulation(...) '''
 

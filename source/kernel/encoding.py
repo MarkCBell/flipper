@@ -228,7 +228,7 @@ class Encoding(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return self.name
+		return str(self.name)
 	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):

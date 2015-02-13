@@ -16,6 +16,8 @@ from math import log
 
 import flipper
 
+INFTY = float('inf')
+
 def norm(value):
 	''' A map taking an edges label to its index.
 	
@@ -279,7 +281,7 @@ class Triangulation(object):
 			(2, 2): flipper.kernel.Permutation([1, 0, 2])
 			}
 		
-		best = None
+		best = ([INFTY], [INFTY], [INFTY])
 		num_tri = self.num_triangles
 		
 		for start_triangle in self:
@@ -320,9 +322,7 @@ class Triangulation(object):
 								target_sequence.append(target_index)
 								permutation_sequence.append(perm_lookup[transition_perm])
 				
-				sequence = (type_sequence, target_sequence, permutation_sequence)
-				if best is None or sequence < best:
-					best = sequence
+				best = min((type_sequence, target_sequence, permutation_sequence), best)
 		
 		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 		
@@ -1036,6 +1036,8 @@ def triangulation_from_iso_sig(signature):
 	perm_lookup = flipper.kernel.permutation.all_permutations(3)
 	
 	def debase(digits, base=64):
+		''' Return the decimal corresponding to a base64 sequence of digits. '''
+		
 		return sum(digit * base**index for index, digit in enumerate(digits))
 	
 	values = [char_lookup[letter] for letter in signature]

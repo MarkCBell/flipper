@@ -24,6 +24,8 @@ from math import log10 as log
 #	acc(I / J) >= m - log+(J)
 #	acc(x * I) >= acc(I) - log+(x)
 
+INFTY = float('inf')
+
 class Interval(object):
 	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
 	def __init__(self, lower, upper, precision):
@@ -37,7 +39,7 @@ class Interval(object):
 		self.precision = precision
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
-		self.accuracy = float('inf') if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
+		self.accuracy = INFTY if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
 		
 		self.log_bound = log(max(abs(self.upper), abs(self.lower), 1)) - self.precision
 	
@@ -88,7 +90,7 @@ class Interval(object):
 		
 		assert(isinstance(new_accuracy, flipper.IntegerType))
 		
-		if self.accuracy == float('inf'):
+		if self.accuracy == INFTY:
 			return self
 		else:
 			assert(new_accuracy <= self.accuracy)

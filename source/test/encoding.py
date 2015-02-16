@@ -13,6 +13,7 @@ def main(verbose=False):
 	S = flipper.load.equipped_triangulation('S_1_1')
 	f, g = S.mapping_class('aB'), S.mapping_class('bA')  # Some pseudo-Anosov ones.
 	h, i = S.mapping_class('ab'), S.mapping_class('')  # Some finite order ones.
+	
 	tests = [
 		h != i,
 		h**6 == i,

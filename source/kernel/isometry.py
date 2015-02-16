@@ -38,21 +38,32 @@ class Isometry(object):
 	def __ne__(self, other):
 		return not (self == other)
 	def __call__(self, other):
+		if isinstance(other, flipper.kernel.Lamination):
+			if other.triangulation != self.source_triangulation:
+				raise TypeError('Cannot apply Isometry to a lamination not on the source triangulation.')
+			
+			geometric = [None] * self.zeta
+			algebraic = [None] * self.zeta
+			for i in range(self.zeta):
+				geometric[self.index_map[i]] = other.geometric[i]
+				algebraic[self.index_map[i]] = (+1 if self.index_map[i] == self.label_map[i] else -1) * other.algebraic[i]
+			
+			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
 		if isinstance(other, flipper.kernel.Vertex):
 			if other not in self.source_triangulation:
-				raise ValueError('Vertex no in source triangulation.')
+				raise ValueError('Vertex not in source triangulation.')
 			return self.vertex_map[other]
 		elif isinstance(other, flipper.kernel.Edge):
 			if other not in self.source_triangulation:
-				raise ValueError('Edge no in source triangulation.')
+				raise ValueError('Edge not in source triangulation.')
 			return self.edge_map[other]
 		elif isinstance(other, flipper.kernel.Triangle):
 			if other not in self.source_triangulation:
-				raise ValueError('Triangle no in source triangulation.')
+				raise ValueError('Triangle not in source triangulation.')
 			return self.triangle_map[other]
 		elif isinstance(other, flipper.kernel.Corner):
 			if other not in self.source_triangulation:
-				raise ValueError('Corner no in source triangulation.')
+				raise ValueError('Corner not in source triangulation.')
 			return self.corner_map[other]
 		elif isinstance(other, flipper.IntegerType):  # Integers are assumed to be labels.
 			return self.label_map[other]
@@ -79,24 +90,15 @@ class Isometry(object):
 		
 		inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
 		return Isometry(self.target_triangulation, self.source_triangulation, inverse_corner_map)
-	def permutation_matrix(self):
-		''' Return the permutation on edges induced by this isometry. '''
-		
-		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix()
-	def signed_permutation_matrix(self):
-		''' Return the permutation on oriented edges induced by this isometry. '''
-		
-		return flipper.kernel.Matrix([[0 if i != self.index_map[j] else +1 if i == self.label_map[j] else -1 for j in range(self.zeta)] for i in range(self.zeta)])
 	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''
 		
-		inv = self.inverse()
+		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [self])
+	
+	def applied_geometric(self, lamination):
+		''' Return the action and condition matrices describing the isometry
+		applied to the geometric coordinates of the given lamination. '''
 		
-		f = [flipper.kernel.PartialFunction(self.permutation_matrix())]
-		b = [flipper.kernel.PartialFunction(inv.permutation_matrix())]
-		
-		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation,
-			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction(f, b)]),
-			flipper.kernel.LFunction(self.signed_permutation_matrix(), inv.signed_permutation_matrix()))
+		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
 

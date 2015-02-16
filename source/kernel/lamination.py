@@ -358,12 +358,8 @@ class Lamination(object):
 			else:
 				triangles.append(triangle)
 		
-		l = flipper.kernel.LFunction(algebraic, flipper.kernel.zero_matrix(zeta, self.zeta))
-		partial = flipper.kernel.PartialFunction(geometric)
-		pl = flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([partial])])
-		
 		T = flipper.kernel.Triangulation(triangles)
-		return flipper.kernel.Encoding(self.triangulation, T, pl, l)
+		return flipper.kernel.LinearTransformation(self.triangulation, T, geometric, algebraic).encode()
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index
@@ -474,10 +470,9 @@ class Lamination(object):
 					matrix2[target_edge.index][edge.index] = +1 if edge.is_positive() == target_edge.is_positive() else -1
 		
 		algebraic_matrix = matrix2 * matrix
-		algebraic_action = flipper.kernel.LFunction(algebraic_matrix, flipper.kernel.zero_matrix(edge_count, self.zeta))
-		geometric_action = flipper.kernel.zero_pl_function(self.zeta, edge_count)
+		geometric_matrix = flipper.kernel.zero_matrix(self.zeta, edge_count)
 		
-		encoding = flipper.kernel.Encoding(self.triangulation, T, geometric_action, algebraic_action)
+		encoding = flipper.kernel.LinearTransformation(self.triangulation, T, geometric_matrix, algebraic_matrix).encode()
 		
 		return lamination, encoding
 	
@@ -491,6 +486,8 @@ class Lamination(object):
 		
 		This requires the entries of self.geometric to be NumberFieldElements
 		(over the same NumberField) or AlgebraicNumbers. '''
+		
+		# At some point this could be rewritten using EdgeFlip.edge_index.
 		
 		# Check if the lamination is obviously non-filling.
 		if any(v == 0 for v in self):

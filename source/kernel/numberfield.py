@@ -69,6 +69,7 @@ class NumberField(object):
 			largest_precision = max(AA.interval.precision for AA in self._algebraic_approximations)
 			self._algebraic_approximations = [AA.change_denominator(largest_precision) for AA in self._algebraic_approximations]
 			self.accuracy = min(AA.interval.accuracy for AA in self._algebraic_approximations)
+			print(self.accuracy)
 			assert(self.accuracy >= accuracy)
 		
 		return self._algebraic_approximations
@@ -182,8 +183,7 @@ class NumberFieldElement(object):
 	def algebraic_approximation(self, accuracy=0):
 		''' Return an AlgebraicApproximation of this element which is correct to at least the requested accuracy.
 		
-		If no accuracy is given then accuracy will be chosen such that the approximation will
-		determine a unique algebraic number. '''
+		The accuracy returned is at least the minimum accuracy needed to determine a unique algebraic number. '''
 		
 		# Let:
 		N = self.number_field
@@ -205,6 +205,7 @@ class NumberFieldElement(object):
 		#	2 * (self.height + d).
 		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * LOG_2
 		accuracy = max(accuracy, int(2 * height + d) + 1)
+		if accuracy > 700: assert(False)
 		
 		if self._algebraic_approximation is None or self.accuracy < accuracy:
 			self._algebraic_approximation = flipper.kernel.dot(self, N.lmbda_approximations(accuracy))

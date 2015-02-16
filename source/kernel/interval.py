@@ -153,7 +153,7 @@ class Interval(object):
 				self.lower * other.upper,
 				self.upper * other.upper
 				]
-			return  Interval(min(values), max(values), self.precision + other.precision)
+			return Interval(min(values), max(values), self.precision + other.precision)
 		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower * other, self.upper * other]
 			return Interval(min(values), max(values), self.precision)

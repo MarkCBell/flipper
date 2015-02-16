@@ -67,6 +67,11 @@ class Edge(object):
 		
 		return self.label == self.index
 	
+	def sign(self):
+		''' Return the sign (+/-1) of this edge. '''
+		
+		return +1 if self.is_positive() else -1
+	
 	def reverse(self):
 		''' Return this edge but with reversed orientation. '''
 		
@@ -694,7 +699,7 @@ class Triangulation(object):
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
 		
-		return flipper.kernel.Encoding(self, self, flipper.kernel.id_pl_function(self.zeta), flipper.kernel.id_l_function(self.zeta))
+		return flipper.kernel.Encoding(self, self, [])
 	
 	def encode_flip(self, edge_index):
 		''' Return an encoding of the effect of flipping the given edge.
@@ -705,29 +710,7 @@ class Triangulation(object):
 		
 		new_triangulation = self.flip_edge(edge_index)
 		
-		I = flipper.kernel.id_matrix(self.zeta)
-		Z = flipper.kernel.zero_matrix(self.zeta, 1)
-		
-		a, b, c, d = [edge.index for edge in self.square_about_edge(edge_index)]
-		e = norm(edge_index)  # Give it a shorter name.
-		A1 = I.tweak([(e, a), (e, c)], [(e, e), (e, e)])
-		C1 = Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
-		
-		A2 = I.tweak([(e, b), (e, d)], [(e, e), (e, e)])
-		C2 = Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
-		
-		# These functions are their own inverses.
-		f = f_inv = flipper.kernel.PartialFunction(A1, C1)
-		g = g_inv = flipper.kernel.PartialFunction(A2, C2)
-		
-		w, x, y, z = [edge.label for edge in self.square_about_edge(edge_index)]
-		A = I.tweak([(e, norm(i)) for i in [x, y] if norm(i) == i], [(e, norm(i)) for i in [x, y] if norm(i) != i] + [(e, e)])
-		B = I.tweak([(e, norm(i)) for i in [y, z] if norm(i) == i], [(e, norm(i)) for i in [y, z] if norm(i) != i] + [(e, e)])
-		# Note that B is not A.inverse() as there are some relations in homology().
-		
-		return flipper.kernel.Encoding(self, new_triangulation,
-			flipper.kernel.PLFunction([flipper.kernel.BasicPLFunction([f, g], [f_inv, g_inv])]),
-			flipper.kernel.LFunction(A, B))
+		return flipper.kernel.EdgeFlip(self, new_triangulation, edge_index).encode()
 	
 	def encode_flips(self, edge_indices):
 		''' Return an encoding of the effect of flipping the given sequences of edges. '''

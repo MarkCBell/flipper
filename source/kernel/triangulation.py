@@ -232,23 +232,23 @@ class Triangulation(object):
 		new_triangles = [Triangle([new_edges[edge] for edge in triangle]) for triangle in self]
 		return Triangulation(new_triangles)
 	
-	def vertices_of_edge(self, edge_index):
+	def vertices_of_edge(self, edge_label):
 		''' Return the two vertices at the ends of the given edge. '''
 		
 		# Refactor out?
-		return [self.edge_lookup[edge_index].source_vertex, self.edge_lookup[~edge_index].source_vertex]
+		return [self.edge_lookup[edge_label].source_vertex, self.edge_lookup[~edge_label].source_vertex]
 	
-	def triangles_of_edge(self, edge_index):
+	def triangles_of_edge(self, edge_label):
 		''' Return the two triangles containing the given edge. '''
 		
 		# Refactor out?
-		return [self.triangle_lookup[edge_index], self.triangle_lookup[~edge_index]]
+		return [self.triangle_lookup[edge_label], self.triangle_lookup[~edge_label]]
 	
-	def corner_of_edge(self, edge_index):
+	def corner_of_edge(self, edge_label):
 		''' Return the corner opposite the given edge. '''
 		
 		# Refactor out?
-		return self.corner_lookup[edge_index]
+		return self.corner_lookup[edge_label]
 	
 	def corner_class_of_vertex(self, vertex):
 		''' Return the corner class containing the given vertex. '''
@@ -383,12 +383,12 @@ class Triangulation(object):
 		corner_A, corner_B = self.corner_of_edge(edge_label), self.corner_of_edge(~edge_label)
 		return [corner_A.edges[1], corner_A.edges[2], corner_B.edges[1], corner_B.edges[2]]
 	
-	def flip_edge(self, edge_index):
+	def flip_edge(self, edge_label):
 		''' Return a new triangulation obtained by flipping the given edge.
 		
 		The chosen edge must be flippable. '''
 		
-		assert(self.is_flippable(edge_index))
+		assert(self.is_flippable(edge_label))
 		
 		# Use the following for reference:
 		# #<----------#     #-----------#
@@ -405,13 +405,13 @@ class Triangulation(object):
 		# V/    c     |     |          V|
 		# #---------->#     #-----------#
 		
-		a, b, c, d = self.square_about_edge(edge_index)
-		new_edge = Edge(a.target_vertex, c.target_vertex, edge_index)
+		a, b, c, d = self.square_about_edge(edge_label)
+		new_edge = Edge(a.target_vertex, c.target_vertex, edge_label)
 		
 		triangle_A2 = Triangle([new_edge, d, a])
 		triangle_B2 = Triangle([~new_edge, b, c])
 		
-		unchanged_triangles = [triangle for triangle in self if edge_index not in triangle.labels and ~edge_index not in triangle]
+		unchanged_triangles = [triangle for triangle in self if edge_label not in triangle.labels and ~edge_label not in triangle]
 		return Triangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
 	def tree_and_dual_tree(self, respect_vertex_labels=False):
@@ -701,31 +701,31 @@ class Triangulation(object):
 		
 		return flipper.kernel.Encoding(self, self, [])
 	
-	def encode_flip(self, edge_index):
+	def encode_flip(self, edge_label):
 		''' Return an encoding of the effect of flipping the given edge.
 		
 		The given edge must be flippable. '''
 		
-		assert(self.is_flippable(edge_index))
+		assert(self.is_flippable(edge_label))
 		
-		new_triangulation = self.flip_edge(edge_index)
+		new_triangulation = self.flip_edge(edge_label)
 		
-		return flipper.kernel.EdgeFlip(self, new_triangulation, edge_index).encode()
+		return flipper.kernel.EdgeFlip(self, new_triangulation, edge_label).encode()
 	
-	def encode_flips(self, edge_indices):
+	def encode_flips(self, edge_labels):
 		''' Return an encoding of the effect of flipping the given sequences of edges. '''
 		
 		h = self.id_encoding()
-		for edge_index in edge_indices:
-			h = h.target_triangulation.encode_flip(edge_index) * h
+		for edge_label in edge_labels:
+			h = h.target_triangulation.encode_flip(edge_label) * h
 		return h
 	
-	def encode_flips_and_close(self, edge_indices, edge_from_label, edge_to_label):
+	def encode_flips_and_close(self, edge_labels, edge_from_label, edge_to_label):
 		''' Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
 		
 		The isometry used is the one taking edge_from_label to edge_to_label. '''
 		
-		E = self.encode_flips(edge_indices)
+		E = self.encode_flips(edge_labels)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def bundle(self, flips, isometry):
@@ -763,10 +763,10 @@ class Triangulation(object):
 		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.Triangle)
 		maps_to_tetrahedron = lambda X: isinstance(X, tuple)  # == not maps_to_triangle(X).
 		
-		for tetrahedron, edge_index in zip(triangulation3, flips):
+		for tetrahedron, edge_label in zip(triangulation3, flips):
 			# Get the new upper triangulation
 			# The given edge_index must be flippable.
-			new_upper_triangulation = upper_triangulation.flip_edge(edge_index)
+			new_upper_triangulation = upper_triangulation.flip_edge(edge_label)
 			
 			# Setup the next tetrahedron.
 			tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
@@ -774,10 +774,10 @@ class Triangulation(object):
 			tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
 			tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
 			
-			# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_index.
+			# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_label.
 			# WARNINNG: This is reliant on knowing how flipper.kernel.Triangulation.flip_edge() relabels things!
-			cornerA = upper_triangulation.corner_of_edge(edge_index)
-			cornerB = upper_triangulation.corner_of_edge(~edge_index)
+			cornerA = upper_triangulation.corner_of_edge(edge_label)
+			cornerB = upper_triangulation.corner_of_edge(~edge_label)
 			(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
 			if maps_to_tetrahedron(upper_map[A]):
 				tetra, perm = upper_map[A]
@@ -795,8 +795,8 @@ class Triangulation(object):
 			
 			# Rebuild the upper_map.
 			new_upper_map = dict()
-			new_cornerA = new_upper_triangulation.corner_of_edge(edge_index)
-			new_cornerB = new_upper_triangulation.corner_of_edge(~edge_index)
+			new_cornerA = new_upper_triangulation.corner_of_edge(edge_label)
+			new_cornerB = new_upper_triangulation.corner_of_edge(~edge_label)
 			new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
 			# Most of the triangles have stayed the same.
 			# This relies on knowing how the upper_triangulation.flip_edge() function works.

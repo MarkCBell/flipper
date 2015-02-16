@@ -463,7 +463,7 @@ class Encoding(object):
 		
 		return NT_TYPE_PSEUDO_ANOSOV
 	
-	def is_Abelian(self):
+	def is_abelian(self):
 		''' Return if this mapping class corresponds to an Abelian differential.
 		
 		This is an Abelian differential (rather than a quadratic differential) if and

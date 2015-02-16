@@ -37,11 +37,6 @@ class Lamination(object):
 		
 		self._cache = {}  # For caching hard to compute results.
 	
-	def copy(self):
-		''' Return a copy of this lamination. '''
-		
-		return Lamination(self.triangulation, list(self.geometric), list(self.algebraic))
-	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
@@ -185,7 +180,7 @@ class Lamination(object):
 		
 		assert(self.is_multicurve())
 		
-		lamination = self.copy()
+		lamination = self
 		best_conjugation = conjugation = lamination.triangulation.id_encoding()
 		
 		time_since_last_weight_loss = 0

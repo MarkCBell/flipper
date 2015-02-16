@@ -27,7 +27,7 @@ from math import log10 as log
 INFTY = float('inf')
 
 class Interval(object):
-	''' This represents a closed interval [lower*10**-precision, upper*10**-precision]. '''
+	''' This represents a closed interval [lower / 10**precision, upper / 10**precision]. '''
 	def __init__(self, lower, upper, precision):
 		assert(isinstance(lower, flipper.IntegerType))
 		assert(isinstance(upper, flipper.IntegerType))
@@ -52,11 +52,6 @@ class Interval(object):
 		return float(self.approximate_string(30)[:-1])
 	def __hash__(self):
 		return hash(self.tuple())
-	
-	def copy(self):
-		''' Return a copy of this interval. '''
-		
-		return Interval(self.lower, self.upper, self.precision)
 	
 	def approximate_string(self, accuracy=None):
 		''' Return a string approximating the centre of this interval. '''

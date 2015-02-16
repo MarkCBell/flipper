@@ -30,7 +30,7 @@ class Isometry(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return str(self.edge_map)
+		return 'Isometry ' + str([self.edge_map[edge] for edge in self.source_triangulation.oriented_edges])
 	def __eq__(self, other):
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \

@@ -220,18 +220,6 @@ class Triangulation(object):
 		else:
 			return NotImplemented
 	
-	def copy(self):
-		''' Return a new copy of this Triangulation.
-		
-		Note: This preserves both vertex and edge labels. '''
-		
-		new_vertices = dict((vertex, Vertex(vertex.label)) for vertex in self.vertices)
-		new_edges = dict((edge, Edge(new_vertices[edge.source_vertex], new_vertices[edge.target_vertex], edge.label)) for edge in self.oriented_edges)
-		for edge in self.oriented_edges:
-			new_edges[~edge] = ~new_edges[edge]
-		new_triangles = [Triangle([new_edges[edge] for edge in triangle]) for triangle in self]
-		return Triangulation(new_triangles)
-	
 	def vertices_of_edge(self, edge_label):
 		''' Return the two vertices at the ends of the given edge. '''
 		
@@ -749,8 +737,7 @@ class Triangulation(object):
 		EXIT_CUSP_LEFT, EXIT_CUSP_RIGHT = flipper.kernel.triangulation3.EXIT_CUSP_LEFT, flipper.kernel.triangulation3.EXIT_CUSP_RIGHT
 		
 		triangulation3 = flipper.kernel.Triangulation3(len(flips))
-		lower_triangulation = self.copy()
-		upper_triangulation = self.copy()
+		lower_triangulation, upper_triangulation = self, self
 		
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
 		#  - A triangle of upper (resp. lower) triangulation, or

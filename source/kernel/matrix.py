@@ -34,10 +34,6 @@ class Matrix(object):
 		self.height = len(self.rows)
 		self.width = len(self.rows[0]) if self.height > 0 else 0
 		assert(all(len(row) == self.width for row in self))
-	def copy(self):
-		''' Return a copy of this matrix. '''
-		
-		return Matrix(self.rows)
 	def __getitem__(self, index):
 		return self.rows[index]
 	def __repr__(self):
@@ -147,12 +143,12 @@ class Matrix(object):
 	def tweak(self, increment, decrement):
 		''' Return a copy of this matrix where each increment entry has been increased by 1 and each decrement entry has been decreased by 1. '''
 		
-		A = self.copy()
+		rows = [list(row) for row in self]
 		for (i, j) in increment:
-			A[i][j] += 1
+			rows[i][j] += 1
 		for (i, j) in decrement:
-			A[i][j] -= 1
-		return A
+			rows[i][j] -= 1
+		return Matrix(rows)
 	
 	def trace(self):
 		''' Return the trace of this matrix. '''
@@ -200,7 +196,7 @@ class Matrix(object):
 		
 		# We will actually compute det(\lambdaI - self). Then at the
 		# end we correct this by multiplying by the required +/-1.
-		A = self.copy()
+		A = self
 		p = [1] * (self.width+1)
 		for i in range(1, self.width+1):
 			p[i] = -A.trace() // i

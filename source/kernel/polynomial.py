@@ -27,11 +27,6 @@ class Polynomial(object):
 		self.log_degree = log(max(self.degree, 1))
 		self._chain = None  # Stores the Sturm chain associated to this polynomial. See self.sturm_chain().
 	
-	def copy(self):
-		''' Return a copy of this polynomial. '''
-		
-		return Polynomial(self.coefficients)
-	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
@@ -115,7 +110,7 @@ class Polynomial(object):
 				raise ZeroDivisionError
 			
 			quotient = Polynomial([0])
-			remainder = self.copy()
+			remainder = self
 			scale = 1
 			while remainder.degree >= other.degree:
 				# Now if other | self then Gauss' lemma says this condition will always fail.

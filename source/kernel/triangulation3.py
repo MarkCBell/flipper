@@ -118,27 +118,6 @@ class Triangulation3(object):
 		self.fibre_slopes = []
 		self.degeneracy_slopes = []
 	
-	def copy(self):
-		''' Return a copy of this triangulation.
-		
-		We guarantee that the tetrahedra in the copy will come in the same order. '''
-		
-		new_triangulation = Triangulation3(self.num_tetrahedra)
-		forwards = dict(zip(self, new_triangulation))
-		
-		for tetrahedron in self:
-			for side in range(4):
-				if tetrahedron.glued_to[side] is not None:
-					neighbour, permutation = tetrahedron.glued_to[side]
-					forwards[tetrahedron].glue(side, forwards[neighbour], permutation)
-			
-			forwards[tetrahedron].cusp_indices = list(tetrahedron.cusp_indices)
-			forwards[tetrahedron].peripheral_curves = [[list(tetrahedron.peripheral_curves[curve_type][side]) for side in range(4)] for curve_type in PERIPHERAL_TYPES]
-			forwards[tetrahedron].edge_labels = dict(tetrahedron.edge_labels)
-			forwards[tetrahedron].vertex_labels = tetrahedron.vertex_labels
-		
-		return new_triangulation
-	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):

@@ -129,7 +129,7 @@ class Encoding(object):
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(sequence, (list, tuple)))
 		assert(all(isinstance(item, (EdgeFlip, LinearTransformation, flipper.kernel.Isometry)) for item in sequence))
-		assert(name is None or isinstance(name, flipper.StringType))
+		assert(isinstance(name, flipper.StringType) or name is None)
 		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
@@ -198,6 +198,7 @@ class Encoding(object):
 			return NotImplemented
 	def __pow__(self, k):
 		assert(self.is_mapping_class())
+		
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
@@ -227,9 +228,9 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		
 		# We could do:
-		# for i in range(self.source_triangulation.max_order):
-		#	if self**(i+1) == self.source_triangulation.id_encoding():
-		#		return i+1
+		# for i in range(1, self.source_triangulation.max_order + 1):
+		#	if self**i == self.source_triangulation.id_encoding():
+		#		return i
 		# But this is quadratic in the order so instead we do:
 		curves = self.source_triangulation.key_curves()
 		possible_orders = set(range(1, self.source_triangulation.max_order+1))
@@ -337,8 +338,6 @@ class Encoding(object):
 				if projective_difference(new_curve, old_curve, 100):
 					average_curve = sum(curves[-j:])
 					action_matrix, condition_matrix = (self**j).applied_geometric(average_curve)
-					assert(condition_matrix.nonnegative_image(average_curve.geometric))
-					assert(action_matrix(average_curve.geometric) == ((self**j)(average_curve)).geometric)
 					try:
 						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
 							action_matrix, condition_matrix, average_curve)
@@ -405,14 +404,12 @@ class Encoding(object):
 		
 		This encoding must be a mapping class. '''
 		
-		assert(self.is_mapping_class())
-		
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
-			splittings = lamination.splitting_sequences(target_dilatation=None if take_roots else dilatation)
+			splittings = lamination.splitting_sequences(min_dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
@@ -442,14 +439,12 @@ class Encoding(object):
 			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
 				return splitting
 		
-		assert(False)
+		raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
 	
 	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.
 		
 		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
 		
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
@@ -484,8 +479,6 @@ class Encoding(object):
 		
 		This encoding must be a mapping class. '''
 		
-		assert(self.is_mapping_class())
-		
 		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
 			return 0
 		else:
@@ -502,9 +495,7 @@ class Encoding(object):
 		
 		Assumes that both mapping classes are pseudo-Anosov. '''
 		
-		assert(self.is_mapping_class())
 		assert(isinstance(other, Encoding))
-		assert(other.is_mapping_class())
 		
 		# Nielsen-Thurston type is a conjugacy invariant.
 		if self.nielsen_thurston_type() != other.nielsen_thurston_type():
@@ -550,8 +541,6 @@ class Encoding(object):
 		
 		This encoding must be a mapping class. '''
 		
-		assert(self.is_mapping_class())
-		
 		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().lamination.stratum()
 	
@@ -561,8 +550,6 @@ class Encoding(object):
 		Assumes (and checks) that this mapping class is pseudo-Anosov.
 		
 		This encoding must be a mapping class. '''
-		
-		assert(self.is_mapping_class())
 		
 		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().bundle()

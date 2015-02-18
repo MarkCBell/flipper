@@ -45,6 +45,7 @@ AbortError = error.AbortError
 ApproximationError = error.ApproximationError
 AssumptionError = error.AssumptionError
 ComputationError = error.ComputationError
+FatalError = error.FatalError
 EquippedTriangulation = equippedtriangulation.EquippedTriangulation
 Interval = interval.Interval
 Isometry = isometry.Isometry

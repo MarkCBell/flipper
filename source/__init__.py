@@ -38,6 +38,7 @@ flipper.AbortError = flipper.kernel.AbortError
 flipper.ApproximationError = flipper.kernel.ApproximationError
 flipper.AssumptionError = flipper.kernel.AssumptionError
 flipper.ComputationError = flipper.kernel.ComputationError
+flipper.FatalError = flipper.kernel.FatalError
 
 flipper.package = flipper.kernel.package
 

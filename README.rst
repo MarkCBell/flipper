@@ -6,7 +6,8 @@ classes, construct a layered, veering triangulation of their mapping torus, as
 described by Agol.
 
 Flipper can be run as a Python 2, Python 3 or `Sage Python
-<http://www.sagemath.org/>`_ module. Currently, it is fastest when run through Sage.
+<http://www.sagemath.org/>`_ module. Currently, it is fastest when run through
+Sage. For even more speed (~25% more) consider running with the -O option.
 
 Installation
 ============

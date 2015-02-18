@@ -41,7 +41,8 @@ class Interval(object):
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = INFTY if self.upper == self.lower else self.precision - int(log(self.upper - self.lower))
 		
-		self.log_bound = log(max(abs(self.upper), abs(self.lower), 1)) - self.precision
+		# We also define self.log_plus to be max(log(x), 0) over all x in self.
+		self.log_plus = max(log(max(abs(self.upper), abs(self.lower), 1)) - self.precision, 0) + 1
 	
 	def __repr__(self):
 		return str(self)
@@ -94,7 +95,7 @@ class Interval(object):
 		''' Return a simpler interval with the same accuracy. '''
 		
 		if self.accuracy > 0 and self.precision > self.accuracy + 1:
-			return self.change_denominator(self.accuracy-1)
+			return self.change_denominator(self.accuracy)
 		else:
 			return self
 	
@@ -158,8 +159,10 @@ class Interval(object):
 		return self * other
 	def __pow__(self, power):
 		if power == 0:
-			return 1
-		if power > 0:
+			return Interval(1, 1, 0)
+		elif power == 1:
+			return self
+		elif power > 1:
 			sqrt = self**(power//2)
 			square = sqrt * sqrt
 			if power % 2 == 1:

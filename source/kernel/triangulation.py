@@ -951,7 +951,7 @@ def create_triangulation(all_labels):
 			for i in range(3):
 				if labels[i] == edge_label:
 					return (labels, i)
-		assert(False)
+		raise flipper.FatalError('Label now missing.')
 	
 	unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
 	vertex_classes = []

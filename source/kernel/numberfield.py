@@ -43,35 +43,43 @@ class NumberField(object):
 		
 		self.height = self.polynomial_root.height
 		self.degree = self.polynomial_root.degree
+		self.log_degree = self.polynomial_root.log_degree
+		self.log_plus = self.polynomial_root.log_plus
 		
-		self.sum_height_powers = self.degree * self.degree * self.height / 2
 		self.polynomial = self.polynomial_root.polynomial
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
 		
-		self._algebraic_approximations = None  # A list of approximations of lambda^0, ..., lambda^(d-1).
+		self._approximations = None  # A list of approximations of lambda^0, ..., lambda^(d-1).
 		self.accuracy = -1
 		
 		self.one = self.element([1])
 		self.lmbda = self.element([1]) if self.is_rationals() else self.element([0, 1])  # lambda is a Python keyword.
 	
 	def lmbda_approximations(self, accuracy):
-		''' Return approximations of lmbda^0, ..., lmbda^(degree-1) to the given accuracy. '''
+		''' Return intervals approximating lmbda^0, ..., lmbda^(degree-1) to the given accuracy.
 		
-		if self._algebraic_approximations is None or self.accuracy < accuracy:
-			# Increasing the accuracy is expensive, so when we have to do it we'll get a fair amount more just to amortise the cost
-			accuracy_needed = 4 * int(self.degree * self.height) + 1  # !?! Recheck this!
-			accuracy_required = accuracy + accuracy_needed
-			# We will compute a really accurate approximation of lmbda.
-			lmbda = self.polynomial_root.algebraic_approximation(accuracy_required)
-			# So that the accuracy of lmbda**i is at least new_accuracy.
-			self._algebraic_approximations = [(lmbda**i).simplify() for i in range(self.degree)]
-			# Put them over a common denominator to make maths with them faster.
-			largest_precision = max(AA.interval.precision for AA in self._algebraic_approximations)
-			self._algebraic_approximations = [AA.change_denominator(largest_precision) for AA in self._algebraic_approximations]
-			self.accuracy = min(AA.interval.accuracy for AA in self._algebraic_approximations)
-			assert(self.accuracy >= accuracy)
+		The intervals returned all have the same denominator and so addition / subtraction of these is fast. '''
 		
-		return self._algebraic_approximations
+		min_accuracy = 0
+		target_accuracy = max(accuracy, min_accuracy)
+		
+		if self._approximations is None or self.accuracy < target_accuracy:
+			# If I is an interval approximating L to k + digits then
+			# I^i approximates L^i to at least k digits
+			
+			# Now note that if I is an interval approximating L to at
+			# least k + N.log_plus digits of accuracy then I^i
+			# approximates L^i to at least k digits of accuracy.
+			request_accuracy = target_accuracy + self.degree * self.log_plus
+			
+			lmbda = self.polynomial_root.interval_approximation(request_accuracy)
+			approximations = [lmbda**i for i in range(self.degree)]
+			minimal_accuracy = min(interval.accuracy for interval in approximations)
+			self._approximations = [interval.change_denominator(minimal_accuracy) for interval in approximations]
+			self.accuracy = min(interval.accuracy for interval in self._approximations)
+			assert(self.accuracy >= target_accuracy)
+		
+		return self._approximations
 	
 	def __repr__(self):
 		return str(self)
@@ -186,29 +194,28 @@ class NumberFieldElement(object):
 		
 		# Let:
 		N = self.number_field
-		d = N.degree
-		# Let [I_i] := [\alpha_i.interval] and I := \alpha.interval = sum(a_i * I_i).
-		# As \alpha also lies in K = QQ(lambda) it also has degree at most d.
-		#
-		# Now if acc(I_i) >= k then acc(I) >= k - (d-1) - sum(h(a_i)) [Interval.py L:13].
-		# As
-		#	h(\alpha) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9]
-		# for \alpha to determine a unique algebraic number we need that:
-		#	acc(I) >= log(d) + h(\alpha).
-		# This is achieved if:
-		#	k - (d-1) - sum(h(a_i) >= log(d) + sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2).
-		# or equivalently that:
-		#	k >= 2 * sum(h(a_i)) + sum(h(\alpha_i)) + log(d) + (d-1) + (d-1) log(2).
-		#
-		# Therefore we start by setting the accuracy of each I_i to at least:
-		#	2 * (self.height + d).
-		height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.sum_height_powers + (self.number_field.degree-1) * LOG_2
-		accuracy = max(accuracy, int(2 * height + d) + 1)
+		D, d = N.degree, N.log_degree
 		
-		if self._algebraic_approximation is None or self.accuracy < accuracy:
-			self._algebraic_approximation = flipper.kernel.dot(self, N.lmbda_approximations(accuracy))
+		# Suppose that L is generator of N and this algebraic number is:
+		#   a_0 + a_1 L + ... + a_D L^D.
+		#   = a_0 + (a_1 + ( ... (a_{D-1} + a_D L) ... ) L ) L.
+		# Then by induction on D:
+		#   h(self) <= sum(h(a_i)) + d (h(L) + lg(2)) and
+		#   deg(self) <= D.
+		h = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + N.degree * (N.height + LOG_2)
+		min_accuracy = h + d
+		target_accuracy = max(accuracy, min_accuracy)
+		
+		if self._algebraic_approximation is None or self.accuracy < target_accuracy:
+			# Now note that if I_i is an interval approximating L^i to at
+			# least k + max(h(a_i) + D digits of accuracy then sum(a_i I_i)
+			# approximates self to at least k digits of accuracy.
+			request_accuracy = target_accuracy + max(flipper.kernel.height_int(coefficient) for coefficient in self) + N.degree
+			
+			intervals = N.lmbda_approximations(request_accuracy)
+			self._algebraic_approximation = flipper.kernel.AlgebraicApproximation(flipper.kernel.dot(self, intervals), d, h)
 			self.accuracy = self._algebraic_approximation.interval.accuracy
-			# Now if accuracy was not None then self.accuracy >= accuracy.
+			assert(self.accuracy >= target_accuracy)
 		
 		return self._algebraic_approximation
 	

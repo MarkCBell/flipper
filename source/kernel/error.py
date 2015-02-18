@@ -38,3 +38,15 @@ class ApproximationError(Exception):
 		self.code = code
 	def __str__(self):
 		return str(self.code)
+
+class FatalError(Exception):
+	''' An exception for when we reach something mathematically impossible.
+	
+	This indicates that the implementation of the algorithm differs from the theory. '''
+	
+	def __init__(self, code=None):
+		super(FatalError, self).__init__()
+		self.code = code
+	def __str__(self):
+		return str(self.code)
+

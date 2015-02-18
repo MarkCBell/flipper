@@ -1,4 +1,5 @@
 
+
 from __future__ import print_function
 from time import time
 import cProfile
@@ -11,19 +12,30 @@ NT_TYPE_REDUCIBLE = flipper.kernel.encoding.NT_TYPE_REDUCIBLE
 NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 
 def main(verbose=False):
-	if verbose: print('Running equippedtriangulation profile.')
+	if verbose: print('Running encoding profile.')
 	
 	start_time = time()
 	# Add more tests here.
-	
-	tests = [
-		('S_1_1', 10, {}),
-		('S_1_2', 6, {}),
-		('S_0_4', 4, {'letters': ['a', 'b']}),
+	# These need to be changed if the standard example triangulations ever change.
+	num_isometries = [
+		('S_0_4', 2),
+		('S_1_1', 6),
+		('S_1_2', 4),
+		('S_2_1', 2),
+		('S_3_1', 2),
+		('E_12', 12),
+		('E_24', 24),
+		('E_36', 36)
 		]
 	
-	for surface, depth, options in tests:
-		sum(1 for _ in flipper.load.equipped_triangulation(surface).all_words(depth, **options))
+	# Check that every triangulation has the correct number of isometries to itself.
+	for surface, num_isoms in num_isometries:
+		if verbose: print('Checking: %s' % surface)
+		S = flipper.load.equipped_triangulation(surface)
+		T = S.triangulation
+		T.self_isometries()
+		T2 = flipper.triangulation_from_iso_sig(T.iso_sig())
+		T.is_isometric_to(T2)
 	
 	return time() - start_time
 

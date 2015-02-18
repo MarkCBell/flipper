@@ -5,13 +5,14 @@
 #from . import algebraicapproximation
 #from . import algebraicnumber
 from . import encoding
+from . import equippedtriangulation
 #from . import interval
+from . import invariant_lamination
 #from . import lamination
-#from . import layeredtriangulation
 #from . import matrix
 #from . import numberfield
 #from . import permutation
 #from . import polynomial
 from . import symboliccomputation
-#from . import triangulation
+from . import triangulation
 

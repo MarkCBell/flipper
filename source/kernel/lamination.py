@@ -26,14 +26,14 @@ class Lamination(object):
 	components / satifsy the triangle inequalities. '''
 	def __init__(self, triangulation, geometric, algebraic):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
-		assert(all(isinstance(entry, object) for entry in geometric))
-		assert(flipper.kernel.matrix.nonnegative(geometric))
-		# We should check that algebraic satisfies reasonable relations too.
+		assert(isinstance(geometric, (list, tuple)))
+		assert(isinstance(algebraic, (list, tuple)))
+		# We should check that geometric / algebraic satisfies reasonable relations.
 		
 		self.triangulation = triangulation
 		self.zeta = self.triangulation.zeta
 		self.geometric = list(geometric)
-		self.algebraic = algebraic
+		self.algebraic = list(algebraic)
 		
 		self._cache = {}  # For caching hard to compute results.
 	
@@ -101,36 +101,36 @@ class Lamination(object):
 		
 		return not any(self)
 	
-	def isometries_to(self, other_lamination):
-		''' Return a list of isometries taking this lamination to other_lamination. '''
+	def isometries_to(self, other):
+		''' Return a list of isometries taking this lamination to other. '''
 		
-		assert(isinstance(other_lamination, Lamination))
+		assert(isinstance(other, Lamination))
 		
-		# We used to just test other_lamination == isom.encode()(self) but this is much faster.
-		return [isom for isom in self.triangulation.isometries_to(other_lamination.triangulation) if all(other_lamination[isom.index_map[i]] == self[i] for i in range(self.zeta))]
+		# We used to just test other == isom.encode()(self) but this is much faster.
+		return [isom for isom in self.triangulation.isometries_to(other.triangulation) if all(other[isom.index_map[i]] == self[i] for i in range(self.zeta))]
 	
 	def self_isometries(self):
 		''' Returns a list of isometries taking this lamination to itself. '''
 		
 		return self.isometries_to(self)
 	
-	def all_projective_isometries(self, other_lamination):
-		''' Return a list of isometries taking this lamination projectively to other_lamination. '''
+	def all_projective_isometries(self, other):
+		''' Return a list of isometries taking this lamination projectively to other. '''
 		
-		assert(isinstance(other_lamination, Lamination))
+		assert(isinstance(other, Lamination))
 		
-		return [isometry for isometry in self.triangulation.isometries_to(other_lamination.triangulation) if other_lamination.projectively_equal(isometry.encode()(self))]
+		return [isometry for isometry in self.triangulation.isometries_to(other.triangulation) if other.projectively_equal(isometry.encode()(self))]
 	
-	def projectively_equal(self, other_lamination):
-		''' Return if this lamination is projectively equal to other_lamination.
+	def projectively_equal(self, other):
+		''' Return if this lamination is projectively equal to other.
 		
-		other_lamination must be on the same Triangulation as this lamination. '''
+		Other must be on the same Triangulation as this lamination. '''
 		
-		assert(isinstance(other_lamination, Lamination))
-		assert(other_lamination.triangulation == self.triangulation)
+		assert(isinstance(other, Lamination))
+		assert(other.triangulation == self.triangulation)
 		
 		# We can't do division so we have to cross multiply.
-		return self * other_lamination.weight() == other_lamination * self.weight()
+		return self * other.weight() == other * self.weight()
 	
 	def projective_hash(self):
 		''' Return a hashable object that is invariant under isometries and rescaling. '''
@@ -471,16 +471,19 @@ class Lamination(object):
 		
 		return lamination, encoding
 	
-	def splitting_sequences_uncached(self, target_dilatation=None):
+	def splitting_sequences_uncached(self, min_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
 		Assumes (and checks) that this lamination is filling.
+		Additionally, if given, the splitting sequence will have dilatation >= min_dilatation.
 		
 		This is the flips the edges of maximal weight until you reach a
 		projectively periodic sequence (with required dilatation if given).
 		
-		This requires the entries of self.geometric to be NumberFieldElements
-		(over the same NumberField) or AlgebraicNumbers. '''
+		This requires that:
+			- this lamination is projectively invariant under some mapping class, and
+			- each entry of self.geometric to be an Integer or NumberFieldElement (over
+				the same NumberField). '''
 		
 		# At some point this could be rewritten using EdgeFlip.edge_index.
 		
@@ -532,32 +535,30 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					isometries = lamination.all_projective_isometries(old_lamination)
 					if len(isometries) > 0:
-						if target_dilatation is None or old_lamination.weight() == target_dilatation * lamination.weight():
+						if min_dilatation is None or old_lamination.weight() >= min_dilatation * lamination.weight():
 							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
 							if num_isometries[-1] == max(num_isometries[index:]):
 								return [flipper.kernel.SplittingSequence(laminations, encodings, isom, index) for isom in isometries]
-						elif target_dilatation is not None and old_lamination.weight() > target_dilatation * lamination.weight():
-							assert(False)
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]
 	
-	def splitting_sequences(self, target_dilatation=None):
+	def splitting_sequences(self, min_dilatation=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''
 		
 		if 'splitting_sequences' not in self._cache:
 			self._cache['splitting_sequences'] = {}
 		
-		if target_dilatation not in self._cache['splitting_sequences']:
+		if min_dilatation not in self._cache['splitting_sequences']:
 			try:
-				self._cache['splitting_sequences'][target_dilatation] = self.splitting_sequences_uncached(target_dilatation)
+				self._cache['splitting_sequences'][min_dilatation] = self.splitting_sequences_uncached(min_dilatation)
 			except (flipper.AssumptionError) as error:
-				self._cache['splitting_sequences'][target_dilatation] = error
+				self._cache['splitting_sequences'][min_dilatation] = error
 		
-		if isinstance(self._cache['splitting_sequences'][target_dilatation], Exception):
-			raise self._cache['splitting_sequences'][target_dilatation]
+		if isinstance(self._cache['splitting_sequences'][min_dilatation], Exception):
+			raise self._cache['splitting_sequences'][min_dilatation]
 		else:
-			return self._cache['splitting_sequences'][target_dilatation]
+			return self._cache['splitting_sequences'][min_dilatation]
 	
 	def encode_twist(self, k=1):
 		''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.
@@ -708,7 +709,7 @@ class Lamination(object):
 		
 		return intersection_number
 	
-	def is_homologous_to(self, lamination, relative_boundary=False):
+	def is_homologous_to(self, other, relative_boundary=False):
 		''' Return if this lamination is homologous to the given one.
 		
 		The the homology class is computed relative to the fake punctures, unless relative_boundary
@@ -716,8 +717,8 @@ class Lamination(object):
 		
 		This lamination and the given one must be defined on the same triangulation. '''
 		
-		assert(isinstance(lamination, Lamination))
-		assert(self.triangulation == lamination.triangulation)
+		assert(isinstance(other, Lamination))
+		assert(self.triangulation == other.triangulation)
 		
 		matrix = flipper.kernel.id_matrix(self.zeta)
 		
@@ -746,5 +747,5 @@ class Lamination(object):
 				break  # If there are no more to add then we've dealt with every edge.
 		
 		M = flipper.kernel.Matrix([matrix[i] for i in range(self.zeta) if not tree[i] and not dual_tree[i]])
-		return M(self.algebraic) == M(lamination.algebraic)
+		return M(self.algebraic) == M(other.algebraic)
 

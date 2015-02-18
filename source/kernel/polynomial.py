@@ -272,6 +272,7 @@ class PolynomialRoot(object):
 		self.degree = self.polynomial.degree
 		self.log_degree = self.polynomial.log_degree
 		self.height = self.polynomial.height + 2 * self.log_degree
+		self.log_plus = self.interval.log_plus
 		
 		# Check that self.polynomial has exactly one root in self.interval.
 		if self.polynomial.num_roots(self.interval) != 1:
@@ -338,26 +339,31 @@ class PolynomialRoot(object):
 		
 		self.interval = self.interval.simplify()
 	
-	def interval_approximation(self, accuracy=0):
+	def interval_approximation(self, accuracy):
 		''' Return an interval containing this root, correct to at least the requested accuracy. '''
 		
-		accuracy_required = max(accuracy, 0)
-		if self.interval.accuracy < accuracy_required:
-			self.converge_iterate(accuracy_required)
-			assert(self.interval.accuracy >= accuracy_required)
-			self.interval = self.interval.change_accuracy(accuracy_required)
+		min_accuracy = 0
+		target_accuracy = max(accuracy, min_accuracy)
+		
+		if self.interval.accuracy < target_accuracy:
+			request_accuracy = target_accuracy
+			
+			self.converge_iterate(request_accuracy)
+			assert(self.interval.accuracy >= target_accuracy)
 		
 		return self.interval
 	
-	def algebraic_approximation(self, accuracy=0):
+	def algebraic_approximation(self, accuracy):
 		''' Return an AlgebraicApproximation of this root to at least the requested accuracy. '''
 		
 		assert(isinstance(accuracy, flipper.IntegerType))
 		
-		accuracy_needed = int(self.height) + int(self.log_degree) + 2  # This ensures the AlgebraicApproximation is well defined.
-		accuracy_required = max(accuracy, accuracy_needed)
+		min_accuracy = self.height + self.log_degree  # This ensures the AlgebraicApproximation is well defined.
+		target_accuracy = max(accuracy, min_accuracy)
 		
-		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(accuracy_required), self.log_degree, self.height)
+		request_accuracy = target_accuracy
+		
+		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
 
 def create_polynomial_root(coefficients, strn):
 	''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''

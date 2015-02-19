@@ -4,6 +4,7 @@ undo and redo
 autosave session
 have weighted brush for painting laminations (in a given field?)
 correct arrows showing edge orientation
+show warning when automatically adding peripheral components
 
 ### Documentation ###
 documentation for kernel - sphinx?

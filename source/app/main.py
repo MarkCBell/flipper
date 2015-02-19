@@ -1069,8 +1069,6 @@ class FlipperApp(object):
 			geometric = [i / 2 for i in geometric]
 		
 		self.current_lamination = self.equipped_triangulation.triangulation.lamination(geometric)
-		if self.current_lamination.geometric != geometric:
-			print('CAUTION')
 		
 		return self.current_lamination
 	
@@ -1156,10 +1154,9 @@ class FlipperApp(object):
 		else:
 			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot store lamination when triangulation is incomplete.')
 	
-	def store_twist(self, lamination=None):
+	def store_twist(self):
 		if self.is_complete():
-			if lamination is None:  # Use the one currently drawn.
-				lamination = self.current_lamination
+			lamination = self.current_lamination
 			
 			if lamination.is_twistable():
 				name = flipper.app.get_input('Name', 'New twist name:', validate=self.valid_name)
@@ -1170,10 +1167,9 @@ class FlipperApp(object):
 		else:
 			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute twist when triangulation is incomplete.')
 	
-	def store_halftwist(self, lamination=None):
+	def store_halftwist(self):
 		if self.is_complete():
-			if lamination is None:  # Use the one currently drawn.
-				lamination = self.current_lamination
+			lamination = self.current_lamination
 			
 			if lamination.is_halftwistable():
 				name = flipper.app.get_input('Name', 'New half twist name:', validate=self.valid_name)

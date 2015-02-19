@@ -28,7 +28,10 @@ def load(file_name, find=None):
 	assert(find is None or isinstance(find, flipper.StringType))
 	
 	if file_name in find_databases():
-		for line in open(os.path.join(DATABASE_DIRECTORY, file_name + '.dat')):
+		file_name = os.path.join(DATABASE_DIRECTORY, file_name + '.dat')
+	
+	with open(file_name) as f:
+		for line in f:
 			if find is None or line.find(find) != -1:
 				line = line.strip()
 				if '#' in line:
@@ -36,6 +39,4 @@ def load(file_name, find=None):
 				
 				if line:
 					yield line.strip().split('\t')
-	else:
-		raise ValueError('No database named %s in %s' % (file_name, DATABASE_DIRECTORY))
 

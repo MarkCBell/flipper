@@ -69,3 +69,7 @@ the command::
 
 	> hg clone https://bitbucket.org/mark_bell/flipper
 
+And then install using the command::
+
+	> python setup.py install --user
+

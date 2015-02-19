@@ -41,7 +41,7 @@ If you find flipper useful in your research, please consider citing it. A sugges
 reference is::
 
 	Mark Bell. flipper (Computer Software).
-	https://bitbucket.org/Mark_Bell/flipper/, 2013--2014. Version <<version>>
+	https://bitbucket.org/Mark_Bell/flipper/, 2013--2015. Version <<version>>
 
 the BibTeX entry::
 
@@ -49,14 +49,14 @@ the BibTeX entry::
 		author = {Bell, Mark},
 		title = {flipper (Computer Software)},
 		howpublished = {\url{https://bitbucket.org/Mark_Bell/flipper/}},
-		year = {2013--2014},
+		year = {2013--2015},
 		note = {Version <<version number used>>}
 	}
 
 or the BibItem::
 
 	\bibitem{flipper} Mark bell: \emph{flipper (Computer Software)},
-		\url{https://bitbucket.org/Mark_Bell/flipper/}}, (2013--2014),
+		\url{https://bitbucket.org/Mark_Bell/flipper/}}, (2013--2015),
 		Version <<version number used>>
 
 Development

@@ -10,8 +10,8 @@ def minpoly_coefficients(number):
 	''' Return the list of coefficients of the minimal polynomial of the given number. '''
 	
 	polynomial = number.minpoly()
-	scale = abs(lcm([x.denominator() for x in polynomial.coeffs()]))
-	return [int(scale * x) for x in polynomial.coeffs()]
+	scale = abs(lcm([x.denominator() for x in polynomial.coefficients(sparse=False)]))
+	return [int(scale * x) for x in polynomial.coefficients(sparse=False)]
 
 def approximate(number, accuracy):
 	''' Return a string approximating the given number to the given accuracy. '''
@@ -51,8 +51,8 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 			if len(right_kernel) == 1:  # If rank(kernel) == 1.
 				[eigenvector] = right_kernel
 				
-				scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coeffs()]))
-				eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coeffs()] for entry in eigenvector]
+				scale = abs(lcm([x.denominator() for entry in eigenvector for x in entry.polynomial().coefficients(sparse=False)]))
+				eigenvector_rescaled_coefficients = [[int(scale * x) for x in entry.polynomial().coefficients(sparse=False)] for entry in eigenvector]
 				
 				eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
 				d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1

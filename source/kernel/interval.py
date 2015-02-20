@@ -95,7 +95,7 @@ class Interval(object):
 		''' Return a simpler interval with the same accuracy. '''
 		
 		if self.accuracy > 0 and self.precision > self.accuracy + 1:
-			return self.change_denominator(self.accuracy)
+			return self.change_denominator(self.accuracy + 1)
 		else:
 			return self
 	

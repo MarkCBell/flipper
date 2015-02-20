@@ -7,7 +7,8 @@ described by Agol.
 
 Flipper can be run as a Python 2, Python 3 or `Sage Python
 <http://www.sagemath.org/>`_ module. Currently, it is fastest when run through
-Sage. For even more speed (~25% more) consider running it with the -O option.
+Sage. For even more speed (~25\% more) consider running flipper with the -O
+optimise bytecode option.
 
 Installation
 ============

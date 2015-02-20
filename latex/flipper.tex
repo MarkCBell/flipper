@@ -51,8 +51,7 @@
 \end{minipage}
 \end{center}
 
-Flipper is a program for computing the action of mapping classes on laminations on a punctured surface using ideal triangulation coordinates. It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol \cite{Agol}. Flipper is currently under development and this users guide will be based on flipper 0.7.4.
-
+Flipper is a program for computing the action of mapping classes on laminations on a punctured surface using ideal triangulation coordinates. It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol \cite{Agol}. Flipper is currently under development and this users guide will be based on flipper 0.7.6.
 
 Flipper can be run as a Python 2, Python 3 or Sage Python module \cite{sage}. It has been tested on:
 
@@ -62,11 +61,11 @@ Windows 7 & Windows 8.1 & Ubuntu 14.04 \\
 \hline
 Python 2.7.8 & & Python 2.7.8 \\
 Python 3.4.2 & Python 3.4.2 & Python 3.4.2 \\
- & & Sage 6.3 \\
+ & & Sage 6.5 \\
 \end{tabular}
 \end{center}
 
-Some of its features require exact arithmetic. Although these calculations can be done in pure Python, Sage's libraries appear to be significantly faster and so are recommended.
+Some of its features require exact arithmetic. Although these calculations can be done in pure Python, Sage's libraries appear to be significantly faster and so are recommended. For even more speed ($\sim$25\% more) consider running flipper with the \texttt{-O} optimise bytecode option.
 
 \section{Getting flipper}
 
@@ -142,6 +141,7 @@ At some point the BitBucket repository may also include precompiled binaries.
 \begin{itemize}
 \item Before version 0.7.1, flipper was listed on PyPI as \texttt{flipper-triangulation}. If you have a version older than 0.7.0 you may need to manually remove it before beginning the install / upgrade process.
 \item There is currently no support for flipper on Mac OS. Additionally there are several known issues with tcl/Tk on Mac OS X, see \url{https://www.python.org/download/mac/tcltk} for more information.
+\item Some of the Sage functions used by flipper were added in Sage 6.5. If you are running an earlier version of Sage this can result in errors such as \texttt{TypeError: coefficients() takes no keyword arguments}. Consider upgrading your version of Sage before using flipper.
 \end{itemize}
 
 \section{The flipper application}

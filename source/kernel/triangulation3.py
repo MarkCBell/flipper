@@ -50,7 +50,7 @@ class Tetrahedron(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Label: %s, Gluings: %s' % (self.label, self.glued_to)
+		return 'Label: %s, Gluings: %s' % (self.label, ', '.join('%d - %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))
 	
 	def glue(self, side, target, permutation):
 		''' Glue the given side of this tetrahedron to target via the given permutation.
@@ -207,28 +207,35 @@ class Triangulation3(object):
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
 		flow = lambda A, B: 0 if (A < 0) == (B < 0) else (A if (A < 0) != (A < -B) else -B)
 		
-		if cusp is None: cusp = product(self.tetrahedra, range(4))
+		if cusp is None: cusp = list(product(self.tetrahedra, range(4)))
 		
 		intersection_number = 0
-		# Count intersection numbers along edges.
+		#for tetrahedron, side in cusp:
+		#	periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
+		#	periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
+		#	
+		#	for other in VERTICES_MEETING[side]:
+		#		if periph_a[side][other] > 0:
+		#			intersection_number -= periph_a[side][other] * periph_b[side][other]
+		
+		# intersection_number = intersection_number // 2
+		
 		for tetrahedron, side in cusp:
 			periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
 			periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
 			
+			# Count intersection numbers along edges.
 			for other in VERTICES_MEETING[side]:
-				intersection_number -= periph_a[side][other] * periph_b[side][other]
-		
-		intersection_number = intersection_number // 2
-		
-		# and then within each face.
-		for tetrahedron, side in cusp:
-			periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
-			periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
+				# Only count crossings where periph_a is entering to avoid double counting.
+				if periph_a[side][other] > 0:
+					intersection_number -= periph_a[side][other] * periph_b[side][other]
 			
+			# and then within each face.
 			for other in VERTICES_MEETING[side]:
 				left = EXIT_CUSP_LEFT[(side, other)]
 				right = EXIT_CUSP_RIGHT[(side, other)]
 				
+				# Even though this looks weird it is the correct pattern.
 				intersection_number += flow(periph_a[side][other], periph_a[side][left]) * flow(periph_b[side][other], periph_b[side][left])
 				intersection_number += flow(periph_a[side][other], periph_a[side][right]) * flow(periph_b[side][other], periph_b[side][left])
 		
@@ -269,12 +276,13 @@ class Triangulation3(object):
 			
 			# Install the longitude and meridian. # !?! Double check and optimise this.
 			for peripheral_type in [LONGITUDES, MERIDIANS]:
-				first, last = homology_basis_paths[peripheral_type][0], homology_basis_paths[peripheral_type][-1]
+				last = homology_basis_paths[peripheral_type][-1]
 				# Find a starting point.
 				for tetrahedron, side in cusp:
-					for a, b in permutations(VERTICES_MEETING[side], 2):
-						if edge_label_map[(tetrahedron, side, a)] == ~first and edge_label_map[(tetrahedron, side, b)] == last:
-							current_tetrahedron, current_side, arrive = tetrahedron, side, b
+					for x in VERTICES_MEETING[side]:
+						if edge_label_map[(tetrahedron, side, x)] == last:
+							current_tetrahedron, current_side, arrive = tetrahedron, side, x
+							break
 				
 				for other in homology_basis_paths[peripheral_type]:
 					for a in VERTICES_MEETING[current_side]:

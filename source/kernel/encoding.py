@@ -55,6 +55,8 @@ class EdgeFlip(object):
 		''' Return the action and condition matrices describing the PL map
 		applied to the geometric coordinates of the given lamination. '''
 		
+		assert(isinstance(lamination, flipper.kernel.Lamination))
+		
 		I = flipper.kernel.id_matrix(self.zeta)
 		Z = flipper.kernel.zero_matrix(self.zeta, 1)
 		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
@@ -109,6 +111,8 @@ class LinearTransformation(object):
 	def applied_geometric(self, lamination):
 		''' Return the action and condition matrices describing the PL map
 		applied to the geometric coordinates of the given lamination. '''
+		
+		assert(isinstance(lamination, flipper.kernel.Lamination))
 		
 		return self.geometric, flipper.kernel.zero_matrix(0)
 	
@@ -254,6 +258,8 @@ class Encoding(object):
 	def applied_geometric(self, lamination):
 		''' Return the action and condition matrices describing the PL map
 		applied to the geometric coordinates of the given lamination. '''
+		
+		assert(isinstance(lamination, flipper.kernel.Lamination))
 		
 		As = flipper.kernel.id_matrix(self.zeta)
 		Cs = flipper.kernel.zero_matrix(self.zeta, 1)

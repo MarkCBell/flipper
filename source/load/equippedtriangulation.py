@@ -302,5 +302,5 @@ def load(surface):
 	elif REGEX_IS_BRAID.match(surface):
 		return example_braid_sphere(int(REGEX_IS_BRAID.match(surface).groupdict()['num_strands']))
 	
-	raise ValueError('Unknown surface: %s' % surface)
+	raise KeyError('Unknown surface: %s' % surface)
 

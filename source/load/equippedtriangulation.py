@@ -80,8 +80,6 @@ def example_2_1b():
 	e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
 	f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
 	
-	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f]] for x in [a,b,c,d,e,f]]))
-	
 	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist()])
@@ -98,8 +96,6 @@ def example_3_1():
 	f = T.lamination([1, 1, 1, 0, 1, 1, 2, 1, 0, 1, 1, 1, 2, 1, 0])
 	g = T.lamination([1, 1, 1, 0, 1, 1, 0, 1, 2, 1, 1, 1, 0, 1, 2])
 	h = T.lamination([1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 2])
-	
-	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
@@ -120,8 +116,6 @@ def example_3_1b():
 	g = T.lamination([0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0])
 	h = T.lamination([0, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
 	
-	#print(flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h]] for x in [a,b,c,d,e,f,g,h]]))
-	
 	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
@@ -139,12 +133,9 @@ def example_4_1():
 	e = T.lamination([0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 2])
 	f = T.lamination([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1])
 	g = T.lamination([0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1])
-	i = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1, 0, 1, 2, 1])
 	h = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 2, 2, 2, 1, 0, 0, 1, 2, 1, 0, 1])
+	i = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1, 0, 1, 2, 1])
 	j = T.lamination([1, 1, 1, 1, 0, 0, 1, 1, 2, 1, 1, 0, 0, 1, 1, 2, 1, 1, 1, 1, 2])
-	
-	# M = flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h,i,j]] for x in [a,b,c,d,e,f,g,h,i,j]])
-	# print(M)
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
@@ -170,9 +161,6 @@ def example_5_1():
 	j = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 1, 0, 1, 1])
 	k = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 1, 2, 1, 1])
 	l = T.lamination([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 0])
-	
-	# M = flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h,i,j,k,l]] for x in [a,b,c,d,e,f,g,h,i,j,k,l]])
-	# print(M)
 	
 	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j, k, l],
 		[a.encode_twist(), b.encode_twist(), c.encode_twist(),

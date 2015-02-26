@@ -127,6 +127,59 @@ def example_3_1b():
 		d.encode_twist(), e.encode_twist(), f.encode_twist(),
 		g.encode_twist(), h.encode_twist()])
 
+def example_4_1():
+	T = flipper.create_triangulation([[~8, 1, 2], [3, 4, ~9], [6, ~10, 5], [~0, ~11, 7], [~12, ~1, ~2],
+									[~13, ~3, ~4], [~14, ~5, ~6], [~15, ~7, 0], [8, 9, ~16], [11, ~17, 10],
+									[13, ~18, 12], [~19, 14, 15], [~20, 16, 17], [18, 19, 20]])
+	
+	a = T.lamination([0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 2])
+	b = T.lamination([0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 2])
+	c = T.lamination([0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 2])
+	d = T.lamination([0, 0, 0, 1, 0, 0, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 2])
+	e = T.lamination([0, 0, 0, 1, 0, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 1, 1, 1, 1, 2])
+	f = T.lamination([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 1])
+	g = T.lamination([0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 1])
+	i = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1, 0, 1, 2, 1])
+	h = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 0, 1, 2, 2, 2, 1, 0, 0, 1, 2, 1, 0, 1])
+	j = T.lamination([1, 1, 1, 1, 0, 0, 1, 1, 2, 1, 1, 0, 0, 1, 1, 2, 1, 1, 1, 1, 2])
+	
+	# M = flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h,i,j]] for x in [a,b,c,d,e,f,g,h,i,j]])
+	# print(M)
+	
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j],
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist(),
+		g.encode_twist(), h.encode_twist(), i.encode_twist(),
+		j.encode_twist()])
+
+def example_5_1():
+	T = flipper.create_triangulation([[~10, 1, 2], [~11, 3, 4], [6, ~12, 5], [7, 8, ~13], [~0, ~14, 9],
+									[~2, ~15, ~1], [~4, ~16, ~3], [~6, ~17, ~5], [~8, ~18, ~7], [0, ~19, ~9],
+									[11, ~20, 10], [12, 13, ~21], [15, ~22, 14], [~23, 16, 17], [19, ~24, 18],
+									[20, 21, ~25], [~26, 22, 23], [24, 25, 26]])
+	
+	a = T.lamination([0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0])
+	b = T.lamination([0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0])
+	c = T.lamination([0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 1, 1, 0, 1, 2, 1])
+	d = T.lamination([0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 2, 1])
+	e = T.lamination([0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 2, 1])
+	f = T.lamination([0, 0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 1, 0, 1, 1, 2, 1])
+	g = T.lamination([0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 2, 0, 2, 2])
+	h = T.lamination([0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1])
+	i = T.lamination([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1])
+	j = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 1, 0, 1, 1])
+	k = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 1, 2, 1, 1])
+	l = T.lamination([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 0])
+	
+	# M = flipper.kernel.Matrix([[x.geometric_intersection(y) for y in [a,b,c,d,e,f,g,h,i,j,k,l]] for x in [a,b,c,d,e,f,g,h,i,j,k,l]])
+	# print(M)
+	
+	return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j, k, l],
+		[a.encode_twist(), b.encode_twist(), c.encode_twist(),
+		d.encode_twist(), e.encode_twist(), f.encode_twist(),
+		g.encode_twist(), h.encode_twist(), i.encode_twist(),
+		j.encode_twist(), k.encode_twist(), l.encode_twist()])
+
 def example_12():
 	# A 12-gon:
 	T = flipper.create_triangulation([[6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0],
@@ -236,6 +289,8 @@ def load(surface):
 		'S_2_1': example_2_1,
 		'S_2_1b': example_2_1b,
 		'S_3_1': example_3_1,
+		'S_4_1': example_4_1,
+		'S_5_1': example_5_1,
 		'S_3_1b': example_3_1b,
 		'E_12': example_12,
 		'E_24': example_24,
@@ -246,4 +301,6 @@ def load(surface):
 		return surfaces[surface]()
 	elif REGEX_IS_BRAID.match(surface):
 		return example_braid_sphere(int(REGEX_IS_BRAID.match(surface).groupdict()['num_strands']))
+	
+	raise ValueError('Unknown surface: %s' % surface)
 

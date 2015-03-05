@@ -585,6 +585,8 @@ class Triangulation(object):
 			if any(peripheral.values()):  # Is there any to add / remove?
 				# Really should be geometric[i] - sum(peripheral[v]) / 2 but we can't do division in a ring.
 				geometric = [2*geometric[i] - sum(peripheral[v] for v in self.vertices_of_edge(i)) for i in range(self.zeta)]
+				if all(entry % 2 == 0 for entry in geometric):
+					geometric = [entry // 2 for entry in geometric]
 		
 		if algebraic is not None:
 			return flipper.kernel.Lamination(self, geometric, algebraic)

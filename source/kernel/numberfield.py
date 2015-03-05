@@ -169,6 +169,20 @@ class NumberFieldElement(object):
 	def __rmul__(self, other):
 		return self * other
 	
+	def __divmod__(self, other):
+		if isinstance(other, flipper.IntegerType):
+			return self.number_field.element([coeff // other for coeff in self]), self.number_field.element([coeff % other for coeff in self])
+		else:
+			return NotImplemented
+	def __mod__(self, other):
+		_, remainder = divmod(self, other)
+		return remainder
+	def __div__(self, other):
+		quotient, remainder = divmod(self, other)
+		if not remainder.is_zero():  # Division isn't perfect.
+			raise ValueError('Cannot divide this algebraic number in %s' % str(self.number_field))
+		return quotient
+	
 	def __lt__(self, other):
 		return (self - other).sign() == -1
 	def __eq__(self, other):

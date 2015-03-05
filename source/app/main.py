@@ -538,11 +538,11 @@ class FlipperApp(object):
 			self.equipped_triangulation = equipped_triangulation
 			
 			for name, lamination in sorted(self.equipped_triangulation.laminations.items(),
-				key=lambda (name, _): (len(name), name)):
+				key=lambda x: (len(x[0]), x[0])):
 				self.add_lamination(lamination, name)
 			
 			for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items(),
-				key=lambda (name, _): (len(name), name)):
+				key=lambda x: (len(x[0]), x[0])):
 				self.add_mapping_class(mapping_class, name)
 			
 			# Get the correct empty lamination.
@@ -1202,7 +1202,8 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition = flipper.app.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
+				# name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
+				name = composition
 				if name is not None:
 					# self.valid_composition made sure that this wont fail.
 					mapping_class = self.equipped_triangulation.mapping_class(composition)

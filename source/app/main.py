@@ -435,81 +435,94 @@ class FlipperApp(object):
 					title='Open flipper File')
 				if load_from == '':  # Cancelled the dialog.
 					return
-				string_contents = open(load_from, 'rb').read()
+				try:
+					string_contents = open(load_from, 'rb').read()
+				except IOError:
+					raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
 			elif isinstance(load_from, flipper.StringType):
 				try:
 					string_contents = open(load_from, 'rb').read()
 				except IOError:
 					string_contents = load_from
 			else:
-				string_contents = flipper.package(load_from)
+				# This can raise a ValueError in a lot of different ways.
+				try:
+					string_contents = flipper.package(load_from)
+				except ValueError as error:
+					raise flipper.AssumptionError('Error 102: Cannot package package the given data:\n %s.' % error.message)
 			
 			try:
 				spec, version, data = pickle.loads(string_contents)
-			except AttributeError:
-				raise ValueError('Not a valid flipper file.')
+			except (EOFError, AttributeError, KeyError):
+				raise flipper.AssumptionError('Error 103: Cannot depickle information provided.')
+			except ValueError:
+				raise flipper.AssumptionError('Error 104: Invalid depickle.')
+			
 			if version != flipper.__version__:
-				raise ValueError('This file was created in flipper %s and cannot be opened in flipper %s.' % (version, flipper.__version__))
+				raise flipper.AssumptionError('Error 105: This file was created in an older version of flipper (%s)' % version)
+			
 			if spec == 'A flipper file.':
-				equipped_triangulation, (vertices, edges) = data
+				try:
+					equipped_triangulation, (vertices, edges) = data
+				except ValueError:
+					raise flipper.AssumptionError('Error 106: Invalid depickle.')
 			elif spec == 'A flipper kernel file.':
 				equipped_triangulation = data
+				
+				if not isinstance(equipped_triangulation, flipper.kernel.EquippedTriangulation):
+					raise flipper.AssumptionError('Error 107: Invalid depickle.')
+				
 				triangulation = equipped_triangulation.triangulation
 				
-				# We don't have any vertices or edges, so see if we can use the current triangulation's.
-				if self.equipped_triangulation is not None and triangulation.is_isometric_to(self.equipped_triangulation.triangulation):
-					isom = self.equipped_triangulation.triangulation.isometries_to(triangulation)[0]
-					vertices = [(vertex[0], vertex[1]) for vertex in self.vertices]
-					edges = [(self.vertices.index(edge[0]), self.vertices.index(edge[1]), isom.index_map[edge.index], self.edges.index(edge.equivalent_edge) if edge.equivalent_edge is not None else None) for edge in self.edges]
-				else:  # If not then we'll create a triangulation ourselves.
-					vertices, edges = [], []
+				# We don't have any vertices or edges, so we'll create a triangulation ourselves.
+				vertices, edges = [], []
+				
+				n = triangulation.num_triangles
+				ngon = n + 2
+				self.parent.update_idletasks()
+				w = int(self.canvas.winfo_width())
+				h = int(self.canvas.winfo_height())
+				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+				
+				# Create the vertices.
+				for i in range(ngon):
+					vertices.append((w / 2 + r * sin(2 * pi * (i + 0.5) / ngon), h / 2 + r * cos(2 * pi * (i + 0.5) / ngon)))
+				
+				# Get a dual tree.
+				_, dual_tree = equipped_triangulation.triangulation.tree_and_dual_tree()
+				
+				def num_descendants(edge_label):
+					''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
 					
-					n = triangulation.num_triangles
-					ngon = n + 2
-					self.parent.update_idletasks()
-					w = int(self.canvas.winfo_width())
-					h = int(self.canvas.winfo_height())
-					r = min(w, h) * (1 + self.options.zoom_fraction) / 4
+					corner = triangulation.corner_of_edge(edge_label)
+					left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
+					right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
 					
-					# Create the vertices.
-					for i in range(ngon):
-						vertices.append((w / 2 + r * sin(2 * pi * (i + 0.5) / ngon), h / 2 + r * cos(2 * pi * (i + 0.5) / ngon)))
+					return left, right
+				
+				initial_edge_index = min(i for i in range(triangulation.zeta) if not dual_tree[i])
+				to_extend = [(0, 1, initial_edge_index)]
+				edges = [(0, 1, initial_edge_index, None)]
+				while to_extend:
+					source_vertex, target_vertex, label = to_extend.pop()
+					left, right = num_descendants(label)
+					corner = triangulation.corner_of_edge(label)
 					
-					# Get a dual tree.
-					_, dual_tree = equipped_triangulation.triangulation.tree_and_dual_tree()
+					edges.append((target_vertex + left + 1, target_vertex, corner.indices[2], None))
+					edges.append((source_vertex, target_vertex + left + 1, corner.indices[1], None))
 					
-					def num_descendants(edge_label):
-						''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
-						
-						corner = triangulation.corner_of_edge(edge_label)
-						left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
-						right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
-						
-						return left, right
+					if left > 0:
+						to_extend.append((target_vertex + left + 1, target_vertex, ~(corner.labels[2])))
 					
-					initial_edge_index = min(i for i in range(triangulation.zeta) if not dual_tree[i])
-					to_extend = [(0, 1, initial_edge_index)]
-					edges = [(0, 1, initial_edge_index, None)]
-					while to_extend:
-						source_vertex, target_vertex, label = to_extend.pop()
-						left, right = num_descendants(label)
-						corner = triangulation.corner_of_edge(label)
-						
-						edges.append((target_vertex + left + 1, target_vertex, corner.indices[2], None))
-						edges.append((source_vertex, target_vertex + left + 1, corner.indices[1], None))
-						
-						if left > 0:
-							to_extend.append((target_vertex + left + 1, target_vertex, ~(corner.labels[2])))
-						
-						if right > 0:
-							to_extend.append((source_vertex, target_vertex + left + 1, ~(corner.labels[1])))
-					
-					for i, j in combinations(range(len(edges)), r=2):
-						if edges[i][2] == edges[j][2]:
-							edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
-							edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
+					if right > 0:
+						to_extend.append((source_vertex, target_vertex + left + 1, ~(corner.labels[1])))
+				
+				for i, j in combinations(range(len(edges)), r=2):
+					if edges[i][2] == edges[j][2]:
+						edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
+						edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
 			else:
-				raise ValueError('Not a valid specification.')
+				raise flipper.AssumptionError('Error 108: Invalid specification.')
 			
 			if not self.initialise():
 				return
@@ -549,8 +562,8 @@ class FlipperApp(object):
 			self.destroy_lamination()
 			
 			self.unsaved_work = False
-		except (IndexError, ValueError):
-			tkMessageBox.showerror('Load Error', 'Cannot initialise flipper %s from this.' % flipper.__version__)
+		except (flipper.AssumptionError, IndexError, ValueError) as error:
+			tkMessageBox.showerror('Load Error', error.message)
 	
 	def load_example(self):
 		example = flipper.app.get_choice('Open example.', 'Choose example to open.', [
@@ -560,7 +573,9 @@ class FlipperApp(object):
 			'S_{1,1}',
 			'S_{1,2}',
 			'S_{2,1}',
-			'S_{3,1}'])
+			'S_{3,1}',
+			'S_{4,1}',
+			'S_{5,1}'])
 		if example == 'Circular n-gon':
 			self.initialise_circular_n_gon()
 		elif example == 'Radial n-gon':
@@ -575,6 +590,10 @@ class FlipperApp(object):
 			self.load(flipper.load.equipped_triangulation('S_2_1'))
 		elif example == 'S_{3,1}':
 			self.load(flipper.load.equipped_triangulation('S_3_1'))
+		elif example == 'S_{4,1}':
+			self.load(flipper.load.equipped_triangulation('S_4_1'))
+		elif example == 'S_{5,1}':
+			self.load(flipper.load.equipped_triangulation('S_5_1'))
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
@@ -1426,15 +1445,15 @@ class FlipperApp(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':
 				try:
-					splitting = self.update_cache(self.equipped_triangulation.mapping_classes[name], 'splitting_sequence')
+					splitting = self.update_cache(self.equipped_triangulation.mapping_classes[name].splitting_sequence)
 					bundle = splitting.bundle()
 					with open(path, 'wb') as disk_file:
 						disk_file.write(bundle.snappy_string())
-					desc = 'It was built using the first of %d isometries.\n' % len(splittings)
-					desc += 'Cusp properties:\n'
+					desc = 'Constructed bundle with the following cusp properties:\n'
+					desc += 'Index, Type, Fibre slope, Degeneracy slope\n'
 					for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
-						desc += '\tCusp %s (%s): Fibre slope %s, degeneracy slope %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy)
-					tkMessageBox.showinfo('Bundle', desc)
+						desc += ' %d: %s, %s, %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy)
+					tkMessageBox.showinfo('Bundle', desc, width=200)
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Bundle', 'Cannot build bundle, mapping class is not pseudo-Anosov.')
 				except flipper.ComputationError:

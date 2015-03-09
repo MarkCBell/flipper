@@ -1221,8 +1221,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition = flipper.app.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				# name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
-				name = composition
+				name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
 				if name is not None:
 					# self.valid_composition made sure that this wont fail.
 					mapping_class = self.equipped_triangulation.mapping_class(composition)
@@ -1453,7 +1452,7 @@ class FlipperApp(object):
 					desc += 'Index, Type, Fibre slope, Degeneracy slope\n'
 					for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
 						desc += ' %d: %s, %s, %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy)
-					tkMessageBox.showinfo('Bundle', desc, width=200)
+					tkMessageBox.showinfo('Bundle', desc)
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Bundle', 'Cannot build bundle, mapping class is not pseudo-Anosov.')
 				except flipper.ComputationError:

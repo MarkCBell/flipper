@@ -70,7 +70,10 @@ class Isometry(object):
 		else:
 			return NotImplemented
 	def triangle_permutation(self, triangle):
-		return flipper.kernel.permutation.cyclic_permutation(self(triangle.corners[0]).side, 3)
+		''' Return the permutation induced by this isometry on this triangle. '''
+		
+		# We could use any of the three corners of this triangle.
+		return flipper.kernel.permutation.cyclic_permutation(self(triangle.corners[0]).side - 0, 3)  #pylint: disable=maybe-no-member
 	def __mul__(self, other):
 		if isinstance(other, Isometry):
 			if other.target_triangulation != self.source_triangulation:

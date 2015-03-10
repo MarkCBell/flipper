@@ -339,7 +339,7 @@ class PolynomialRoot(object):
 		
 		self.interval = self.interval.simplify()
 	
-	def interval_approximation(self, accuracy):
+	def interval_approximation(self, accuracy=0):
 		''' Return an interval containing this root, correct to at least the requested accuracy. '''
 		
 		min_accuracy = 0
@@ -353,7 +353,7 @@ class PolynomialRoot(object):
 		
 		return self.interval
 	
-	def algebraic_approximation(self, accuracy):
+	def algebraic_approximation(self, accuracy=0):
 		''' Return an AlgebraicApproximation of this root to at least the requested accuracy. '''
 		
 		assert(isinstance(accuracy, flipper.IntegerType))

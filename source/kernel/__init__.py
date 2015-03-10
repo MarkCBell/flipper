@@ -58,6 +58,7 @@ PolynomialRoot = polynomial.PolynomialRoot
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
+Tetrahedron = triangulation3.Tetrahedron
 Triangulation3 = triangulation3.Triangulation3
 
 id_matrix = matrix.id_matrix

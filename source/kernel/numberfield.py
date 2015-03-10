@@ -208,7 +208,7 @@ class NumberFieldElement(object):
 		
 		# Let:
 		N = self.number_field
-		D, d = N.degree, N.log_degree
+		d = N.log_degree
 		
 		# Suppose that L is generator of N and this algebraic number is:
 		#   a_0 + a_1 L + ... + a_D L^D.

@@ -523,16 +523,18 @@ class Encoding(object):
 			splitting2 = other.splitting_sequence()
 			
 			mapping_class1 = splitting1.mapping_class
+			source1 = mapping_class1.source_triangulation
 			
 			# The product of these is mapping_class2 = splitting2.mapping_class.
 			encodings2 = splitting2.encodings[splitting2.index:] + [splitting2.isometry.encode()]
 			for i in range(len(encodings2)):
 				mapping_class2 = flipper.kernel.product(encodings2[i:] + encodings2[:i])
+				source2 = mapping_class2.source_triangulation  #pylint: disable=maybe-no-member
 				
 				# Would could get away with only looking at those that projectively preserve the
 				# lamination but that involves comparing algebraic numbers and so is generally
 				# slower in practice.
-				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
+				for isom in source1.isometries_to(source2):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True
 			
@@ -553,22 +555,32 @@ class Encoding(object):
 	def bundle(self, canonical=True):
 		''' Return the bundle associated to this mapping class.
 		
-		Assumes (and checks) that this mapping class is pseudo-Anosov.
-		Assumes (and checks) that the bundle defined is a manifold.
+		This method can be run in two different modes.
+		If canonical=True:
+			Then the bundle returned is triangulated by a veering, layered
+			triangulation and has at most 6g+5n-6 additional loops drilled
+			from it, as described by Agol. These additional cusps are marked
+			as fake cusps and can be dealt with by filling along their
+			fibre slope.
+			
+			Assumes (and checks) that this mapping class is pseudo-Anosov.
+		If canonical=False:
+			Then the bundle returned is triangulated by a layered triangulation
+			obtained by stacking flat tetrahedra, one for each edge flip in
+			self.
+			
+			Assumes (and checks) that the fibre surface immerses into the 
 		
 		This encoding must be a mapping class. '''
-		
-		''' Return the layered triangulation of the mapping torus corresponding to this sequence of flips. '''
 		
 		assert(self.is_mapping_class())
 		
 		if canonical:
 			# This can fail with an flipper.AssumptionError.
-			#return self.splitting_sequence().bundle()
 			return self.splitting_sequence().mapping_class.bundle(canonical=False)
 		
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
-		id_perm3 = flipper.kernel.Permutation((0,1,2))
+		id_perm3 = flipper.kernel.Permutation((0, 1, 2))
 		
 		all_odd_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
 		def permutation_from_pair(a, to_a, b, to_b):
@@ -716,8 +728,8 @@ class Encoding(object):
 				B, perm_B = lower_map[target_triangle]
 				A.glue(perm_A(3), B, perm_B * perm.embed(4) * perm_A.inverse())
 		
-		# There should now be no unglued faces.
-		assert(all(tetra.glued_to[side] is not None for tetra in triangulation3 for side in range(4)))
+		# There are now no unglued faces.
+		assert(triangulation3.is_closed())
 		
 		# Install longitudes and meridians.
 		# This calls Triangulation3.assign_cusp_indices() which initialises:

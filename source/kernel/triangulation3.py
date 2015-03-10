@@ -10,7 +10,7 @@ Provides two classes: Tetrahedron and Triangulation3. '''
 
 import flipper
 
-from itertools import permutations, combinations, product
+from itertools import combinations, product
 
 # Edge veerings:
 VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = None, 0, 1
@@ -196,7 +196,7 @@ class Triangulation3(object):
 		 ---+---> A
 		    |
 		    |
-		has intersection +1. '''
+		has intersection <A, B> := +1. '''
 		
 		# This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.
 		flow = lambda A, B: 0 if (A < 0) == (B < 0) else (A if (A < 0) != (A < -B) else -B)

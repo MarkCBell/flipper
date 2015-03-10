@@ -1,10 +1,26 @@
 
+''' A module for representing triangulations of surface bundles over the circle.
+
+Provides one class: Bundle. '''
+
 import flipper
 
 from itertools import combinations
 
 class Bundle(object):
+	''' This represents a triangulation of a surface bundle over the circle.
+	
+	It is specified by a triangulation of the surface, a triangulation of the
+	bundle and an immersion map. '''
 	def __init__(self, triangulation, triangulation3, immersion):
+		assert(isinstance(triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(triangulation3, flipper.kernel.Triangulation3))
+		assert(isinstance(immersion, dict))
+		assert(all(triangle in immersion for triangle in triangulation))
+		assert(all(isinstance(immersion[triangle], (list, tuple)) for triangle in triangulation))
+		assert(all(len(immersion[triangle]) == 2 for triangle in triangulation))
+		assert(all(isinstance(immersion[triangle][0], flipper.kernel.Tetrahedron) for triangle in triangulation))
+		assert(all(isinstance(immersion[triangle][1], flipper.kernel.Permutation) for triangle in triangulation))
 		
 		self.triangulation = triangulation
 		self.triangulation3 = triangulation3
@@ -26,6 +42,7 @@ class Bundle(object):
 		return self.triangulation3.snappy_string(name, fillings)
 	
 	def is_veering(self):
+		''' Return if this triangulation is veering. '''
 		
 		VERTICES_MEETING = flipper.kernel.triangulation3.VERTICES_MEETING
 		
@@ -63,7 +80,7 @@ class Bundle(object):
 		
 		slopes = [None] * self.triangulation3.num_cusps
 		
-		for index, cusp in enumerate(self.triangulation3.cusps):
+		for index in range(self.triangulation3.num_cusps):
 			meridian_intersection, longitude_intersection = 0, 0
 			for corner_class in self.triangulation.corner_classes:
 				corner = corner_class[0]
@@ -124,3 +141,4 @@ class Bundle(object):
 			slopes[index] = self.triangulation3.slope()
 		
 		return slopes
+

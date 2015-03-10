@@ -719,38 +719,33 @@ class Triangulation(object):
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def bundle(self, flips, isometry):
-		''' Return the corresponding veering layered triangulation of the corresponding mapping torus. '''
+		''' Return the corresponding layered triangulation of the corresponding mapping torus. '''
 		
-		all_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
+		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
+		
+		all_odd_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
 		def permutation_from_pair(a, to_a, b, to_b):
 			''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
 			
-			for perm in all_permutations:
+			for perm in all_odd_permutations:
 				if perm(a) == to_a and perm(b) == to_b:
 					return perm
 			
 			raise ValueError('Does not represent a gluing.')
 		
-		# Move over a lot of data.
-		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
-		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
-		TEMPS = flipper.kernel.triangulation3.TEMPS
-		VERTICES_MEETING = flipper.kernel.triangulation3.VERTICES_MEETING
-		EXIT_CUSP_LEFT, EXIT_CUSP_RIGHT = flipper.kernel.triangulation3.EXIT_CUSP_LEFT, flipper.kernel.triangulation3.EXIT_CUSP_RIGHT
-		
 		triangulation3 = flipper.kernel.Triangulation3(len(flips))
 		lower_triangulation, upper_triangulation = self, self
 		
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
-		#  - A triangle of upper (resp. lower) triangulation, or
-		#  - A triple (tetrahedron, permutation) of triangulation3.
+		#  - A triangle of upper (resp. lower) triangulation (via the identity permutation), or
+		#  - A pair (tetrahedron, permutation) of triangulation3.
 		# We start with no tetrahedra, so these maps are just the identity map between the two triangulations.
 		lower_map = dict((triangleA, triangleB) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
 		upper_map = dict((triangleB, triangleA) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
 		
 		# We also use these two functions to quickly tell what a triangle maps to.
 		maps_to_triangle = lambda X: isinstance(X, flipper.kernel.Triangle)
-		maps_to_tetrahedron = lambda X: isinstance(X, tuple)  # == not maps_to_triangle(X).
+		maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
 		
 		for tetrahedron, edge_label in zip(triangulation3, flips):
 			# Get the new upper triangulation
@@ -837,80 +832,23 @@ class Triangulation(object):
 		# There should now be no unglued faces.
 		assert(all(tetra.glued_to[side] is not None for tetra in triangulation3 for side in range(4)))
 		
-		# Construct an immersion of the fibre surface into the closed bundle.
-		fibre_immersion = dict()
-		for source_triangle in upper_triangulation:
-			target_triangle, perm = full_forwards[source_triangle]
-			
-			B, perm_B = lower_map[target_triangle]
-			fibre_immersion[source_triangle] = (B, perm_B * perm.embed(4))
-		
 		# Install longitudes and meridians.
 		# This calls Triangulation3.assign_cusp_indices() which initialises:
-		#  - Triangulation3.real_cusps
-		#  - Triangulation3.fibre_slopes
-		#  - Triangulation3.degeneracy_slopes
-		cusps = triangulation3.install_peripheral_curves()
+		triangulation3.install_peripheral_curves()
 		
-		# Now identify each the type of each cusp.
-		for corner_class in upper_triangulation.corner_classes:
-			vertex = corner_class[0].vertex
-			label = vertex.label >= 0
-			for corner in corner_class:
-				tetrahedron, permutation = fibre_immersion[corner.triangle]
-				index = tetrahedron.cusp_indices[permutation(corner.side)]
-				if triangulation3.real_cusps[index] is None:
-					triangulation3.real_cusps[index] = label
-				else:
-					assert(triangulation3.real_cusps[index] == label)
-		
-		# Compute fibre slopes.
-		for index, cusp in enumerate(cusps):
-			meridian_intersection, longitude_intersection = 0, 0
-			for corner_class in upper_triangulation.corner_classes:
-				corner = corner_class[0]
-				tetra, perm = fibre_immersion[corner.triangle]
-				if tetra.cusp_indices[perm(corner.side)] == index:
-					for corner in corner_class:
-						tetra, perm = fibre_immersion[corner.triangle]
-						side, other = perm(corner.side), perm(3)
-						meridian_intersection += tetra.peripheral_curves[MERIDIANS][side][other]
-						longitude_intersection += tetra.peripheral_curves[LONGITUDES][side][other]
-					triangulation3.fibre_slopes[index] = (longitude_intersection, -meridian_intersection)
-					break
+		# Construct an immersion of the fibre surface into the closed bundle.
+		fibre_immersion = dict()
+		for source_triangle in lower_triangulation:
+			if maps_to_triangle(lower_map[source_triangle]):
+				target_triangle, perm = full_forwards[lower_map[source_triangle]]
+				B, perm_B = lower_map[target_triangle]
+				fibre_immersion[source_triangle] = (B, perm_B * perm.embed(4))
 			else:
-				raise RuntimeError('No vertex was mapped to this cusp.')
+				B, perm_B = lower_map[source_triangle]
+				fibre_immersion[source_triangle] = lower_map[source_triangle]
 		
-		# Compute degeneracy slopes.
-		cusp_pairing = triangulation3.cusp_identification_map()
-		for index, cusp in enumerate(cusps):
-			triangulation3.clear_temp_peripheral_structure()
-			
-			# Set the degeneracy curve into the TEMPS peripheral structure.
-			# First find a good starting point:
-			start_tetrahedron, start_side = cusp[0]
-			edge_labels = [start_tetrahedron.get_edge_label(start_side, other) for other in VERTICES_MEETING[start_side]]
-			for i in range(3):
-				if edge_labels[(i+1) % 3] == VEERING_RIGHT and edge_labels[(i+2) % 3] == VEERING_LEFT:
-					start_other = VERTICES_MEETING[start_side][i]
-					break
-			
-			# Then walk around, never crossing through an edge where both ends veer the same way.
-			current_tetrahedron, current_side, current_other = start_tetrahedron, start_side, start_other
-			while True:
-				current_tetrahedron.peripheral_curves[TEMPS][current_side][current_other] += 1
-				if start_tetrahedron.get_edge_label(current_side, current_other) == VEERING_LEFT:
-					leave = EXIT_CUSP_LEFT[(current_side, current_other)]
-				else:
-					leave = EXIT_CUSP_RIGHT[(current_side, current_other)]
-				current_tetrahedron.peripheral_curves[TEMPS][current_side][leave] -= 1
-				current_tetrahedron, current_side, current_other = cusp_pairing[(current_tetrahedron, current_side, leave)]
-				if (current_tetrahedron, current_side, current_other) == (start_tetrahedron, start_side, start_other):
-					break
-			
-			triangulation3.degeneracy_slopes[index] = triangulation3.slope()
-		
-		return triangulation3
+		return flipper.kernel.Bundle(self, triangulation3, fibre_immersion)
+
 
 #######################################################
 #### Some helper functions for building triangulations.

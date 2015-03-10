@@ -550,13 +550,160 @@ class Encoding(object):
 		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().lamination.stratum()
 	
-	def bundle(self):
+	def bundle(self, canonical=True):
 		''' Return the bundle associated to this mapping class.
 		
 		Assumes (and checks) that this mapping class is pseudo-Anosov.
 		
 		This encoding must be a mapping class. '''
 		
-		# This can fail with an flipper.AssumptionError.
-		return self.splitting_sequence().bundle()
+		''' Return the layered triangulation of the mapping torus corresponding to this sequence of flips. '''
+		
+		assert(self.is_mapping_class())
+		
+		if canonical:
+			# This can fail with an flipper.AssumptionError.
+			return self.splitting_sequence().bundle()
+		else:
+			VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
+			
+			all_odd_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
+			def permutation_from_pair(a, to_a, b, to_b):
+				''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
+				
+				for perm in all_odd_permutations:
+					if perm(a) == to_a and perm(b) == to_b:
+						return perm
+				
+				raise ValueError('Does not represent a gluing.')
+			
+			triangulation = self.source_triangulation
+			triangulation3 = flipper.kernel.Triangulation3(len([item for item in self.sequence if isinstance(item, EdgeFlip)]))
+			lower_triangulation, upper_triangulation = triangulation, triangulation
+			
+			# These are maps taking triangles of lower (respectively upper) triangulation to either:
+			#  - A triangle of upper (resp. lower) triangulation (via the identity permutation), or
+			#  - A pair (tetrahedron, permutation) of triangulation3.
+			# We start with no tetrahedra, so these maps are just the identity map between the two triangulations.
+			lower_map = dict((triangleA, triangleB) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
+			upper_map = dict((triangleB, triangleA) for triangleA, triangleB in zip(lower_triangulation, upper_triangulation))
+			
+			# We also use these two functions to quickly tell what a triangle maps to.
+			maps_to_triangle = lambda X: isinstance(X, flipper.kernel.Triangle)
+			maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
+			
+			c = 0
+			for item in self.sequence:
+				if isinstance(item, EdgeFlip):
+					edge_label = item.edge_label
+					tetrahedron = triangulation3.tetrahedra[c]
+					c += 1
+					new_upper_triangulation = item.target_triangulation
+					
+					# Setup the next tetrahedron.
+					tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
+					tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
+					tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
+					tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
+					
+					# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_label.
+					# WARNINNG: This is reliant on knowing how flipper.kernel.Triangulation.flip_edge() relabels things!
+					cornerA = upper_triangulation.corner_of_edge(edge_label)
+					cornerB = upper_triangulation.corner_of_edge(~edge_label)
+					(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
+					if maps_to_tetrahedron(upper_map[A]):
+						tetra, perm = upper_map[A]
+						# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
+						tetrahedron.glue(2, tetra, permutation_from_pair(0, perm(side_A), 2, perm(3)))
+					else:
+						lower_map[upper_map[A]] = (tetrahedron, permutation_from_pair(side_A, 0, 3, 2))
+					
+					if maps_to_tetrahedron(upper_map[B]):
+						tetra, perm = upper_map[B]
+						# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
+						tetrahedron.glue(0, tetra, permutation_from_pair(2, perm(side_B), 0, perm(3)))
+					else:
+						lower_map[upper_map[B]] = (tetrahedron, permutation_from_pair(side_B, 2, 3, 0))
+					
+					# Rebuild the upper_map.
+					new_upper_map = dict()
+					new_cornerA = new_upper_triangulation.corner_of_edge(edge_label)
+					new_cornerB = new_upper_triangulation.corner_of_edge(~edge_label)
+					new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
+					# Most of the triangles have stayed the same.
+					# This relies on knowing how the upper_triangulation.flip_edge() function works.
+					old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle != A and triangle != B]
+					new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
+					for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
+						new_upper_map[new_triangle] = upper_map[old_triangle]
+						if maps_to_triangle(upper_map[old_triangle]):  # Don't forget to update the lower_map too.
+							lower_map[upper_map[old_triangle]] = new_triangle
+					
+					# This relies on knowing how the upper_triangulation.flip_edge() function works.
+					new_upper_map[new_A] = (tetrahedron, flipper.kernel.Permutation((3, 0, 2, 1)))
+					new_upper_map[new_B] = (tetrahedron, flipper.kernel.Permutation((1, 2, 0, 3)))
+					
+					# Finally, install the new objects.
+					upper_triangulation = new_upper_triangulation
+					upper_map = new_upper_map
+				elif isinstance(item, flipper.kernel.Isometry):
+					new_upper_triangulation = item.target_triangulation
+					
+					new_upper_map = 0
+					
+					pass
+				else:
+					assert(False)
+			
+			# isometry = isometry.adapt(upper_triangulation, lower_triangulation)
+			isometry = upper_triangulation.find_isometry(lower_triangulation, 0, 0)
+			
+			# This is a map which send each triangle of upper_triangulation via isometry to a pair:
+			#	(triangle, permutation)
+			# where triangle in lower_triangulation and lower_map[triangle] is NOT a triangle of
+			# upper_triangulation.
+			full_forwards = dict()
+			for source_triangle in upper_triangulation:
+				target_corner = isometry(source_triangle.corners[0])
+				target_triangle = target_corner.triangle
+				perm = flipper.kernel.permutation.cyclic_permutation(target_corner.side-0, 3)
+				
+				c = 0
+				while maps_to_triangle(lower_map[target_triangle]):
+					new_target_corner = isometry(lower_map[target_triangle].corners[0])
+					target_triangle = new_target_corner.triangle
+					perm = flipper.kernel.permutation.cyclic_permutation(new_target_corner.side-0, 3) * perm
+					c += 1
+					if c > 3 * upper_triangulation.zeta:
+						raise flipper.AssumptionError('Isometry does not define a bundle.')
+				full_forwards[source_triangle] = (target_triangle, perm)
+			
+			# Now close the bundle up.
+			for source_triangle in upper_triangulation:
+				if maps_to_tetrahedron(upper_map[source_triangle]):
+					A, perm_A = upper_map[source_triangle]
+					target_triangle, perm = full_forwards[source_triangle]
+					B, perm_B = lower_map[target_triangle]
+					A.glue(perm_A(3), B, perm_B * perm.embed(4) * perm_A.inverse())
+			
+			# There should now be no unglued faces.
+			assert(all(tetra.glued_to[side] is not None for tetra in triangulation3 for side in range(4)))
+			
+			# Install longitudes and meridians.
+			# This calls Triangulation3.assign_cusp_indices() which initialises:
+			print(triangulation3)
+			triangulation3.install_peripheral_curves()
+			
+			# Construct an immersion of the fibre surface into the closed bundle.
+			fibre_immersion = dict()
+			for source_triangle in lower_triangulation:
+				if maps_to_triangle(lower_map[source_triangle]):
+					target_triangle, perm = full_forwards[lower_map[source_triangle]]
+					B, perm_B = lower_map[target_triangle]
+					fibre_immersion[source_triangle] = (B, perm_B * perm.embed(4))
+				else:
+					B, perm_B = lower_map[source_triangle]
+					fibre_immersion[source_triangle] = lower_map[source_triangle]
+			
+			return flipper.kernel.Bundle(triangulation, triangulation3, fibre_immersion)
 

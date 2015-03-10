@@ -1444,15 +1444,9 @@ class FlipperApp(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.tri', filetypes=[('SnapPy Files', '.tri'), ('all files', '.*')], title='Export SnapPy Triangulation')
 			if path != '':
 				try:
-					splitting = self.update_cache(self.equipped_triangulation.mapping_classes[name].splitting_sequence)
-					bundle = splitting.bundle()
+					bundle = self.update_cache(self.equipped_triangulation.mapping_classes[name].bundle)
 					with open(path, 'wb') as disk_file:
 						disk_file.write(bundle.snappy_string())
-					desc = 'Constructed bundle with the following cusp properties:\n'
-					desc += 'Index, Type, Fibre slope, Degeneracy slope\n'
-					for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
-						desc += ' %d: %s, %s, %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy)
-					tkMessageBox.showinfo('Bundle', desc)
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Bundle', 'Cannot build bundle, mapping class is not pseudo-Anosov.')
 				except flipper.ComputationError:

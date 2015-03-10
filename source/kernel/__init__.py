@@ -14,6 +14,7 @@ in a functions docstring:
 		If not then this a flipper.AssumptionError will be raised. '''
 
 from . import algebraicapproximation
+from . import bundle
 from . import encoding
 from . import error
 from . import equippedtriangulation
@@ -38,6 +39,7 @@ Triangle = triangulation.Triangle
 Triangulation = triangulation.Triangulation
 Corner = triangulation.Corner
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
+Bundle = bundle.Bundle
 EdgeFlip = encoding.EdgeFlip
 LinearTransformation = encoding.LinearTransformation
 Encoding = encoding.Encoding

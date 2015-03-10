@@ -11,15 +11,15 @@ def test(surface, word, target):
 	snappy_string = flipper.load.equipped_triangulation(surface).mapping_class(word).bundle(canonical=False).snappy_string()
 	# Snappy can fail with a RuntimeError, particularly when canonical=False.
 	M = snappy.Manifold(snappy_string)
-	for i in range(100):
+	for _ in range(100):
 		try:
 			if M.is_isometric_to(target):
 				return True
 		except RuntimeError:
-			M.randomize()
+			pass  # SnapPy couldn't decide if these are isometric or not.
+		M.randomize()
 	
 	return False
-	return snappy.Manifold(snappy_string).is_isometric_to(target)
 
 def main(verbose=False):
 	if verbose: print('Running layered triangulation tests.')

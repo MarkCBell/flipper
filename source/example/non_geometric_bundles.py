@@ -57,13 +57,12 @@ def test1():
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
 		try:
-			splittings = h.splitting_sequences()
-			for M in [snappy.Manifold(splitting.bundle().snappy_string()) for splitting in splittings]:
-				if M.solution_type() != 'all tetrahedra positively oriented':
-					print('##############################')
-					print('(POSSIBLY) NON GEOMETRIC')
-					print(word, M.num_tetrahedra())
-					print('##############################')
+			M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+			if M.solution_type() != 'all tetrahedra positively oriented':
+				print('##############################')
+				print('(POSSIBLY) NON GEOMETRIC')
+				print(word, M.num_tetrahedra())
+				print('##############################')
 		except flipper.AssumptionError:
 			pass  # Mapping class is not pseudo-Anosov.
 		
@@ -78,15 +77,14 @@ def test2():
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
 		try:
-			splittings = h.splitting_sequences()
-			for M in [snappy.Manifold(splitting.bundle().snappy_string(filled=False)) for splitting in splittings]:
-				if M.solution_type() != 'all tetrahedra positively oriented' and is_degenerate(M):
-					print('##############################')
-					print('(POSSIBLY) NON GEOMETRIC')
-					print(word, M.num_tetrahedra())
-					print('##############################')
-					if M.num_tetrahedra() < 13:
-						exit(1)
+			M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+			if M.solution_type() != 'all tetrahedra positively oriented' and is_degenerate(M):
+				print('##############################')
+				print('(POSSIBLY) NON GEOMETRIC')
+				print(word, M.num_tetrahedra())
+				print('##############################')
+				if M.num_tetrahedra() < 13:
+					exit(1)
 		except flipper.AssumptionError:
 			pass  # Mapping class is not pseudo-Anosov.
 
@@ -101,11 +99,9 @@ def test3():
 	# BAbAc == bcBA == abCB
 	# cbA == aBC
 	
-	splittings = h.splitting_sequences()
-	print('Saving %d bundles.' % len(splittings))
-	for index, splitting in enumerate(splittings):
-		print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
-		open('test%d.tri' % index, 'w').write(splitting.bundle().snappy_string(filled=False))
+	M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+	print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
+	M.save('test.tri')
 
 if __name__ == '__main__':
 	if snappy is None:

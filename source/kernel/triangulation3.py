@@ -66,7 +66,7 @@ class Tetrahedron(object):
 			self.glued_to[side] = (target, permutation)
 			target.glued_to[permutation(side)] = (self, permutation.inverse())
 			
-			# Move across the edge veerings too.
+			# Move across the edge veerings too, is possible.
 			for a, b in combinations(VERTICES_MEETING[side], 2):
 				x, y = permutation(a), permutation(b)
 				my_edge_veering = self.get_edge_label(a, b)
@@ -75,8 +75,6 @@ class Tetrahedron(object):
 					self.set_edge_label(a, b, his_edge_veering)
 				elif my_edge_veering != VEERING_UNKNOWN and his_edge_veering == VEERING_UNKNOWN:
 					target.set_edge_label(x, y, my_edge_veering)
-				elif my_edge_veering != VEERING_UNKNOWN and his_edge_veering != VEERING_UNKNOWN:
-					assert(my_edge_veering == his_edge_veering)
 		else:
 			assert((target, permutation) == self.glued_to[side])
 	
@@ -113,10 +111,8 @@ class Triangulation3(object):
 		
 		self.num_tetrahedra = num_tetrahedra
 		self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
+		self.cusps = None
 		self.num_cusps = -1
-		self.real_cusps = []
-		self.fibre_slopes = []
-		self.degeneracy_slopes = []
 	
 	def __repr__(self):
 		return str(self)
@@ -137,46 +133,6 @@ class Triangulation3(object):
 		
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
 	
-	def assign_cusp_indices(self):
-		''' Assign the tetrahedra in this triangulation their cusp indices and return the list of corners in the same cusp.
-		
-		This triangulation must be closed. '''
-		
-		assert(self.is_closed())
-		
-		vertex_classes = []
-		remaining_vertices = list(product(self, range(4)))
-		while remaining_vertices:
-			# We do a depth first search to find all vertices in this cusp.
-			new_vertex = remaining_vertices.pop()
-			new_vertex_class = [new_vertex]
-			# This is a stack of triangles that may still have consequences.
-			to_explore = [new_vertex]
-			while to_explore:
-				current_tetrahedron, current_side = to_explore.pop()
-				for side in VERTICES_MEETING[current_side]:
-					neighbour_tetrahedron, permutation = current_tetrahedron.glued_to[side]
-					neighbour_side = permutation(current_side)
-					neighbour_vertex = neighbour_tetrahedron, neighbour_side
-					if neighbour_vertex in remaining_vertices:
-						to_explore.append(neighbour_vertex)
-						new_vertex_class.append(neighbour_vertex)
-						remaining_vertices.remove(neighbour_vertex)
-			
-			vertex_classes.append(new_vertex_class)
-		
-		# Then iterate through each one assigning cusp indices.
-		for index, vertex_class in enumerate(vertex_classes):
-			for tetrahedron, side in vertex_class:
-				tetrahedron.cusp_indices[side] = index
-		
-		self.num_cusps = len(vertex_classes)
-		self.real_cusps = [None] * self.num_cusps
-		self.fibre_slopes = [(0, 0)] * self.num_cusps
-		self.degeneracy_slopes = [(0, 0)] * self.num_cusps
-		
-		return vertex_classes
-	
 	def cusp_identification_map(self):
 		''' Return a dictionary pairing the sides of the peripheral triangles. '''
 		
@@ -189,6 +145,44 @@ class Triangulation3(object):
 					cusp_pairing[(tetrahedron, side, other)] = (neighbour_tetrahedron, neighbour_side, neighbour_other)
 		
 		return cusp_pairing
+	
+	def assign_cusp_indices(self):
+		''' Assign the tetrahedra in this triangulation their cusp indices and return the list of corners in the same cusp.
+		
+		This triangulation must be closed. '''
+		
+		assert(self.is_closed())
+		
+		cusp_pairing = self.cusp_identification_map()
+		
+		self.cusps = []
+		remaining_vertices = list(product(self, range(4)))
+		while remaining_vertices:
+			# We do a depth first search to find all vertices in this cusp.
+			new_vertex = remaining_vertices.pop()
+			new_vertex_class = [new_vertex]
+			# This is a stack of triangles that may still have consequences.
+			to_explore = [new_vertex]
+			while to_explore:
+				current_tetrahedron, current_side = to_explore.pop()
+				for side in VERTICES_MEETING[current_side]:
+					neighbour_tetrahedron, neighbour_side, _ = cusp_pairing[(current_tetrahedron, current_side, side)]
+					neighbour_vertex = neighbour_tetrahedron, neighbour_side
+					if neighbour_vertex in remaining_vertices:
+						to_explore.append(neighbour_vertex)
+						new_vertex_class.append(neighbour_vertex)
+						remaining_vertices.remove(neighbour_vertex)
+			
+			self.cusps.append(new_vertex_class)
+		
+		# Then iterate through each one assigning cusp indices.
+		for index, vertex_class in enumerate(self.cusps):
+			for tetrahedron, side in vertex_class:
+				tetrahedron.cusp_indices[side] = index
+		
+		self.num_cusps = len(self.cusps)
+		
+		return self.cusps
 	
 	def intersection_number(self, peripheral_type_a, peripheral_type_b, cusp=None):
 		''' Return the algebraic intersection number between the specified peripheral types.
@@ -245,7 +239,7 @@ class Triangulation3(object):
 		''' Assign a longitude and meridian to each cusp. '''
 		
 		# Install the cusp indices.
-		cusps = self.assign_cusp_indices()
+		self.assign_cusp_indices()
 		cusp_pairing = self.cusp_identification_map()
 		
 		# Blank out the longitudes and meridians.
@@ -256,7 +250,7 @@ class Triangulation3(object):
 						tetrahedron.peripheral_curves[peripheral_type][side][other] = 0
 		
 		# Install a longitude and meridian on each cusp one at a time.
-		for cusp in cusps:
+		for cusp in self.cusps:
 			# Build a triangulation of the cusp neighbourhood.
 			label = 0
 			edge_label_map = dict()
@@ -306,8 +300,6 @@ class Triangulation3(object):
 				for tetrahedron, side in cusp:
 					for other in VERTICES_MEETING[side]:
 						tetrahedron.peripheral_curves[MERIDIANS][side][other] = -tetrahedron.peripheral_curves[MERIDIANS][side][other]
-		
-		return cusps
 	
 	def slope(self):
 		''' Return the slope of the peripheral curve in TEMPS relative to the set meridians and longitudes.
@@ -323,18 +315,19 @@ class Triangulation3(object):
 		
 		return (meridian_copies, longitude_copies)
 	
-	def snappy_string(self, name='flipper triangulation', filled=True):
+	def snappy_string(self, name='flipper triangulation', fillings=None):
 		''' Return the SnapPy string describing this triangulation.
 		
-		If filled=True then the fake cusps that we had to install are filled
-		along the fibre slope.
+		If given, fillings is a list of slopes to perform Dehn filling along on each of the cusps.
 		
 		This triangulation must be closed. '''
 		
 		assert(isinstance(name, flipper.StringType))
-		assert(isinstance(filled, bool))
+		assert(fillings is None or isinstance(fillings, (list, tuple)))
 		
 		assert(self.is_closed())
+		
+		if fillings is None: fillings = [(0, 0)] * self.num_cusps
 		
 		strn = ''
 		strn += '% Triangulation\n'
@@ -344,11 +337,9 @@ class Triangulation3(object):
 		strn += 'CS_unknown\n'
 		strn += '\n'
 		strn += '%d 0\n' % self.num_cusps
-		for i in range(self.num_cusps):
-			if filled and not self.real_cusps[i]:
-				strn += '    torus %16.12f %16.12f\n' % self.fibre_slopes[i]
-			else:
-				strn += '    torus   0.000000000000   0.000000000000\n'
+		for slope in fillings:
+			strn += '    torus %16.12f %16.12f\n' % slope
+		
 		strn += '\n'
 		strn += '%d\n' % self.num_tetrahedra
 		for tetrahedra in self:

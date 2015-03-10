@@ -30,7 +30,7 @@ class Isometry(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Isometry ' + str([self.edge_map[edge] for edge in self.source_triangulation.oriented_edges])
+		return 'Isometry ' + str([self.edge_map[edge] for edge in sorted(self.source_triangulation.oriented_edges, key=lambda e: e.index)])
 	def __eq__(self, other):
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
@@ -69,6 +69,8 @@ class Isometry(object):
 			return self.label_map[other]
 		else:
 			return NotImplemented
+	def triangle_permutation(self, triangle):
+		return flipper.kernel.permutation.cyclic_permutation(self(triangle.corners[0]).side, 3)
 	def __mul__(self, other):
 		if isinstance(other, Isometry):
 			if other.target_triangulation != self.source_triangulation:

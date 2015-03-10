@@ -15,12 +15,10 @@ def main():
 	print('Built the mapping class h := \'%s\' on %s.' % (word, surface))
 	# Get the bundle of h.
 	bundle = h.bundle()
-	print('Built the bundle with monodromy h.')
-	# Of course there may be more than one sister.
-	splittings = h.splitting_sequences()  # A list of splitting sequences.
-	print('It is one of %d sisters.' % len(splittings))
+	print('Built the canonical triangulation of the bundle with monodromy h.')
+	print('This triangulation %s veering.' % ('is' if bundle.is_veering() else 'is not'))
 	print('It has %d cusp(s) with the following properties:' % bundle.num_cusps)
-	for index, (real, fibre, degeneracy) in enumerate(zip(bundle.real_cusps, bundle.fibre_slopes, bundle.degeneracy_slopes)):
+	for index, (real, fibre, degeneracy) in enumerate(zip(bundle.cusp_types(), bundle.fibre_slopes(), bundle.degeneracy_slopes())):
 		print('\tCusp %s (%s): Fibre slope %s, degeneracy slope %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy))
 	
 	M = snappy.Manifold(bundle.snappy_string())

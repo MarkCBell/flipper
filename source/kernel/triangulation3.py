@@ -13,10 +13,10 @@ import flipper
 from itertools import combinations, product
 
 # Edge veerings:
-VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = None, 0, 1
+VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = 'Unknown', 'Left', 'Right'
 # Peripheral curve types:
-PERIPHERAL_TYPES = list(range(3))
-LONGITUDES, MERIDIANS, TEMPS = PERIPHERAL_TYPES
+LONGITUDES, MERIDIANS, TEMPS = 'Longitudes', 'Meridians', 'Temps'
+PERIPHERAL_TYPES = [LONGITUDES, MERIDIANS, TEMPS]
 # Tetrahedron geometry:
 # This order was chosen so they appear ordered anti-clockwise from the cusp.
 VERTICES_MEETING = {0: (1, 2, 3), 1: (0, 3, 2), 2: (0, 1, 3), 3: (0, 2, 1)}

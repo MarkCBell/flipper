@@ -29,9 +29,6 @@ class Bundle(object):
 		#   triangle |---> (tetrahedra, perm).
 		
 		assert(self.triangulation3.is_closed())
-		self._cusp_types = None
-		self._fibre_slopes = None
-		self._degeneracy_slopes = None
 	
 	def snappy_string(self, name='flipper_triangulation', filled=True):
 		''' Return the SnapPy string describing this triangulation.

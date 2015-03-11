@@ -15,7 +15,7 @@ from itertools import combinations, product
 # Edge veerings:
 VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = 'Unknown', 'Left', 'Right'
 # Peripheral curve types:
-LONGITUDES, MERIDIANS, TEMPS = 0, 1, 2
+LONGITUDES, MERIDIANS, TEMPS = 0, 1, 2  # These are used for indexing so need to be integers.
 PERIPHERAL_TYPES = [LONGITUDES, MERIDIANS, TEMPS]
 # Tetrahedron geometry:
 # This order was chosen so they appear ordered anti-clockwise from the cusp.

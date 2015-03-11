@@ -6,7 +6,22 @@ Provides one class: Isometry. '''
 import flipper
 
 class Isometry(object):
-	''' This represents an isometry from one Triangulation to another. '''
+	''' This represents an isometry from one Triangulation to another.
+	
+	Triangulations can create the isometries between themselves and this
+	is the standard way users are expected to create these.
+	
+	>>> import flipper
+	>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
+	>>> i = T.find_isometry(T, 0, 0)
+	>>> i
+	Isometry [0, 1, 2]
+	>>> j = T.find_isometry(T, 0, ~0)
+	>>> j
+	Isometry [~0, ~1, ~2]
+	
+	'''
+	
 	def __init__(self, source_triangulation, target_triangulation, corner_map):
 		''' This represents an isometry from source_triangulation to target_triangulation.
 		
@@ -83,21 +98,26 @@ class Isometry(object):
 			return Isometry(other.source_triangulation, self.target_triangulation, composed_edge_map)
 		else:
 			return NotImplemented
-	def adapt(self, new_source_triangulation, new_target_triangulation):
-		''' Return this isometry but mapping from  new_source_triangulation to new_target_triangulation. '''
-		
-		assert(isinstance(new_source_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(new_target_triangulation, flipper.kernel.Triangulation))
-		
-		return new_source_triangulation.find_isometry(new_target_triangulation, 0, self.label_map[0])
 	def inverse(self):
-		''' Return the inverse of this isometry. '''
+		''' Return the inverse of this isometry.
+		
+		>>> i.inverse()
+		Isometry [0, 1, 2]
+		>>> j.inverse()
+		Isometry [~0, ~1, ~2]
+		
+		'''
 		
 		inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
 		return Isometry(self.target_triangulation, self.source_triangulation, inverse_corner_map)
 	
 	def encode(self):
-		''' Return the Encoding induced by this isometry. '''
+		''' Return the Encoding induced by this isometry.
+		
+		>>> i.encode()
+		[Isometry [0, 1, 2]]
+		
+		'''
 		
 		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [self])
 	

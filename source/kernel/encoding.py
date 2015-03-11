@@ -127,7 +127,21 @@ class Encoding(object):
 	If it maps to and from the same triangulation then it represents
 	a mapping class. This can be checked using self.is_mapping_class().
 	
-	The map is given by a sequence of EdgeFlips, LinearTransformations and Isometries. '''
+	The map is given by a sequence of EdgeFlips, LinearTransformations
+	and Isometries which act from right to left.
+	
+	>>> import flipper
+	>>> S = flipper.load.equipped_triangulation('S_1_1')
+	>>> S.mapping_class('a')
+	[Isometry [~2, 1, 0], Flip 2]
+	>>> S = flipper.load.equipped_triangulation('S_1_1')
+	>>> f = S.mapping_class('aB')
+	>>> g = S.mapping_class('bA')
+	>>> h = S.mapping_class('ab')
+	>>> i = S.mapping_class('')
+	>>> x = S.triangulation.encode_flips([1])
+	
+	'''
 	def __init__(self, source_triangulation, target_triangulation, sequence, name=None):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
@@ -146,7 +160,12 @@ class Encoding(object):
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
 		
-		That is, if it maps to the triangulation it came from. '''
+		That is, if it maps to the triangulation it came from.
+		
+		>>> f.is_mapping_class(), i.is_mapping_class(), x.is_mapping_class()
+		(True, True, False)
+		
+		'''
 		
 		return self.source_triangulation == self.target_triangulation
 	
@@ -211,7 +230,14 @@ class Encoding(object):
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
-		''' Return the inverse of this encoding. '''
+		''' Return the inverse of this encoding.
+		
+		>>> f.inverse()
+		[Flip ~2, Isometry [2, 1, ~0], Isometry [0, 2, ~1], Flip 1]
+		>>> g == f.inverse(), f == f.inverse()
+		(True, False)
+		
+		'''
 		
 		return Encoding(self.target_triangulation, self.source_triangulation, [item.inverse() for item in reversed(self.sequence)])
 	
@@ -227,7 +253,16 @@ class Encoding(object):
 		
 		If this has infinite order then return 0.
 		
-		This encoding must be a mapping class. '''
+		This encoding must be a mapping class.
+		
+		>>> f.order(), h.order(), i.order()
+		(0, 6, 1)
+		>>> x.order()
+		Traceback (most recent call last):
+		    ...
+		AssertionError
+		
+		'''
 		
 		assert(self.is_mapping_class())
 		
@@ -450,7 +485,23 @@ class Encoding(object):
 	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.
 		
-		This encoding must be a mapping class. '''
+		This encoding must be a mapping class.
+		
+		>>> import flipper
+		>>> S = flipper.load.equipped_triangulation('S_1_1')
+		>>> S.mapping_class('a').nielsen_thurston_type()
+		'Reducible'
+		>>> S.mapping_class('ab').nielsen_thurston_type()
+		'Periodic'
+		>>> S.mapping_class('aB').nielsen_thurston_type()
+		'Pseudo-Anosov'
+		
+		>>> S.triangulation.encode_flips([1]).nielsen_thurston_type()
+		Traceback (most recent call last):
+		    ...
+		AssertionError
+		
+		'''
 		
 		if self.is_periodic():
 			return NT_TYPE_PERIODIC
@@ -472,7 +523,22 @@ class Encoding(object):
 		
 		Assumes (and checks) that the mapping class is pseudo-Anosov.
 		
-		This encoding must be a mapping class. '''
+		This encoding must be a mapping class.
+		
+		>>> import flipper
+		>>> S = flipper.load.equipped_triangulation('S_1_1')
+		>>> S.mapping_class('aB').is_abelian()
+		True
+		>>> S.mapping_class('a').is_abelian()  # doctest: +ELLIPSIS
+		Traceback (most recent call last):
+		    ...
+		AssumptionError: ...
+		>>> S.triangulation.encode_flips([1]).nielsen_thurston_type()
+		Traceback (most recent call last):
+		    ...
+		AssertionError
+		
+		'''
 		
 		# Because the lamination meets each triangle in a bipod, it is orientable
 		# if and only if each singularity of the lamination has an even number of prongs.

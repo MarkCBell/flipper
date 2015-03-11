@@ -40,7 +40,21 @@ class AlgebraicApproximation(object):
 	
 	If the interval is not sufficiently small, in terms of the log_degree
 	and height bounds, to uniquely determine the algebraic number then
-	an ApproximationError will be raised. '''
+	an ApproximationError will be raised.
+	
+	>>> import flipper
+	>>> I = flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
+	>>> I
+	1.414213?
+	>>> J = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
+	>>> J
+	1.414213?
+	>>> flipper.kernel.create_algebraic_approximation('1.41', 2, 2)  # doctest: +ELLIPSIS
+	Traceback (most recent call last):
+	    ...
+	ApproximationError: ...
+	
+	'''
 	def __init__(self, interval, log_degree, height):
 		assert(isinstance(interval, flipper.kernel.Interval))
 		assert(isinstance(log_degree, flipper.kernel.NumberType))
@@ -54,12 +68,12 @@ class AlgebraicApproximation(object):
 		# An algebraic approximation is good if it is known to more places
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.accuracy < self.accuracy_needed:
-			raise flipper.kernel.ApproximationError('An algebraic number with log(degree) at most %0.3f and height at most %0.3f requires an interval with accuracy at least %d not %d.' % (self.log_degree, self.height, self.accuracy_needed, self.accuracy))
+			raise flipper.kernel.ApproximationError('An algebraic number with log(degree) at most %0.3f and height at most %0.3f requires an interval with accuracy at least %0.3f, not %d.' % (self.log_degree, self.height, self.accuracy_needed, self.accuracy))
 	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return str(float(self))
+		return str(self.interval)
 	
 	def __float__(self):
 		return float(self.interval)
@@ -74,14 +88,24 @@ class AlgebraicApproximation(object):
 	def change_accuracy(self, new_accuracy):
 		''' Return a new approximation of this algebraic number with the given accuracy.
 		
-		The new_accuracy must be at most self.accuracy. '''
+		The new_accuracy must be at most self.accuracy.
+		
+		>>> I.change_accuracy(5)
+		1.4142?
+		
+		'''
 		
 		assert(isinstance(new_accuracy, flipper.IntegerType))
 		
 		return AlgebraicApproximation(self.interval.change_accuracy(new_accuracy), self.log_degree, self.height)
 	
 	def simplify(self):
-		''' Return a new approximation of this algebraic number with the given accuracy. '''
+		''' Return a new approximation of this algebraic number with the given accuracy.
+		
+		>>> I.simplify()
+		1.414213?
+		
+		'''
 		
 		return AlgebraicApproximation(self.interval.simplify(), self.log_degree, self.height)
 	
@@ -142,7 +166,12 @@ class AlgebraicApproximation(object):
 		return self.__rdiv__(other)
 	
 	def sign(self):
-		''' Return the sign of the underlying algebraic number. '''
+		''' Return the sign of the underlying algebraic number.
+		
+		>>> I.sign()
+		1
+		
+		'''
 		
 		if self.interval.lower > 0:
 			return +1

@@ -15,7 +15,7 @@ from itertools import combinations, product
 # Edge veerings:
 VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = 'Unknown', 'Left', 'Right'
 # Peripheral curve types:
-LONGITUDES, MERIDIANS, TEMPS = 'Longitudes', 'Meridians', 'Temps'
+LONGITUDES, MERIDIANS, TEMPS = 0, 1, 2
 PERIPHERAL_TYPES = [LONGITUDES, MERIDIANS, TEMPS]
 # Tetrahedron geometry:
 # This order was chosen so they appear ordered anti-clockwise from the cusp.
@@ -50,7 +50,7 @@ class Tetrahedron(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Label: %s, Gluings: %s' % (self.label, ', '.join('%d - %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))
+		return '%s --> %s' % (self.label, ', '.join('%d: %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))
 	
 	def glue(self, side, target, permutation):
 		''' Glue the given side of this tetrahedron to target via the given permutation.

@@ -720,11 +720,32 @@ class Triangulation(object):
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def all_mapping_classes(self, depth):
-		for i in range(depth):
-			for sequence in product(range(self.zeta), repeat=i):
-				h = self.encode_flips(sequence + (0, 0, 1, 1, 2, 2))
-				for isom in h.closing_isometries():
-					yield isom.encode() * h
+		
+		# This is the naive version:
+		#for i in range(depth + 1):
+		#	for sequence in product(range(self.zeta), repeat=i):
+		#		try:
+		#			h = self.encode_flips(sequence)
+		#			for isom in h.closing_isometries():
+		#				yield isom.encode() * h
+		#		except AssertionError:
+		#			pass
+		# But we can do a lot better.
+		
+		def generator(T, d, flippable):
+			for i in flippable:
+				yield (i,)
+				if d > 1:
+					T2 = T.flip_edge(i)
+					square = [edge.index for edge in T.square_about_edge(i)]
+					new_flippable = [j for j in T2.flippable_edges() if (j > i and j in flippable) or j in square]
+					for suffix in generator(T.flip_edge(i), d-1, new_flippable):
+						yield (i,) + suffix
+		
+		for sequence in generator(self, depth, self.flippable_edges()):
+			h = self.encode_flips(sequence)
+			for isom in h.closing_isometries():
+				yield isom.encode() * h
 
 
 #######################################################

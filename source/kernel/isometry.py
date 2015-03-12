@@ -13,13 +13,10 @@ class Isometry(object):
 	
 	>>> import flipper
 	>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
-	>>> i = T.find_isometry(T, 0, 0)
-	>>> i
+	>>> T.find_isometry(T, 0, 0)
 	Isometry [0, 1, 2]
-	>>> j = T.find_isometry(T, 0, ~0)
-	>>> j
+	>>> T.find_isometry(T, 0, ~0)
 	Isometry [~0, ~1, ~2]
-	
 	'''
 	
 	def __init__(self, source_triangulation, target_triangulation, corner_map):
@@ -101,11 +98,12 @@ class Isometry(object):
 	def inverse(self):
 		''' Return the inverse of this isometry.
 		
-		>>> i.inverse()
+		>>> import flipper
+		>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
+		>>> T.find_isometry(T, 0, 0).inverse()
 		Isometry [0, 1, 2]
-		>>> j.inverse()
+		>>> T.find_isometry(T, 0, ~0).inverse()
 		Isometry [~0, ~1, ~2]
-		
 		'''
 		
 		inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
@@ -114,9 +112,10 @@ class Isometry(object):
 	def encode(self):
 		''' Return the Encoding induced by this isometry.
 		
-		>>> i.encode()
+		>>> import flipper
+		>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
+		>>> T.find_isometry(T, 0, 0).encode()
 		[Isometry [0, 1, 2]]
-		
 		'''
 		
 		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [self])

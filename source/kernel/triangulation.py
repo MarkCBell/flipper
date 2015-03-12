@@ -10,11 +10,12 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
 
 There is also a helper function: create_triangulation. '''
 
+import flipper
+
+from itertools import product
 from random import choice
 import string
 from math import log
-
-import flipper
 
 INFTY = float('inf')
 
@@ -717,6 +718,13 @@ class Triangulation(object):
 		
 		E = self.encode_flips(edge_labels)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
+	
+	def all_mapping_classes(self, depth):
+		for i in range(depth):
+			for sequence in product(range(self.zeta), repeat=i):
+				h = self.encode_flips(sequence + (0, 0, 1, 1, 2, 2))
+				for isom in h.closing_isometries():
+					yield isom.encode() * h
 
 
 #######################################################

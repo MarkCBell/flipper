@@ -14,20 +14,11 @@ class Bundle(object):
 	bundle and an immersion map. Mapping classes can build their bundles and
 	this is the standard way users are expected to create these.
 	
-	 Some standard examples for this class:
 	>>> import flipper
-	
-	A triangulation of the 4_1 knot complement.
-	>>> f = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB')
-	>>> B4_1 = f.bundle()
-	>>> B4_1
+	>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
 	0 --> 1: 1302, 1: 3201, 1: 2031, 1: 2310
 	1 --> 0: 3201, 0: 2031, 0: 2310, 0: 1302
-	
-	A triangulation of the 8_21 knot complement.
-	>>> g = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF')
-	>>> B8_21 = g.bundle()
-	>>> B8_21
+	>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
 	0 --> 5: 3201, 4: 1023, 6: 0132, 3: 0132
 	1 --> 4: 1302, 4: 3201, 8: 0213, 7: 0132
 	2 --> 3: 3120, 3: 1023, 7: 2031, 8: 2310
@@ -37,12 +28,6 @@ class Bundle(object):
 	6 --> 4: 3120, 8: 3201, 8: 2031, 0: 0132
 	7 --> 5: 1023, 5: 0213, 1: 0132, 2: 1302
 	8 --> 2: 3201, 1: 0213, 6: 2310, 6: 1302
-	
-	We'll also get their non-canonical bundles. These don't have any curves
-	drilled out and so don't require filling, but are (generally) not veering.
-	>>> B4_1a = f.bundle(canonical=False)
-	>>> B8_21a = g.bundle(canonical=False)
-	
 	'''
 	def __init__(self, triangulation, triangulation3, immersion):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
@@ -72,6 +57,11 @@ class Bundle(object):
 		
 		If filled=True then the fake cusps are filled along their fibre slope.
 		
+		>>> import flipper
+		>>> B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
+		>>> B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
+		>>> B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
+		>>> B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 		>>> try:
 		...     from snappy import Manifold  # SnapPy might not be installed.
 		...     Manifold(B4_1.snappy_string()).is_isometric_to(Manifold('4_1'))
@@ -93,7 +83,6 @@ class Bundle(object):
 		True
 		True
 		False
-		
 		'''
 		
 		fillings = [(0, 0) if real else slope for real, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
@@ -102,11 +91,15 @@ class Bundle(object):
 	def is_veering(self):
 		''' Return if this triangulation is veering.
 		
-		>>> B4_1.is_veering(), B8_21.is_veering()
-		(True, True)
-		>>> B4_1a.is_veering(), B8_21a.is_veering()
-		(True, False)
-		
+		>>> import flipper
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle().is_veering()
+		True
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle().is_veering()
+		True
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False).is_veering()
+		True
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False).is_veering()
+		False
 		'''
 		
 		VERTICES_MEETING = flipper.kernel.triangulation3.VERTICES_MEETING
@@ -123,15 +116,15 @@ class Bundle(object):
 	def cusp_types(self):
 		''' Return the list of the type of each cusp.
 		
-		>>> B4_1.cusp_types()
+		>>> import flipper
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle().cusp_types()
 		[True]
-		>>> B4_1a.cusp_types()
-		[True]
-		>>> B8_21.cusp_types()
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle().cusp_types()
 		[False, True]
-		>>> B8_21a.cusp_types()
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False).cusp_types()
 		[True]
-		
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False).cusp_types()
+		[True]
 		'''
 		
 		cusp_types = [None] * self.triangulation3.num_cusps
@@ -152,15 +145,15 @@ class Bundle(object):
 	def fibre_slopes(self):
 		''' Return the list of fibre slopes on each cusp.
 		
-		>>> B4_1.fibre_slopes()
+		>>> import flipper
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle().fibre_slopes()
 		[(0, -1)]
-		>>> B4_1a.fibre_slopes()
-		[(1, 1)]
-		>>> B8_21.fibre_slopes()
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle().fibre_slopes()
 		[(-1, 2), (1, -2)]
-		>>> B8_21a.fibre_slopes()
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False).fibre_slopes()
+		[(1, 1)]
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False).fibre_slopes()
 		[(0, 1)]
-		
 		'''
 		
 		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
@@ -190,17 +183,17 @@ class Bundle(object):
 		
 		This triangulation is must be veering.
 		
-		>>> B4_1.degeneracy_slopes()
+		>>> import flipper
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle().degeneracy_slopes()
 		[(1, -1)]
-		>>> B4_1a.degeneracy_slopes()
-		[(0, 1)]
-		>>> B8_21.degeneracy_slopes()
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle().degeneracy_slopes()
 		[(-1, 0), (0, 1)]
-		>>> B8_21a.degeneracy_slopes()
+		>>> flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False).degeneracy_slopes()
+		[(0, 1)]
+		>>> flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False).degeneracy_slopes()
 		Traceback (most recent call last):
 		    ...
 		AssertionError
-		
 		'''
 		
 		assert(self.is_veering())

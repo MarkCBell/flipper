@@ -43,11 +43,9 @@ class AlgebraicApproximation(object):
 	an ApproximationError will be raised.
 	
 	>>> import flipper
-	>>> I = flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
-	>>> I
+	>>> flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
 	1.414213?
-	>>> J = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
-	>>> J
+	>>> flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
 	1.414213?
 	>>> flipper.kernel.create_algebraic_approximation('1.41', 2, 2)  # doctest: +ELLIPSIS
 	Traceback (most recent call last):
@@ -90,9 +88,10 @@ class AlgebraicApproximation(object):
 		
 		The new_accuracy must be at most self.accuracy.
 		
+		>>> import flipper
+		>>> I = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
 		>>> I.change_accuracy(5)
 		1.4142?
-		
 		'''
 		
 		assert(isinstance(new_accuracy, flipper.IntegerType))
@@ -102,6 +101,8 @@ class AlgebraicApproximation(object):
 	def simplify(self):
 		''' Return a new approximation of this algebraic number with the given accuracy.
 		
+		>>> import flipper
+		>>> I = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
 		>>> I.simplify()
 		1.414213?
 		
@@ -168,6 +169,8 @@ class AlgebraicApproximation(object):
 	def sign(self):
 		''' Return the sign of the underlying algebraic number.
 		
+		>>> import flipper
+		>>> I = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
 		>>> I.sign()
 		1
 		

@@ -236,7 +236,9 @@ class Triangulation3(object):
 		return intersection_number
 	
 	def install_peripheral_curves(self):
-		''' Assign a longitude and meridian to each cusp. '''
+		''' Assign a longitude and meridian to each cusp.
+		
+		Assumes (and checks) the link of each vertex is a torus. '''
 		
 		# Install the cusp indices.
 		self.assign_cusp_indices()
@@ -264,6 +266,9 @@ class Triangulation3(object):
 			
 			edge_labels = [[edge_label_map[(tetrahedron, side, other)] for other in VERTICES_MEETING[side]] for tetrahedron, side in cusp]
 			T = flipper.kernel.create_triangulation(edge_labels)
+			
+			if T.genus != 1:
+				raise flipper.AssumptionError('Non torus vertex link.')
 			
 			# Get a basis for H_1.
 			homology_basis_paths = T.homology_basis()

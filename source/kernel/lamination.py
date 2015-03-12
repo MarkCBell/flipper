@@ -498,7 +498,7 @@ class Lamination(object):
 		E = self.puncture_tripods()
 		lamination = E(self)
 		
-		encodings = [(None, E)]
+		encodings = [E]
 		laminations = [self, lamination]
 		num_isometries = [len(lamination.self_isometries())]
 		seen = {lamination.projective_hash(): [1]}
@@ -510,7 +510,7 @@ class Lamination(object):
 			# Find the index of the largest entry.
 			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])
 			E = lamination.triangulation.encode_flip(edge_index)
-			encodings.append((edge_index, E))
+			encodings.append(E)
 			lamination = E(lamination)
 			laminations.append(lamination)
 			num_isometries.append(len(lamination.self_isometries()))
@@ -522,7 +522,7 @@ class Lamination(object):
 					# If this fails it's because the lamination isn't filling.
 					lamination, E2 = lamination.collapse_trivial_weight(edge_index)
 					# We cannot provide the encoding or flip so we'll just stick in a None.
-					encodings.append((None, E2))
+					encodings.append(E2)
 					laminations.append(lamination)
 					num_isometries.append(len(lamination.self_isometries()))
 				except flipper.AssumptionError:

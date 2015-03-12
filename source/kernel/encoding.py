@@ -132,11 +132,15 @@ class Encoding(object):
 	
 	>>> import flipper
 	>>> S = flipper.load.equipped_triangulation('S_1_1')
-	>>> S.mapping_class('a')
+	>>> aB = S.mapping_class('aB')
+	>>> bA = S.mapping_class('bA')
+	>>> ab = S.mapping_class('ab')
+	>>> i = S.mapping_class('')
+	>>> a = S.mapping_class('a')
+	>>> a
 	[Isometry [~2, 1, 0], Flip 2]
-	>>> S.mapping_class('b')
-	[Isometry [0, 2, ~1], Flip 1]
-	>>> S.triangulation.encode_flips([1])
+	>>> x = S.triangulation.encode_flips([1])
+	>>> x
 	[Flip 1]
 	'''
 	def __init__(self, source_triangulation, target_triangulation, sequence, name=None):
@@ -159,13 +163,9 @@ class Encoding(object):
 		
 		That is, if it maps to the triangulation it came from.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> S.mapping_class('a').is_mapping_class()
-		True
-		>>> S.mapping_class('b').is_mapping_class()
-		True
-		>>> S.triangulation.encode_flips([1]).is_mapping_class()
+		>>> aB.is_mapping_class(), bA.is_mapping_class()
+		(True, True)
+		>>> x.is_mapping_class()
 		False
 		'''
 		
@@ -193,11 +193,7 @@ class Encoding(object):
 		Two maps are homologous if and only if they induce the same map
 		from H_1(source_triangulation) to H_1(target_triangulation).
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> f, g = S.mapping_class('aB'), S.mapping_class('bA')
-		>>> h, i = S.mapping_class('ab'), S.mapping_class('')
-		>>> f.is_homologous_to(f), f.is_homologous_to(g), g.is_homologous_to(h), f.is_homologous_to(i)
+		>>> aB.is_homologous_to(aB), aB.is_homologous_to(bA), bA.is_homologous_to(ab), aB.is_homologous_to(i)
 		(True, False, False, False)
 		'''
 		
@@ -244,13 +240,10 @@ class Encoding(object):
 	def inverse(self):
 		''' Return the inverse of this encoding.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> f, g = S.mapping_class('aB'), S.mapping_class('bA')
-		>>> f.inverse()
+		>>> aB.inverse()
 		[Flip ~2, Isometry [2, 1, ~0], Isometry [0, 2, ~1], Flip 1]
-		>>> g == f.inverse(), f == f.inverse()
-		(True, False)
+		>>> aB.inverse() == bA, ab == ab.inverse(), i == i.inverse()
+		(True, False, True)
 		'''
 		
 		return Encoding(self.target_triangulation, self.source_triangulation, [item.inverse() for item in reversed(self.sequence)])
@@ -269,11 +262,9 @@ class Encoding(object):
 		
 		This encoding must be a mapping class.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> S.mapping_class('a').order(), S.mapping_class('aB').order()
+		>>> aB.order(), a.order()
 		(0, 0)
-		>>> S.mapping_class('').order(), S.mapping_class('ab').order()
+		>>> i.order(), ab.order()
 		(1, 6)
 		'''
 		
@@ -301,11 +292,9 @@ class Encoding(object):
 		
 		This encoding must be a mapping class.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> S.mapping_class('a').is_periodic(), S.mapping_class('aB').is_periodic()
+		>>> aB.is_periodic(), a.is_periodic()
 		(False, False)
-		>>> S.mapping_class('').is_periodic(), S.mapping_class('ab').is_periodic()
+		>>> i.is_periodic(), ab.is_periodic()
 		(True, True)
 		'''
 		
@@ -508,12 +497,8 @@ class Encoding(object):
 		
 		This encoding must be a mapping class.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> S.mapping_class('a').nielsen_thurston_type(), S.mapping_class('aB').nielsen_thurston_type()
-		('Reducible', 'Pseudo-Anosov')
-		>>> S.mapping_class('ab').nielsen_thurston_type()
-		'Periodic'
+		>>> ab.nielsen_thurston_type(), a.nielsen_thurston_type(), aB.nielsen_thurston_type()
+		('Periodic', 'Reducible', 'Pseudo-Anosov')
 		'''
 		
 		if self.is_periodic():
@@ -538,15 +523,13 @@ class Encoding(object):
 		
 		This encoding must be a mapping class.
 		
-		>>> import flipper
-		>>> S = flipper.load.equipped_triangulation('S_1_1')
-		>>> S.mapping_class('aB').is_abelian()
+		>>> aB.is_abelian()
 		True
-		>>> S.mapping_class('ab').is_abelian()  # doctest: +ELLIPSIS
+		>>> ab.is_abelian()  # doctest: +ELLIPSIS
 		Traceback (most recent call last):
 		    ...
 		AssumptionError: ...
-		>>> S.mapping_class('a').is_abelian()  # doctest: +ELLIPSIS
+		>>> a.is_abelian()  # doctest: +ELLIPSIS
 		Traceback (most recent call last):
 		    ...
 		AssumptionError: ...
@@ -633,7 +616,7 @@ class Encoding(object):
 	def bundle(self, canonical=True):
 		''' Return the bundle associated to this mapping class.
 		
-		This method can be run in two different modes.
+		This method can be run in two different modes:
 		If canonical=True:
 			Then the bundle returned is triangulated by a veering, layered
 			triangulation and has at most 6g+5n-6 additional loops drilled
@@ -647,8 +630,9 @@ class Encoding(object):
 			obtained by stacking flat tetrahedra, one for each edge flip in
 			self.
 			
-			Assumes (and checks) that the fibre surface immerses into the
-			bundle.
+			Assumes (and checks) that the resulting triangulation is an ideal
+			triangulation of a manifold and that the fibre surface immerses
+			into the two skeleton.
 		
 		This encoding must be a mapping class. '''
 		
@@ -810,8 +794,7 @@ class Encoding(object):
 		# There are now no unglued faces.
 		assert(triangulation3.is_closed())
 		
-		# Install longitudes and meridians.
-		# This calls Triangulation3.assign_cusp_indices() which initialises:
+		# Install longitudes and meridians. This also calls Triangulation3.assign_cusp_indices().
 		triangulation3.install_peripheral_curves()
 		
 		# Construct an immersion of the fibre surface into the closed bundle.
@@ -827,4 +810,17 @@ class Encoding(object):
 				fibre_immersion[source_triangle] = lower_map[source_triangle]
 		
 		return flipper.kernel.Bundle(triangulation, triangulation3, fibre_immersion)
+
+def doctest_globs():
+	''' Return the globals needed to run doctest on this module. '''
+	
+	S = flipper.load.equipped_triangulation('S_1_1')
+	aB = S.mapping_class('aB')
+	bA = S.mapping_class('bA')
+	ab = S.mapping_class('ab')
+	i = S.mapping_class('')
+	a = S.mapping_class('a')
+	x = S.triangulation.encode_flips([1])
+	
+	return {'aB': aB, 'bA': bA, 'ab': ab, 'i': i, 'a': a, 'x': x}
 

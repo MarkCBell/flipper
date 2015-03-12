@@ -35,6 +35,8 @@ class Interval(object):
 	>>> z = create_interval('1.00000')
 	>>> a = create_interval('-1.200000')
 	>>> b = create_interval('1.4142135623')
+	>>> a
+	-1.200000?
 	'''
 	def __init__(self, lower, upper, precision):
 		assert(isinstance(lower, flipper.IntegerType))
@@ -239,4 +241,16 @@ def create_interval(string):
 	i, r = string.split('.') if '.' in string else (string, '')
 	x = int(i + r)
 	return Interval(x-1, x+1, len(r))
+
+def doctest_globs():
+	''' Return the globals needed to run doctest on this module. '''
+	
+	w = create_interval('0.10')
+	x = create_interval('10000.0')
+	y = create_interval('1.14571')
+	z = create_interval('1.00000')
+	a = create_interval('-1.200000')
+	b = create_interval('1.4142135623')
+	
+	return {'w': w, 'x': x, 'y': y, 'z': z, 'a': a, 'b': b}
 

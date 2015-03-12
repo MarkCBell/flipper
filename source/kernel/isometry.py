@@ -13,9 +13,11 @@ class Isometry(object):
 	
 	>>> import flipper
 	>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
-	>>> T.find_isometry(T, 0, 0)
+	>>> i = T.find_isometry(T, 0, 0)
+	>>> i
 	Isometry [0, 1, 2]
-	>>> T.find_isometry(T, 0, ~0)
+	>>> f = T.find_isometry(T, 0, ~0)
+	>>> f
 	Isometry [~0, ~1, ~2]
 	'''
 	
@@ -98,11 +100,9 @@ class Isometry(object):
 	def inverse(self):
 		''' Return the inverse of this isometry.
 		
-		>>> import flipper
-		>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
-		>>> T.find_isometry(T, 0, 0).inverse()
+		>>> i.inverse()
 		Isometry [0, 1, 2]
-		>>> T.find_isometry(T, 0, ~0).inverse()
+		>>> f.inverse()
 		Isometry [~0, ~1, ~2]
 		'''
 		
@@ -112,9 +112,7 @@ class Isometry(object):
 	def encode(self):
 		''' Return the Encoding induced by this isometry.
 		
-		>>> import flipper
-		>>> T = flipper.load.equipped_triangulation('S_1_1').triangulation
-		>>> T.find_isometry(T, 0, 0).encode()
+		>>> i.encode()
 		[Isometry [0, 1, 2]]
 		'''
 		
@@ -125,4 +123,14 @@ class Isometry(object):
 		applied to the geometric coordinates of the given lamination. '''
 		
 		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
+
+def doctest_globs():
+	''' Return the globals needed to run doctest on this module. '''
+	
+	
+	T = flipper.load.equipped_triangulation('S_1_1').triangulation
+	i = T.find_isometry(T, 0, 0)
+	f = T.find_isometry(T, 0, ~0)
+	
+	return {'f': f, 'i': i}
 

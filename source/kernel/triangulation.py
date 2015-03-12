@@ -720,17 +720,7 @@ class Triangulation(object):
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
 	def all_mapping_classes(self, depth):
-		
-		# This is the naive version:
-		#for i in range(depth + 1):
-		#	for sequence in product(range(self.zeta), repeat=i):
-		#		try:
-		#			h = self.encode_flips(sequence)
-		#			for isom in h.closing_isometries():
-		#				yield isom.encode() * h
-		#		except AssertionError:
-		#			pass
-		# But we can do a lot better.
+		''' Return all mapping classes that can be defined by at most the given number of flips. '''
 		
 		def generator(T, d, flippable):
 			for i in flippable:

@@ -613,7 +613,7 @@ class Encoding(object):
 		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().lamination.stratum()
 	
-	def bundle(self, canonical=True):
+	def bundle(self, canonical=True, _safety=True):
 		''' Return the bundle associated to this mapping class.
 		
 		This method can be run in two different modes:
@@ -632,7 +632,7 @@ class Encoding(object):
 			
 			Assumes (and checks) that the resulting triangulation is an ideal
 			triangulation of a manifold and that the fibre surface immerses
-			into the two skeleton.
+			into the two skeleton. If _safety=True then this should always happen.
 		
 		This encoding must be a mapping class. '''
 		
@@ -640,7 +640,7 @@ class Encoding(object):
 		
 		if canonical:
 			# This can fail with an flipper.AssumptionError.
-			return self.splitting_sequence().mapping_class.bundle(canonical=False)
+			return self.splitting_sequence().mapping_class.bundle(canonical=False, _safety=False)
 		
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		id_perm3 = flipper.kernel.Permutation((0, 1, 2))
@@ -656,9 +656,16 @@ class Encoding(object):
 			raise ValueError('Does not represent a gluing.')
 		
 		triangulation = self.source_triangulation
+		if _safety:
+			# We should add enough flips to ensure the triangulation is a manifold.
+			# Flipping and then unflipping every edge is certainly enough.
+			extra = triangulation.encode_flips(range(triangulation.zeta))
+			sequence = (self * extra.inverse() * extra).sequence
+		else:
+			sequence = self.sequence
 		lower_triangulation, upper_triangulation = triangulation, triangulation
 		
-		num_flips = len([item for item in self.sequence if isinstance(item, EdgeFlip)])
+		num_flips = len([item for item in sequence if isinstance(item, EdgeFlip)])
 		triangulation3 = flipper.kernel.Triangulation3(num_flips)
 		
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
@@ -673,7 +680,7 @@ class Encoding(object):
 		maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
 		
 		tetra_count = 0
-		for item in reversed(self.sequence):
+		for item in reversed(sequence):
 			assert(str(item.source_triangulation) == str(upper_triangulation))
 			new_upper_triangulation = item.target_triangulation
 			new_upper_map = dict()
@@ -751,6 +758,8 @@ class Encoding(object):
 						new_upper_map[new_triangle] = (old_target, old_perm * perm.inverse().embed(4))
 				
 			else:
+				# We have no way to handle any other type that appears. But this would
+				# mean that this is not a mapping class.
 				assert(False)
 			
 			# Remember to rebuild the rest of lower_map, which hasn't changed.
@@ -779,8 +788,7 @@ class Encoding(object):
 				perm = new_perm * perm
 				
 				c += 1
-				if c > 3 * upper_triangulation.zeta:
-					raise flipper.AssumptionError('Does not define a manifold.')
+				assert(c <= 3 * upper_triangulation.zeta)
 			full_forwards[source_triangle] = (target_triangle, perm)
 		
 		# Now close the bundle up.

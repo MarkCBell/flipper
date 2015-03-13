@@ -12,7 +12,6 @@ There is also a helper function: create_triangulation. '''
 
 import flipper
 
-from itertools import product
 from random import choice
 import string
 from math import log
@@ -722,7 +721,10 @@ class Triangulation(object):
 	def all_mapping_classes(self, depth):
 		''' Return all mapping classes that can be defined by at most the given number of flips. '''
 		
+		assert(isinstance(depth, flipper.IntegerType))
+		
 		def generator(T, d, flippable):
+			''' Return the sequences of at most d flips from this triangulation where only the specified edges are flippable. '''
 			for i in flippable:
 				yield (i,)
 				if d > 1:

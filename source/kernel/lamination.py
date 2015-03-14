@@ -522,7 +522,6 @@ class Lamination(object):
 				try:
 					# If this fails it's because the lamination isn't filling.
 					lamination, E2 = lamination.collapse_trivial_weight(edge_index)
-					# We cannot provide the encoding or flip so we'll just stick in a None.
 					encodings.append(E2)
 					laminations.append(lamination)
 					num_isometries.append(len(lamination.self_isometries()))

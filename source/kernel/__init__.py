@@ -54,6 +54,7 @@ Isometry = isometry.Isometry
 Lamination = lamination.Lamination
 Matrix = matrix.Matrix
 NumberField = numberfield.NumberField
+NumberFieldElement = numberfield.NumberFieldElement
 PolynomialRoot = polynomial.PolynomialRoot
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial

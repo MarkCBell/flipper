@@ -32,8 +32,8 @@ class Bundle(object):
 	7 --> 5: 1023, 5: 0213, 1: 0132, 2: 1302
 	8 --> 2: 3201, 1: 0213, 6: 2310, 6: 1302
 	
-	>>> B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
-	>>> B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
+	>>> B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
+	>>> B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 	'''
 	def __init__(self, triangulation, triangulation3, immersion):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
@@ -89,26 +89,6 @@ class Bundle(object):
 		fillings = [(0, 0) if real else slope for real, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
 		return self.triangulation3.snappy_string(name, fillings)
 	
-	def is_veering(self):
-		''' Return if this triangulation is veering.
-		
-		>>> B4_1.is_veering(), B8_21.is_veering()
-		(True, True)
-		>>> B4_1a.is_veering(), B8_21a.is_veering()
-		(True, False)
-		'''
-		
-		VERTICES_MEETING = flipper.kernel.triangulation3.VERTICES_MEETING
-		
-		for tetrahedron in self.triangulation3:
-			for side in range(4):
-				target, permutation = tetrahedron.glued_to[side]  # This is never None as the triangulation is closed.
-				for a, b in combinations(VERTICES_MEETING[side], 2):
-					if tetrahedron.get_edge_label(a, b) != target.get_edge_label(permutation(a), permutation(b)):
-						return False
-		
-		return True
-	
 	def cusp_types(self):
 		''' Return the list of the type of each cusp.
 		
@@ -139,7 +119,7 @@ class Bundle(object):
 		>>> B4_1.fibre_slopes(), B8_21.fibre_slopes()
 		([(0, -1)], [(-1, 2), (1, -2)])
 		>>> B4_1a.fibre_slopes(), B8_21a.fibre_slopes()
-		([(1, 1)], [(0, 1)])
+		([(0, 1)], [(-1, 1)])
 		'''
 		
 		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
@@ -171,15 +151,13 @@ class Bundle(object):
 		
 		>>> B4_1.degeneracy_slopes(), B8_21.degeneracy_slopes()
 		([(1, -1)], [(-1, 0), (0, 1)])
-		>>> B4_1a.degeneracy_slopes()
-		[(0, 1)]
 		>>> B8_21a.degeneracy_slopes()
 		Traceback (most recent call last):
 		    ...
 		AssertionError
 		'''
 		
-		assert(self.is_veering())
+		assert(self.triangulation3.is_veering())
 		
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		TEMPS = flipper.kernel.triangulation3.TEMPS

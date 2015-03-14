@@ -474,18 +474,17 @@ class Lamination(object):
 	def splitting_sequences_uncached(self, min_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
-		Assumes (and checks) that this lamination is filling.
-		Additionally, if given, the splitting sequence will have dilatation >= min_dilatation.
-		
 		This is the flips the edges of maximal weight until you reach a
-		projectively periodic sequence (with required dilatation if given).
+		projectively periodic sequence (with dilatation >= min_dilatation if given).
 		
-		This requires that:
-			- this lamination is projectively invariant under some mapping class, and
-			- each entry of self.geometric to be an Integer or NumberFieldElement (over
-				the same NumberField). '''
+		Assumes that this lamination is projectively invariant under some mapping class.
+		Assumes (and checks) that this lamination is filling.
 		
-		# At some point this could be rewritten using EdgeFlip.edge_index.
+		Each entry of self.geometric must be an Integer or a NumberFieldElement (over
+		the same NumberField). '''
+		
+		assert(all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self))
+		assert(len(set([entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement)])) <= 1)
 		
 		# Check if the lamination is obviously non-filling.
 		if any(v == 0 for v in self):

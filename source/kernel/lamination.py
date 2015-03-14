@@ -474,8 +474,10 @@ class Lamination(object):
 	def splitting_sequences_uncached(self, min_dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
-		This is the flips the edges of maximal weight until you reach a
-		projectively periodic sequence (with dilatation >= min_dilatation if given).
+		This is the encoding obtained by flipping edges to repeatedly split
+		the branches of the corresponding train track with maximal weight
+		until you reach a projectively periodic sequence (with
+		dilatation >= min_dilatation if given).
 		
 		Assumes that this lamination is projectively invariant under some mapping class.
 		Assumes (and checks) that this lamination is filling.

@@ -125,13 +125,28 @@ class Triangulation3(object):
 	def clear_temp_peripheral_structure(self):
 		''' Remove all TEMP peripheral curves. '''
 		
-		for tetrahedron in self.tetrahedra:
+		for tetrahedron in self:
 			tetrahedron.peripheral_curves[TEMPS] = [[0, 0, 0, 0] for _ in range(4)]
 	
 	def is_closed(self):
 		''' Return if this triangulation is closed. '''
 		
 		return all(tetrahedron.glued_to[side] is not None for tetrahedron in self for side in range(4))
+	
+	def is_veering(self):
+		''' Return if this triangulation is veering. '''
+		
+		# Hmmm, this only checks the local condition. This test appears to be
+		# assuming that there are no edges labelled VEERING_UNKNOWN.
+		for tetrahedron in self:
+			for side in range(4):
+				if tetrahedron.glued_to[side] is not None:
+					target, permutation = tetrahedron.glued_to[side]
+					for a, b in combinations(VERTICES_MEETING[side], 2):
+						if tetrahedron.get_edge_label(a, b) != target.get_edge_label(permutation(a), permutation(b)):
+							return False
+		
+		return True
 	
 	def cusp_identification_map(self):
 		''' Return a dictionary pairing the sides of the peripheral triangles. '''

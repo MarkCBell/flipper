@@ -5,6 +5,11 @@ Provides one class: Lamination. '''
 
 import flipper
 
+try:
+	from Queue import Queue
+except ImportError:
+	from queue import Queue
+
 class Lamination(object):
 	''' This represents a lamination on an triangulation.
 	
@@ -291,19 +296,35 @@ class Lamination(object):
 		triangulation = self.triangulation
 		return dict((vertex, sum(1 for corner in triangulation.corner_class_of_vertex(vertex) if self.is_bipod(corner))) for vertex in triangulation.vertices)
 	
+	def dual_weights_doubled(self, corner):
+		''' Return the list of dual weights (doubled) associated to a corner. '''
+		weights = [self[edge_index] for edge_index in corner.indices]
+		return [
+			weights[1] + weights[2] - weights[0],
+			weights[2] + weights[0] - weights[1],
+			weights[0] + weights[1] - weights[2]
+			]
+	
+	def is_nullpod(self, corner):
+		''' Return if the lamination looks like a nullpod with respect to the given corner. '''
+		
+		dual_weights_doubled = self.dual_weights_doubled(corner)
+		return all(weight == 0 for weight in dual_weights_doubled)
+	def is_monopod(self, corner):
+		''' Return if the lamination looks like a monopod with respect to the given corner. '''
+		
+		dual_weights_doubled = self.dual_weights_doubled(corner)
+		return dual_weights_doubled[0] > 0 and dual_weights_doubled[1] == 0 and dual_weights_doubled[2] == 0
 	def is_bipod(self, corner):
 		''' Return if the lamination looks like a bipod with respect to the given corner. '''
 		
-		return self[corner.indices[1]] + self[corner.indices[2]] == self[corner.indices[0]]
-	
+		dual_weights_doubled = self.dual_weights_doubled(corner)
+		return dual_weights_doubled[0] == 0 and dual_weights_doubled[1] > 0 and dual_weights_doubled[2] > 0
 	def is_tripod(self, triangle):
 		''' Return if the lamination looks like a tripod in this triangle. '''
 		
-		weights = [self[edge] for edge in triangle]
-		dual_weights_doubled = [weights[1] + weights[2] - weights[0],
-					weights[2] + weights[0] - weights[1],
-					weights[0] + weights[1] - weights[2]]
-		return all(dual_weight > 0 for dual_weight in dual_weights_doubled)
+		dual_weights_doubled = self.dual_weights_doubled(triangle)
+		return all(weight > 0 for weight in dual_weights_doubled)
 	
 	def tripod_regions(self):
 		''' Return a list of all triangles in which this lamination looks like a tripod. '''
@@ -748,4 +769,40 @@ class Lamination(object):
 		
 		M = flipper.kernel.Matrix([matrix[i] for i in range(self.zeta) if not tree[i] and not dual_tree[i]])
 		return M(self.algebraic) == M(other.algebraic)
+	
+	def is_orientable(self):
+		''' Return if the underlying train track of this lamination is orientable. '''
+		
+		if any(self.is_tripod(triangle) for triangle in self.triangulation):
+			return False
+		
+		oris = [None] * self.zeta
+		oris[0] = True
+		to_process = Queue()
+		to_process.put(0)
+		to_process.put(~0)
+		while not to_process.empty():
+			to_do = to_process.get()
+			corner = self.triangulation.corner_of_edge(to_do)
+			rev_oris = [corner.indices[i] != corner.labels[i] for i in range(3)]
+			dual_weights_doubled = self.dual_weights_doubled(corner)
+			
+			if dual_weights_doubled[1] > 0:
+				new_ori = not oris[corner.indices[0]] ^ rev_oris[0] ^ rev_oris[2]
+				if oris[corner.indices[2]] is None:
+					oris[corner.indices[2]] = new_ori
+					to_process.put(corner.labels[2])
+					to_process.put(~corner.labels[2])
+				elif oris[corner.indices[2]] != new_ori:
+					return False
+			if dual_weights_doubled[2] > 0:
+				new_ori = not oris[corner.indices[0]] ^ rev_oris[0] ^ rev_oris[1]
+				if oris[corner.indices[1]] is None:
+					oris[corner.indices[1]] = new_ori
+					to_process.put(corner.labels[1])
+					to_process.put(~corner.labels[1])
+				elif oris[corner.indices[1]] != new_ori:
+					return False
+		
+		return True
 

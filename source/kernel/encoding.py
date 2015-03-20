@@ -535,7 +535,6 @@ class Encoding(object):
 		AssumptionError: ...
 		'''
 		
-		stratum = self.stratum()
 		splitting = self.splitting_sequence()
 		lamination = splitting.lamination
 		return lamination.is_orientable()

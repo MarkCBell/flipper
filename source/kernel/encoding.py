@@ -535,9 +535,6 @@ class Encoding(object):
 		AssumptionError: ...
 		'''
 		
-		# Because the lamination meets each triangle in a bipod, it is orientable
-		# if and only if each singularity of the lamination has an even number of prongs.
-		
 		stratum = self.stratum()
 		splitting = self.splitting_sequence()
 		lamination = splitting.lamination

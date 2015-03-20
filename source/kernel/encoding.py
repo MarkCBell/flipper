@@ -539,7 +539,9 @@ class Encoding(object):
 		# if and only if each singularity of the lamination has an even number of prongs.
 		
 		stratum = self.stratum()
-		return all(stratum[singularity] % 2 == 0 for singularity in stratum)
+		splitting = self.splitting_sequence()
+		lamination = splitting.lamination
+		return lamination.is_orientable()
 	
 	def dilatation(self):
 		''' Return the dilatation of this mapping class.

@@ -5,8 +5,6 @@ Provides one class: Bundle. '''
 
 import flipper
 
-from itertools import combinations
-
 class Bundle(object):
 	''' This represents a triangulation of a surface bundle over the circle.
 	

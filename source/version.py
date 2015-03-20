@@ -3,5 +3,5 @@
 
 Caution: All code in here will be executed by setup.py. '''
 
-__version__ = '0.7.8'
+__version__ = '0.7.9'
 

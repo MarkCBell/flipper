@@ -718,8 +718,8 @@ class Triangulation(object):
 		E = self.encode_flips(edge_labels)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
-	def all_mapping_classes(self, depth):
-		''' Return all mapping classes that can be defined by at most the given number of flips. '''
+	def all_encodings(self, depth):
+		''' Return all encodings that can be defined by at most the given number of flips. '''
 		
 		assert(isinstance(depth, flipper.IntegerType))
 		
@@ -735,9 +735,16 @@ class Triangulation(object):
 						yield (i,) + suffix
 		
 		for sequence in generator(self, depth, self.flippable_edges()):
-			h = self.encode_flips(sequence)
-			for isom in h.closing_isometries():
-				yield isom.encode() * h
+			yield self.encode_flips(sequence)
+	
+	def all_mapping_classes(self, depth):
+		''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''
+		
+		assert(isinstance(depth, flipper.IntegerType))
+		
+		for encoding in self.all_encodings(depth):
+			for isom in encoding.closing_isometries():
+				yield isom.encode() * encoding
 
 
 #######################################################

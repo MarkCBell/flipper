@@ -175,6 +175,8 @@ class Encoding(object):
 		return str(self)
 	def __str__(self):
 		return str(self.sequence)
+	def __len__(self):
+		return len(self.sequence)
 	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):

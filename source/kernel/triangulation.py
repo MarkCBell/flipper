@@ -718,31 +718,48 @@ class Triangulation(object):
 		E = self.encode_flips(edge_labels)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
 	
-	def all_encodings(self, depth):
-		''' Return all encodings that can be defined by at most the given number of flips. '''
+	def all_flips(self, depth, prefix=None):
+		''' Return all flip sequences of at most the given number of flips. '''
 		
 		assert(isinstance(depth, flipper.IntegerType))
 		
 		def generator(T, d, flippable):
 			''' Return the sequences of at most d flips from this triangulation where only the specified edges are flippable. '''
 			for i in flippable:
-				yield (i,)
+				yield [i]
 				if d > 1:
 					T2 = T.flip_edge(i)
 					square = [edge.index for edge in T.square_about_edge(i)]
 					new_flippable = [j for j in T2.flippable_edges() if (j > i and j in flippable) or j in square]
 					for suffix in generator(T.flip_edge(i), d-1, new_flippable):
-						yield (i,) + suffix
+						yield [i] + suffix
 		
-		for sequence in generator(self, depth, self.flippable_edges()):
-			yield self.encode_flips(sequence)
+		prefix = [] if prefix is None else list(prefix)
+		
+		flippable = self.flippable_edges()
+		T = self
+		for item in prefix:
+			square = [edge.index for edge in T.square_about_edge(item)]
+			T = T.flip_edge(item)
+			flippable = [j for j in T.flippable_edges() if (j > item and j in flippable) or j in square]
+		
+		for sequence in generator(T, depth - len(prefix), flippable):
+			yield prefix + sequence
 	
-	def all_mapping_classes(self, depth):
+	def all_encodings(self, depth, prefix=None):
+		''' Return all encodings that can be defined by at most the given number of flips. '''
+		
+		prefix = [] if prefix is None else list(prefix)
+		
+		for sequence in self.all_flips(depth, prefix):
+			yield self.encode_flips(prefix + sequence)
+	
+	def all_mapping_classes(self, depth, prefix=None):
 		''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''
 		
 		assert(isinstance(depth, flipper.IntegerType))
 		
-		for encoding in self.all_encodings(depth):
+		for encoding in self.all_encodings(depth, prefix):
 			for isom in encoding.closing_isometries():
 				yield isom.encode() * encoding
 

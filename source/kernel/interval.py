@@ -105,12 +105,16 @@ class Interval(object):
 		''' Return a simpler interval with the same accuracy. '''
 		
 		# As self.change_denominator divides outwards then +/-1 we need to work with
-		# at least two more digits than our current accuracy to ensure that we don't
-		# lose any accuracy.
-		if self.accuracy > 0 and self.precision > self.accuracy + 2:
-			return self.change_denominator(self.accuracy + 2)
+		# at least two more digits and bounds on self.accuracy may eat another so we
+		# must request three more than our current accuracy to ensure that
+		# the returned interval has at at least the same amount.
+		if self.accuracy > 0 and self.precision > self.accuracy + 3:
+			I = self.change_denominator(self.accuracy + 3)
 		else:
-			return self
+			I = self
+		
+		assert(I.accuracy >= self.accuracy)  # Actually I cannot have more accuracy than self.
+		return I
 	
 	def __contains__(self, other):
 		if isinstance(other, Interval):

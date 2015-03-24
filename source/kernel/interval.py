@@ -104,20 +104,15 @@ class Interval(object):
 	def simplify(self):
 		''' Return a simpler interval with the same accuracy. '''
 		
-		# As self.change_denominator divides outwards then +/-1 we need to work with
-		# at least two more digits and bounds on self.accuracy may eat another two so
-		# we must request four more than our current accuracy to ensure that the
-		# returned interval has at at least the same amount.
+		# As self.change_denominator divides outwards then shifts by +/-1 we need
+		# to work with at least two more digits, bounds on self.accuracy may eat
+		# another two so we must request four more than our current accuracy to
+		# ensure that the returned interval has at at least the same amount.
 		if self.accuracy > 0 and self.precision > self.accuracy + 4:
 			I = self.change_denominator(self.accuracy + 4)
 		else:
 			I = self
 		
-		if not(I.accuracy >= self.accuracy):
-			print(self)
-			print(I)
-			print(self.tuple(), I.tuple())
-			print(self.accuracy, I.accuracy)
 		assert(I.accuracy >= self.accuracy)  # Actually I cannot have more accuracy than self.
 		return I
 	

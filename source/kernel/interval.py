@@ -104,8 +104,11 @@ class Interval(object):
 	def simplify(self):
 		''' Return a simpler interval with the same accuracy. '''
 		
-		if self.accuracy > 0 and self.precision > self.accuracy + 1:
-			return self.change_denominator(self.accuracy + 1)
+		# As self.change_denominator divides outwards then +/-1 we need to work with
+		# at least two more digits than our current accuracy to ensure that we don't
+		# lose any accuracy.
+		if self.accuracy > 0 and self.precision > self.accuracy + 2:
+			return self.change_denominator(self.accuracy + 2)
 		else:
 			return self
 	

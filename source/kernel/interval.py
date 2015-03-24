@@ -109,10 +109,15 @@ class Interval(object):
 		# must request three more than our current accuracy to ensure that
 		# the returned interval has at at least the same amount.
 		if self.accuracy > 0 and self.precision > self.accuracy + 3:
-			I = self.change_denominator(self.accuracy + 3)
+			I = self.change_denominator(self.accuracy + 4)
 		else:
 			I = self
 		
+		if not(I.accuracy >= self.accuracy):
+			print(self)
+			print(I)
+			print(self.tuple(), I.tuple())
+			print(self.accuracy, I.accuracy)
 		assert(I.accuracy >= self.accuracy)  # Actually I cannot have more accuracy than self.
 		return I
 	

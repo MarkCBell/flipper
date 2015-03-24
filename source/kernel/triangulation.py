@@ -345,6 +345,17 @@ class Triangulation(object):
 		
 		return [i for i in range(self.zeta) if self.is_flippable(i)]
 	
+	def nonflippable_boundary(self, edge_label):
+		''' Return the label of the edge bounding the once-punctured monogon containing edge_label.
+		
+		The given edge must not be flippable. '''
+		
+		assert(not self.is_flippable(edge_label))
+		
+		# As edge_label is not flippable the triangle containing it must be (edge_label, ~edge_label, x).
+		[boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label != edge_label and label != ~edge_labe]
+		return boundary_edge
+	
 	def square_about_edge(self, edge_label):
 		''' Return the four edges around the given edge.
 		
@@ -677,7 +688,7 @@ class Triangulation(object):
 				algebraic[edge_index] = 0
 				if not self.is_flippable(edge_index):
 					# We also need to zero out the curve enclosing this edge.
-					[boundary_edge] = [index for index in self.corner_of_edge(edge_index).indices if index != edge_index]
+					boundary_edge = norm(self.nonflippable_boundary(edge_index))
 					geometric[boundary_edge] = 0
 					algebraic[boundary_edge] = 0
 				

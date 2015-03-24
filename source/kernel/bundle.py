@@ -117,7 +117,7 @@ class Bundle(object):
 		>>> B4_1.fibre_slopes(), B8_21.fibre_slopes()
 		([(0, -1)], [(-1, 2), (1, -2)])
 		>>> B4_1a.fibre_slopes(), B8_21a.fibre_slopes()
-		([(0, 1)], [(-1, 1)])
+		([(1, -1)], [(1, 1)])
 		'''
 		
 		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS

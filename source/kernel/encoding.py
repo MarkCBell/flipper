@@ -659,8 +659,23 @@ class Encoding(object):
 		if _safety:
 			# We should add enough flips to ensure the triangulation is a manifold.
 			# Flipping and then unflipping every edge is certainly enough.
-			extra = triangulation.encode_flips(range(triangulation.zeta))
-			sequence = (self * extra.inverse() * extra).sequence
+			# However, we still have to be careful as there may be non-flippable edges.
+			
+			# Start by adding a flip and unflip each flippable edge.
+			safe_encoding = self
+			for i in triangulation.flippable_edges():
+				extra = triangulation.encode_flip(i)
+				safe_encoding = extra.inverse() * extra * safe_encoding
+			# Then add a flip and unflip for each non-flippable edge.
+			# To do this we must first flip the boundary edge.
+			for i in range(triangulation.zeta):
+				if not triangulation.is_flippable(i):
+					boundary_edge = triangulation.nonflippable_boundary(edge_index)
+					# The edge bounding i is always flippable and, after flipping it, i is too.
+					extra = triangulation.encode_flips([boundary_edge, i])
+					safe_encoding = extra.inverse() * extra * safe_encoding
+			
+			sequence = safe_encoding.sequence
 		else:
 			sequence = self.sequence
 		lower_triangulation, upper_triangulation = triangulation, triangulation

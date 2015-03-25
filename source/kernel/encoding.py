@@ -379,7 +379,7 @@ class Encoding(object):
 		# We will remember the cells we've tested to avoid recalculating their eigenvectors again.
 		for i in range(100):
 			new_curve = self(curves[-1])
-			# print(new_curve)
+			#print(new_curve)
 			
 			# Check if we have seen this curve before.
 			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
@@ -389,8 +389,10 @@ class Encoding(object):
 			for j in range(1, min(max_order, len(curves))):
 				old_curve = curves[-j-1]
 				if projective_difference(new_curve, old_curve, 100):
+					# Average the last few curves in case they have 'spiralled'
+					# around the fixedpoint.
 					average_curve = sum(curves[-j:])
-					action_matrix, condition_matrix = (self**j).applied_geometric(average_curve)
+					action_matrix, condition_matrix = self.applied_geometric(average_curve)
 					try:
 						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
 							action_matrix, condition_matrix, average_curve)
@@ -399,6 +401,13 @@ class Encoding(object):
 					except flipper.AssumptionError:
 						raise flipper.AssumptionError('Mapping class is reducible.')
 					else:
+						#print(j, eigenvector)
+						#t = triangulation.lamination(eigenvector)
+						#v =self(triangulation.lamination(eigenvector))
+						#print(v.projectively_equal(t))
+						#print([float(entry) / float(eigenvector[0]) for entry in eigenvector])
+						#print([float(entry) / float(v[0]) for entry in v])
+						
 						# Test if the vector we found lies in the cone given by the condition matrix.
 						# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
 						# but this is much faster.
@@ -406,16 +415,7 @@ class Encoding(object):
 							# If it does then we have a projectively invariant lamination.
 							invariant_lamination = triangulation.lamination(eigenvector)
 							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-								if j == 1:
-									# We could raise an AssumptionError as this actually shows that self is reducible.
-									return eigenvalue, invariant_lamination
-								else:
-									if not invariant_lamination.projectively_equal(self(invariant_lamination)):
-										raise flipper.AssumptionError('Mapping class is reducible.')
-									else:
-										# We possibly could reconstruct something here but all the numbers are
-										# in the wrong number field. It's easier to just keep going.
-										pass
+								return eigenvalue, invariant_lamination
 					break
 			
 			# See if we are close to an invariant curve.

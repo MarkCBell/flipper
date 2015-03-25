@@ -106,11 +106,10 @@ class Interval(object):
 		''' Return a simpler interval with the same accuracy. '''
 		
 		# As self.change_denominator divides outwards then shifts by +/-1 we need
-		# to work with at least two more digits, bounds on self.accuracy may eat
-		# another two so we must request four more than our current accuracy to
+		# to work with at least two more digits than our current accuracy to
 		# ensure that the returned interval has at at least the same amount.
-		if self.accuracy > 0 and self.precision > self.accuracy + 4:
-			I = self.change_denominator(self.accuracy + 4)
+		if self.accuracy > 0 and self.precision > self.accuracy + 2:
+			I = self.change_denominator(self.accuracy + 2)
 		else:
 			I = self
 		

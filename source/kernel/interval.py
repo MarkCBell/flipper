@@ -8,6 +8,7 @@ There is also a helper function: create_interval. '''
 import flipper
 
 from math import log10 as log
+from math import ceil
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
@@ -49,7 +50,7 @@ class Interval(object):
 		self.precision = precision
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
-		self.accuracy = INFTY if self.upper == self.lower else self.precision - int(log(self.upper - self.lower)) - 1
+		self.accuracy = INFTY if self.upper == self.lower else self.precision - int(ceil(log(self.upper - self.lower)))
 		
 		# We also define self.log_plus to be max(log(x), 0) over all x in self.
 		self.log_plus = max(log(max(abs(self.upper), abs(self.lower), 1)) - self.precision, 0) + 1

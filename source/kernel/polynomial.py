@@ -326,7 +326,10 @@ class PolynomialRoot(object):
 		converge quadratically so few iterations are needed, if this fails then use self.subdivide_iterate
 		before trying again. '''
 		
-		while self.interval.accuracy <= accuracy:
+		# At the end we will call self.interval.simplify() which may cost us
+		# a point of accuracy, so we will have to iteration until we hit at
+		# least accuracy + 1.
+		while self.interval.accuracy <= accuracy+1:
 			old_accuracy = self.interval.accuracy
 			try:
 				self.interval = self.newton_raphson_iterate()
@@ -337,6 +340,7 @@ class PolynomialRoot(object):
 				# This is guaranteed to give us at lease 1 more d.p. of accuracy.
 				self.interval = self.subdivide_iterate()
 		
+		# We may lose one point of accuracy here.
 		self.interval = self.interval.simplify()
 	
 	def interval_approximation(self, accuracy=0):

@@ -26,6 +26,7 @@ def main(n=100):
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))
 	print('Slowest: %s, Time: %0.3f' % (max(times, key=lambda w: times[w]).replace('.', ''), max(times.values())))
+	print('Total time: %0.3f' % sum(times.values()))
 
 if __name__ == '__main__':
 	main()

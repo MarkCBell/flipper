@@ -3,10 +3,10 @@ from __future__ import print_function
 
 import os
 try:
-	from setuptools import setup, Command
+	from setuptools import setup
 except ImportError:
 	print('Unable to import setuptools, using distutils instead.')
-	from distutils.core import setup, Command
+	from distutils.core import setup
 
 this_directory = os.path.dirname(__file__)
 source_directory = os.path.join(this_directory, 'source')

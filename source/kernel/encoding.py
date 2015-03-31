@@ -332,7 +332,9 @@ class Encoding(object):
 		
 		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails
 		to converge after many iterations and a ComputationError is thrown then it
-		is extremely likely that the mapping class was not pseudo-Anosov.
+		is extremely likely that the mapping class was not pseudo-Anosov. Note that
+		the total number of iterations done is dependent on the topology of the
+		underlying surface.
 		
 		This encoding must be a mapping class. '''
 		
@@ -359,6 +361,12 @@ class Encoding(object):
 		
 		assert(self.is_mapping_class())
 		
+		# We will use a hash to significantly speed up the algorithm.
+		RESOLUTION = 200
+		def curve_hash(curve):
+			w = curve.weight()
+			return tuple([entry * RESOLUTION // w for entry in curve])
+		
 		# We start with a fast test for periodicity.
 		# This isn't needed but it means that if we ever discover that
 		# self is not pA then it must be reducible.
@@ -368,30 +376,20 @@ class Encoding(object):
 		triangulation = self.source_triangulation
 		max_order = triangulation.max_order
 		curves = [triangulation.key_curves()[0]]
-		
-		# A little helper function to determine how much two vectors differ by.
-		def projective_difference(A, B, error_reciprocal):
-			''' Return if the projective difference between A and B is less than 1 / error_reciprocal. '''
-			
-			A_sum, B_sum = sum(A), sum(B)
-			return max(abs((p * B_sum) - (q * A_sum)) for p, q in zip(A, B)) * error_reciprocal < A_sum * B_sum
-		
-		# We will remember the cells we've tested to avoid recalculating their eigenvectors again.
-		for i in range(100):
+		seen = {curve_hash(curves[0]): [0]}
+		for i in range(max(10 * max_order, 100)):  # Experimentally this is a good number to do. Should it be max_order**2?
 			new_curve = self(curves[-1])
-			#print(new_curve)
-			
-			# Check if we have seen this curve before.
-			if new_curve in curves:  # self**(i-j)(curve) == curve, so self is reducible.
-				raise flipper.AssumptionError('Mapping class is reducible.')
-			
 			curves.append(new_curve)
-			for j in range(1, min(max_order, len(curves))):
-				old_curve = curves[-j-1]
-				if projective_difference(new_curve, old_curve, 100):
-					# Average the last few curves in case they have 'spiralled'
-					# around the fixedpoint.
-					average_curve = sum(curves[-j:])
+			
+			# print(i, new_curve)
+			h = curve_hash(new_curve)
+			if h in seen:
+				for j in reversed(seen[h]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
+					# Check if we have seen this curve before.
+					if new_curve == curves[j]:  # self**(i-j)(new_curve) == new_curve, so self is reducible.
+						raise flipper.AssumptionError('Mapping class is reducible.')
+					# Average the last few curves in case they have 'spiralled' around the fixedpoint.
+					average_curve = sum(curves[j:])
 					action_matrix, condition_matrix = self.applied_geometric(average_curve)
 					try:
 						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
@@ -401,13 +399,6 @@ class Encoding(object):
 					except flipper.AssumptionError:
 						raise flipper.AssumptionError('Mapping class is reducible.')
 					else:
-						#print(j, eigenvector)
-						#t = triangulation.lamination(eigenvector)
-						#v =self(triangulation.lamination(eigenvector))
-						#print(v.projectively_equal(t))
-						#print([float(entry) / float(eigenvector[0]) for entry in eigenvector])
-						#print([float(entry) / float(v[0]) for entry in v])
-						
 						# Test if the vector we found lies in the cone given by the condition matrix.
 						# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
 						# but this is much faster.
@@ -416,23 +407,26 @@ class Encoding(object):
 							invariant_lamination = triangulation.lamination(eigenvector)
 							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 								return eigenvalue, invariant_lamination
-					break
+				
+				seen[h].append(i+1)
+			else:
+				seen[h] = [i+1]
 			
-			# See if we are close to an invariant curve.
-			# Build some different vectors which are good candidates for reducing curves.
-			vectors = [[x - y for x, y in zip(new_curve, old_curve)] for old_curve in curves[max(len(curves) - max_order, 0):]]
-			
-			for vector in vectors:
-				new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
-				if not small_curve.is_empty():
-					for j in range(1, max_order+1):
-						new_small_curve = self(new_small_curve)
-						if new_small_curve == small_curve:
-							if j == 1:
-								# We could raise an AssumptionError in this case too as this also shows that self is reducible.
-								return 1, small_curve
-							else:
-								raise flipper.AssumptionError('Mapping class is reducible.')
+			# We now have an extra test to handle the case when self is reducible and curve lies only in periodic parts.
+			if len(seen[h]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.
+				for j in reversed(range(max(len(curves) - max_order, 0), len(curves)-1)):
+					# A good guess for the reducing curve is the (additive) growth rate.
+					vector = [x - y for x, y in zip(new_curve, curves[j])]
+					new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
+					if not small_curve.is_empty():
+						for k in range(1, max_order+1):
+							new_small_curve = self(new_small_curve)
+							if new_small_curve == small_curve:
+								if k == 1:
+									# We could raise an AssumptionError in this case too as this also shows that self is reducible.
+									return 1, small_curve
+								else:
+									raise flipper.AssumptionError('Mapping class is reducible.')
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	

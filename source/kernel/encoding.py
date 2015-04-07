@@ -456,7 +456,7 @@ class Encoding(object):
 		
 		dilatation, lamination = self.invariant_lamination()  # This could fail with a flipper.ComputationError.
 		try:
-			splittings = lamination.splitting_sequences(min_dilatation=None if take_roots else dilatation)
+			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
@@ -479,14 +479,24 @@ class Encoding(object):
 		# To do this we take sufficiently many curves (the key_curves() of the
 		# underlying triangulation) and look for the splitting sequence in which
 		# they are mapped to homologous curves by:
-		#	preperiodic . self^{-1} and periodic . preperiodic.
-		# Note that we must use self.inverse().
+		#	preperiodic . self and periodic . preperiodic.
+		# Note that we no longer use self.inverse() as periodic now goes in the
+		# same direction as self.
 		
-		for splitting in self.splitting_sequences():
-			if (splitting.preperiodic * self.inverse()).is_homologous_to(splitting.mapping_class * splitting.preperiodic):
-				return splitting
+		homology_splittings = [splitting for splitting in self.splitting_sequences()
+			if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
 		
-		raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
+		if len(homology_splittings) == 0:
+			raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
+		elif len(homology_splittings) == 1:
+			return homology_splittings[0]
+		else:
+			raise flipper.FatalError('Mapping class is homologous to multiple splitting sequences.')
+	
+	def canonical(self):
+		''' Return the canonical form of this mapping class. '''
+		
+		return self.splitting_sequence().mapping_class
 	
 	def nielsen_thurston_type(self):
 		''' Return the Nielsen--Thurston type of this encoding.
@@ -531,9 +541,7 @@ class Encoding(object):
 		AssumptionError: ...
 		'''
 		
-		splitting = self.splitting_sequence()
-		lamination = splitting.lamination
-		return lamination.is_orientable()
+		return self.splitting_sequence().lamination.is_orientable()
 	
 	def dilatation(self):
 		''' Return the dilatation of this mapping class.
@@ -633,8 +641,8 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		
 		if canonical:
-			# This can fail with an flipper.AssumptionError.
-			return self.splitting_sequence().mapping_class.bundle(canonical=False, _safety=False)
+			# This can fail with an flipper.AssumptionError if self is not pseudo-Anosov.
+			return self.canonical().bundle(canonical=False, _safety=False)
 		
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		id_perm3 = flipper.kernel.Permutation((0, 1, 2))

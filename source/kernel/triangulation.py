@@ -160,7 +160,7 @@ class Triangulation(object):
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
-		self.vertices = list(set(vertex for triangle in self for vertex in triangle.vertices))
+		self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
 		self.corners = [corner for triangle in self for corner in triangle.corners]
 		
 		self.num_triangles = len(self.triangles)
@@ -648,10 +648,10 @@ class Triangulation(object):
 		return h.inverse()(c)
 	
 	def key_curves(self):
-		''' Return a list of curves which fill the underlying surface.
+		''' Return a list of curves which fill the underlying surface and include a basis for H_1(S).
 		
 		As these fill, by Alexander's trick a mapping class is the identity
-		if and only if it fixes all of them. '''
+		if and only if it fixes all of them, including orientation. '''
 		
 		curves = []
 		
@@ -693,6 +693,15 @@ class Triangulation(object):
 					algebraic[boundary_edge] = 0
 				
 				curves.append(self.lamination(geometric, algebraic))
+		
+		# Now add in paths to make sure we have the homology basis covered.
+		for path in self.homology_basis():
+			geometric = [0] * self.zeta
+			algebraic = [0] * self.zeta
+			for step in path:
+				geometric[norm(step)] += 1
+				algebraic[norm(step)] += +1 if norm(step) == step else -1
+			curves.append(self.lamination(geometric, algebraic))
 		
 		# Filter out any empty laminations that we get.
 		return [curve for curve in curves if not curve.is_empty()]

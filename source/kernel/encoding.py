@@ -364,6 +364,7 @@ class Encoding(object):
 		# We will use a hash to significantly speed up the algorithm.
 		RESOLUTION = 200
 		def curve_hash(curve):
+			''' A simple hash mapping cuves to a coarse lattice in PML. '''
 			w = curve.weight()
 			return tuple([entry * RESOLUTION // w for entry in curve])
 		

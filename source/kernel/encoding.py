@@ -639,10 +639,32 @@ class Encoding(object):
 		This encoding must be a mapping class. '''
 		
 		assert(self.is_mapping_class())
+		triangulation = self.source_triangulation
 		
 		if canonical:
 			# This can fail with an flipper.AssumptionError if self is not pseudo-Anosov.
 			return self.canonical().bundle(canonical=False, _safety=False)
+		
+		if _safety:
+			# We should add enough flips to ensure the triangulation is a manifold.
+			# Flipping and then unflipping every edge is certainly enough.
+			# However, we still have to be careful as there may be non-flippable edges.
+			
+			# Start by adding a flip and unflip each flippable edge.
+			safe_encoding = self
+			for i in triangulation.flippable_edges():
+				extra = triangulation.encode_flip(i)
+				safe_encoding = extra.inverse() * extra * safe_encoding
+			# Then add a flip and unflip for each non-flippable edge.
+			for i in range(triangulation.zeta):
+				if not triangulation.is_flippable(i):
+					# To do this we must first flip the boundary edge.
+					boundary_edge = triangulation.nonflippable_boundary(i)
+					# This edge is always flippable and, after flipping it, i is too.
+					extra = triangulation.encode_flips([boundary_edge, i])
+					safe_encoding = extra.inverse() * extra * safe_encoding
+			
+			return safe_encoding.bundle(canonical=False, _safety=False)
 		
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		id_perm3 = flipper.kernel.Permutation((0, 1, 2))
@@ -657,32 +679,9 @@ class Encoding(object):
 			
 			raise ValueError('Does not represent a gluing.')
 		
-		triangulation = self.source_triangulation
-		if _safety:
-			# We should add enough flips to ensure the triangulation is a manifold.
-			# Flipping and then unflipping every edge is certainly enough.
-			# However, we still have to be careful as there may be non-flippable edges.
-			
-			# Start by adding a flip and unflip each flippable edge.
-			safe_encoding = self
-			for i in triangulation.flippable_edges():
-				extra = triangulation.encode_flip(i)
-				safe_encoding = extra.inverse() * extra * safe_encoding
-			# Then add a flip and unflip for each non-flippable edge.
-			# To do this we must first flip the boundary edge.
-			for i in range(triangulation.zeta):
-				if not triangulation.is_flippable(i):
-					boundary_edge = triangulation.nonflippable_boundary(edge_index)
-					# The edge bounding i is always flippable and, after flipping it, i is too.
-					extra = triangulation.encode_flips([boundary_edge, i])
-					safe_encoding = extra.inverse() * extra * safe_encoding
-			
-			sequence = safe_encoding.sequence
-		else:
-			sequence = self.sequence
 		lower_triangulation, upper_triangulation = triangulation, triangulation
 		
-		num_flips = len([item for item in sequence if isinstance(item, EdgeFlip)])
+		num_flips = len([item for item in self.sequence if isinstance(item, EdgeFlip)])
 		triangulation3 = flipper.kernel.Triangulation3(num_flips)
 		
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
@@ -697,7 +696,7 @@ class Encoding(object):
 		maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
 		
 		tetra_count = 0
-		for item in reversed(sequence):
+		for item in reversed(self.sequence):
 			assert(str(item.source_triangulation) == str(upper_triangulation))
 			new_upper_triangulation = item.target_triangulation
 			new_upper_map = dict()

@@ -492,13 +492,13 @@ class Lamination(object):
 		
 		return lamination, encoding
 	
-	def splitting_sequences_uncached(self, min_dilatation=None):
+	def splitting_sequences_uncached(self, dilatation=None):
 		''' Return a list of splitting sequence associated to this lamination.
 		
 		This is the encoding obtained by flipping edges to repeatedly split
 		the branches of the corresponding train track with maximal weight
-		until you reach a projectively periodic sequence (with
-		dilatation >= min_dilatation if given).
+		until you reach a projectively periodic sequence (with the required
+		dilatation if given).
 		
 		Assumes that this lamination is projectively invariant under some mapping class.
 		Assumes (and checks) that this lamination is filling.
@@ -517,7 +517,7 @@ class Lamination(object):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Puncture all the triangles where the lamination is a tripod.
-		E = self.puncture_tripods()
+		E = self.puncture_tripods() if len(self.tripod_regions()) > 0 else self.triangulation.id_encoding()
 		lamination = E(self)
 		
 		encodings = [E]
@@ -556,30 +556,33 @@ class Lamination(object):
 					old_lamination = laminations[index]
 					isometries = lamination.all_projective_isometries(old_lamination)
 					if len(isometries) > 0:
-						if min_dilatation is None or old_lamination.weight() >= min_dilatation * lamination.weight():
+						if dilatation is None or old_lamination.weight() == dilatation * lamination.weight():
 							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
 							if num_isometries[-1] == max(num_isometries[index:]):
-								return [flipper.kernel.SplittingSequence(laminations, encodings, isom, index) for isom in isometries]
+								return [flipper.kernel.SplittingSequence(laminations, encodings, isom, index, dilatation) for isom in isometries]
+						else:
+							# dilatation is not None.
+							assert(old_lamination.weight() < dilatation * lamination.weight())
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]
 	
-	def splitting_sequences(self, min_dilatation=None):
+	def splitting_sequences(self, dilatation=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''
 		
 		if 'splitting_sequences' not in self._cache:
 			self._cache['splitting_sequences'] = {}
 		
-		if min_dilatation not in self._cache['splitting_sequences']:
+		if dilatation not in self._cache['splitting_sequences']:
 			try:
-				self._cache['splitting_sequences'][min_dilatation] = self.splitting_sequences_uncached(min_dilatation)
+				self._cache['splitting_sequences'][dilatation] = self.splitting_sequences_uncached(dilatation)
 			except (flipper.AssumptionError) as error:
-				self._cache['splitting_sequences'][min_dilatation] = error
+				self._cache['splitting_sequences'][dilatation] = error
 		
-		if isinstance(self._cache['splitting_sequences'][min_dilatation], Exception):
-			raise self._cache['splitting_sequences'][min_dilatation]
+		if isinstance(self._cache['splitting_sequences'][dilatation], Exception):
+			raise self._cache['splitting_sequences'][dilatation]
 		else:
-			return self._cache['splitting_sequences'][min_dilatation]
+			return self._cache['splitting_sequences'][dilatation]
 	
 	def encode_twist(self, k=1):
 		''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.
@@ -750,19 +753,22 @@ class Lamination(object):
 		for vertex in triangulation.vertices:
 			if vertex.label >= 0:
 				vertices_used[vertex] = True
-				if relative_boundary:
-					# Stop as soon as we've marked one.
+				if relative_boundary:  # Stop as soon as we've marked one.
 					break
 		
 		while True:
 			for edge in triangulation.edges:
 				if tree[edge.index]:
 					source, target = edge.source_vertex, edge.target_vertex
-					if vertices_used[source] and not vertices_used[target]:
+					if vertices_used[source] and not vertices_used[target]:  # This implies edge goes between distinct vertices.
 						vertices_used[target] = True
 						for edge2 in triangulation.edges:
-							if edge2 != edge and edge2 != ~edge and edge2.source_vertex == target and edge2.target_vertex != target:
+							# We have to skip the edge2 == ~edge case at this point as we are still
+							# removing it from various places.
+							if edge2.source_vertex == target and edge2 != ~edge:
 								matrix = matrix.elementary(edge2.index, edge.index, +1 if edge2.is_positive() == edge.is_positive() else -1)
+						# Don't forget to go back and do edge which we skipped before.
+						matrix = matrix.elementary(edge.index, edge.index, -1)
 						break
 			else:
 				break  # If there are no more to add then we've dealt with every edge.

@@ -7,7 +7,7 @@ import flipper
 
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an Triangulation. '''
-	def __init__(self, laminations, encodings, isometry, index):
+	def __init__(self, laminations, encodings, isometry, index, dilatation):
 		assert(isinstance(laminations, (list, tuple)))
 		assert(all(isinstance(lamination, flipper.kernel.Lamination) for lamination in laminations))
 		assert(isinstance(encodings, (list, tuple)))
@@ -22,13 +22,13 @@ class SplittingSequence(object):
 		self.index = index
 		self.lamination = self.laminations[index]
 		self.triangulation = self.lamination.triangulation
+		self.dilatation = dilatation
 		
 		self.preperiodic = flipper.kernel.product(self.encodings[:self.index])
 		self.periodic = flipper.kernel.product(self.encodings[self.index:])
-		self.mapping_class = self.isometry.encode() * self.periodic
-	
-	def dilatation(self):
-		''' Return the dilatation of the corresponding mapping class (as a float). '''
-		
-		return float(self.periodic(self.lamination).weight()) / float(self.lamination.weight())
+		# We will reverse the direction of self.mapping_class so that self.lamination
+		# is the stable lamination.
+		self.mapping_class = (self.isometry.encode() * self.periodic).inverse()
+		# Write some things into the cache.
+		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 

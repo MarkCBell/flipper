@@ -37,7 +37,7 @@ class Interval(object):
 	>>> a = create_interval('-1.200000')
 	>>> b = create_interval('1.4142135623')
 	>>> a
-	-1.200000?
+	-1.2001?
 	'''
 	def __init__(self, lower, upper, precision):
 		assert(isinstance(lower, flipper.IntegerType))

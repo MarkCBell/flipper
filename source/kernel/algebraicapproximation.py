@@ -90,7 +90,7 @@ class AlgebraicApproximation(object):
 		The new_accuracy must be at most self.accuracy.
 		
 		>>> I.change_accuracy(5)
-		1.4142?
+		1.414?
 		'''
 		
 		assert(isinstance(new_accuracy, flipper.IntegerType))

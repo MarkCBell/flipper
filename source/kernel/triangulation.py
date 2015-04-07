@@ -353,7 +353,7 @@ class Triangulation(object):
 		assert(not self.is_flippable(edge_label))
 		
 		# As edge_label is not flippable the triangle containing it must be (edge_label, ~edge_label, x).
-		[boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label != edge_label and label != ~edge_labe]
+		[boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label != edge_label and label != ~edge_label]
 		return boundary_edge
 	
 	def square_about_edge(self, edge_label):

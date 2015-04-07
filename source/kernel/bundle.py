@@ -16,20 +16,19 @@ class Bundle(object):
 	>>> import flipper
 	>>> B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
 	>>> B4_1
-	0 --> 1: 1302, 1: 3201, 1: 2031, 1: 2310
-	1 --> 0: 3201, 0: 2031, 0: 2310, 0: 1302
+	0 --> 1: 3201, 1: 2031, 1: 2310, 1: 1302
+	1 --> 0: 1302, 0: 3201, 0: 2031, 0: 2310
 	>>> B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
 	>>> B8_21
-	0 --> 5: 3201, 4: 1023, 6: 0132, 3: 0132
-	1 --> 4: 1302, 4: 3201, 8: 0213, 7: 0132
-	2 --> 3: 3120, 3: 1023, 7: 2031, 8: 2310
-	3 --> 2: 1023, 5: 2031, 0: 0132, 2: 3120
-	4 --> 0: 1023, 1: 2031, 1: 2310, 6: 3120
-	5 --> 3: 1302, 7: 1023, 7: 0213, 0: 2310
-	6 --> 4: 3120, 8: 3201, 8: 2031, 0: 0132
-	7 --> 5: 1023, 5: 0213, 1: 0132, 2: 1302
-	8 --> 2: 3201, 1: 0213, 6: 2310, 6: 1302
-	
+	0 --> 2: 3201, 6: 2031, 7: 0132, 2: 1302
+	1 --> 6: 3201, 3: 0213, 3: 0132, 7: 3120
+	2 --> 8: 3120, 4: 1023, 0: 2031, 0: 2310
+	3 --> 8: 1302, 5: 3201, 1: 0213, 1: 0132
+	4 --> 2: 1023, 8: 0213, 7: 2310, 7: 1302
+	5 --> 6: 1023, 6: 0213, 3: 2310, 8: 3120
+	6 --> 0: 1302, 5: 1023, 5: 0213, 1: 2310
+	7 --> 1: 3120, 4: 3201, 4: 2031, 0: 0132
+	8 --> 5: 3120, 3: 2031, 4: 0213, 2: 3120
 	>>> B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
 	>>> B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 	'''
@@ -115,7 +114,7 @@ class Bundle(object):
 		''' Return the list of fibre slopes on each cusp.
 		
 		>>> B4_1.fibre_slopes(), B8_21.fibre_slopes()
-		([(0, -1)], [(-1, 2), (1, -2)])
+		([(1, 0)], [(-1, -2), (1, 5)])
 		>>> B4_1a.fibre_slopes(), B8_21a.fibre_slopes()
 		([(1, -1)], [(1, 1)])
 		'''
@@ -148,7 +147,7 @@ class Bundle(object):
 		This triangulation is must be veering.
 		
 		>>> B4_1.degeneracy_slopes(), B8_21.degeneracy_slopes()
-		([(1, -1)], [(-1, 0), (0, 1)])
+		([(0, 1)], [(1, 0), (0, 1)])
 		>>> B8_21a.degeneracy_slopes()
 		Traceback (most recent call last):
 		    ...

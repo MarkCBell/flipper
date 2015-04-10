@@ -83,7 +83,7 @@ class Bundle(object):
 		False
 		'''
 		
-		fillings = [(0, 0) if real else slope for real, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
+		fillings = [slope if filled_cusp else (0, 0) for filled_cusp, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
 		return self.triangulation3.snappy_string(name, fillings)
 	
 	def cusp_types(self):
@@ -99,14 +99,14 @@ class Bundle(object):
 		
 		for corner_class in self.triangulation.corner_classes:
 			vertex = corner_class[0].vertex
-			label = vertex.label >= 0
+			filled = vertex.filled
 			for corner in corner_class:
 				tetrahedron, permutation = self.immersion[corner.triangle]
 				index = tetrahedron.cusp_indices[permutation(corner.side)]
 				if cusp_types[index] is None:
-					cusp_types[index] = label
+					cusp_types[index] = filled
 				else:
-					assert(cusp_types[index] == label)
+					assert(cusp_types[index] == filled)
 		
 		return cusp_types
 		

@@ -334,28 +334,39 @@ class Lamination(object):
 	def puncture_tripods(self):
 		''' Return the encoding corresponding to puncturing the tripods of this lamination. '''
 		
-		# We label real punctures 0, 1, ... and fake ones -1, -2, ... .
-		
 		to_puncture = self.tripod_regions()
 		geometric = 2 * flipper.kernel.id_matrix(self.zeta)
 		algebraic = flipper.kernel.id_matrix(self.zeta)
 		
 		zeta = self.zeta
+		triangulation = self.triangulation
+		num_vertices = triangulation.num_vertices
+		
+		vertex_map = dict()
+		for vertex in triangulation.vertices:
+			vertex_map[vertex] = flipper.kernel.Vertex(vertex.label, filled=vertex.filled)
+		
+		edge_map = dict()
+		# Far away edges should go to an exact copy of themselves.
+		for edge in triangulation.oriented_edges:
+			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge.label)
+			edge_map[~edge] = ~edge_map[edge]
+		
 		triangles = []
-		num_new_vertices = 0
-		for triangle in self.triangulation:
-			a, b, c = triangle.labels
-			A, B, C = triangle.indices
+		for triangle in triangulation:
 			if triangle in to_puncture:
-				x, y, z = triangle.vertices
-				num_new_vertices += 1
-				w = flipper.kernel.Vertex(-num_new_vertices)
-				p, q, r = triangle.edges
+				a, b, c = triangle.labels
+				A, B, C = triangle.indices
+				x, y, z = [vertex_map[vertex] for vertex in triangle.vertices]
+				w = flipper.kernel.Vertex(num_vertices, filled=True)
+				num_vertices += 1
+				p, q, r = [edge_map[edge] for edge in triangle.edges]
 				s, t, u = [flipper.kernel.Edge(w, x, zeta), flipper.kernel.Edge(w, y, zeta+1), flipper.kernel.Edge(w, z, zeta+2)]
 				triangles.append(flipper.kernel.Triangle([p, ~u, t]))
 				triangles.append(flipper.kernel.Triangle([q, ~s, u]))
 				triangles.append(flipper.kernel.Triangle([r, ~t, s]))
 				
+				# Note that we can't use zeta from above as that is tracking the *new* number of edges.
 				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, B), (0, C)], [(0, A)]))
 				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, C), (0, A)], [(0, B)]))
 				geometric = geometric.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, A), (0, B)], [(0, C)]))
@@ -365,6 +376,7 @@ class Lamination(object):
 					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, C)], []))
 				else:
 					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([], [(0, C)]))
+				
 				if b != B:
 					algebraic = algebraic.join(flipper.kernel.zero_matrix(self.zeta, 1).tweak([(0, B)], []))
 				else:
@@ -372,10 +384,10 @@ class Lamination(object):
 				
 				zeta += 3
 			else:
-				triangles.append(triangle)
+				triangles.append(flipper.kernel.Triangle([edge_map[edge] for edge in triangle]))
 		
 		T = flipper.kernel.Triangulation(triangles)
-		return flipper.kernel.LinearTransformation(self.triangulation, T, geometric, algebraic).encode()
+		return flipper.kernel.LinearTransformation(triangulation, T, geometric, algebraic).encode()
 	
 	def collapse_trivial_weight(self, edge_index):
 		''' Return this lamination on the triangulation obtained by collapsing edge edge_index
@@ -383,7 +395,7 @@ class Lamination(object):
 		
 		Assumes (and checks) that:
 			- self.triangulation is not S_{0,3},
-			- the given edge does not connect between two real vertices, (with non-negative label), and
+			- the given edge does not connect between two unfilled vertices, and
 			- edge_index is the only edge of weight 0. '''
 		
 		if self[edge_index] != 0:
@@ -411,29 +423,32 @@ class Lamination(object):
 		# Now the only remaining possibilities are:
 		#   a == ~c, b == ~d, a == ~d, b == ~c, or no relations.
 		
-		# We'll replace the labels on the corner class with lower labels with the label from the higher.
-		# This ensures that any non-negative vertex survives.
-		bad_vertex, good_vertex = [e.source_vertex, e.target_vertex] if e.source_vertex.label < 0 else [e.target_vertex, e.source_vertex]
+		# Get the two vertices. We will ensure that if there is a filled vertex then bad_vertex is filled.
+		bad_vertex, good_vertex = [e.source_vertex, e.target_vertex] if e.source_vertex.filled else [e.target_vertex, e.source_vertex]
 		
-		# We'll first compute the vertex labels. This way we can check if our assumption is False early and so save some work.
-		# If we collapse together two real vertices (or a vertex with itself) then there is a loop
-		# dijoint to this lamination and so this is not filling.
-		if (good_vertex.label >= 0 and bad_vertex.label >= 0) or good_vertex == bad_vertex:
+		# We will quickly check some assumptions. If we collapse together two
+		# unfilled vertices (or a vertex with itself) then there is a loop
+		# disjoint to this lamination and so this is not filling.
+		if (not good_vertex.filled and not bad_vertex.filled) or good_vertex == bad_vertex:
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# Figure out how the vertices should be mapped.
 		vertex_map = dict()
+		# Every vertex, except the bad_vertex, goes to an exact copy of itself.
 		for vertex in self.triangulation.vertices:
-			if vertex != good_vertex and vertex != bad_vertex:
-				vertex_map[vertex] = flipper.kernel.Vertex(vertex.label)
-		vertex_map[good_vertex] = flipper.kernel.Vertex(good_vertex.label)
+			if vertex != bad_vertex:
+				# Although we will tweak the vertex labels slightly to ensure that they are still labelled 0, 1, ...
+				new_label = vertex.label if vertex.label < bad_vertex.label else vertex.label - 1
+				vertex_map[vertex] = flipper.kernel.Vertex(new_label, filled=vertex.filled)
+		# The bad_vertex goes to the same place as the good_vertex.
 		vertex_map[bad_vertex] = vertex_map[good_vertex]
 		
 		# Now figure out how the edges should be mapped.
 		edge_count = 0
 		edge_map = dict()
-		for edge in self.triangulation.edges:
-			if edge.is_positive() and edge not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]:
+		# Far away edges should go to an exact copy of themselves.
+		for edge in self.triangulation.oriented_edges:
+			if edge not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]:
 				edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
 				edge_map[~edge] = ~edge_map[edge]
 				edge_count += 1
@@ -736,8 +751,9 @@ class Lamination(object):
 	def is_homologous_to(self, other, relative_boundary=False):
 		''' Return if this lamination is homologous to the given one.
 		
-		The the homology class is computed relative to the fake punctures, unless relative_boundary
-		is set to True in which case it is done relative to all vertices.
+		The the homology class is computed relative to the filled punctures,
+		unless relative_boundary is set to True in which case it is done
+		relative to all vertices.
 		
 		This lamination and the given one must be defined on the same triangulation. '''
 		
@@ -751,7 +767,7 @@ class Lamination(object):
 		vertices_used = dict((vertex, False) for vertex in triangulation.vertices)
 		# Get some starting vertices.
 		for vertex in triangulation.vertices:
-			if vertex.label >= 0:
+			if not vertex.filled:
 				vertices_used[vertex] = True
 				if relative_boundary:  # Stop as soon as we've marked one.
 					break

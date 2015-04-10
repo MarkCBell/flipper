@@ -11,7 +11,7 @@ def main(verbose=False):
 		stratum = flipper.load.equipped_triangulation(surface).mapping_class(word).stratum()
 		vertex_orders = [stratum[singularity] for singularity in stratum]
 		# A singularity is real if and only if its label is non-negative.
-		real_vertex_orders = [stratum[singularity] for singularity in stratum if singularity.label >= 0]
+		real_vertex_orders = [stratum[singularity] for singularity in stratum if not singularity.filled]
 		# This should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
 		print('\tAll: %s, Real: %s' % (vertex_orders, real_vertex_orders))

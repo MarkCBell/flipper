@@ -9,7 +9,7 @@ triangulation of their mapping torus, as described by Agol.
 Get started by starting the GUI:
 	> import flipper.app
 	> flipper.app.start()
-or by creating an AbstractTriangulation using the helper function:
+or by creating a Triangulation using the helper function:
 	> flipper.create_triangulation(...)
 or from an isomorphism signature:
 	> flipper.create_triangulation_from_iso_sig(...)
@@ -18,12 +18,14 @@ or by loading one of the provided EquippedTriangulations using:
 
 from flipper.version import __version__
 
-# import flipper.app  # Don't do this import so people without tkinter can still use the kernel.
+# We'll only import the bare minimum. This way people missing packages
+# can still use the flipper kernel at least.
+# import flipper.app  # Uses tkinter.
 import flipper.kernel
-import flipper.example
+# import flipper.example  # Uses snappy.
 import flipper.load
 import flipper.doc
-import flipper.test
+# import flipper.test  # Uses snappy.
 import flipper.profile
 
 # Set up really short names for the most commonly used classes and functions by users.

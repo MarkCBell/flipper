@@ -27,9 +27,11 @@ def norm(value):
 
 class Vertex(object):
 	''' This represents a vertex, labelled with an integer. '''
-	def __init__(self, label):
+	def __init__(self, label, filled=False):
 		assert(isinstance(label, flipper.IntegerType))
+		assert(isinstance(filled, bool))
 		self.label = label
+		self.filled = filled
 	
 	def __repr__(self):
 		return str(self)
@@ -150,8 +152,9 @@ class Corner(object):
 class Triangulation(object):
 	''' This represents a triangulation of a punctured surface.
 	
-	 It is specified by a list of Triangles. It builds its own
-	 corners automatically. '''
+	It is specified by a list of Triangles. It builds its own
+	corners automatically. Its edges must be numbered 0, 1, ...
+	and its vertices must be numbered 0, 1, ... '''
 	def __init__(self, triangles):
 		assert(isinstance(triangles, (list, tuple)))
 		assert(all(isinstance(triangle, Triangle) for triangle in triangles))
@@ -161,20 +164,22 @@ class Triangulation(object):
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
 		self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
+		assert(not all(vertex.filled for vertex in self.vertices))
 		self.corners = [corner for triangle in self for corner in triangle.corners]
 		
 		self.num_triangles = len(self.triangles)
 		self.zeta = len(self.oriented_edges)
 		assert(self.zeta == self.num_triangles * 3 // 2)
 		self.num_vertices = len(self.vertices)
-		assert(all(any(edge.label == i for edge in self.edges) for i in range(self.zeta)))
-		assert(all(any(edge.label == ~i for edge in self.edges) for i in range(self.zeta)))
+		self.num_filled_vertices = len([vertex for vertex in self.vertices if vertex.filled])
+		self.num_unfilled_vertices = self.num_vertices - self.num_filled_vertices
+		assert(set([vertex.label for vertex in self.vertices]) == set(range(self.num_vertices)))
+		assert(set(edge.label for edge in self.edges) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)]))
 		
 		self.triangle_lookup = dict((edge.label, triangle) for triangle in self for edge in triangle.edges)
 		self.edge_lookup = dict((edge.label, edge) for edge in self.edges)
 		self.corner_lookup = dict((corner.label, corner) for corner in self.corners)
 		self.vertex_lookup = dict((corner.label, corner.vertex) for corner in self.corners)
-		assert(all(i in self.edge_lookup and ~i in self.edge_lookup for i in range(self.zeta)))
 		
 		def order_corner_class(corner_class):
 			''' Return the given corner_class but reorderd so that corners occur anti-clockwise about the vertex. '''
@@ -196,7 +201,7 @@ class Triangulation(object):
 			return ordered_class
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
-		self.euler_characteristic = 0 - self.zeta + self.num_triangles  # 0 - E + F as we have no vertices.
+		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.
 		self.genus = (2 - self.euler_characteristic - self.num_vertices) // 2
 		self.max_order = 6 - 4 * self.euler_characteristic  # The maximum order of a periodic mapping class.
 	
@@ -413,7 +418,7 @@ class Triangulation(object):
 		unchanged_triangles = [triangle for triangle in self if edge_label not in triangle.labels and ~edge_label not in triangle]
 		return Triangulation(unchanged_triangles + [triangle_A2, triangle_B2])
 	
-	def tree_and_dual_tree(self, respect_vertex_labels=False):
+	def tree_and_dual_tree(self, respect_fillings=False):
 		''' Return a maximal tree in the 1--skeleton of this triangulation and a
 		maximal tree in 1--skeleton of the dual of this triangulation.
 		
@@ -424,9 +429,9 @@ class Triangulation(object):
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
 		# Get some starting vertices.
 		for vertex in self.vertices:
-			if vertex.label >= 0:
+			if not vertex.filled:
 				vertices_used[vertex] = True
-				if not respect_vertex_labels:
+				if not respect_fillings:
 					# Stop as soon as we've marked one.
 					break
 		
@@ -511,7 +516,7 @@ class Triangulation(object):
 		
 		return homology_generators
 	
-	def isometries_to(self, other_triangulation, respect_vertex_labels=True):
+	def isometries_to(self, other_triangulation, respect_fillings=True):
 		''' Return a list of all isometries from this triangulation to other_triangulation. '''
 		
 		assert(isinstance(other_triangulation, Triangulation))
@@ -549,8 +554,10 @@ class Triangulation(object):
 			else:
 				isometries.append(flipper.kernel.Isometry(self, other_triangulation, corner_map))
 		
-		if respect_vertex_labels:
-			isometries = [isom for isom in isometries if all((vertex.label >= 0) == (isom.vertex_map[vertex].label >= 0) for vertex in self.vertices)]
+		if respect_fillings:
+			# Remove any isometries that send filled vertices to unfilled vertices (and vice-versa).
+			isometries = [isom for isom in isometries if all((vertex.filled) == (isom.vertex_map[vertex].filled) for vertex in self.vertices)]
+		
 		return isometries
 	
 	def self_isometries(self):

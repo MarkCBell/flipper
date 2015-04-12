@@ -82,7 +82,8 @@ class Edge(object):
 class Triangle(object):
 	''' This represents a triangle.
 	
-	It is specified by a list of three edges, ordered anticlockwise. '''
+	It is specified by a list of three edges, ordered anticlockwise.
+	It builds its corners automatically. '''
 	def __init__(self, edges):
 		assert(isinstance(edges, (list, tuple)))
 		assert(all(isinstance(edge, Edge) for edge in edges))
@@ -152,9 +153,8 @@ class Corner(object):
 class Triangulation(object):
 	''' This represents a triangulation of a punctured surface.
 	
-	It is specified by a list of Triangles. It builds its own
-	corners automatically. Its edges must be numbered 0, 1, ...
-	and its vertices must be numbered 0, 1, ... '''
+	It is specified by a list of Triangles. Its edges must be
+	numbered 0, 1, ... and its vertices must be numbered 0, 1, ... '''
 	def __init__(self, triangles):
 		assert(isinstance(triangles, (list, tuple)))
 		assert(all(isinstance(triangle, Triangle) for triangle in triangles))
@@ -224,6 +224,9 @@ class Triangulation(object):
 			return item in self.corners
 		else:
 			return NotImplemented
+	def __reduce__(self):
+		# Triangulations are already pickleable but this results in a smaller pickle.
+		return (self.__class__, (self.triangles,))
 	
 	def vertices_of_edge(self, edge_label):
 		''' Return the two vertices at the ends of the given edge. '''
@@ -713,10 +716,15 @@ class Triangulation(object):
 		# Filter out any empty laminations that we get.
 		return [curve for curve in curves if not curve.is_empty()]
 	
+	def id_isometry(self):
+		''' Return the isometry representing the identity map. '''
+		
+		return flipper.kernel.Isometry(self, self, dict((corner, corner) for corner in self.corners))
+	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
 		
-		return flipper.kernel.Encoding(self, self, [])
+		return self.id_isometry().encode()
 	
 	def encode_flip(self, edge_label):
 		''' Return an encoding of the effect of flipping the given edge.

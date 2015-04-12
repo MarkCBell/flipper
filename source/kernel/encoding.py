@@ -29,6 +29,8 @@ class EdgeFlip(object):
 		return str(self)
 	def __str__(self):
 		return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
+	def __reduce__(self):
+		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label))
 	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
@@ -69,7 +71,7 @@ class EdgeFlip(object):
 	def encode(self):
 		''' Return the Encoding induced by this EdgeFlip. '''
 		
-		return Encoding(self.source_triangulation, self.target_triangulation, [self])
+		return Encoding([self])
 
 class LinearTransformation(object):
 	''' Represents the change to a lamination caused by a linear map. '''
@@ -119,7 +121,7 @@ class LinearTransformation(object):
 	def encode(self):
 		''' Return the Encoding induced by this linear map. '''
 		
-		return Encoding(self.source_triangulation, self.target_triangulation, [self])
+		return Encoding([self])
 
 class Encoding(object):
 	''' This represents a map between two Triagulations.
@@ -138,22 +140,22 @@ class Encoding(object):
 	>>> i = S.mapping_class('')
 	>>> a = S.mapping_class('a')
 	>>> a
-	[Isometry [~2, 1, 0], Flip 2]
+	[Isometry [0, 1, 2], Isometry [~2, 1, 0], Flip 2, Isometry [0, 1, 2], Isometry [0, 1, 2]]
 	>>> x = S.triangulation.encode_flips([1])
 	>>> x
-	[Flip 1]
+	[Flip 1, Isometry [0, 1, 2]]
 	'''
-	def __init__(self, source_triangulation, target_triangulation, sequence, name=None):
-		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
+	def __init__(self, sequence, name=None):
 		assert(isinstance(sequence, (list, tuple)))
+		assert(len(sequence) > 0)
 		assert(all(isinstance(item, (EdgeFlip, LinearTransformation, flipper.kernel.Isometry)) for item in sequence))
 		assert(isinstance(name, flipper.StringType) or name is None)
 		
-		self.source_triangulation = source_triangulation
-		self.target_triangulation = target_triangulation
 		self.sequence = sequence
 		self.name = name
+		
+		self.source_triangulation = self.sequence[-1].source_triangulation
+		self.target_triangulation = self.sequence[0].target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
 		self._cache = {}  # For caching hard to compute results.
@@ -177,6 +179,10 @@ class Encoding(object):
 		return str(self.sequence)
 	def __len__(self):
 		return len(self.sequence)
+	def __getitem__(self, value):
+		### !?! Lots more to do here!
+		if isinstance(value, slice):
+			return Encoding(self.sequence[value])
 	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):
@@ -224,7 +230,7 @@ class Encoding(object):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
-			return Encoding(other.source_triangulation, self.target_triangulation,
+			return Encoding(
 				self.sequence + other.sequence,
 				other.name + '.' + self.name if self.name is not None and other.name is not None else None)
 		else:
@@ -235,20 +241,18 @@ class Encoding(object):
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
-			return Encoding(self.source_triangulation, self.target_triangulation, self.sequence * k)
+			return Encoding(self.sequence * k)
 		else:
 			return self.inverse()**abs(k)
 	
 	def inverse(self):
 		''' Return the inverse of this encoding.
 		
-		>>> aB.inverse()
-		[Flip ~2, Isometry [2, 1, ~0], Isometry [0, 2, ~1], Flip 1]
 		>>> aB.inverse() == bA, ab == ab.inverse(), i == i.inverse()
 		(True, False, True)
 		'''
 		
-		return Encoding(self.target_triangulation, self.source_triangulation, [item.inverse() for item in reversed(self.sequence)])
+		return Encoding([item.inverse() for item in reversed(self.sequence)])
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.
@@ -583,21 +587,16 @@ class Encoding(object):
 			
 			raise flipper.AssumptionError('Mapping class is reducible.')
 		elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
-			splitting1 = self.splitting_sequence()
-			splitting2 = other.splitting_sequence()
-			
-			mapping_class1 = splitting1.mapping_class
+			# Two pseudo-Anosov mapping classes are conjugate if and only if
+			# there canonical forms are cyclically conjugate.
+			mapping_class1 = self.canonical()
+			mapping_class2 = other.canonical()
 			source1 = mapping_class1.source_triangulation
-			
-			# The product of these is mapping_class2 = splitting2.mapping_class.
-			encodings2 = splitting2.encodings[splitting2.index:] + [splitting2.isometry.encode()]
-			for i in range(len(encodings2)):
-				mapping_class2 = flipper.kernel.product(encodings2[i:] + encodings2[:i])
-				source2 = mapping_class2.source_triangulation  #pylint: disable=maybe-no-member
-				
-				# Would could get away with only looking at those that projectively preserve the
-				# lamination but that involves comparing algebraic numbers and so is generally
-				# slower in practice.
+			for i in range(len(mapping_class2)):
+				# Conjugate around.
+				head = mapping_class2[:1]
+				mapping_class2 = head.inverse() * mapping_class2 * head
+				source2 = mapping_class2.source_triangulation
 				for isom in source1.isometries_to(source2):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True

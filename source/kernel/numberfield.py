@@ -85,6 +85,9 @@ class NumberField(object):
 		return str(self)
 	def __str__(self):
 		return 'QQ[%s]' % str(self.polynomial)
+	def __reduce__(self):
+		# NumberFields are already pickleable but this results in a smaller pickle.
+		return (self.__class__, (self.polynomial_root,))
 	def __eq__(self, other):
 		return self.polynomial == other.polynomial and self.polynomial_root == other.polynomial_root
 	def __ne__(self, other):
@@ -103,8 +106,8 @@ class NumberField(object):
 class NumberFieldElement(object):
 	''' This represents an element of a number field. You shouldn't create NumberFieldElements directly but instead
 	should use NumberField.element() which creates an element in that number field. '''
-	def __init__(self, field, linear_combination):
-		self.number_field = field
+	def __init__(self, number_field, linear_combination):
+		self.number_field = number_field
 		if len(linear_combination) < self.number_field.degree:
 			linear_combination = linear_combination + [0] * (self.number_field.degree - len(linear_combination))
 		elif len(linear_combination) > self.number_field.degree:
@@ -121,6 +124,9 @@ class NumberFieldElement(object):
 		return str(self)
 	def __str__(self):
 		return str(float(self.algebraic_approximation()))
+	def __reduce__(self):
+		# NumberFieldElements are already pickleable but this results in a smaller pickle.
+		return (self.__class__, (self.number_field, self.linear_combination))
 	def __iter__(self):
 		return iter(self.linear_combination)
 	def __len__(self):

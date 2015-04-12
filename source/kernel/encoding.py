@@ -180,9 +180,12 @@ class Encoding(object):
 	def __len__(self):
 		return len(self.sequence)
 	def __getitem__(self, value):
-		### !?! Lots more to do here!
 		if isinstance(value, slice):
 			return Encoding(self.sequence[value])
+		elif isinstance(value, flipper.IntegerType):
+			return self.sequence[value]
+		else:
+			return NotImplemented
 	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):

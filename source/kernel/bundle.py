@@ -90,9 +90,9 @@ class Bundle(object):
 		''' Return the list of the type of each cusp.
 		
 		>>> B4_1.cusp_types(), B8_21.cusp_types()
-		([True], [False, True])
+		([False], [True, False])
 		>>> B4_1a.cusp_types(), B8_21a.cusp_types()
-		([True], [True])
+		([False], [False])
 		'''
 		
 		cusp_types = [None] * self.triangulation3.num_cusps

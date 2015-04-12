@@ -45,6 +45,8 @@ class Isometry(object):
 		return str(self)
 	def __str__(self):
 		return 'Isometry ' + str([self.edge_map[edge] for edge in sorted(self.source_triangulation.oriented_edges, key=lambda e: e.index)])
+	def __reduce__(self):
+		return (self.__class__, (self.corner_map,))
 	def __eq__(self, other):
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \
@@ -116,7 +118,7 @@ class Isometry(object):
 		[Isometry [0, 1, 2]]
 		'''
 		
-		return flipper.kernel.Encoding(self.source_triangulation, self.target_triangulation, [self])
+		return flipper.kernel.Encoding([self])
 	
 	def applied_geometric(self, lamination):
 		''' Return the action and condition matrices describing the isometry

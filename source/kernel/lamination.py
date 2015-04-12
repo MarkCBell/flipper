@@ -574,7 +574,7 @@ class Lamination(object):
 						if dilatation is None or old_lamination.weight() == dilatation * lamination.weight():
 							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
 							if num_isometries[-1] == max(num_isometries[index:]):
-								return [flipper.kernel.SplittingSequence(laminations, encodings, isom, index, dilatation) for isom in isometries]
+								return [flipper.kernel.SplittingSequence(encodings + [isom.encode()], index, dilatation, laminations[index]) for isom in isometries]
 						else:
 							# dilatation is not None.
 							assert(old_lamination.weight() < dilatation * lamination.weight())

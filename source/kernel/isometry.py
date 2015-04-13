@@ -46,7 +46,7 @@ class Isometry(object):
 	def __str__(self):
 		return 'Isometry ' + str([self.edge_map[edge] for edge in sorted(self.source_triangulation.oriented_edges, key=lambda e: e.index)])
 	def __reduce__(self):
-		return (self.__class__, (self.corner_map,))
+		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.corner_map))
 	def __eq__(self, other):
 		return self.source_triangulation == other.source_triangulation and \
 			self.target_triangulation == other.target_triangulation and \

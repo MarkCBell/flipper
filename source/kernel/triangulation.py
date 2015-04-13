@@ -89,8 +89,10 @@ class Triangle(object):
 		assert(all(isinstance(edge, Edge) for edge in edges))
 		assert(len(edges) == 3)
 		
-		# Edges are ordered anti-clockwise.
-		self.edges = edges
+		# Edges are ordered anti-clockwise. We will cyclically permute
+		# these to a canonical ordering, the one where the edges are ordered
+		# minimally by label.
+		self.edges = min([edges[i:] + edges[:i] for i in range(3)], key=lambda t: [e.label for e in t])
 		self.labels = [edge.label for edge in self]
 		self.indices = [edge.index for edge in self]
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]
@@ -159,7 +161,9 @@ class Triangulation(object):
 		assert(isinstance(triangles, (list, tuple)))
 		assert(all(isinstance(triangle, Triangle) for triangle in triangles))
 		
-		self.triangles = triangles
+		# We will sort the triangles into a canonical ordering, the one where the edges are ordered
+		# minimally by label. This allows for fast comparisons.
+		self.triangles = sorted(triangles, key=lambda t: [e.label for e in t])
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
@@ -227,13 +231,8 @@ class Triangulation(object):
 	def __reduce__(self):
 		# Triangulations are already pickleable but this results in a smaller pickle.
 		return (self.__class__, (self.triangles,))
-	#def __eq__(self, other):
-	#	try:
-	#		self.find_isometry(other, 0, 0)
-	#		return True
-	#	except flipper.AssumptionError:
-	#		return False
-	#	return self == other
+	def __eq__(self, other):
+		return [e.label for t in self for e in t] == [e.label for t in other for e in t]
 	def __ne__(self, other):
 		return not(self == other)
 	

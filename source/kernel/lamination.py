@@ -640,7 +640,7 @@ class Lamination(object):
 		# #---------->#
 		# And e.index = e1 and b.index = d.index = e2.
 		
-		T = triangulation.encode_flips_and_close([e1], a, a)
+		T = triangulation.encode_flips_and_close([e1], a.label, a.label)
 		
 		return conjugation.inverse() * T**k * conjugation
 	
@@ -708,7 +708,7 @@ class Lamination(object):
 		# Where e.index = e1 and b.index = d.index = e2,
 		# and additionally x.index = y.index.
 		
-		T = triangulation.encode_flips_and_close([c.index, e1, e2], a, a)
+		T = triangulation.encode_flips_and_close([c.index, e1, e2], a.label, a.label)
 		
 		return conjugation.inverse() * T**k * conjugation
 	

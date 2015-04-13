@@ -227,6 +227,15 @@ class Triangulation(object):
 	def __reduce__(self):
 		# Triangulations are already pickleable but this results in a smaller pickle.
 		return (self.__class__, (self.triangles,))
+	#def __eq__(self, other):
+	#	try:
+	#		self.find_isometry(other, 0, 0)
+	#		return True
+	#	except flipper.AssumptionError:
+	#		return False
+	#	return self == other
+	def __ne__(self, other):
+		return not(self == other)
 	
 	def vertices_of_edge(self, edge_label):
 		''' Return the two vertices at the ends of the given edge. '''
@@ -242,6 +251,7 @@ class Triangulation(object):
 	
 	def corner_of_edge(self, edge_label):
 		''' Return the corner opposite the given edge. '''
+		assert(isinstance(edge_label, flipper.IntegerType))
 		
 		# Refactor out?
 		return self.corner_lookup[edge_label]
@@ -519,47 +529,68 @@ class Triangulation(object):
 		
 		return homology_generators
 	
-	def isometries_to(self, other_triangulation, respect_fillings=True):
-		''' Return a list of all isometries from this triangulation to other_triangulation. '''
+	def find_isometry(self, other, edge_from_label, edge_to_label, respect_fillings=True):
+		''' Return the isometry from this triangulation to other that sends edge_from_label to
+		to edge_to_label.
 		
-		assert(isinstance(other_triangulation, Triangulation))
+		Assumes (and checks) that such an isometry exists and is unique. '''
+		assert(isinstance(other, Triangulation))
+		assert(isinstance(edge_from_label, flipper.IntegerType))
+		assert(isinstance(edge_to_label, flipper.IntegerType))
+		assert(isinstance(respect_fillings, bool))
+		
+		source_corner = self.corner_of_edge(edge_from_label)
+		target_corner = other.corner_of_edge(edge_to_label)
+		# We do a depth first search extending the corner map across the triangulation.
+		corner_map = {source_corner: target_corner}
+		# This is a stack of triangles that may still have consequences.
+		to_process = [(source_corner, target_corner)]
+		while to_process:
+			from_corner, to_corner = to_process.pop()
+			new_from_corner, new_to_corner = self.opposite_corner(from_corner), other.opposite_corner(to_corner)
+			if new_from_corner in corner_map:
+				if new_to_corner != corner_map[new_from_corner]:
+					# Map does not extend to a consistent isometry.
+					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
+			else:
+				corner_map[new_from_corner] = new_to_corner
+				to_process.append((new_from_corner, new_to_corner))
+			
+			new_from_corner, new_to_corner = self.rotate_corner(from_corner), other.rotate_corner(to_corner)
+			if new_from_corner in corner_map:
+				if new_to_corner != corner_map[new_from_corner]:
+					# Map does not extend to a consistent isometry.
+					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
+			else:
+				corner_map[new_from_corner] = new_to_corner
+				to_process.append((new_from_corner, new_to_corner))
+		
+		
+		isometry = flipper.kernel.Isometry(self, other, corner_map)
+		if respect_fillings and any(vertex.filled != isometry(vertex).filled for vertex in self.vertices):
+			raise flipper.AssumptionError('Isometry does not respect fillings.')
+		
+		return isometry
+	
+	def isometries_to(self, other, respect_fillings=True):
+		''' Return a list of all isometries from this triangulation to other. '''
+		
+		assert(isinstance(other, Triangulation))
+		assert(isinstance(respect_fillings, bool))
 		
 		# Isometries are determined by where a single triangle is sent.
 		# We take a corner of smallest degree.
 		source_cc = min(self.corner_classes, key=len)
 		source_corner = source_cc[0]
 		# And find all the places where it could be sent so there are as few as possible to check.
-		target_corners = [corner for target_cc in other_triangulation.corner_classes for corner in target_cc if len(target_cc) == len(source_cc)]
+		target_corners = [corner for target_cc in other.corner_classes for corner in target_cc if len(target_cc) == len(source_cc)]
 		
 		isometries = []
 		for target_corner in target_corners:
-			# We do a depth first search extending the corner map across the triangulation.
-			corner_map = {source_corner: target_corner}
-			# This is a stack of triangles that may still have consequences.
-			to_process = [(source_corner, target_corner)]
-			while to_process:
-				from_corner, to_corner = to_process.pop()
-				new_from_corner, new_to_corner = self.opposite_corner(from_corner), other_triangulation.opposite_corner(to_corner)
-				if new_from_corner in corner_map:
-					if new_to_corner != corner_map[new_from_corner]:
-						break  # Map does not extend to a consistent isometry.
-				else:
-					corner_map[new_from_corner] = new_to_corner
-					to_process.append((new_from_corner, new_to_corner))
-				
-				new_from_corner, new_to_corner = self.rotate_corner(from_corner), other_triangulation.rotate_corner(to_corner)
-				if new_from_corner in corner_map:
-					if new_to_corner != corner_map[new_from_corner]:
-						break  # Map does not extend to a consistent isometry.
-				else:
-					corner_map[new_from_corner] = new_to_corner
-					to_process.append((new_from_corner, new_to_corner))
-			else:
-				isometries.append(flipper.kernel.Isometry(self, other_triangulation, corner_map))
-		
-		if respect_fillings:
-			# Remove any isometries that send filled vertices to unfilled vertices (and vice-versa).
-			isometries = [isom for isom in isometries if all((vertex.filled) == (isom.vertex_map[vertex].filled) for vertex in self.vertices)]
+			try:
+				isometries.append(self.find_isometry(other, source_corner.label, target_corner.label, respect_fillings))
+			except flipper.AssumptionError:
+				pass
 		
 		return isometries
 	
@@ -568,25 +599,12 @@ class Triangulation(object):
 		
 		return self.isometries_to(self)
 	
-	def is_isometric_to(self, other_triangulation):
-		''' Return if there are any orientation preserving isometries from this triangulation to other_triangulation. '''
+	def is_isometric_to(self, other):
+		''' Return if there are any orientation preserving isometries from this triangulation to other. '''
 		
-		assert(isinstance(other_triangulation, Triangulation))
+		assert(isinstance(other, Triangulation))
 		
-		return len(self.isometries_to(other_triangulation)) > 0
-	
-	def find_isometry(self, other_triangulation, edge_from_label, edge_to_label):
-		''' Return the isometry from this triangulation to other_triangulation that sends edge_from_label to
-		to edge_to_label.
-		
-		Assumes (and checks) that such an isometry exists and is unique. '''
-		
-		try:
-			[isometry] = [isom for isom in self.isometries_to(other_triangulation) if isom(edge_from_label) == edge_to_label]
-		except ValueError:
-			raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine a unique isometry.')
-		else:
-			return isometry
+		return len(self.isometries_to(other)) > 0
 	
 	# Laminations we can build on this triangulation.
 	def lamination(self, geometric, algebraic=None, remove_peripheral=True):
@@ -749,6 +767,11 @@ class Triangulation(object):
 		''' Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
 		
 		The isometry used is the one taking edge_from_label to edge_to_label. '''
+		
+		assert(isinstance(edge_labels, (list, tuple)))
+		assert(all(isinstance(label, flipper.IntegerType) for label in edge_labels))
+		assert(isinstance(edge_from_label, flipper.IntegerType))
+		assert(isinstance(edge_to_label, flipper.IntegerType))
 		
 		E = self.encode_flips(edge_labels)
 		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E

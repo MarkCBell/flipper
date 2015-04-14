@@ -12,14 +12,13 @@ def open_documentation(verbose=False):
 	disk_file = os.path.join(datadir, 'flipper.pdf')
 	if verbose: print('Opening:')
 	if verbose: print(disk_file)
-	if sys.platform.startswith('darwin'):
-		command = 'open'
-	elif sys.platform.startswith('win'):
-		command = 'start'
-	else:
-		command = 'xdg-open'
 	
 	# Note that the command contains no user provided data.
-	# So setting shell=True should be safe.
-	subprocess.call([command, disk_file])
+	# So even setting shell=True should be safe.
+	if sys.platform.startswith('darwin'):
+		subprocess.call(['open', disk_file])
+	elif sys.platform.startswith('win'):
+		os.startfile(disk_file)
+	else:
+		subprocess.call(['xdg-open', disk_file])
 

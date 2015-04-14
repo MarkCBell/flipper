@@ -188,13 +188,19 @@ class Lamination(object):
 		lamination = self
 		best_conjugation = conjugation = lamination.triangulation.id_encoding()
 		
+		def weight_change(lamination, edge_index):
+			''' Return how much the weight would change by if this flip was done. '''
+			
+			a, b, c, d = lamination.triangulation.square_about_edge(edge_index)
+			return max(lamination[a] + lamination[c], lamination[b] + lamination[d]) - 2 * lamination[edge_index]
+		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
 		# If we ever fail to make progress more than once then the curve is as short as it's going to get.
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination[i] > 0], key=lamination.weight_difference_flip_edge)
+			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination[i] > 0], key=lambda i: weight_change(lamination, i))
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			conjugation = forwards * conjugation
@@ -241,8 +247,11 @@ class Lamination(object):
 		if any(vertex_numbers.values()): return False
 		
 		# So either we have a single curve or we have a multicurve with two parallel components.
+		# We can test for the latter by checking 
 		# We can test for the latter by seeing if the halved curve has the correct weight.
-		if triangulation.lamination([v // 2 for v in short_lamination]).weight() == short_lamination.weight() // 2:
+		#if triangulation.lamination([v // 2 for v in short_lamination]).weight() == short_lamination.weight() // 2:
+		#	return False
+		if all(ddual % 4 == 0 for corner in triangulation.corners for ddual in short_lamination.dual_weights_doubled(corner)):
 			return False
 		
 		return True
@@ -262,10 +271,15 @@ class Lamination(object):
 		''' Return if this lamination is a half twistable curve. '''
 		
 		# This is based off of self.encode_halftwist(). See the documentation there as to why this works.
-		if not self.is_twistable(): return False
 		
 		conjugation = self.conjugate_short()
 		short_lamination = conjugation(self)
+		# We used to start with:
+		#   if not self.is_twistable(): return False
+		# But this wasted a lot of cycles repeating the calculation twice.
+		if not short_lamination.weight() == 2:
+			return False
+		
 		triangulation = short_lamination.triangulation
 		
 		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
@@ -280,13 +294,7 @@ class Lamination(object):
 		_, _, z, w = triangulation.square_about_edge(a.label)
 		_, _, x, y = triangulation.square_about_edge(c.label)
 		
-		return z.index == w.index or x.index == y.index
-	
-	def weight_difference_flip_edge(self, edge_index):
-		''' Return how much the weight would change by if this flip was done. '''
-		
-		a, b, c, d = self.triangulation.square_about_edge(edge_index)
-		return max(self[a] + self[c], self[b] + self[d]) - 2 * self[edge_index]
+		return z == ~w or x == ~y
 	
 	def stratum(self):
 		''' Return a dictionary mapping each vertex of the underlying triangulation to the number of stratum exiting it.

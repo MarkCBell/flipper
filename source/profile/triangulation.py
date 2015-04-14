@@ -40,7 +40,6 @@ def main(verbose=False):
 	return time() - start_time
 
 if __name__ == '__main__':
-	# main()
 	# print(main(verbose=True))
 	#pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callers(20)
 	#pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('cumtime').print_callees(20)

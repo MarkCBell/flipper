@@ -48,7 +48,7 @@ def package(objects):
 	if isinstance(objects, flipper.kernel.EquippedTriangulation):
 		equipped_triangulation = objects
 	else:
-		equipped_triangulation = flipper.kernel.create_equipped_triangulation(objects)))
+		equipped_triangulation = flipper.kernel.create_equipped_triangulation(objects)
 	
 	return pickle.dumps((spec, version, equipped_triangulation))
 

@@ -73,6 +73,7 @@ NumberType = types.NumberType
 
 # Functions that help with construction.
 create_triangulation = triangulation.create_triangulation
+create_equipped_triangulation = equipped_triangulation.create_equipped_triangulation
 triangulation_from_iso_sig = triangulation.triangulation_from_iso_sig
 create_algebraic_approximation = algebraicapproximation.create_algebraic_approximation
 create_polynomial_root = polynomial.create_polynomial_root

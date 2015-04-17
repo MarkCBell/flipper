@@ -619,6 +619,43 @@ class Encoding(object):
 		# This can fail with an flipper.AssumptionError.
 		return self.splitting_sequence().lamination.stratum()
 	
+	def hitting_matrix(self):
+		''' Return the hitting matrix of the underlying train track. '''
+		
+		# This can fail with an flipper.AssumptionError.
+		h = self.canonical()
+		
+		M = flipper.kernel.id_matrix(h.zeta)
+		_, lamination = h.invariant_lamination()
+		# Lamination defines a train track with a bipod in each triangle. We
+		# follow the sequence of folds (and isometries) which this train track
+		# undergoes and track how the edges are mapped using M.
+		for item in reversed(h.sequence):
+			if isinstance(item, EdgeFlip):
+				triangulation = lamination.triangulation
+				a, b, c, d = triangulation.square_about_edge(item.edge_label)
+				
+				# Work out which way the train track is pointing.
+				if lamination.is_bipod(triangulation.corner_of_edge(a.label)):
+					assert(lamination.is_bipod(triangulation.corner_of_edge(c.label)))
+					M = M.elementary(item.edge_index, b.index)
+					M = M.elementary(item.edge_index, d.index)
+				elif lamination.is_bipod(triangulation.corner_of_edge(b.label)):
+					assert(lamination.is_bipod(triangulation.corner_of_edge(d.label)))
+					M = M.elementary(item.edge_index, a.index)
+					M = M.elementary(item.edge_index, c.index)
+				else:
+					raise flipper.FatalError('Incompatible bipod.')
+			elif isinstance(item, flipper.kernel.Isometry):
+				M = flipper.kernel.Permutation([item.index_map[i] for i in range(h.zeta)]).matrix() * M
+			else:
+				raise flipper.FatalError('Unknown item in canonical sequence.')
+			
+			# Move the lamination onto the next triangulation.
+			lamination = item(lamination)
+		
+		return M
+	
 	def bundle(self, canonical=True, _safety=True):
 		''' Return the bundle associated to this mapping class.
 		

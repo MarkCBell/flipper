@@ -19,7 +19,8 @@ def main():
 		print('The computation failed, h is probably reducible.')
 	
 	try:
-		dilatation, lamination = h.invariant_lamination()
+		lamination = h.invariant_lamination()
+		dilatation = h.dilatation()
 		print('h leaves L := %s projectively invariant.' % lamination.projective_string())
 		print('and dilates it by a factor of %s.' % dilatation)
 	except flipper.AssumptionError:

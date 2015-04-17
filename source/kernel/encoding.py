@@ -326,7 +326,7 @@ class Encoding(object):
 		
 		return As, Cs
 	
-	def invariant_lamination_and_dilatation_uncached(self):
+	def pml_fixedpoint_uncached(self):
 		''' Return a rescaling constant and projectively invariant lamination.
 		
 		Assumes that the mapping class is pseudo-Anosov.
@@ -439,12 +439,12 @@ class Encoding(object):
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
-	def invariant_lamination_and_dilatation(self):
+	def pml_fixedpoint(self):
 		''' A version of self.invariant_lamination_uncached with caching. '''
 		
 		if 'invariant_lamination' not in self._cache:
 			try:
-				self._cache['invariant_lamination'] = self.invariant_lamination_and_dilatation_uncached()
+				self._cache['invariant_lamination'] = self.pml_fixedpoint_uncached()
 			except (flipper.AssumptionError, flipper.ComputationError) as error:
 				self._cache['invariant_lamination'] = error
 		
@@ -454,11 +454,11 @@ class Encoding(object):
 			return self._cache['invariant_lamination']
 	
 	def invariant_lamination(self):
-		''' Return the dilatation of this mapping class.
+		''' Return a projectively invariant lamination of this mapping class.
 		
 		This encoding must be a mapping class. '''
 		
-		_, lamination = self.invariant_lamination_and_dilatation()
+		_, lamination = self.pml_fixedpoint()
 		return lamination
 	
 	def dilatation(self):
@@ -469,7 +469,7 @@ class Encoding(object):
 		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
 			return 1
 		else:
-			lmbda, _ = self.invariant_lamination()
+			lmbda, _ = self.pml_fixedpoint()
 			return lmbda
 	
 	def splitting_sequences(self, take_roots=False):
@@ -482,7 +482,7 @@ class Encoding(object):
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
-		dilatation, lamination = self.invariant_lamination_and_dilatation()  # This could fail with a flipper.ComputationError.
+		dilatation, lamination = self.pml_fixedpoint()  # This could fail with a flipper.ComputationError.
 		try:
 			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.

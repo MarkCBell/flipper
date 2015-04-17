@@ -108,9 +108,8 @@ def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
 
 class FlipperApp(object):
-	def __init__(self, parent, return_slot=None):
+	def __init__(self, parent):
 		self.parent = parent
-		self.return_slot = return_slot
 		self.options = flipper.app.Options(self)
 		self.colour_picker = flipper.app.ColourPalette()
 		
@@ -270,6 +269,7 @@ class FlipperApp(object):
 		self.treeview_mapping_classes = []
 		
 		self.selected_object = None
+		self.output = None
 	
 	def initialise(self):
 		if self.unsaved_work:
@@ -441,7 +441,8 @@ class FlipperApp(object):
 					raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
 			elif isinstance(load_from, flipper.StringType):
 				try:
-					string_contents = open(load_from, 'rb').read()
+					with open(load_from, 'rb') as f:
+						string_contents = f.read()
 				except IOError:
 					string_contents = load_from
 			else:
@@ -619,11 +620,13 @@ class FlipperApp(object):
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
 	
 	def quit(self):
-		# If we are complete then write down our current state in the return slot.
-		if self.is_complete() and self.return_slot is not None:
-			self.return_slot[0] = self.equipped_triangulation
+		# Write down our current state for output. If we are incomplete then this is just None.
+		self.output = self.equipped_triangulation
 		
 		if self.initialise():
+			# Apparantly there are some problems with comboboxes, see:
+			#  http://stackoverflow.com/questions/15448914/python-tkinter-ttk-combobox-throws-exception-on-quit
+			self.parent.eval('::ttk::CancelRepeat')
 			self.parent.quit()
 	
 	def show_help(self):
@@ -1482,8 +1485,7 @@ class FlipperApp(object):
 def start(load_from=None):
 	root = TK.Tk()
 	root.title('flipper')
-	return_slot = [None]
-	flipper_app = FlipperApp(root, return_slot)
+	flipper_app = FlipperApp(root)
 	root.minsize(300, 300)
 	root.geometry('700x500')
 	if load_from is not None: flipper_app.load(load_from=load_from)
@@ -1496,7 +1498,7 @@ def start(load_from=None):
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
 	root.destroy()
-	return flipper_app.return_slot[0]
+	return flipper_app.output
 
 if __name__ == '__main__':
 	start()

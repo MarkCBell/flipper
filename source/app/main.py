@@ -1407,8 +1407,7 @@ class FlipperApp(object):
 			try:
 				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].invariant_lamination)
 				
-				_, lamination = result
-				self.lamination_to_canvas(lamination)
+				self.lamination_to_canvas(result)
 				self.unsaved_work = True
 			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')

@@ -252,10 +252,10 @@ def create_equipped_triangulation(objects):
 		else:
 			raise ValueError('Each item given must be: Triangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
 	
-	for name, lamination in name_objects(unnamed_laminations, laminations):
+	for name, lamination in flipper.kernel.utilities.name_objects(unnamed_laminations, laminations):
 		laminations[name] = lamination
 	
-	for name, encoding in name_objects(unnamed_mapping_classes, mapping_classes):
+	for name, encoding in flipper.kernel.utilities.name_objects(unnamed_mapping_classes, mapping_classes):
 		mapping_classes[name] = encoding
 	
 	if triangulation is None:

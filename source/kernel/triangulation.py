@@ -575,7 +575,7 @@ class Triangulation(object):
 		
 		
 		isometry = flipper.kernel.Isometry(self, other, corner_map)
-		if respect_fillings and any(vertex.filled != isometry(vertex).filled for vertex in self.vertices):
+		if respect_fillings and any(vertex.filled != isometry(vertex).filled for vertex in self.vertices):  #pylint: disable=maybe-no-member
 			raise flipper.AssumptionError('Isometry does not respect fillings.')
 		
 		return isometry

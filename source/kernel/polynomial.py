@@ -148,7 +148,7 @@ class Polynomial(object):
 	def divides(self, other):
 		''' Return if self divides other. '''
 		
-		_, remainder = divmod(self, other)
+		_, remainder = divmod(other, self)
 		return remainder.is_zero()
 	
 	def rescale(self):
@@ -281,7 +281,7 @@ class PolynomialRoot(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Root of %s (~%s)' % (self.polynomial, self.interval)
+		return 'Root of %s (~%0.6f)' % (self.polynomial, float(self))
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	

@@ -204,7 +204,7 @@ class Polynomial(object):
 		upper_sign_changes = sum(1 for x, y in zip(upper_non_zero_signs, upper_non_zero_signs[1:]) if x * y < 0)
 		return lower_sign_changes - upper_sign_changes
 	
-	def roots(self):
+	def real_roots(self):
 		''' Return a list of (real) PolynomialRoots, one for each root of self.
 		
 		Repeated roots are not returned multiple times. '''

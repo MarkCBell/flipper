@@ -38,7 +38,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	Assumes that C contains at most one interesting eigenvector. '''
 	
 	dot = flipper.kernel.dot
-	eigenvalues = action_matrix.characteristic_polynomial().roots()
+	eigenvalues = action_matrix.characteristic_polynomial().real_roots()
 	
 	# !?! Check this 30.
 	for eigenvalue in sorted(eigenvalues, reverse=True, key=lambda x: x.algebraic_approximation(30)):

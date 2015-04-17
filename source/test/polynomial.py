@@ -15,9 +15,9 @@ def main(verbose=False):
 	tests = [
 		g == f.derivative(),
 		h == f + g,
-		len(f.roots()) == 2,
-		len(p1.roots()) == 3,
-		len(p2.roots()) == 2
+		len(f.real_roots()) == 2,
+		len(p1.real_roots()) == 3,
+		len(p2.real_roots()) == 2
 		]
 	
 	return all(tests)

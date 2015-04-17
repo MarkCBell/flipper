@@ -558,7 +558,7 @@ class Encoding(object):
 		This encoding must be a mapping class. '''
 		
 		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
-			return 0
+			return 1
 		else:
 			lmbda, _ = self.invariant_lamination()
 			return lmbda

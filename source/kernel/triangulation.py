@@ -189,14 +189,13 @@ class Triangulation(object):
 			''' Return the given corner_class but reorderd so that corners occur anti-clockwise about the vertex. '''
 			
 			corner_class = list(corner_class)
-			ordered_class = [corner_class.pop()]
-			while corner_class:
-				for corner in corner_class:
-					if corner.edges[2] == ~ordered_class[-1].edges[1]:
-						ordered_class.append(corner)
-						corner_class.remove(corner)
-						break
-				else:
+			lookup = dict((corner.edges[2], corner) for corner in corner_class)
+			ordered_class = [corner_class[0]]  # Get one corner to start at.
+			# Perhaps this should be chosen in some canonical way. Smallest labelled one?
+			while len(ordered_class) < len(corner_class):
+				try:
+					ordered_class.append(lookup[~ordered_class[-1].edges[1]])
+				except KeyError:
 					raise ValueError('Corners do not close up about vertex.')
 			
 			if ordered_class[0].edges[2] != ~ordered_class[-1].edges[1]:
@@ -206,8 +205,18 @@ class Triangulation(object):
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
 		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.
-		self.genus = (2 - self.euler_characteristic - self.num_vertices) // 2
-		self.max_order = 6 - 4 * self.euler_characteristic  # The maximum order of a periodic mapping class.
+		self.genus = (2 - self.euler_characteristic - self.num_unfilled_vertices) // 2
+		
+		# The maximum order of a periodic mapping class.
+		# These bounds follow from the 4g + 4 bound on the closed surface [Primer reference]
+		# and the Riemann removable singularity theorem which allows us to cap off the
+		# punctures when the genus > 1 without affecting this bound.
+		if self.genus > 1:
+			self.max_order = 4 * self.genus + 2
+		elif self.genus == 1:
+			self.max_order = max(self.num_unfilled_vertices, 6)
+		else:
+			self.max_order = self.num_unfilled_vertices
 	
 	def __repr__(self):
 		return str(self)

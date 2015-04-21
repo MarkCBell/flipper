@@ -10,6 +10,16 @@ Ian Agol.
 \newblock In {\em Topology and geometry in dimension three}, volume 560 of {\em
   Contemp. Math.}, pages 1--17. Amer. Math. Soc., Providence, RI, 2011.
 
+\bibitem{BundleCensuses}
+Mark~C. Bell.
+\newblock {T}able of {B}undles.
+\newblock Available at \url{https://bitbucket.org/Mark_Bell/bundle-censuses}.
+
+\bibitem{KnotInfo}
+J.~C. Cha and C.~Livingston.
+\newblock {K}not{I}nfo: {T}able of {K}not {I}nvariants.
+\newblock Available at \url{http://www.indiana.edu/~knotinfo}.
+
 \bibitem{SnapPy}
 Marc Culler, Nathan~M. Dunfield, and Jeffrey~R. Weeks.
 \newblock Snap{P}y, a computer program for studying the topology of

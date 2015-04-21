@@ -373,6 +373,7 @@ class Encoding(object):
 		RESOLUTION = 200
 		def curve_hash(curve):
 			''' A simple hash mapping cuves to a coarse lattice in PML. '''
+			# Hmmm, concerned about this.
 			w = curve.weight()
 			return tuple([entry * RESOLUTION // w for entry in curve])
 		
@@ -541,7 +542,9 @@ class Encoding(object):
 		try:
 			# This can also fail with a flipper.ComputationError if
 			# self.invariant_lamination() fails to find an invariant lamination.
-			self.splitting_sequence()
+			# We could do any of self.splitting_sequence(), self.canonical(), ...
+			# but this involves the least calculation and so is fastest.
+			self.splitting_sequences()
 		except flipper.AssumptionError:
 			return NT_TYPE_REDUCIBLE
 		
@@ -603,13 +606,11 @@ class Encoding(object):
 			# there canonical forms are cyclically conjugate.
 			mapping_class1 = self.canonical()
 			mapping_class2 = other.canonical()
-			source1 = mapping_class1.source_triangulation
 			for i in range(len(mapping_class2)):
 				# Conjugate around.
 				head = mapping_class2[:1]
 				mapping_class2 = head.inverse() * mapping_class2 * head
-				source2 = mapping_class2.source_triangulation
-				for isom in source1.isometries_to(source2):
+				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True
 			

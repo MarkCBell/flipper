@@ -1206,7 +1206,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			isometries = self.equipped_triangulation.triangulation.self_isometries()
 			
-			# Chop off the 'Isometry [' and ditch the ']'. Return at most 20 characters.
+			# Chop off the 'Isometry [' and ditch the ']'. Return at most max_char characters.
 			max_char = 40
 			name_shrinker = lambda strn: strn[10:].replace(']', '') if len(strn) < max_char + 11 else strn[10:7 + max_char] + '...'
 			

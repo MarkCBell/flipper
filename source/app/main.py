@@ -1204,19 +1204,19 @@ class FlipperApp(object):
 	
 	def store_isometry(self):
 		if self.is_complete():
-			specification = flipper.app.get_input('Isometry specification', 'New isometry:', validate=self.valid_isometry)
+			isometries = self.equipped_triangulation.triangulation.self_isometries()
+			
+			# Chop off the 'Isometry [' and ditch the ']'. Return at most 20 characters.
+			max_char = 40
+			name_shrinker = lambda strn: strn[10:].replace(']', '') if len(strn) < max_char + 11 else strn[10:7 + max_char] + '...'
+			
+			specification = flipper.app.get_choice('Available Isometries.', 'Use isometry mapping edges 0, 1, ... to: ',
+				list(sorted(name_shrinker(str(isom)) for isom in isometries)))
 			if specification is not None:
-				from_edges, to_edges = zip(*[[int(d) for d in x.split(':')] for x in specification.split(' ')])
-				try:
-					# Some of this should really go in self.valid_isometry.
-					isometries_to = self.equipped_triangulation.triangulation.self_isometries()
-					[isometry] = [isom for isom in isometries_to if all(isom.index_map[from_edge] == to_edge for from_edge, to_edge in zip(from_edges, to_edges))]
-				except ValueError:
-					tkMessageBox.showwarning('Isometry', 'Information does not specify a unique isometry.')
-				else:
-					name = flipper.app.get_input('Name', 'New isometry name:', validate=self.valid_name)
-					if name is not None:
-						self.add_mapping_class(isometry.encode(), name)
+				[isometry] = [isom for isom in isometries if name_shrinker(str(isom)) == specification]
+				name = flipper.app.get_input('Name', 'New isometry name:', validate=self.valid_name)
+				if name is not None:
+					self.add_mapping_class(isometry.encode(), name)
 		else:
 			tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute isometry when triangulation is incomplete.')
 	

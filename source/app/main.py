@@ -1211,7 +1211,7 @@ class FlipperApp(object):
 			name_shrinker = lambda strn: strn[10:].replace(']', '') if len(strn) < max_char + 11 else strn[10:7 + max_char] + '...'
 			
 			specification = flipper.app.get_choice('Available Isometries.', 'Use isometry mapping edges 0, 1, ... to: ',
-				list(sorted(name_shrinker(str(isom)) for isom in isometries)))
+				[name_shrinker(str(isom)) for isom in sorted(isometries, key=lambda isom: (isom(0) < 0, abs(isom(0))))])
 			if specification is not None:
 				[isometry] = [isom for isom in isometries if name_shrinker(str(isom)) == specification]
 				name = flipper.app.get_input('Name', 'New isometry name:', validate=self.valid_name)

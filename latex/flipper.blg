@@ -4,45 +4,45 @@ The top-level auxiliary file: flipper.aux
 The style file: plain.bst
 Database file #1: bibliography.bib
 Warning--to sort, need author or key in mercurial
-You've used 4 entries,
+You've used 6 entries,
             2118 wiz_defined-function locations,
-            522 strings with 4625 characters,
-and the built_in function-call counts, 1072 in all, are:
-= -- 105
-> -- 39
+            532 strings with 4889 characters,
+and the built_in function-call counts, 1516 in all, are:
+= -- 146
+> -- 59
 < -- 2
-+ -- 16
-- -- 12
-* -- 57
-:= -- 171
-add.period$ -- 13
-call.type$ -- 4
-change.case$ -- 16
++ -- 24
+- -- 18
+* -- 71
+:= -- 245
+add.period$ -- 19
+call.type$ -- 6
+change.case$ -- 25
 chr.to.int$ -- 0
-cite$ -- 5
-duplicate$ -- 44
-empty$ -- 101
-format.name$ -- 12
-if$ -- 237
+cite$ -- 7
+duplicate$ -- 58
+empty$ -- 145
+format.name$ -- 18
+if$ -- 334
 int.to.chr$ -- 0
-int.to.str$ -- 4
+int.to.str$ -- 6
 missing$ -- 1
-newline$ -- 23
-num.names$ -- 6
-pop$ -- 28
+newline$ -- 33
+num.names$ -- 10
+pop$ -- 45
 preamble$ -- 1
-purify$ -- 13
+purify$ -- 20
 quote$ -- 0
-skip$ -- 35
+skip$ -- 52
 stack$ -- 0
-substring$ -- 39
-swap$ -- 12
+substring$ -- 49
+swap$ -- 14
 text.length$ -- 2
 text.prefix$ -- 0
 top$ -- 0
-type$ -- 16
+type$ -- 24
 warning$ -- 1
-while$ -- 9
-width$ -- 5
-write$ -- 43
+while$ -- 13
+width$ -- 7
+write$ -- 61
 (There was 1 warning)

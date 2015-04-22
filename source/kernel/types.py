@@ -7,12 +7,12 @@ version of Python being used. This is similar to the six module. '''
 import sys
 
 if sys.version_info >= (3, 0):
-	IntegerType = (int,)
 	StringType = str
+	IntegerType = (int,)
 	NumberType = (int, float)
 else:
 	# In Python 2.x an integer can be an int or long (Python automatically switches to longs when required).
-	IntegerType = (int, long)
 	StringType = str
+	IntegerType = (int, long)
 	NumberType = (int, long, float)
 

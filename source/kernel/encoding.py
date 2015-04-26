@@ -149,8 +149,10 @@ class Encoding(object):
 		assert(isinstance(sequence, (list, tuple)))
 		assert(len(sequence) > 0)
 		assert(all(isinstance(item, (EdgeFlip, LinearTransformation, flipper.kernel.Isometry)) for item in sequence))
-		assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
 		assert(isinstance(name, flipper.StringType) or name is None)
+		# We used to also test:
+		#  assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
+		# However this makes composing Encodings a quadratic time algorithm!
 		
 		self.sequence = sequence
 		self.name = name

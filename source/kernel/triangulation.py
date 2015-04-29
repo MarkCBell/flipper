@@ -185,6 +185,7 @@ class Triangulation(object):
 		self.corner_lookup = dict((corner.label, corner) for corner in self.corners)
 		self.vertex_lookup = dict((corner.label, corner.vertex) for corner in self.corners)
 		
+		# This appears to be one of the slowest bits when there is a high degree vertex.
 		def order_corner_class(corner_class):
 			''' Return the given corner_class but reorderd so that corners occur anti-clockwise about the vertex. '''
 			
@@ -192,9 +193,10 @@ class Triangulation(object):
 			lookup = dict((corner.edges[2], corner) for corner in corner_class)
 			ordered_class = [corner_class[0]]  # Get one corner to start at.
 			# Perhaps this should be chosen in some canonical way. Smallest labelled one?
-			while len(ordered_class) < len(corner_class):
+			# This isn't totally safe: it doesn't check that there aren't multiple cycles.
+			for i in range(len(corner_class)-1):
 				try:
-					ordered_class.append(lookup[~ordered_class[-1].edges[1]])
+					ordered_class.append(lookup[~ordered_class[i].edges[1]])
 				except KeyError:
 					raise ValueError('Corners do not close up about vertex.')
 			
@@ -217,6 +219,9 @@ class Triangulation(object):
 			self.max_order = max(self.num_unfilled_vertices, 6)
 		else:
 			self.max_order = self.num_unfilled_vertices
+		
+		# Two triangualtions are the same if and only if they have the same signature.
+		self.signature = [e.label for t in self for e in t]
 	
 	def __repr__(self):
 		return str(self)
@@ -241,7 +246,7 @@ class Triangulation(object):
 		# Triangulations are already pickleable but this results in a smaller pickle.
 		return (self.__class__, (self.triangles,))
 	def __eq__(self, other):
-		return [e.label for t in self for e in t] == [e.label for t in other for e in t]
+		return self.signature == other.signature
 	def __ne__(self, other):
 		return not(self == other)
 	

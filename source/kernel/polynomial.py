@@ -100,10 +100,10 @@ class Polynomial(object):
 	def __divmod__(self, other):
 		''' Return the quotient and remainder (and rescaling) of this polynomial by other.
 		
-		That is, returns polynomials quotient, remainder and an integer scale such that:
+		That is, returns polynomials quotient and remainder such that:
 			scale * self == quotient * other + remainder, and
 			deg(remainder) < deg(other)
-		If self and other are integral, by Gauss' lemma if other | self then scale == +/-1. '''
+		If self and other are integral, by Gauss' lemma if other | self then scale == 1. '''
 		
 		if isinstance(other, Polynomial):
 			if other.is_zero():
@@ -148,8 +148,18 @@ class Polynomial(object):
 	def divides(self, other):
 		''' Return if self divides other. '''
 		
-		_, remainder = divmod(other, self)
+		_, remainder = divmod(self, other)
 		return remainder.is_zero()
+	
+	def gcd(self, other):
+		''' Return the GCD(self, other). '''
+		
+		# Note that doing flipper.kernel.gcd([self, other])
+		# may not give the correct answer, it may have the
+		# wrong scaling due to how divmod works.
+		
+		f = flipper.kernel.gcd([self, other]).rescale()
+		return f * abs(flipper.kernel.gcd(list(self // f) + list(other // f)))
 	
 	def rescale(self):
 		''' Return a possibly simpler polynomial with the same roots. '''
@@ -160,7 +170,7 @@ class Polynomial(object):
 	def square_free(self):
 		''' Return the polynomial with the same roots but each with multiplicity one. '''
 		
-		return self // flipper.kernel.gcd([self, self.derivative()])
+		return self // self.gcd(self.derivative())
 	
 	def signs_at_interval_endpoints(self, interval):
 		''' Return the signs of this polynomial at the endpoints of the given polynomial. '''

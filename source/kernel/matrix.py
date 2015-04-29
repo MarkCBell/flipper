@@ -211,6 +211,10 @@ class Matrix(object):
 			replace row i by row i + k * row j. '''
 		
 		return Matrix([self[n] if n != i else [x+k*y for x, y in zip(self[i], self[j])] for n in range(self.height)])
+	def swap(self, i, j):
+		''' Return the matrix obtained by swapping rows i and j. '''
+		
+		return Matrix([self[j if k == i else i if k == j else k] for k in range(self.height)])
 	def row_reduce(self, zeroing_width=None):
 		''' Return this matrix after applying elementary row operations
 		so that in each row each non-zero entry either:
@@ -264,6 +268,42 @@ class Matrix(object):
 		# Remove dominated rows.
 		rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
 		return Matrix(rows)
+	
+	def LLL(self, delta=0.75):
+		''' Return the delta-LLL reduced basis for this lattice. '''
+		
+		m, n = self.width, self.height
+		X = self
+		print(m, n)
+		
+		while True:
+			mu = zero_matrix(m, n)
+			
+			GS = X
+			print(X)
+			for i in range(n):
+				for j in range(i):
+					mu[i][j] = float(dot(X[i], GS[j])) / float(dot(GS[j], GS[j]))
+					GS = GS.elementary(i, j, -mu[i][j])
+			print('###########')
+			print(GS)
+			
+			M = Matrix([[dot(GS[i], GS[j]) for j in range(n)] for i in range(n)])
+			print(M)
+			
+			for i in range(2, n):
+				for j in range(i-1, 0, -1):
+					X = X.elementary(i, j, -int(round(dot(X[i], GS[j]) / dot(GS[j], GS[j]), 0)))
+			
+			for i in range(n-1):
+				x = [mu[i+1][i] * GS[i][j] + GS[i+1][j] for j in range(m)]
+				if delta * dot(GS[i], GS[i]) > dot(x, x):
+					X = X.swap(i, i+1)
+					break
+			else:
+				break
+		
+		return X
 
 #################################################
 #### Some helper functions for building matrices.

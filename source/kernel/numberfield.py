@@ -189,6 +189,18 @@ class NumberFieldElement(object):
 			raise ValueError('Cannot divide this algebraic number in %s' % str(self.number_field))
 		return quotient
 	
+	def polynomial(self):
+		''' Return a polynomial that this algebraic number is a root of.
+		
+		Note that this is NOT guranteed to return the minimal polynomial
+		of self. However it will whenever:
+			deg(self) == def(self.number_field). '''
+		
+		# We get such a polynomial from the characteristic polynomial of the matrix
+		# describing the action of self on the basis 1, \lmbda, \lambda^2, ...
+		
+		return flipper.kernel.dot(self, self.number_field.companion_matrices).characteristic_polynomial()
+	
 	def __lt__(self, other):
 		return (self - other).sign() == -1
 	def __eq__(self, other):

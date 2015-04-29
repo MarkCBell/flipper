@@ -6,6 +6,7 @@ Provides one class: Matrix.
 There are also helper functions: id_matrix and zero_matrix. '''
 
 import flipper
+from fractions import Fraction
 
 import itertools
 
@@ -36,10 +37,12 @@ class Matrix(object):
 		assert(all(len(row) == self.width for row in self))
 	def __getitem__(self, index):
 		return self.rows[index]
+	def copy(self):
+		return Matrix([list(row) for row in self])
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return '[\n' + ',\n'.join(str(row) for row in self) + '\n]'
+		return '[\n' + ',\n'.join('[' + ', '.join(str(entry) for entry in row) + ']' for row in self) + '\n]'
 	def __len__(self):
 		return self.height
 	def __iter__(self):
@@ -269,41 +272,58 @@ class Matrix(object):
 		rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
 		return Matrix(rows)
 	
-	def LLL(self, delta=0.75):
-		''' Return the delta-LLL reduced basis for this lattice. '''
+	def LLL(self, delta=Fraction(3, 4)):
+		''' Return a delta-LLL reduced basis for the lattice defined by the rows of this matrix. '''
 		
 		m, n = self.width, self.height
-		X = self
-		print(m, n)
 		
+		M = self
+		GS = self  # The Gram-Schmidt orthogonalisation of self.
+		mu = zero_matrix(m, n)
+		for i in range(n):
+			for j in range(i):
+				mu[i][j] = Fraction(dot(self[i], GS[j]), dot(GS[j], GS[j]))
+				GS = GS.elementary(i, j, -mu[i][j])
+		B = [dot(GS[i], GS[i]) for i in range(n)]
+		
+		N = 1
 		while True:
-			mu = zero_matrix(m, n)
+			if abs(mu[N][N-1]) > 0.5:
+				r = int(round(mu[N][N-1], 0))
+				M = M.elementary(N, N-1, -r)
+				for k in range(N-1):
+					mu[N][k] = mu[N][k] - r * mu[N-1][k]
+				mu[N][N-1] = mu[N][N-1] - r
 			
-			GS = X
-			print(X)
-			for i in range(n):
-				for j in range(i):
-					mu[i][j] = float(dot(X[i], GS[j])) / float(dot(GS[j], GS[j]))
-					GS = GS.elementary(i, j, -mu[i][j])
-			print('###########')
-			print(GS)
-			
-			M = Matrix([[dot(GS[i], GS[j]) for j in range(n)] for i in range(n)])
-			print(M)
-			
-			for i in range(2, n):
-				for j in range(i-1, 0, -1):
-					X = X.elementary(i, j, -int(round(dot(X[i], GS[j]) / dot(GS[j], GS[j]), 0)))
-			
-			for i in range(n-1):
-				x = [mu[i+1][i] * GS[i][j] + GS[i+1][j] for j in range(m)]
-				if delta * dot(GS[i], GS[i]) > dot(x, x):
-					X = X.swap(i, i+1)
-					break
+			if B[N] < (delta - mu[N][N-1] * mu[N][N-1])*B[N-1]:
+				u = mu[N][N-1]
+				big_B = B[N] + (u * u) * B[N-1]
+				mu[N][N-1] = u * Fraction(B[N-1], big_B)
+				B[N] = B[N-1] * Fraction(B[N], big_B)
+				B[N-1] = big_B
+				M = M.swap(N, N-1)
+				
+				for j in range(N-1):
+					mu[N-1][j], mu[N][j] = mu[N][j], mu[N-1][j]
+				for i in range(N+1, n):
+					mu[i][N-1], mu[i][N] = mu[N][N-1]*mu[i][N-1] + mu[i][N] - u*mu[i][N]*mu[N][N-1], mu[i][N-1] - u * mu[i][N]
+				
+				if N > 1: N -= 1
 			else:
-				break
+				for j in range(N-2, -1, -1):
+					#M, mu = reducer(M, mu, N, j)
+					if abs(mu[N][j]) > 0.5:
+						r = int(round(mu[N][j], 0))
+						M = M.elementary(N, j, -r)
+						for k in range(j):
+							mu[N][k] = mu[N][k] - r * mu[j][k]
+						mu[N][j] = mu[N][j] - r
+				
+				if N == n-1: break
+				
+				N += 1
 		
-		return X
+		return M
 
 #################################################
 #### Some helper functions for building matrices.

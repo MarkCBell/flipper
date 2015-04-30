@@ -117,7 +117,10 @@ class NumberFieldElement(object):
 		# Let [a_i] := self.linear_combination, [\alpha_i] := N._algebraic_approximations[i].
 		# Let \alpha := sum(a_i * \alpha_i).
 		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
-		self._algebraic_approximation = None
+		self.degree = self.number_field.degree
+		self.log_degree = self.number_field.log_degree
+		self.height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.degree * (self.number_field.height + LOG_2)
+		self._interval = None
 		self.accuracy = -1
 	
 	def __repr__(self):
@@ -201,6 +204,15 @@ class NumberFieldElement(object):
 		
 		return flipper.kernel.dot(self, self.number_field.companion_matrices).characteristic_polynomial()
 	
+	def minimal_polynomial(self):
+		''' Return the minimal polynomial of this algebraic number. '''
+		
+		I = self.interval_approximation(self.degree + self.height)
+		f = I.polynomial(self.degree, self.height)
+		assert(f(self) == 0)
+		
+		return f
+	
 	def __lt__(self, other):
 		return (self - other).sign() == -1
 	def __eq__(self, other):
@@ -219,37 +231,39 @@ class NumberFieldElement(object):
 		
 		return self.algebraic_approximation().sign()
 	
+	def interval_approximation(self, accuracy=0):
+		''' Return an interval containing this algebraic number, correct to at least the requested accuracy. '''
+		
+		min_accuracy = 0
+		target_accuracy = max(accuracy, min_accuracy)
+		
+		if self._interval is None or self._interval.accuracy < target_accuracy:
+			# We need to request a little more accuracy for the intervals of \lmbda**i because of the sum.
+			request_accuracy = target_accuracy + max(flipper.kernel.height_int(coefficient) for coefficient in self) + self.degree
+			intervals = self.number_field.lmbda_approximations(request_accuracy)
+			self._interval = flipper.kernel.dot(self, intervals)
+			assert(self._interval.accuracy >= target_accuracy)
+		
+		return self._interval
+	
 	def algebraic_approximation(self, accuracy=0):
 		''' Return an AlgebraicApproximation of this element which is correct to at least the requested accuracy.
 		
 		The accuracy returned is at least the minimum accuracy needed to determine a unique algebraic number. '''
 		
 		# Let:
-		N = self.number_field
-		d = N.log_degree
-		
 		# Suppose that L is generator of N and this algebraic number is:
 		#   a_0 + a_1 L + ... + a_D L^D.
 		#   = a_0 + (a_1 + ( ... (a_{D-1} + a_D L) ... ) L ) L.
 		# Then by induction on D:
 		#   h(self) <= sum(h(a_i)) + d (h(L) + lg(2)) and
 		#   deg(self) <= D.
-		h = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + N.degree * (N.height + LOG_2)
-		min_accuracy = h + d
+		min_accuracy = self.height + self.log_degree
 		target_accuracy = max(accuracy, min_accuracy)
 		
-		if self._algebraic_approximation is None or self.accuracy < target_accuracy:
-			# Now note that if I_i is an interval approximating L^i to at
-			# least k + max(h(a_i) + D digits of accuracy then sum(a_i I_i)
-			# approximates self to at least k digits of accuracy.
-			request_accuracy = target_accuracy + max(flipper.kernel.height_int(coefficient) for coefficient in self) + N.degree
-			
-			intervals = N.lmbda_approximations(request_accuracy)
-			self._algebraic_approximation = flipper.kernel.AlgebraicApproximation(flipper.kernel.dot(self, intervals), d, h)
-			self.accuracy = self._algebraic_approximation.interval.accuracy
-			assert(self.accuracy >= target_accuracy)
+		request_accuracy = target_accuracy
 		
-		return self._algebraic_approximation
+		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
 	
 	def algebraic_hash_ratio(self, other):
 		''' Return a hashable object representing this algebraic number / other. '''

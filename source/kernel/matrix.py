@@ -289,7 +289,7 @@ class Matrix(object):
 		N = 1
 		while True:
 			if abs(mu[N][N-1]) > 0.5:
-				r = int(round(mu[N][N-1], 0))
+				r = int(round(mu[N][N-1]))
 				M = M.elementary(N, N-1, -r)
 				for k in range(N-1):
 					mu[N][k] = mu[N][k] - r * mu[N-1][k]
@@ -313,7 +313,7 @@ class Matrix(object):
 				for j in range(N-2, -1, -1):
 					#M, mu = reducer(M, mu, N, j)
 					if abs(mu[N][j]) > 0.5:
-						r = int(round(mu[N][j], 0))
+						r = int(round(mu[N][j]))
 						M = M.elementary(N, j, -r)
 						for k in range(j):
 							mu[N][k] = mu[N][k] - r * mu[j][k]

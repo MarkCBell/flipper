@@ -148,7 +148,7 @@ class Polynomial(object):
 	def divides(self, other):
 		''' Return if self divides other. '''
 		
-		_, remainder = divmod(self, other)
+		_, remainder = divmod(other, self)
 		return remainder.is_zero()
 	
 	def gcd(self, other):
@@ -378,6 +378,21 @@ class PolynomialRoot(object):
 		request_accuracy = target_accuracy
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
+	
+	def irreducible_polynomial(self):
+		''' Return a PolynomialRoot where the underlying polynomial is irreducible. '''
+		
+		# We'll build an irreducible polynomial f such that f(self) == 0.
+		# We have that height(f) <= height(self) + 2 deg(f).
+		
+		scale = 10**11
+		I = self.interval_approximation(11)
+		r = I.lower * scale // 10**I.precision
+		M = flipper.kernel.id_matrix(self.degree).join(
+			flipper.kernel.Matrix([[(scale * r**i) // scale**i for i in range(self.degree)]])).transpose()
+		f = Polynomial(M.LLL()[0][:-1])
+		
+		return PolynomialRoot(f, I)
 
 def create_polynomial_root(coefficients, strn):
 	''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''

@@ -59,7 +59,6 @@ class Interval(object):
 		return str(self)
 	def __str__(self):
 		return self.approximate_string(6)
-	
 	def __float__(self):
 		return float(self.approximate_string(30)[:-1])
 	def __hash__(self):
@@ -238,6 +237,20 @@ class Interval(object):
 			return [Interval(10*self.lower + i, 10*self.lower + i+1, self.precision + 1) for i in range(10)]
 		elif d == 0:
 			return [Interval(self.lower, self.upper, self.precision)]
+	
+	def polynomial(self, degree, height):
+		''' Return a polynomial of at most the specified degree and height with a root (hopefully) close to the center of this interval. '''
+		
+		# This needs rechecking against the literature to ensure that M.LLL() works correctly.
+		x = int(log(degree) + height) + 1
+		scale = 10**x
+		
+		# Get an integer approximating self * scale.
+		r = (self.lower + self.upper) // (2 * 10**max(self.precision - x, 0))
+		M = flipper.kernel.id_matrix(degree+1).join(
+			flipper.kernel.Matrix([[scale if i == 0 else r**i // scale**(i-1) for i in range(degree+1)]])).transpose()
+		
+		return flipper.kernel.Polynomial(M.LLL()[0][:-1])
 
 #### Some special Intervals we know how to build.
 

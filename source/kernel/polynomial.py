@@ -30,7 +30,21 @@ class Polynomial(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return ' + '.join('%d*x^%d' % (coefficient, index) for index, coefficient in enumerate(self))
+		# So it turns out that displaying polynomials correctly is really hard.
+		s = ''
+		for index, coefficient in enumerate(self):
+			if coefficient != 0:
+				pos = coefficient > 0
+				power = '^%d' % index if index > 1 else ''
+				coeff = '' if abs(coefficient) == 1 else '%d*' % abs(coefficient)
+				if index == 0:
+					s += str(coefficient)
+				elif s == '':
+					s += '%s%sx%s' % ('' if pos else '-', coeff, power)
+				elif s != '':
+					s += ' %s %sx%s' % ('+' if pos else '-', coeff, power)
+		
+		return '0' if s == '' else s
 	def __bool__(self):
 		return not self.is_zero()
 	def __nonzero__(self):  # For Python2.

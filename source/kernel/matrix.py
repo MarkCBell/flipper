@@ -275,11 +275,18 @@ class Matrix(object):
 	def LLL(self, delta=Fraction(3, 4)):
 		''' Return a delta-LLL reduced basis for the lattice defined by the rows of this matrix. '''
 		
+		# Here we will use Fractions to ensure that we retain absolute precision.
+		
+		# For further information about how this algorithm works see:
+		#	* 'Factoring polynomials with rational coefficients' (Lenstra et al. 1982) in particular
+		#	  Figure 1, available at http://www.cs.elte.hu/~lovasz/scans/lll.pdf
+		#	* LibLLL available at https://github.com/kutio/liblll
+		
 		m, n = self.width, self.height
 		
 		M = self
 		GS = self  # The Gram-Schmidt orthogonalisation of self.
-		mu = zero_matrix(m, n)
+		mu = zero_matrix(m, n)  # The Gram-Schmidt coefficients.
 		for i in range(n):
 			for j in range(i):
 				mu[i][j] = Fraction(dot(self[i], GS[j]), dot(GS[j], GS[j]))
@@ -311,7 +318,6 @@ class Matrix(object):
 				if N > 1: N -= 1
 			else:
 				for j in range(N-2, -1, -1):
-					#M, mu = reducer(M, mu, N, j)
 					if abs(mu[N][j]) > 0.5:
 						r = int(round(mu[N][j]))
 						M = M.elementary(N, j, -r)

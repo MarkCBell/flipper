@@ -37,8 +37,6 @@ class Matrix(object):
 		assert(all(len(row) == self.width for row in self))
 	def __getitem__(self, index):
 		return self.rows[index]
-	def copy(self):
-		return Matrix([list(row) for row in self])
 	def __repr__(self):
 		return str(self)
 	def __str__(self):

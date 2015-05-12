@@ -6,6 +6,7 @@ have weighted brush for painting laminations (in a given field?)
 correct arrows showing edge orientation
 show warning when automatically adding peripheral components
 show vertices as filled / unfilled
+fix multiprocessing on windows bug - __main__.py
 
 ### Documentation ###
 documentation for kernel - sphinx?

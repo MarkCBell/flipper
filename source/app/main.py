@@ -107,6 +107,11 @@ MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
 
+def helper(glob, method, args):
+	result = method(*args)
+	
+	return glob, result
+
 class FlipperApp(object):
 	def __init__(self, parent):
 		self.parent = parent
@@ -1462,16 +1467,12 @@ class FlipperApp(object):
 	
 	def update_cache(self, method, args=None):
 		# So we need to be really careful here. Linux uses copy-on-write (COW) so
-		# when we spawn a new thread in a preogress bar if we ever do something
-		# non-pure and write into that datastructure a copy is taken first.
+		# when we spawn a new thread in a progress bar if we ever do something
+		# non-pure and write into that data structure a copy is taken first.
 		# This means that things may not match up later as, for example, laminations
 		# now exist on a copy of this triangulation.
 		#
 		# I guess this is a strong argument in favour of making functions / methods pure.
-		def helper(glob, method, args):
-			result = method(*args)
-			
-			return glob, result
 		
 		if args is None: args = []
 		self.equipped_triangulation, result = flipper.app.apply_progression(helper, args=(self.equipped_triangulation, method, args))

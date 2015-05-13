@@ -576,6 +576,17 @@ class Encoding(object):
 		
 		return self.splitting_sequence().lamination.is_orientable()
 	
+	def is_primitive(self):
+		''' Return if this mapping class is primitive.
+		
+		This encoding must be a mapping class.
+		
+		Assumes (and checks) that this mapping class is pseudo-Anosov. '''
+		
+		splitting = self.splitting_sequences(take_roots=True)[0]
+		
+		return len(self.canonical()) == len(splitting.mapping_class)
+	
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.
 		
@@ -584,7 +595,7 @@ class Encoding(object):
 		
 		Both encodings must be mapping classes.
 		
-		Assumes that both mapping classes are pseudo-Anosov. '''
+		Currently assumes that at least one mapping class is pseudo-Anosov. '''
 		
 		assert(isinstance(other, Encoding))
 		

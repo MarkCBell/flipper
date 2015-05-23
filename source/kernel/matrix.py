@@ -127,7 +127,7 @@ class Matrix(object):
 		assert(abs(P[0]) == 1)  # Check that the determinant is +/-1.
 		# In the next line we should do x // -P[0], but as we know that P[0] == +/-1
 		# 1/-P[0] == -P[0] and so we can use a cheaper multiplication.
-		return flipper.kernel.Polynomial([x * -P[0] for x in P[1:]])(self)
+		return -P[0] * P.shift(-1)(self)
 	
 	def transpose(self):
 		''' Return the transpose of this matrix. '''
@@ -269,6 +269,24 @@ class Matrix(object):
 		# Remove dominated rows.
 		rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
 		return Matrix(rows)
+	
+	def solve(self, vector):
+		''' Return a vector v such that self * v // det(self) == vector.
+		
+		Assumes and checks that this matrix is invertible.
+		
+		This matrix must be square. '''
+		
+		assert(self.is_square())
+		
+		if self.determinant() == 0:
+			raise flipper.AssumptionError('Matrix is not invertible.')
+		
+		# This uses the Cayley-Hamilton Theorem that:
+		#   self.characteristic_polynomial()(self) == 0
+		# Together with the fact that:
+		#   self.characteristic_polynomial()(0) == det(self)
+		return (-self.characteristic_polynomial().shift(-1)(self))(vector)
 	
 	def LLL(self, delta=Fraction(3, 4)):
 		''' Return a delta-LLL reduced basis for the lattice defined by the rows of this matrix. '''

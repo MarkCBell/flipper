@@ -269,15 +269,6 @@ class NumberFieldElement(object):
 		request_accuracy = target_accuracy
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
-	
-	def algebraic_hash_ratio(self, other):
-		''' Return a hashable object representing this algebraic number / other. '''
-		
-		# !?! RECHEK THIS AGAINST interval.py.
-		
-		i1 = self.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
-		i2 = other.algebraic_approximation(2*HASH_DENOMINATOR).interval.change_denominator(2*HASH_DENOMINATOR)
-		return (i1 / i2).change_denominator(HASH_DENOMINATOR).tuple()
 
 def create_number_field(coefficients, strn):
 	''' A short way of constructing a NumberField from a list of coefficients and a string. '''

@@ -165,12 +165,14 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __rsub__(self, other):
 		return -(self - other)
+	def companion_matrix(self):
+		return flipper.kernel.dot(self, self.number_field.companion_matrices)
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot multiply elements of different number fields.')
 			
-			return self.number_field.element(flipper.kernel.dot(self, self.number_field.companion_matrices)(other.linear_combination))
+			return self.number_field.element(self.companion_matrix()(other.linear_combination))
 		elif isinstance(other, flipper.IntegerType):
 			return self.number_field.element([a * other for a in self])
 		else:

@@ -157,28 +157,10 @@ class Lamination(object):
 		''' Return a hashable object that is invariant under isometries and rescaling. '''
 		
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
-		
+		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
 		L = self.projectivise()
-		
-		#T = L.triangulation
-		#max_weight = max(L)
-		#tt = T.iso_sig(start_points=[
-		#	(corner.triangle, flipper.kernel.permutation.cyclic_permutation(corner.side, 3))
-		#	for corner in T.corners
-		#	if L[corner.index] == max_weight])
-		
-		#triples = [tuple([L[corner.index] for corner in corner_class]) for corner_class in L.triangulation.corner_classes]
-		#triples_sorted = tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples]))
-		
-		
 		triples2 = [tuple([L[edge] for edge in triangle]) for triangle in L.triangulation]
 		return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples2]))
-		
-		#return (tt,) + triples_sorted + triples_sorted2
-		
-		return tuple(sorted([tuple(sorted([L[edge] for edge in triangle])) for triangle in L.triangulation]))
-		
-		return tuple(sorted(self.projectivise()))
 	
 	def weight(self):
 		''' Return the sum of the geometric of this lamination. '''

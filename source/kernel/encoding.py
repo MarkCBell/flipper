@@ -369,6 +369,10 @@ class Encoding(object):
 		# periodic or reducible. We test for periodicity at the beginning hence if we ever find a curve
 		# fixed by a power of self then we must reducible.
 		
+		# Possible future improvements:
+		#  - Store the checked cells in a hash map to prevent rerunning the expensive symboliccomputation.directed_eigenvector.
+		#  - Automatically update to a finer RESOLUTION whenever you fail to get a lamination from symboliccomputation.directed_eigenvector.
+		
 		assert(self.is_mapping_class())
 		
 		# We will use a hash to significantly speed up the algorithm.

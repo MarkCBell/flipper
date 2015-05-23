@@ -159,8 +159,9 @@ class Lamination(object):
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
 		L = self.projectivise()
-		triples2 = [tuple([L[edge] for edge in triangle]) for triangle in L.triangulation]
-		return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples2]))
+		# In this version we'll store the sorted, cyclically ordered, triangles.
+		triples = [tuple([L[edge] for edge in triangle]) for triangle in L.triangulation]
+		return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples]))
 	
 	def weight(self):
 		''' Return the sum of the geometric of this lamination. '''

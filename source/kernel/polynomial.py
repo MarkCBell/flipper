@@ -96,12 +96,14 @@ class Polynomial(object):
 	def shift(self, power):
 		''' Return this polynomial multiplied by x^power.
 		
-		Power must be an integer >= 0. '''
+		Power must be an integer '''
 		
 		assert(isinstance(power, flipper.IntegerType))
-		assert(power >= 0)
 		
-		return Polynomial([0] * power + self.coefficients)
+		if power >= 0:
+			return Polynomial([0] * power + self.coefficients)
+		else:
+			return Polynomial(self.coefficients[abs(power):])
 	
 	def __call__(self, other):
 		# It is significantly more efficient to compute self(other) as:

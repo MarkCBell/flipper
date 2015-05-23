@@ -140,6 +140,9 @@ class NumberFieldElement(object):
 		return self != 0
 	def __nonzero__(self):  # For Python2.
 		return self.__bool__()
+	def __hash__(self):
+		# Warning: This is only really a hash when self.number_field.polynomial is irreducible.
+		return hash(tuple(self.linear_combination))
 	
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])

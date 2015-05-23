@@ -157,8 +157,7 @@ class Lamination(object):
 		''' Return a hashable object that is invariant under isometries and rescaling. '''
 		
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
-		w = self.weight()
-		return tuple(sorted([x.algebraic_hash_ratio(w) for x in self]))
+		return tuple(sorted(self.projectivise()))
 	
 	def weight(self):
 		''' Return the sum of the geometric of this lamination. '''

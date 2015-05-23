@@ -137,6 +137,22 @@ class Lamination(object):
 		# We can't do division so we have to cross multiply.
 		return self * other.weight() == other * self.weight()
 	
+	def projectivise(self):
+		''' Return a canonically rescalled version of this lamination. '''
+		
+		# Start by dividing out by the weight.
+		w = self.weight()
+		companion_matrix = w.companion_matrix()
+		N = w.number_field
+		new_entries = [companion_matrix.solve(entry.linear_combination) for entry in self]
+		# Now we need to divide out by the denominator:
+		det = companion_matrix.determinant()
+		# So find the gcd of all of the terms and divide by that.
+		common = flipper.kernel.gcd([coeff for entry in new_entries for coeff in entry] + [det])
+		new_new_entries = [N.element([coeff // common for coeff in entry]) for entry in new_entries]
+		
+		return self.triangulation.lamination(new_new_entries, remove_peripheral=False)
+	
 	def projective_hash(self):
 		''' Return a hashable object that is invariant under isometries and rescaling. '''
 		

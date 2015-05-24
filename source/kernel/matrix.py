@@ -26,6 +26,10 @@ def dot(a, b):
 	return sum(x * y for x, y in zip(a, b))
 
 def round_fraction(x):
+	''' Return the integer closest to this fraction.
+	
+	Note that we can't use int(round(x)) as x may be too large
+	to be represented as a float. '''
 	
 	# There are three possibilities for what could be the closest integer.
 	return min([int(x), int(x) - 1, int(x) + 1], key=lambda y: abs(y - x))

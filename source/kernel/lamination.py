@@ -10,7 +10,7 @@ try:
 except ImportError:
 	from queue import Queue
 
-HASH_DENOMINATOR = 50
+HASH_DENOMINATOR = 30
 
 class Lamination(object):
 	''' This represents a lamination on an triangulation.

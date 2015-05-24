@@ -601,27 +601,32 @@ class Lamination(object):
 				except flipper.AssumptionError:
 					raise flipper.AssumptionError('Lamination is not filling.')
 			
+			# In the next block we have a lot of tests to do. We'll do these in
+			# order of difficulty of computation. For example, computing
+			# projective_isometries is slow; so we'll leave that to last to give
+			# us the best chance that a faster test failing will allow us to
+			# skip it.
+			
 			# Check if it (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					old_lamination = laminations[index]
-					isometries = lamination.all_projective_isometries(old_lamination)
-					if len(isometries) > 0:
-						if dilatation is None or old_lamination.weight() == dilatation * lamination.weight():
-							# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
-							if num_isometries[-1] == max(num_isometries[index:]):
+					# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
+					if num_isometries[-1] == max(num_isometries[index:]):
+						old_lamination = laminations[index]
+						if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
+							isometries = lamination.all_projective_isometries(old_lamination)
+							if len(isometries) > 0:
+								assert(old_lamination.weight() == dilatation * lamination.weight())
 								return [flipper.kernel.SplittingSequence(encodings + [isom.encode()], index, dilatation, laminations[index]) for isom in isometries]
-						elif old_lamination.weight() < dilatation * lamination.weight():
-							# dilatation is not None.
+						else:
+							# dilatation is not None and:
+							#   old_lamination.weight() < dilatation * lamination.weight():
 							# Note that the weight of laminations is strictly deacresing and the
 							# indices of seen[target] are increasing. Thus if we are in this case
 							# then the same inequality holds for every later index in seen[target].
 							# Hence we may break out.
 							break
-						else:
-							# dilatation is not None.
-							assert(old_lamination.weight() < dilatation * lamination.weight())
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

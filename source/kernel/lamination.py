@@ -157,14 +157,15 @@ class Lamination(object):
 		
 		return self.triangulation.lamination(new_new_entries, remove_peripheral=False)
 	
-	def projective_hash(self):
+	def projective_hash(self, precision=HASH_DENOMINATOR):
 		''' Return a hashable object that is invariant under isometries and rescaling. '''
 		
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
 		w = self.weight()
-		wi = w.interval_approximation(2*HASH_DENOMINATOR)
-		L = [(entry.interval_approximation(2*HASH_DENOMINATOR) / wi).change_denominator(HASH_DENOMINATOR).tuple() for entry in self]
+		wi = w.interval_approximation(2*precision)
+		# Do we need to worry about division by zero?
+		L = [(entry.interval_approximation(2*precision) / wi).change_denominator(precision).tuple() for entry in self]
 		# Other (slow) ways of projectivising:
 		# L = [entry // w for entry in self]
 		# L = self.projectivise()
@@ -557,6 +558,12 @@ class Lamination(object):
 		
 		Each entry of self.geometric must be an Integer or a NumberFieldElement (over
 		the same NumberField). '''
+		
+		# In this method we use Lamination.projective_hash to store the laminations
+		# we encounter efficiently and so avoid a quadratic algorithm. This currently
+		# only ever uses the default precision HASH_DENOMINATOR. At some point this
+		# should change dynamically depending on the algebraic numbers involved in
+		# this lamination.
 		
 		assert(all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self))
 		assert(len(set([entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement)])) <= 1)

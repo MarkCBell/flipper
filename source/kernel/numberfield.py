@@ -19,7 +19,6 @@ import flipper
 from math import log10 as log
 
 LOG_2 = log(2)
-HASH_DENOMINATOR = 30
 
 def height_int(number):
 	''' Return the height of the given integer. '''
@@ -183,19 +182,48 @@ class NumberFieldElement(object):
 	def __rmul__(self, other):
 		return self * other
 	
-	def __divmod__(self, other):
-		if isinstance(other, flipper.IntegerType):
-			return self.number_field.element([coeff // other for coeff in self]), self.number_field.element([coeff % other for coeff in self])
+	def __div__(self, other):
+		if other == 0:
+			raise ZeroDivisionError
+		
+		if isinstance(other, NumberFieldElement):
+			if self.number_field != other.number_field:
+				raise TypeError('Cannot multiply elements of different number fields.')
+			
+			I = flipper.kernel.id_matrix(self.degree+1)
+			precision = int(self.height + other.height + self.degree) + 1
+			while True:
+				k = 10**precision
+				
+				lmbdas = self.number_field.lmbda_approximations(2*precision)
+				
+				a = self.interval_approximation(precision)
+				b = other.interval_approximation(precision)
+				
+				M = I.join(flipper.kernel.Matrix([[int(k * lmbda) for lmbda in lmbdas] + [int(k * a / b)]])).transpose()
+				N = M.LLL()  # This is really slow :(.
+				div, scalar = self.number_field.element(N[0][:self.degree]), -N[0][-2]
+				if div * other == scalar * self:
+					return div, scalar
+				else:
+					# This should never happen if we chose precision correctly.
+					# However Cohen described this choice as `subtle' so let's be
+					# careful and repeat the calculation if we got the wrong answer.
+					precision = 2 * precision
+			return c, s
+		elif isinstance(other, flipper.IntegerType):
+			return self.number_field.element([coeff // other for coeff in self])
 		else:
 			return NotImplemented
+	def __truediv__(self, other):
+		return self.__div__(other)
+	def __floordiv__(self, other):
+		return self.__div__(other)
 	def __mod__(self, other):
-		_, remainder = divmod(self, other)
-		return remainder
-	def __div__(self, other):
-		quotient, remainder = divmod(self, other)
-		if not remainder.is_zero():  # Division isn't perfect.
-			raise ValueError('Cannot divide this algebraic number in %s' % str(self.number_field))
-		return quotient
+		if isinstance(other, flipper.IntegerType):
+			return self.number_field.element([coeff % other for coeff in self])
+		else:
+			return NotImplemented
 	
 	def polynomial(self):
 		''' Return a polynomial that this algebraic number is a root of.

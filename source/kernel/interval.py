@@ -213,8 +213,6 @@ class Interval(object):
 			return NotImplemented
 	def __truediv__(self, other):
 		return self.__div__(other)
-	def __floordiv__(self, other):
-		return self.__div__(other)
 	
 	def midpoint(self, magnitude=10):
 		''' Return a smaller interval containing the midpoint of this interval. '''

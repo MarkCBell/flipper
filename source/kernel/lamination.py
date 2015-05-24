@@ -10,6 +10,8 @@ try:
 except ImportError:
 	from queue import Queue
 
+HASH_DENOMINATOR = 50
+
 class Lamination(object):
 	''' This represents a lamination on an triangulation.
 	
@@ -138,7 +140,9 @@ class Lamination(object):
 		return self * other.weight() == other * self.weight()
 	
 	def projectivise(self):
-		''' Return a canonically rescalled version of this lamination. '''
+		''' Return a canonically rescalled version of this lamination.
+		
+		This is currently pretty slow. '''
 		
 		# Start by dividing out by the weight.
 		w = self.weight()
@@ -158,9 +162,15 @@ class Lamination(object):
 		
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
-		L = self.projectivise()
+		w = self.weight()
+		wi = w.interval_approximation(2*HASH_DENOMINATOR)
+		L = [(entry.interval_approximation(2*HASH_DENOMINATOR) / wi).change_denominator(HASH_DENOMINATOR).tuple() for entry in self]
+		# Other (slow) ways of projectivising:
+		# L = [entry // w for entry in self]
+		# L = self.projectivise()
+		
 		# In this version we'll store the sorted, cyclically ordered, triangles.
-		triples = [tuple([L[edge] for edge in triangle]) for triangle in L.triangulation]
+		triples = [tuple([L[edge.index] for edge in triangle]) for triangle in self.triangulation]
 		return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples]))
 	
 	def weight(self):

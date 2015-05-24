@@ -61,6 +61,10 @@ class Interval(object):
 		return self.approximate_string(6)
 	def __float__(self):
 		return float(self.approximate_string(30)[:-1])
+	def __int__(self):
+		# Return an integer approximating this. We really return the floor
+		# but we avoid __floor__ and __ceil__ as these expect floats.
+		return self.lower // 10**self.precision
 	def __hash__(self):
 		return hash(self.tuple())
 	
@@ -208,6 +212,8 @@ class Interval(object):
 		else:
 			return NotImplemented
 	def __truediv__(self, other):
+		return self.__div__(other)
+	def __floordiv__(self, other):
 		return self.__div__(other)
 	
 	def midpoint(self, magnitude=10):

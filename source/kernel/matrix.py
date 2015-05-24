@@ -25,6 +25,11 @@ def dot(a, b):
 	#return c
 	return sum(x * y for x, y in zip(a, b))
 
+def round_fraction(x):
+	
+	# There are three possibilities for what could be the closest integer.
+	return min([int(x), int(x) - 1, int(x) + 1], key=lambda y: abs(y - x))
+
 class Matrix(object):
 	''' This represents a matrix. '''
 	def __init__(self, data):
@@ -312,7 +317,7 @@ class Matrix(object):
 		N = 1
 		while True:
 			if abs(mu[N][N-1]) > 0.5:
-				r = int(round(mu[N][N-1]))
+				r = round_fraction(mu[N][N-1])
 				M = M.elementary(N, N-1, -r)
 				for k in range(N-1):
 					mu[N][k] = mu[N][k] - r * mu[N-1][k]
@@ -335,7 +340,7 @@ class Matrix(object):
 			else:
 				for j in range(N-2, -1, -1):
 					if abs(mu[N][j]) > 0.5:
-						r = int(round(mu[N][j]))
+						r = round_fraction(mu[N][j])
 						M = M.elementary(N, j, -r)
 						for k in range(j):
 							mu[N][k] = mu[N][k] - r * mu[j][k]

@@ -168,6 +168,10 @@ class NumberFieldElement(object):
 	def __rsub__(self, other):
 		return -(self - other)
 	def companion_matrix(self):
+		''' Return the companion matrix of this Element.
+		
+		This describes how multiplication by this Element acts on the underlying vector space. '''
+		
 		return flipper.kernel.dot(self, self.number_field.companion_matrices)
 	def __mul__(self, other):
 		if isinstance(other, NumberFieldElement):
@@ -210,7 +214,6 @@ class NumberFieldElement(object):
 					# However Cohen described this choice as `subtle' so let's be
 					# careful and repeat the calculation if we got the wrong answer.
 					precision = 2 * precision
-			return c, s
 		elif isinstance(other, flipper.IntegerType):
 			return self.number_field.element([coeff // other for coeff in self])
 		else:

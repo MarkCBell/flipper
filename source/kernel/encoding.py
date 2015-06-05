@@ -398,9 +398,9 @@ class Encoding(object):
 			curves.append(new_curve)
 			
 			# print(i, new_curve)
-			h = curve_hash(new_curve)
-			if h in seen:
-				for j in reversed(seen[h]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
+			hsh = curve_hash(new_curve)
+			if hsh in seen:
+				for j in reversed(seen[hsh]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
 					# Check if we have seen this curve before.
 					if new_curve == curves[j]:  # self**(i-j)(new_curve) == new_curve, so self is reducible.
 						raise flipper.AssumptionError('Mapping class is reducible.')
@@ -424,9 +424,9 @@ class Encoding(object):
 							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 								return eigenvalue, invariant_lamination
 				
-				seen[h].append(i+1)
+				seen[hsh].append(i+1)
 			else:
-				seen[h] = [i+1]
+				seen[hsh] = [i+1]
 			
 			# We now have an extra test to handle the case when self is reducible and curve lies only in periodic parts.
 			if len(seen[h]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.

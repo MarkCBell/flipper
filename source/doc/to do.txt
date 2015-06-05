@@ -4,6 +4,8 @@ undo and redo
 autosave session
 have weighted brush for painting laminations (in a given field?)
 correct arrows showing edge orientation
+show arrows 2/3 of the way along edges
+switch lamination drawing method on update
 show warning when automatically adding peripheral components
 show vertices as filled / unfilled
 fix multiprocessing on windows bug - __main__.py
@@ -18,6 +20,7 @@ upload version with:
 	python setup.py sdist register upload
 
 ### Kernel ###
+rescale invariant lamination such that weight is in [1, lamination)
 deal with disconnected surfaces
 extend symboliccomputation_dummy to work in all cases
 faster Matrix.kernel
@@ -25,7 +28,6 @@ lamination should have an associated number field
 be able to (half) twist along all curves - construct chain - use H_1 code?
 recheck ALL number theory bounds
 Add function to convert Twister surface files to flipper.EquippedTriangulations
-Polynomial.factor()
 
 ### Tests ###
 add more tests

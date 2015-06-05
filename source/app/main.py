@@ -1229,7 +1229,7 @@ class FlipperApp(object):
 		if self.is_complete():
 			composition = flipper.app.get_input('Composition', 'New composition:', validate=self.valid_composition)
 			if composition is not None:
-				name = flipper.app.get_input('Name', 'New composition name:', validate=self.valid_name)
+				name = flipper.app.get_input('Name', 'New composition name:', default=composition.replace('.', '_'), validate=self.valid_name)
 				if name is not None:
 					# self.valid_composition made sure that this wont fail.
 					mapping_class = self.equipped_triangulation.mapping_class(composition)

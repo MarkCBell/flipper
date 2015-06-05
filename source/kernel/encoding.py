@@ -312,6 +312,32 @@ class Encoding(object):
 		
 		return self.order() > 0
 	
+	def is_reducible(self):
+		''' Return if this encoding is reducible and NOT periodic.
+		
+		This encoding must be a mapping class.
+		
+		>>> aB.is_reducible(), a.is_reducible()
+		(False, True)
+		>>> i.is_reducible(), ab.is_reducible()
+		(False, False)
+		'''
+		
+		return self.nielsen_thurston_type() == NT_TYPE_REDUCIBLE
+	
+	def is_pseudo_anosov(self):
+		''' Return if this encoding is pseudo-Anosov.
+		
+		This encoding must be a mapping class.
+		
+		>>> aB.is_pseudo_anosov(), a.is_pseudo_anosov()
+		(True, False)
+		>>> i.is_pseudo_anosov(), ab.is_pseudo_anosov()
+		(False, False)
+		'''
+		
+		return self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV
+	
 	def applied_geometric(self, lamination):
 		''' Return the action and condition matrices describing the PL map
 		applied to the geometric coordinates of the given lamination. '''
@@ -429,7 +455,7 @@ class Encoding(object):
 				seen[hsh] = [i+1]
 			
 			# We now have an extra test to handle the case when self is reducible and curve lies only in periodic parts.
-			if len(seen[h]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.
+			if len(seen[hsh]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.
 				for j in reversed(range(max(len(curves) - max_order, 0), len(curves)-1)):
 					# A good guess for the reducing curve is the (additive) growth rate.
 					vector = [x - y for x, y in zip(new_curve, curves[j])]

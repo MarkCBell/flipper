@@ -175,7 +175,7 @@ class Lamination(object):
 		return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples]))
 	
 	def weight(self):
-		''' Return the sum of the geometric of this lamination. '''
+		''' Return the sum of the geometric intersection numbers of this lamination. '''
 		
 		return sum(self.geometric)
 	

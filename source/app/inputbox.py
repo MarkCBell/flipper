@@ -5,7 +5,7 @@ except ImportError:  # Python 3.
 	import tkinter as TK
 
 class GetStringApp(object):
-	def __init__(self, title, prompt, validate=None, host_app_parent=None):
+	def __init__(self, title, prompt, default='', validate=None, host_app_parent=None):
 		if host_app_parent is None: host_app_parent = TK._default_root
 		self.host_app_parent = host_app_parent
 		self.validate = validate
@@ -23,7 +23,10 @@ class GetStringApp(object):
 		self.button_ok.pack(pady=2, fill='x', expand=True)
 		self.button_cancel.pack(pady=2, fill='x', expand=True)
 		
-		self.text_entry = TK.Entry(self.parent, width=40)
+		self.variable = TK.StringVar()
+		self.text_entry = TK.Entry(self.parent, width=40, textvariable=self.variable)
+		self.variable.set(default)
+		self.text_entry.selection_range(0, TK.END)
 		
 		self.text_label.grid(row=0, column=0, padx=5, pady=5, sticky='nw')
 		self.button_frame.grid(row=0, column=1, padx=5, pady=5, sticky='e')
@@ -64,6 +67,6 @@ class GetStringApp(object):
 		self.host_app_parent.focus_set()
 		self.parent.destroy()
 
-def get_input(title, prompt, validate=None, host_app_parent=None):
-	return GetStringApp(title, prompt, validate, host_app_parent).get_result()
+def get_input(title, prompt, default='', validate=None, host_app_parent=None):
+	return GetStringApp(title, prompt, default, validate, host_app_parent).get_result()
 

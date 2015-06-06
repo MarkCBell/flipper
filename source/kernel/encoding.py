@@ -5,6 +5,8 @@ Provides four classes: PartialFunction, BasicPLFunction, PLFunction and Encoding
 
 import flipper
 
+from itertools import groupby
+
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
@@ -402,12 +404,12 @@ class Encoding(object):
 		assert(self.is_mapping_class())
 		
 		# We will use a hash to significantly speed up the algorithm.
-		RESOLUTION = 200
-		def curve_hash(curve):
+		resolution = 200
+		def curve_hash(curve, resolution):
 			''' A simple hash mapping cuves to a coarse lattice in PML. '''
 			# Hmmm, concerned about this.
 			w = curve.weight()
-			return tuple([entry * RESOLUTION // w for entry in curve])
+			return tuple([entry * resolution // w for entry in curve])
 		
 		# We start with a fast test for periodicity.
 		# This isn't needed but it means that if we ever discover that
@@ -418,13 +420,15 @@ class Encoding(object):
 		triangulation = self.source_triangulation
 		max_order = triangulation.max_order
 		curves = [triangulation.key_curves()[0]]
-		seen = {curve_hash(curves[0]): [0]}
-		for i in range(max(10 * max_order, 100)):  # Experimentally this is a good number to do. Should it be max_order**2?
+		seen = {curve_hash(curves[0], resolution): [0]}
+		# Experimentally this is a good number to do.
+		# Should it be max_order**2 or even depend on len(self)?
+		for i in range(max(10 * max_order, 100)):
 			new_curve = self(curves[-1])
 			curves.append(new_curve)
 			
 			# print(i, new_curve)
-			hsh = curve_hash(new_curve)
+			hsh = curve_hash(new_curve, resolution)
 			if hsh in seen:
 				for j in reversed(seen[hsh]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
 					# Check if we have seen this curve before.
@@ -451,6 +455,13 @@ class Encoding(object):
 								return eigenvalue, invariant_lamination
 				
 				seen[hsh].append(i+1)
+				
+				# Recompute seen to a higher resolution.
+				# This reduces the chances that we will get false positives that need
+				# to have an expensive directed_eigenvector calculation done on them.
+				resolution = resolution * 10  # Crank up exponentially.
+				new_hashes = sorted((curve_hash(curve, resolution), index) for index, curve in enumerate(curves))
+				seen = dict([(k, [index for hsh, index in list(g)]) for k, g in groupby(new_hashes, key=lambda (x, y): x)])
 			else:
 				seen[hsh] = [i+1]
 			

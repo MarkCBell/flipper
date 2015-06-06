@@ -5,8 +5,6 @@ Provides four classes: PartialFunction, BasicPLFunction, PLFunction and Encoding
 
 import flipper
 
-from itertools import groupby
-
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
@@ -407,9 +405,9 @@ class Encoding(object):
 		resolution = 200
 		def curve_hash(curve, resolution):
 			''' A simple hash mapping cuves to a coarse lattice in PML. '''
-			# Hmmm, concerned about this.
+			# Hmmm, this can suffer from // always rounding down.
 			w = curve.weight()
-			return tuple([entry * resolution // w for entry in curve])
+			return (resolution,) + tuple([entry * resolution // w for entry in curve])
 		
 		# We start with a fast test for periodicity.
 		# This isn't needed but it means that if we ever discover that
@@ -454,14 +452,12 @@ class Encoding(object):
 							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 								return eigenvalue, invariant_lamination
 				
-				seen[hsh].append(i+1)
-				
 				# Recompute seen to a higher resolution.
 				# This reduces the chances that we will get false positives that need
 				# to have an expensive directed_eigenvector calculation done on them.
 				resolution = resolution * 10  # Crank up exponentially.
-				new_hashes = sorted((curve_hash(curve, resolution), index) for index, curve in enumerate(curves))
-				seen = dict([(k, [index for hsh, index in list(g)]) for k, g in groupby(new_hashes, key=lambda (x, y): x)])
+				# Having changed resolution we have to recompute hsh.
+				seen[curve_hash(new_curve, resolution)] = [i+1]
 			else:
 				seen[hsh] = [i+1]
 			

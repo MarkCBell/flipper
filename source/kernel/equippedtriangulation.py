@@ -201,6 +201,37 @@ class EquippedTriangulation(object):
 		# This can fail with a KeyError.
 		decomposition = [self.mapping_classes[letter] for subword in word.split('.') for letter in self.decompose_word(subword)]
 		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding())
+	
+	def decompose_mapping_class(self, mapping_class, length=3):
+		
+		assert(isinstance(mapping_class, flipper.kernel.Encoding))
+		assert(mapping_class.is_mapping_class())
+		assert(self.triangulation == mapping_class.source_triangulation)
+		
+		curves = [mapping_class(curve) for curve in self.triangulation.key_curves()]
+		total_weight = sum(curve.weight() for curve in curves)
+		w = []
+		
+		words = list(self.all_words(length, conjugate=False))
+		data = [(word, self.mapping_class(word)) for word in words if word != '']
+		print(words)
+		
+		while True:
+			letter, new_curves = min(
+				[(word, [gen(curve) for curve in curves]) for word, gen in data],
+				key=lambda (w, cs): sum(c.weight() for c in cs)
+				)
+			
+			new_total_weight = sum(curve.weight() for curve in new_curves)
+			print(total_weight, new_total_weight)
+			if new_total_weight > total_weight:
+				break
+			curves = new_curves
+			total_weight = new_total_weight
+			
+			w.append(letter)
+		
+		return '.'.join(w)
 
 
 def create_equipped_triangulation(objects):

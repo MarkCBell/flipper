@@ -435,6 +435,8 @@ class Encoding(object):
 					# Average the last few curves in case they have 'spiralled' around the fixedpoint.
 					average_curve = sum(curves[j:])
 					action_matrix, condition_matrix = self.applied_geometric(average_curve)
+					# We could also store condition_matrix in a set to ensure that we never test the same cell
+					# twice. However this does not appear to happen in practice so we wont bother (yet).
 					try:
 						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
 							action_matrix, condition_matrix, average_curve)

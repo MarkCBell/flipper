@@ -3,7 +3,6 @@
 undo and redo
 autosave session
 have weighted brush for painting laminations (in a given field?)
-correct arrows showing edge orientation
 show arrows 2/3 of the way along edges
 switch lamination drawing method on update
 show warning when automatically adding peripheral components

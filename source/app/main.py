@@ -935,12 +935,12 @@ class FlipperApp(object):
 		# Now orient the edges so they match.
 		[t1], [t2] = e1.in_triangles, e2.in_triangles
 		[s1], [s2] = [i for i in range(3) if t1.edges[i] == e1], [i for i in range(3) if t2.edges[i] == e2]
+		# Determine if the orientation of e1 (respectively e2) agrees with t1 (resp. t2).
 		e1_agrees = e1[0] == t1[s1 + 1]
 		e2_agrees = e2[0] == t2[s2 + 1]
+		# We need one to agree and one to disagree - so if not then flip the orientation of e2.
 		if e1_agrees == e2_agrees:
 			e2.flip_orientation()
-		#if e1[0] != t1[s1 + 1]: e1.flip_orientation()  # Set e1 to agree with the orientation of the triangle containing it,
-		#if e2[0] != t2[s2 + 2]: e2.flip_orientation()  # and e2 to disagree.
 		
 		# Change colour.
 		new_colour = self.colour_picker.get_colour()

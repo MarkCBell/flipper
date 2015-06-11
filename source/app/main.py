@@ -508,20 +508,28 @@ class FlipperApp(object):
 				
 				initial_edge_index = min(i for i in range(triangulation.zeta) if not dual_tree[i])
 				to_extend = [(0, 1, initial_edge_index)]
-				edges = [(0, 1, initial_edge_index, None)]
+				# Hmmm, need to be more careful here to ensure that we correctly orient the edges.
+				edges = [(1, 0, initial_edge_index, None)]
 				while to_extend:
 					source_vertex, target_vertex, label = to_extend.pop()
 					left, right = num_descendants(label)
+					far_vertex = target_vertex + left + 1
 					corner = triangulation.corner_of_edge(label)
 					
-					edges.append((target_vertex + left + 1, target_vertex, corner.indices[2], None))
-					edges.append((source_vertex, target_vertex + left + 1, corner.indices[1], None))
+					if corner.labels[2] == corner.indices[2]:
+						edges.append((far_vertex, target_vertex, corner.indices[2], None))
+					else:
+						edges.append((target_vertex, far_vertex, corner.indices[2], None))
+					if corner.labels[1] == corner.indices[1]:
+						edges.append((source_vertex, far_vertex, corner.indices[1], None))
+					else:
+						edges.append((far_vertex, source_vertex, corner.indices[1], None))
 					
 					if left > 0:
-						to_extend.append((target_vertex + left + 1, target_vertex, ~(corner.labels[2])))
+						to_extend.append((far_vertex, target_vertex, ~(corner.labels[2])))
 					
 					if right > 0:
-						to_extend.append((source_vertex, target_vertex + left + 1, ~(corner.labels[1])))
+						to_extend.append((source_vertex, far_vertex, ~(corner.labels[1])))
 				
 				for i, j in combinations(range(len(edges)), r=2):
 					if edges[i][2] == edges[j][2]:
@@ -568,7 +576,7 @@ class FlipperApp(object):
 			self.destroy_lamination()
 			
 			self.unsaved_work = False
-		except (flipper.AssumptionError, IndexError, ValueError) as error:
+		except flipper.AssumptionError as error:  # (flipper.AssumptionError, IndexError, ValueError) as error:
 			tkMessageBox.showerror('Load Error', error.message)
 	
 	def load_example(self):
@@ -927,8 +935,12 @@ class FlipperApp(object):
 		# Now orient the edges so they match.
 		[t1], [t2] = e1.in_triangles, e2.in_triangles
 		[s1], [s2] = [i for i in range(3) if t1.edges[i] == e1], [i for i in range(3) if t2.edges[i] == e2]
-		if e1[0] != t1[s1 + 1]: e1.flip_orientation()  # Set e1 to agree with the orientation of the triangle containing it,
-		if e2[0] != t2[s2 + 2]: e2.flip_orientation()  # and e2 to disagree.
+		e1_agrees = e1[0] == t1[s1 + 1]
+		e2_agrees = e2[0] == t2[s2 + 1]
+		if e1_agrees == e2_agrees:
+			e2.flip_orientation()
+		#if e1[0] != t1[s1 + 1]: e1.flip_orientation()  # Set e1 to agree with the orientation of the triangle containing it,
+		#if e2[0] != t2[s2 + 2]: e2.flip_orientation()  # and e2 to disagree.
 		
 		# Change colour.
 		new_colour = self.colour_picker.get_colour()

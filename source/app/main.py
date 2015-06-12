@@ -576,7 +576,7 @@ class FlipperApp(object):
 			self.destroy_lamination()
 			
 			self.unsaved_work = False
-		except flipper.AssumptionError as error:  # (flipper.AssumptionError, IndexError, ValueError) as error:
+		except (flipper.AssumptionError, IndexError, ValueError) as error:
 			tkMessageBox.showerror('Load Error', error.message)
 	
 	def load_example(self):

@@ -304,7 +304,6 @@ class FlipperApp(object):
 		return True
 	
 	def valid_isometry(self, strn):
-		
 		if re.match(VALID_ISOMETRY_REGEX, strn) is None:
 			tkMessageBox.showerror('Invalid isometry specification', 'A valid specification must match "%s".' % VALID_ISOMETRY_REGEX)
 			return False

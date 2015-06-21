@@ -557,6 +557,8 @@ class Triangulation(object):
 		
 		source_corner = self.corner_of_edge(edge_from_label)
 		target_corner = other.corner_of_edge(edge_to_label)
+		source_orders = dict([(corner, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class])
+		target_orders = dict([(corner, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class])
 		# We do a depth first search extending the corner map across the triangulation.
 		corner_map = {source_corner: target_corner}
 		# This is a stack of triangles that may still have consequences.
@@ -565,7 +567,7 @@ class Triangulation(object):
 			from_corner, to_corner = to_process.pop()
 			new_from_corner, new_to_corner = self.opposite_corner(from_corner), other.opposite_corner(to_corner)
 			if new_from_corner in corner_map:
-				if new_to_corner != corner_map[new_from_corner]:
+				if new_to_corner != corner_map[new_from_corner] or source_orders[new_from_corner] != target_orders[new_to_corner]:
 					# Map does not extend to a consistent isometry.
 					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
 			else:
@@ -574,7 +576,7 @@ class Triangulation(object):
 			
 			new_from_corner, new_to_corner = self.rotate_corner(from_corner), other.rotate_corner(to_corner)
 			if new_from_corner in corner_map:
-				if new_to_corner != corner_map[new_from_corner]:
+				if new_to_corner != corner_map[new_from_corner] or source_orders[new_from_corner] != target_orders[new_to_corner]:
 					# Map does not extend to a consistent isometry.
 					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
 			else:

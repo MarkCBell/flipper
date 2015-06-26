@@ -565,6 +565,7 @@ class Triangulation(object):
 		to_process = [(source_corner, target_corner)]
 		while to_process:
 			from_corner, to_corner = to_process.pop()
+			
 			new_from_corner, new_to_corner = self.opposite_corner(from_corner), other.opposite_corner(to_corner)
 			if new_from_corner in corner_map:
 				if new_to_corner != corner_map[new_from_corner] or source_orders[new_from_corner] != target_orders[new_to_corner]:
@@ -583,7 +584,6 @@ class Triangulation(object):
 				corner_map[new_from_corner] = new_to_corner
 				to_process.append((new_from_corner, new_to_corner))
 		
-		
 		isometry = flipper.kernel.Isometry(self, other, corner_map)
 		if respect_fillings and any(vertex.filled != isometry(vertex).filled for vertex in self.vertices):  #pylint: disable=maybe-no-member
 			raise flipper.AssumptionError('Isometry does not respect fillings.')
@@ -595,6 +595,9 @@ class Triangulation(object):
 		
 		assert(isinstance(other, Triangulation))
 		assert(isinstance(respect_fillings, bool))
+		
+		if self.zeta != other.zeta:
+			return []
 		
 		# Isometries are determined by where a single triangle is sent.
 		# We take a corner of smallest degree.

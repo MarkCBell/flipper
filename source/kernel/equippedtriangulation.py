@@ -90,12 +90,16 @@ class EquippedTriangulation(object):
 		Users should not call directly but should use self.all_words(...) instead.
 		Assumes that various options have been set. '''
 		
+		def order(v, w):
+			''' Return if v >= w for words w and v. '''
+			return [options['position'][x] for x in v] >= [options['position'][y] for y in w]
+		
 		if not options['exact'] or length == 0:
 			lp = len(prefix)
 			prefix_inv = [x.swapcase() for x in prefix[::-1]]
 			if not options['conjugate'] or not prefix or prefix[0] != prefix[-1].swapcase():
-				if not options['conjugate'] or all(prefix[i:] + prefix[:i] >= prefix for i in range(lp)):
-					if not options['inverse'] or any(x not in options['letters'] for x in prefix_inv) or all(prefix_inv[i:] + prefix_inv[:i] >= prefix for i in range(lp)):
+				if not options['conjugate'] or all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)):
+					if not options['inverse'] or any(x not in options['letters'] for x in prefix_inv) or all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)):
 						yield prefix
 		
 		if length > 0:
@@ -103,7 +107,7 @@ class EquippedTriangulation(object):
 				if not options['reduced'] or not prefix or letter != prefix[-1].swapcase():
 					prefix2 = prefix + [letter]
 					lp = len(prefix2)
-					if not options['conjugate'] or all(prefix2[i:2*i] >= prefix2[:min(i, len(prefix2)-i)] for i in range(lp // 2, lp)):
+					if not options['conjugate'] or all(order(prefix2[i:2*i], prefix2[:min(i, len(prefix2)-i)]) for i in range(lp // 2, lp)):
 						for word in self.all_words_unjoined(length-1, prefix2, **options):
 							yield word
 		
@@ -123,6 +127,7 @@ class EquippedTriangulation(object):
 			- By default letters are sorted by length, then by lower case and
 				then by swapcase.
 			- Inverse implies conjugate and conjugate implies reduced. '''
+
 		
 		if prefix is None: prefix = []
 		
@@ -136,6 +141,8 @@ class EquippedTriangulation(object):
 		
 		for option in default_options:
 			if option not in options: options[option] = default_options[option]
+		
+		options['position'] = dict([(letter, index) for index, letter in enumerate(options['letters'])])
 		
 		for word in self.all_words_unjoined(length, prefix, **options):
 			yield '.'.join(word)

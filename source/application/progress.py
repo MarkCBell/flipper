@@ -1,7 +1,7 @@
 
 import flipper
 import flipper.app
-from flipper.app.spinning_icon import SPINNING_ICON
+from flipper.application.spinning_icon import SPINNING_ICON
 
 from multiprocessing import Process
 from multiprocessing import JoinableQueue as Queue
@@ -37,7 +37,7 @@ class ProgressApp(object):
 		self.parent.title('flipper: Computing...')
 		self.parent.protocol('WM_DELETE_WINDOW', self.cancel)  # To catch when users click the 'x' to close the window.
 		
-		self.progress = flipper.app.AnimatedCanvas(self.parent, frames_contents=SPINNING_ICON)
+		self.progress = flipper.application.AnimatedCanvas(self.parent, frames_contents=SPINNING_ICON)
 		self.progress.pack(padx=130, pady=5)
 		
 		self.button_cancel = TK.Button(self.parent, text='Cancel', command=self.cancel)

@@ -663,8 +663,7 @@ class Encoding(object):
 			# For example they should have the same dilatation.
 			for i in range(len(mapping_class2)):
 				# Conjugate around.
-				head = mapping_class2[:1]
-				mapping_class2 = head.inverse() * mapping_class2 * head
+				mapping_class2 = mapping_class2[1:] * mapping_class2[:1]
 				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
 					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
 						return True

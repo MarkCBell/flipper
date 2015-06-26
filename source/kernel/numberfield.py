@@ -185,6 +185,18 @@ class NumberFieldElement(object):
 			return NotImplemented
 	def __rmul__(self, other):
 		return self * other
+	def __pow__(self, power):
+		if power == 0:
+			return self.number_field.one
+		elif power == 1:
+			return self
+		elif power > 1:
+			sqrt = self**(power//2)
+			square = sqrt * sqrt
+			if power % 2 == 1:
+				return self * square
+			else:
+				return square
 	
 	def __div__(self, other):
 		if other == 0:

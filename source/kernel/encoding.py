@@ -425,8 +425,8 @@ class Encoding(object):
 			new_curve = self(curves[-1])
 			curves.append(new_curve)
 			
-			# print(i, new_curve)
 			hsh = curve_hash(new_curve, resolution)
+			# print(i, new_curve, hsh)
 			if hsh in seen:
 				for j in reversed(seen[hsh]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
 					# Check if we have seen this curve before.
@@ -454,12 +454,7 @@ class Encoding(object):
 							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 								return eigenvalue, invariant_lamination
 				
-				# Recompute seen to a higher resolution.
-				# This reduces the chances that we will get false positives that need
-				# to have an expensive directed_eigenvector calculation done on them.
-				resolution = resolution * 10  # Crank up exponentially.
-				# Having changed resolution we have to recompute hsh.
-				seen[curve_hash(new_curve, resolution)] = [i+1]
+				seen[hsh].append(i+1)
 			else:
 				seen[hsh] = [i+1]
 			
@@ -478,6 +473,12 @@ class Encoding(object):
 									return 1, small_curve
 								else:
 									raise flipper.AssumptionError('Mapping class is reducible.')
+			
+			if len(seen[hsh]) > 6:
+				# Recompute seen to a higher resolution.
+				# This reduces the chances that we will get false positives that need
+				# to have an expensive directed_eigenvector calculation done on them.
+				resolution = resolution * 10  # Crank up exponentially.
 		
 		raise flipper.ComputationError('Could not estimate invariant lamination.')
 	
@@ -658,6 +659,8 @@ class Encoding(object):
 			# there canonical forms are cyclically conjugate.
 			mapping_class1 = self.canonical()
 			mapping_class2 = other.canonical()
+			# We could start by quickly checking some other invariants.
+			# For example they should have the same dilatation.
 			for i in range(len(mapping_class2)):
 				# Conjugate around.
 				head = mapping_class2[:1]

@@ -12,7 +12,7 @@ from . import widgets
 # Set up shorter names for all of the different classes and some common constructors.
 start = main.start
 Options = options.Options
-FlipperApp = main.FlipperApp
+FlipperApplication = main.FlipperApplication
 ColourPalette = pieces.ColourPalette
 CanvasVertex = pieces.CanvasVertex
 CanvasEdge = pieces.CanvasEdge

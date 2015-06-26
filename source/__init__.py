@@ -20,7 +20,7 @@ from flipper.version import __version__
 
 # We'll only import the bare minimum. This way people missing packages
 # can still use the flipper kernel at least.
-# import flipper.app  # Uses tkinter.
+# import flipper.application  # Uses tkinter.
 import flipper.kernel
 # import flipper.example  # Uses snappy.
 import flipper.load

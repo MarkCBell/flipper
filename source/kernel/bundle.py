@@ -15,20 +15,7 @@ class Bundle(object):
 	The following will be our standard examples:
 	>>> import flipper
 	>>> B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
-	>>> B4_1
-	0 --> 1: 3201, 1: 2031, 1: 2310, 1: 1302
-	1 --> 0: 1302, 0: 3201, 0: 2031, 0: 2310
 	>>> B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
-	>>> B8_21
-	0 --> 2: 3201, 6: 2031, 7: 0132, 2: 1302
-	1 --> 6: 3201, 3: 0213, 3: 0132, 7: 3120
-	2 --> 8: 3120, 4: 1023, 0: 2031, 0: 2310
-	3 --> 8: 1302, 5: 3201, 1: 0213, 1: 0132
-	4 --> 2: 1023, 8: 0213, 7: 2310, 7: 1302
-	5 --> 6: 1023, 6: 0213, 3: 2310, 8: 3120
-	6 --> 0: 1302, 5: 1023, 5: 0213, 1: 2310
-	7 --> 1: 3120, 4: 3201, 4: 2031, 0: 0132
-	8 --> 5: 3120, 3: 2031, 4: 0213, 2: 3120
 	>>> B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
 	>>> B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 	'''
@@ -89,8 +76,8 @@ class Bundle(object):
 	def cusp_types(self):
 		''' Return the list of the type of each cusp.
 		
-		>>> B4_1.cusp_types(), B8_21.cusp_types()
-		([False], [True, False])
+		>>> B4_1.cusp_types(), sorted(B8_21.cusp_types())
+		([False], [False, True])
 		>>> B4_1a.cusp_types(), B8_21a.cusp_types()
 		([False], [False])
 		'''
@@ -111,13 +98,7 @@ class Bundle(object):
 		return cusp_types
 		
 	def fibre_slopes(self):
-		''' Return the list of fibre slopes on each cusp.
-		
-		>>> B4_1.fibre_slopes(), B8_21.fibre_slopes()
-		([(1, 0)], [(-1, -2), (1, 5)])
-		>>> B4_1a.fibre_slopes(), B8_21a.fibre_slopes()
-		([(1, -1)], [(1, 1)])
-		'''
+		''' Return the list of fibre slopes on each cusp. '''
 		
 		LONGITUDES, MERIDIANS = flipper.kernel.triangulation3.LONGITUDES, flipper.kernel.triangulation3.MERIDIANS
 		
@@ -144,15 +125,7 @@ class Bundle(object):
 	def degeneracy_slopes(self):
 		''' Return the list of degeneracy slopes on each cusp.
 		
-		This triangulation is must be veering.
-		
-		>>> B4_1.degeneracy_slopes(), B8_21.degeneracy_slopes()
-		([(0, 1)], [(1, 0), (0, 1)])
-		>>> B8_21a.degeneracy_slopes()
-		Traceback (most recent call last):
-		    ...
-		AssertionError
-		'''
+		This triangulation is must be veering. '''
 		
 		assert(self.triangulation3.is_veering())
 		

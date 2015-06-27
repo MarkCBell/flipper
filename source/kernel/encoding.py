@@ -657,15 +657,19 @@ class Encoding(object):
 		elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
 			# Two pseudo-Anosov mapping classes are conjugate if and only if
 			# there canonical forms are cyclically conjugate.
-			mapping_class1 = self.canonical()
-			mapping_class2 = other.canonical()
+			f = self.canonical()
+			g = other.canonical()
 			# We could start by quickly checking some other invariants.
 			# For example they should have the same dilatation.
-			for i in range(len(mapping_class2)):
+			if len(f) != len(g):
+				return False
+			
+			for i in range(len(f)):
 				# Conjugate around.
-				mapping_class2 = mapping_class2[1:] * mapping_class2[:1]
-				for isom in mapping_class1.source_triangulation.isometries_to(mapping_class2.source_triangulation):
-					if isom.encode() * mapping_class1 == mapping_class2 * isom.encode():
+				f_cycled = f[i:] * f[:i] if i > 0 else f  # Note __getitem__ is still picky about empty slices.
+				# g_cycled = g[i:] * g[:i] if i > 0 else g
+				for isom in f_cycled.source_triangulation.isometries_to(g.source_triangulation):
+					if isom.encode() * f_cycled == g * isom.encode():
 						return True
 			
 			return False

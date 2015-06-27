@@ -581,7 +581,7 @@ class Lamination(object):
 		
 		encodings = [E]
 		laminations = [self, lamination]
-		num_isometries = [len(lamination.self_isometries())]
+		num_isometries = [len(self.self_isometries()), len(lamination.self_isometries())]
 		seen = {lamination.projective_hash(): [1]}
 		# We start indexing at 1 to help keep the indices aligned.
 		# We don't want to include self as the first lamination just incase

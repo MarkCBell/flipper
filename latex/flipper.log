@@ -1,15 +1,15 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2014/Debian) (preloaded format=pdflatex 2014.10.28)  21 APR 2015 13:59
+This is pdfTeX, Version 3.14159265-2.6-1.40.15 (TeX Live 2015/dev/Debian) (preloaded format=pdflatex 2015.5.18)  28 JUN 2015 21:15
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
 **flipper.tex
 (./flipper.tex
 LaTeX2e <2014/05/01>
-Babel <3.9k> and hyphenation patterns for 79 languages loaded.
+Babel <3.9l> and hyphenation patterns for 2 languages loaded.
 (/usr/share/texlive/texmf-dist/tex/latex/base/article.cls
-Document Class: article 2007/10/19 v1.4h Standard LaTeX document class
+Document Class: article 2014/09/29 v1.4h Standard LaTeX document class
 (/usr/share/texlive/texmf-dist/tex/latex/base/size10.clo
-File: size10.clo 2007/10/19 v1.4h Standard LaTeX file (size option)
+File: size10.clo 2014/09/29 v1.4h Standard LaTeX file (size option)
 )
 \c@part=\count79
 \c@section=\count80
@@ -100,7 +100,7 @@ Package: amscd 1999/11/29 v2.0
 \minCDarrowwidth=\dimen114
 )
 (/usr/share/texlive/texmf-dist/tex/latex/amscls/amsthm.sty
-Package: amsthm 2004/08/06 v2.20
+Package: amsthm 2009/07/02 v2.20.1
 \thm@style=\toks21
 \thm@bodyfont=\toks22
 \thm@headfont=\toks23
@@ -356,41 +356,42 @@ Package: mdframed 2013/07/01 1.9b: mdframed
 
 (/usr/share/texlive/texmf-dist/tex/latex/l3packages/xparse/xparse.sty
 (/usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3.sty
-Package: expl3 2014/06/10 v5105 L3 programming layer (loader) 
+Package: expl3 2014/09/15 v5423 L3 programming layer (loader) 
 
 (/usr/share/texlive/texmf-dist/tex/latex/l3kernel/expl3-code.tex
-Package: expl3 2014/06/10 v5105 L3 programming layer (code) 
-L3 Module: l3bootstrap 2014/05/26 v4889 L3 Bootstrap code
+Package: expl3 2014/09/15 v5423 L3 programming layer (code) 
+L3 Module: l3bootstrap 2014/08/23 v5354 L3 Bootstrap code
 
 (/usr/share/texlive/texmf-dist/tex/latex/etex-pkg/etex.sty
 Package: etex 1998/03/26 v2.0 eTeX basic definition package (PEB)
 \et@xins=\count135
 )
-L3 Module: l3names 2014/06/02 v4993 L3 Namespace for primitives
-L3 Module: l3basics 2014/06/04 v5033 L3 Basic definitions
-L3 Module: l3expan 2014/04/30 v4712 L3 Argument expansion
-L3 Module: l3tl 2014/06/06 v5070 L3 Token lists
-L3 Module: l3seq 2014/04/30 v4712 L3 Sequences and stacks
-L3 Module: l3int 2014/05/31 v4966 L3 Integers
+L3 Module: l3names 2014/08/22 v5343 L3 Namespace for primitives
+L3 Module: l3basics 2014/08/24 v5364 L3 Basic definitions
+L3 Module: l3expan 2014/08/22 v5349 L3 Argument expansion
+L3 Module: l3tl 2014/08/24 v5359 L3 Token lists
+L3 Module: l3str 2014/08/24 v5368 L3 Strings
+L3 Module: l3seq 2014/08/23 v5354 L3 Sequences and stacks
+L3 Module: l3int 2014/09/14 v5421 L3 Integers
 \c_max_int=\count136
 \l_tmpa_int=\count137
 \l_tmpb_int=\count138
 \g_tmpa_int=\count139
 \g_tmpb_int=\count140
-L3 Module: l3quark 2014/05/26 v4889 L3 Quarks
-L3 Module: l3prg 2014/05/04 v4728 L3 Control structures
+L3 Module: l3quark 2014/08/23 v5354 L3 Quarks
+L3 Module: l3prg 2014/08/23 v5354 L3 Control structures
 \g__prg_map_int=\count141
-L3 Module: l3clist 2014/05/04 v4728 L3 Comma separated lists
-L3 Module: l3token 2014/05/26 v4889 L3 Experimental token manipulation
-L3 Module: l3prop 2014/04/30 v4712 L3 Property lists
-L3 Module: l3msg 2014/05/30 v4943 L3 Messages
-L3 Module: l3file 2014/05/26 v4890 L3 File and I/O operations
+L3 Module: l3clist 2014/08/23 v5354 L3 Comma separated lists
+L3 Module: l3token 2014/09/15 v5422 L3 Experimental token manipulation
+L3 Module: l3prop 2014/08/23 v5354 L3 Property lists
+L3 Module: l3msg 2014/08/24 v5358 L3 Messages
+L3 Module: l3file 2014/08/24 v5369 L3 File and I/O operations
 \l_iow_line_count_int=\count142
 \l__iow_target_count_int=\count143
 \l__iow_current_line_int=\count144
 \l__iow_current_word_int=\count145
 \l__iow_current_indentation_int=\count146
-L3 Module: l3skip 2014/05/31 v4972 L3 Dimensions and skips
+L3 Module: l3skip 2014/08/23 v5354 L3 Dimensions and skips
 \c_zero_dim=\dimen138
 \c_max_dim=\dimen139
 \l_tmpa_dim=\dimen140
@@ -409,10 +410,10 @@ L3 Module: l3skip 2014/05/31 v4972 L3 Dimensions and skips
 \l_tmpb_muskip=\muskip15
 \g_tmpa_muskip=\muskip16
 \g_tmpb_muskip=\muskip17
-L3 Module: l3keys 2014/06/08 v5093 L3 Key-value interfaces
+L3 Module: l3keys 2014/08/23 v5354 L3 Key-value interfaces
 \g__keyval_level_int=\count147
 \l_keys_choice_int=\count148
-L3 Module: l3fp 2014/04/30 v4712 L3 Floating points
+L3 Module: l3fp 2014/08/22 v5336 L3 Floating points
 \c__fp_leading_shift_int=\count149
 \c__fp_middle_shift_int=\count150
 \c__fp_trailing_shift_int=\count151
@@ -422,13 +423,13 @@ L3 Module: l3fp 2014/04/30 v4712 L3 Floating points
 \c__fp_Bigg_leading_shift_int=\count155
 \c__fp_Bigg_middle_shift_int=\count156
 \c__fp_Bigg_trailing_shift_int=\count157
-L3 Module: l3box 2014/05/31 v4974 L3 Experimental boxes
+L3 Module: l3box 2014/08/23 v5354 L3 Experimental boxes
 \c_empty_box=\box30
 \l_tmpa_box=\box31
 \l_tmpb_box=\box32
 \g_tmpa_box=\box33
 \g_tmpb_box=\box34
-L3 Module: l3coffins 2014/05/28 v4899 L3 Coffin code layer
+L3 Module: l3coffins 2014/08/23 v5354 L3 Coffin code layer
 \l__coffin_internal_box=\box35
 \l__coffin_internal_dim=\dimen144
 \l__coffin_offset_x_dim=\dimen145
@@ -448,8 +449,8 @@ L3 Module: l3coffins 2014/05/28 v4899 L3 Coffin code layer
 \l__coffin_display_offset_dim=\dimen151
 \l__coffin_display_x_dim=\dimen152
 \l__coffin_display_y_dim=\dimen153
-L3 Module: l3color 2014/04/30 v4712 L3 Experimental color support
-L3 Module: l3candidates 2014/05/31 v4972 L3 Experimental additions to l3kernel
+L3 Module: l3color 2014/08/23 v5354 L3 Experimental color support
+L3 Module: l3candidates 2014/08/24 v5366 L3 Experimental additions to l3kernel
 \l__box_top_dim=\dimen154
 \l__box_bottom_dim=\dimen155
 \l__box_left_dim=\dimen156
@@ -467,11 +468,14 @@ L3 Module: l3candidates 2014/05/31 v4972 L3 Experimental additions to l3kernel
 \l__coffin_scaled_total_height_dim=\dimen167
 \l__coffin_scaled_width_dim=\dimen168
 )
+(/usr/share/texlive/texmf-dist/tex/latex/l3kernel/l3unicode-data.def
+File: l3unicode-data.def 2014/08/12 v5276 L3 Unicode data
+)
 (/usr/share/texlive/texmf-dist/tex/latex/l3kernel/l3pdfmode.def
-File: l3pdfmode.def 2014/05/06 v4748 L3 Experimental driver: PDF mode
+File: l3pdfmode.def 2014/08/24 v5366 L3 Experimental driver: PDF mode
 \l__driver_color_stack_int=\count158
 ))
-Package: xparse 2014/06/10 v5105 L3 Experimental document command parser
+Package: xparse 2014/09/15 v5423 L3 Experimental document command parser
 \l__xparse_current_arg_int=\count159
 \l__xparse_m_args_int=\count160
 \l__xparse_mandatory_args_int=\count161
@@ -591,14 +595,12 @@ File: md-frame-0.mdf 2013/07/01\ 1.9b: md-frame-0
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining document command \newmdtheoremenv with arg. spec. 'O{} m o m o ' on
-. line 601.
+. Defining command \newmdtheoremenv with sig. 'O{} m o m o ' on line 601.
 .................................................
 .................................................
 . LaTeX info: "xparse/define-command"
 . 
-. Defining document command \mdtheorem with arg. spec. ' O{} m o m o ' on line
-. 701.
+. Defining command \mdtheorem with sig. ' O{} m o m o ' on line 701.
 .................................................
 \mdf@envdepth=\count168
 \c@mdf@env@i=\count169
@@ -628,15 +630,15 @@ Package: verbfwr 2003/09/25 v0.02 Verbatim file write
 \lst@maxwidth=\dimen172
 
 (/usr/share/texlive/texmf-dist/tex/latex/listings/lstmisc.sty
-File: lstmisc.sty 2014/03/04 1.5c (Carsten Heinz)
+File: lstmisc.sty 2014/09/06 1.5e (Carsten Heinz)
 \c@lstnumber=\count178
 \lst@skipnumbers=\count179
 \lst@framebox=\box51
 )
 (/usr/share/texlive/texmf-dist/tex/latex/listings/listings.cfg
-File: listings.cfg 2014/03/04 1.5c listings configuration
+File: listings.cfg 2014/09/06 1.5e listings configuration
 ))
-Package: listings 2014/03/04 1.5c (Carsten Heinz)
+Package: listings 2014/09/06 1.5e (Carsten Heinz)
  (./flipper.aux)
 \openout1 = `flipper.aux'.
 
@@ -739,7 +741,7 @@ Package microtype Info: Loading generic settings for font family
 LaTeX Font Info:    Try loading font information for OMS+cmr on input line 88.
 
 (/usr/share/texlive/texmf-dist/tex/latex/base/omscmr.fd
-File: omscmr.fd 1999/05/25 v2.5h Standard LaTeX font definitions
+File: omscmr.fd 2014/09/29 v2.5h Standard LaTeX font definitions
 )
 LaTeX Font Info:    Font shape `OMS/cmr/m/n' in size <10> not available
 (Font)              Font shape `OMS/cmsy/m/n' tried instead on input line 88.
@@ -769,12 +771,12 @@ Package rerunfilecheck Info: File `flipper.brf' has not changed.
 Package atveryend Info: Empty hook `AtVeryVeryEnd' on input line 270.
  ) 
 Here is how much of TeX's memory you used:
- 16669 strings out of 493104
- 280677 string characters out of 6136931
- 422075 words of memory out of 5000000
- 19823 multiletter control sequences out of 15000+600000
+ 17109 strings out of 495020
+ 289386 string characters out of 6181324
+ 420807 words of memory out of 5000000
+ 20011 multiletter control sequences out of 15000+600000
  14184 words of font info for 78 fonts, out of 8000000 for 9000
- 1141 hyphenation exceptions out of 8191
+ 14 hyphenation exceptions out of 8191
  41i,16n,39p,10417b,1156s stack positions out of 5000i,500n,10000p,200000b,80000s
 </usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx10.pfb></us
 r/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbx12.pfb></usr/shar
@@ -786,7 +788,7 @@ type1/public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/
 public/amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmtt9.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfon
 ts/symbols/msbm10.pfb>
-Output written on flipper.pdf (5 pages, 155229 bytes).
+Output written on flipper.pdf (5 pages, 155346 bytes).
 PDF statistics:
  203 PDF objects out of 1000 (max. 8388607)
  182 compressed objects within 2 object streams

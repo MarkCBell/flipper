@@ -50,7 +50,12 @@ class Polynomial(object):
 	def __nonzero__(self):  # For Python2.
 		return self.__bool__()
 	def __eq__(self, other):
-		return (self - other).is_zero()
+		if isinstance(other, Polynomial):
+			return self.degree == other.degree and all(a == b for a, b in zip(self, other))
+		elif isinstance(other, flipper.IntegerType):
+			return self.degree == 0 and self[0] == other
+		else:
+			return NotImplemented
 	def __ne__(self, other):
 		return not (self == other)
 	def __neg__(self):

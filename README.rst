@@ -20,13 +20,6 @@ stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.h
 
 	> python -m pip install flipper --user --upgrade
 
-Note that Windows users running the flipper GUI under Python 2.7 will first need
-to patch a `bug <https://bugs.python.org/issue10845>`_ in their multiprocessing library using:
-	https://bugs.python.org/file20603/issue10845_mitigation.diff
-
-This is due to __main__ not always being a top level module (thanks to -m). Further
-developments should appear `here <https://bugs.python.org/issue10128>`_.
-
 Usage
 =====
 

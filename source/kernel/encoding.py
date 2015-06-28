@@ -184,6 +184,20 @@ class Encoding(object):
 		return len(self.sequence)
 	def __getitem__(self, value):
 		if isinstance(value, slice):
+			# It turns out that handling all slices correctly is really hard.
+			# We need to be very careful with "empty" slices. As Encodings require
+			# non-empty sequences, we have to return just the id_encoding. This
+			# ensures the Encoding that we return satisfies:
+			#   self == self[:i] * self[i:j] * self[j:]
+			# even when i == j.
+			
+			start = 0 if value.start is None else value.start if value.start >= 0 else len(self) + value.start
+			stop = len(self) if value.stop is None else value.stop if value.stop >= 0 else len(self) + value.stop
+			if start == stop:
+				if 0 <= start < len(self):
+					return self.sequence[start].target_triangulation.id_encoding()
+				else:
+					raise IndexError('list index out of range')
 			return Encoding(self.sequence[value])
 		elif isinstance(value, flipper.IntegerType):
 			return self.sequence[value]
@@ -666,8 +680,8 @@ class Encoding(object):
 			
 			for i in range(len(f)):
 				# Conjugate around.
-				f_cycled = f[i:] * f[:i] if i > 0 else f  # Note __getitem__ is still picky about empty slices.
-				# g_cycled = g[i:] * g[:i] if i > 0 else g
+				f_cycled = f[i:] * f[:i]
+				# g_cycled = g[i:] * g[:i]  # Could cycle g instead.
 				for isom in f_cycled.source_triangulation.isometries_to(g.source_triangulation):
 					if isom.encode() * f_cycled == g * isom.encode():
 						return True

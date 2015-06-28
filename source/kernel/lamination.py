@@ -126,6 +126,7 @@ class Lamination(object):
 		
 		assert(isinstance(other, Lamination))
 		
+		# This could be faster, we could build a smaller collection of isometries to begin with.
 		return [isometry for isometry in self.triangulation.isometries_to(other.triangulation) if other.projectively_equal(isometry.encode()(self))]
 	
 	def projectively_equal(self, other):
@@ -581,7 +582,6 @@ class Lamination(object):
 		
 		encodings = [E]
 		laminations = [self, lamination]
-		num_isometries = [len(self.self_isometries()), len(lamination.self_isometries())]
 		seen = {}
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
@@ -600,7 +600,6 @@ class Lamination(object):
 						encodings.append(E)
 						lamination = E(lamination)
 						laminations.append(lamination)
-						num_isometries.append(len(lamination.self_isometries()))
 						
 						# Check if we have created any edges of weight 0.
 						# It is enough to just check edge_index.
@@ -610,7 +609,6 @@ class Lamination(object):
 								lamination, E2 = lamination.collapse_trivial_weight(edge_index)
 								encodings.append(E2)
 								laminations.append(lamination)
-								num_isometries.append(len(lamination.self_isometries()))
 							except flipper.AssumptionError:
 								raise flipper.AssumptionError('Lamination is not filling.')
 						
@@ -628,22 +626,20 @@ class Lamination(object):
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
-					# We might need to keep going a little bit more, we need to stop at the point with maximal symmetry.
-					if num_isometries[-1] == max(num_isometries[index:]):
-						old_lamination = laminations[index]
-						if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
-							isometries = lamination.all_projective_isometries(old_lamination)
-							if len(isometries) > 0:
-								assert(old_lamination.weight() == dilatation * lamination.weight())
-								return [flipper.kernel.SplittingSequence(encodings + [isom.encode()], index, dilatation, laminations[index]) for isom in isometries]
-						else:
-							# dilatation is not None and:
-							#   old_lamination.weight() < dilatation * lamination.weight():
-							# Note that the weight of laminations is strictly deacresing and the
-							# indices of seen[target] are increasing. Thus if we are in this case
-							# then the same inequality holds for every later index in seen[target].
-							# Hence we may break out.
-							break
+					old_lamination = laminations[index]
+					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
+						isometries = lamination.all_projective_isometries(old_lamination)
+						if len(isometries) > 0:
+							assert(old_lamination.weight() == dilatation * lamination.weight())
+							return [flipper.kernel.SplittingSequence(encodings + [isom.encode()], index, dilatation, laminations[index]) for isom in isometries]
+					else:
+						# dilatation is not None and:
+						#   old_lamination.weight() < dilatation * lamination.weight():
+						# Note that the weight of laminations is strictly deacresing and the
+						# indices of seen[target] are increasing. Thus if we are in this case
+						# then the same inequality holds for every later index in seen[target].
+						# Hence we may break out.
+						break
 				seen[target].append(len(laminations)-1)
 			else:
 				seen[target] = [len(laminations)-1]

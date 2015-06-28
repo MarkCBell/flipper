@@ -582,31 +582,41 @@ class Lamination(object):
 		encodings = [E]
 		laminations = [self, lamination]
 		num_isometries = [len(self.self_isometries()), len(lamination.self_isometries())]
-		seen = {lamination.projective_hash(): [1]}
-		# We start indexing at 1 to help keep the indices aligned.
-		# We don't want to include self as the first lamination just incase
-		# it is already on the axis and the puncture_tripods does nothing,
-		# misaligning the indices.
+		seen = {}
+		# We don't include self or lamination in seen just incase they are already
+		# on the axis and the puncture_tripods does nothing, misaligning the indices.
+		# This ensures that at least one maximal split will be done.
 		while True:
-			# Find the index of the largest entry.
-			edge_index = max(range(lamination.zeta), key=lambda i: lamination[i])
-			E = lamination.triangulation.encode_flip(edge_index)
-			encodings.append(E)
-			lamination = E(lamination)
-			laminations.append(lamination)
-			num_isometries.append(len(lamination.self_isometries()))
-			
-			# Check if we have created any edges of weight 0.
-			# It is enough to just check edge_index.
-			if lamination[edge_index] == 0:
-				try:
-					# If this fails it's because the lamination isn't filling.
-					lamination, E2 = lamination.collapse_trivial_weight(edge_index)
-					encodings.append(E2)
-					laminations.append(lamination)
-					num_isometries.append(len(lamination.self_isometries()))
-				except flipper.AssumptionError:
-					raise flipper.AssumptionError('Lamination is not filling.')
+			# We flip all edges of maximal weight in order to perform a maximal splitting.
+			max_weight = max(lamination)
+			# Note that we cannot simply compute the list of all edge indices of max weight and
+			# iterate over it as the calls to collapse_trivial_weight may reindex some edges.
+			# Hence we repeatedly loop over the edges until all the max weight ones have been flipped.
+			# There is probably a more efficient way to do this.
+			while True:
+				for edge_index in range(lamination.zeta):
+					if lamination[edge_index] == max_weight:
+						E = lamination.triangulation.encode_flip(edge_index)
+						encodings.append(E)
+						lamination = E(lamination)
+						laminations.append(lamination)
+						num_isometries.append(len(lamination.self_isometries()))
+						
+						# Check if we have created any edges of weight 0.
+						# It is enough to just check edge_index.
+						if lamination[edge_index] == 0:
+							try:
+								# If this fails it's because the lamination isn't filling.
+								lamination, E2 = lamination.collapse_trivial_weight(edge_index)
+								encodings.append(E2)
+								laminations.append(lamination)
+								num_isometries.append(len(lamination.self_isometries()))
+							except flipper.AssumptionError:
+								raise flipper.AssumptionError('Lamination is not filling.')
+						
+						break
+				else:  # We have no edges of max_weight left.
+					break
 			
 			# In the next block we have a lot of tests to do. We'll do these in
 			# order of difficulty of computation. For example, computing

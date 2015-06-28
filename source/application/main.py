@@ -2,7 +2,7 @@
 ''' The main window of the flipper GUI application. '''
 
 import flipper
-import flipper.app
+import flipper.application
 
 import re
 import os

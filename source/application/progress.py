@@ -1,6 +1,6 @@
 
 import flipper
-import flipper.app
+import flipper.application
 from flipper.application.spinning_icon import SPINNING_ICON
 
 from multiprocessing import Process

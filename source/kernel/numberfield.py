@@ -44,6 +44,7 @@ class NumberField(object):
 		self.degree = self.polynomial_root.degree
 		self.log_degree = self.polynomial_root.log_degree
 		self.log_plus = self.polynomial_root.log_plus
+		self.height_error = self.degree * (self.height + LOG_2)
 		
 		self.polynomial = self.polynomial_root.polynomial
 		self.companion_matrices = self.polynomial.companion_matrix().powers(self.degree)
@@ -115,10 +116,12 @@ class NumberFieldElement(object):
 		# Let N = QQ(lambda) and d := N.degree.
 		# Let [a_i] := self.linear_combination, [\alpha_i] := N._algebraic_approximations[i].
 		# Let \alpha := sum(a_i * \alpha_i).
-		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2) <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9].
+		# Now h(\alpha) <= sum(h(a_i \alpha_i)) + d log(2)
+		#               <= sum(h(a_i)) + sum(h(\alpha_i)) + (d-1) log(2) [AlgebraicApproximation.py L:9]
+		#               <= sum(h(a_i)) + N.height_error
 		self.degree = self.number_field.degree
 		self.log_degree = self.number_field.log_degree
-		self.height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.degree * (self.number_field.height + LOG_2)
+		self.height = sum(flipper.kernel.height_int(coefficient) for coefficient in self) + self.number_field.height_error
 		self._interval = None
 		self.accuracy = -1
 	

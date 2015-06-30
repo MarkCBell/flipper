@@ -43,7 +43,7 @@ class NumberField(object):
 		self.height = self.polynomial_root.height
 		self.degree = self.polynomial_root.degree
 		self.log_degree = self.polynomial_root.log_degree
-		self.log_plus = self.polynomial_root.interval.log_plus()
+		self.accuracy_error = self.degree * self.polynomial_root.interval.log_plus()
 		self.height_error = self.degree * (self.height + LOG_2)
 		
 		self.polynomial = self.polynomial_root.polynomial
@@ -64,13 +64,10 @@ class NumberField(object):
 		target_accuracy = max(accuracy, min_accuracy)
 		
 		if self._approximations is None or self.accuracy < target_accuracy:
-			# If I is an interval approximating L to k + digits then
-			# I^i approximates L^i to at least k digits
-			
-			# Now note that if I is an interval approximating L to at
-			# least k + N.log_plus digits of accuracy then I^i
+			# Note that if I is an interval approximating L to at
+			# least k + i * N.log_plus digits of accuracy then I^i
 			# approximates L^i to at least k digits of accuracy.
-			request_accuracy = target_accuracy + self.degree * self.log_plus
+			request_accuracy = target_accuracy + self.accuracy_error
 			
 			lmbda = self.polynomial_root.interval_approximation(request_accuracy)
 			approximations = [lmbda**i for i in range(self.degree)]

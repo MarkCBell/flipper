@@ -287,7 +287,9 @@ class NumberFieldElement(object):
 		
 		if self._interval is None or self._interval.accuracy < target_accuracy:
 			# We need to request a little more accuracy for the intervals of \lmbda**i because of the sum.
-			request_accuracy = target_accuracy + max(flipper.kernel.height_int(coefficient) for coefficient in self) + self.degree
+			# We need at least: max(flipper.kernel.height_int(coefficient) for coefficient in self) + self.degree
+			# more, but that involves a lot of logs so we'll use:
+			request_accuracy = target_accuracy + self.height
 			intervals = self.number_field.lmbda_approximations(request_accuracy)
 			self._interval = flipper.kernel.dot(self, intervals)
 			assert(self._interval.accuracy >= target_accuracy)

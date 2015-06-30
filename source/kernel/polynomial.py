@@ -303,7 +303,6 @@ class PolynomialRoot(object):
 		self.degree = self.polynomial.degree
 		self.log_degree = self.polynomial.log_degree
 		self.height = self.polynomial.height + 2 * self.log_degree
-		self.log_plus = self.interval.log_plus
 		
 		# Check that self.polynomial has exactly one root in self.interval.
 		if self.polynomial.num_roots(self.interval) != 1:

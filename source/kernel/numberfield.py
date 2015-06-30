@@ -43,7 +43,7 @@ class NumberField(object):
 		self.height = self.polynomial_root.height
 		self.degree = self.polynomial_root.degree
 		self.log_degree = self.polynomial_root.log_degree
-		self.log_plus = self.polynomial_root.log_plus
+		self.log_plus = self.polynomial_root.interval.log_plus()
 		self.height_error = self.degree * (self.height + LOG_2)
 		
 		self.polynomial = self.polynomial_root.polynomial

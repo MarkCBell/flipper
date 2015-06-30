@@ -27,7 +27,7 @@ def main(verbose=False):
 		m = min(I.accuracy, J.accuracy)
 		if not ((I + J).accuracy >= m - 1): return False
 		if not ((I * J).accuracy >= m - log(max(I.lower + J.lower + 1, 1))): return False
-		# if not ((I / J).accuracy >= m - J.log_plus)  # Should only do this test when J > I.
+		# if not ((I / J).accuracy >= m - J.log_plus()): return False  # Should only do this test when J > I.
 	
 	return True
 

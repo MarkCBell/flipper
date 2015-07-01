@@ -654,22 +654,24 @@ class Triangulation(object):
 				triangulation = short_lamination.triangulation
 				
 				# Grab the indices of the two edges we meet.
-				e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+				e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
 				
 				a, b, c, d = triangulation.square_about_edge(e1)
 				# If the curve is going vertically through the square then ...
-				if short_lamination[a] == 1 and short_lamination[c] == 1:
+				if short_lamination(a) == 1 and short_lamination(c) == 1:
 					# swap the labels round so it goes horizontally.
 					e1, e2 = e2, e1
 					a, b, c, d = triangulation.square_about_edge(e1)
-				elif short_lamination[b] == 1 and short_lamination[d] == 1:
+				elif short_lamination(b) == 1 and short_lamination(d) == 1:
 					pass
 				
 				# Currently short_lamination.algebraic == [0, 0, ..., 0].
-				short_lamination.algebraic[e1] = +1
-				short_lamination.algebraic[b.index] = -1 if b.is_positive() else +1
+				# So we need to build a new short_lamination with the correct algebraic intersection numbers.
+				geometric = short_lamination.geometric
+				algebraic = [1 if i == e1 else -b.sign() if i == b.index else 0 for i in range(self.zeta)]
 				
-				return conjugation.inverse()(short_lamination)
+				new_short_lamination = flipper.kernel.Lamination(triangulation, geometric, algebraic)
+				return conjugation.inverse()(new_short_lamination)
 			else:
 				return lamination
 	

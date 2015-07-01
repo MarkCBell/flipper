@@ -61,8 +61,8 @@ class Isometry(object):
 			geometric = [None] * self.zeta
 			algebraic = [None] * self.zeta
 			for i in range(self.zeta):
-				geometric[self.index_map[i]] = other.geometric[i]
-				algebraic[self.index_map[i]] = (+1 if self.index_map[i] == self.label_map[i] else -1) * other.algebraic[i]
+				geometric[self.index_map[i]] = other(i)
+				algebraic[self.index_map[i]] = (+1 if self.index_map[i] == self.label_map[i] else -1) * other[i]
 			
 			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
 		if isinstance(other, flipper.kernel.Vertex):

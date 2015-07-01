@@ -1160,7 +1160,7 @@ class FlipperApplication(object):
 				elif render == flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
-					weights = [lamination[edge.index] for edge in triangle.edges]
+					weights = [lamination(edge.index) for edge in triangle.edges]
 					dual_weights = [(weights[(j+1)%3] + weights[(j+2)%3] - weights[(j+0)%3]) // 2 for j in range(3)]
 					for j in range(int(dual_weights[i])):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)

@@ -58,11 +58,20 @@ class Lamination(object):
 	def __iter__(self):
 		return iter(self.geometric)
 	
-	def __getitem__(self, item):
+	def __call__(self, item):
 		if isinstance(item, flipper.IntegerType):
 			return self.geometric[flipper.kernel.norm(item)]
 		elif isinstance(item, flipper.kernel.Edge):
 			return self.geometric[item.index]
+		else:
+			return NotImplemented
+	
+	def __getitem__(self, item):
+		if isinstance(item, flipper.IntegerType):
+			normalised = flipper.kernel.norm(item)
+			return self.algebraic[normalised] * (1 if normalised == item else -1)
+		elif isinstance(item, flipper.kernel.Edge):
+			return self.algebraic[item.index] * item.sign()
 		else:
 			return NotImplemented
 	
@@ -114,7 +123,8 @@ class Lamination(object):
 		assert(isinstance(other, Lamination))
 		
 		# We used to just test other == isom.encode()(self) but this is much faster.
-		return [isom for isom in self.triangulation.isometries_to(other.triangulation) if all(other[isom.index_map[i]] == self[i] for i in range(self.zeta))]
+		# Should we check algebraic too?
+		return [isom for isom in self.triangulation.isometries_to(other.triangulation) if all(other(isom.index_map[i]) == self(i) for i in range(self.zeta))]
 	
 	def self_isometries(self):
 		''' Returns a list of isometries taking this lamination to itself. '''
@@ -190,7 +200,7 @@ class Lamination(object):
 		
 		for corner_class in self.triangulation.corner_classes:
 			for corner in corner_class:
-				weights = [self[edge] for edge in corner.triangle]
+				weights = [self(edge) for edge in corner.triangle]
 				dual_weights_doubled = [weights[1] + weights[2] - weights[0],
 					weights[2] + weights[0] - weights[1],
 					weights[0] + weights[1] - weights[2]]
@@ -223,7 +233,7 @@ class Lamination(object):
 			''' Return how much the weight would change by if this flip was done. '''
 			
 			a, b, c, d = lamination.triangulation.square_about_edge(edge_index)
-			return max(lamination[a] + lamination[c], lamination[b] + lamination[d]) - 2 * lamination[edge_index]
+			return max(lamination(a) + lamination(c), lamination(b) + lamination(d)) - 2 * lamination(edge_index)
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
@@ -231,7 +241,7 @@ class Lamination(object):
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination[i] > 0], key=lambda i: weight_change(lamination, i))
+			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination(i) > 0], key=lambda i: weight_change(lamination, i))
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			conjugation = forwards * conjugation
@@ -266,7 +276,7 @@ class Lamination(object):
 		triangulation = short_lamination.triangulation
 		vertex_numbers = dict(zip(list(triangulation.vertices), range(len(triangulation.vertices))))
 		for edge_index in range(triangulation.zeta):
-			if self[edge_index] == 0:
+			if self(edge_index) == 0:
 				c1, c2 = triangulation.vertices_of_edge(edge_index)
 				a, b = vertex_numbers[c1], vertex_numbers[c2]
 				if a != b:
@@ -313,13 +323,13 @@ class Lamination(object):
 		
 		triangulation = short_lamination.triangulation
 		
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
-		if short_lamination[a] == 1 and short_lamination[c] == 1:
+		if short_lamination(a) == 1 and short_lamination(c) == 1:
 			e1, e2 = e2, e1
 			a, b, c, d = triangulation.square_about_edge(e1)
-		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+		elif short_lamination(b) == 1 and short_lamination(d) == 1:
 			pass
 		
 		_, _, z, w = triangulation.square_about_edge(a.label)
@@ -337,7 +347,7 @@ class Lamination(object):
 	
 	def dual_weights_doubled(self, corner):
 		''' Return the list of dual weights (doubled) associated to a corner. '''
-		weights = [self[edge_index] for edge_index in corner.indices]
+		weights = [self(edge_index) for edge_index in corner.indices]
 		return [
 			weights[1] + weights[2] - weights[0],
 			weights[2] + weights[0] - weights[1],
@@ -437,7 +447,7 @@ class Lamination(object):
 			- the given edge does not connect between two unfilled vertices, and
 			- edge_index is the only edge of weight 0. '''
 		
-		if self[edge_index] != 0:
+		if self(edge_index) != 0:
 			raise flipper.AssumptionError('Lamination does not have weight 0 on edge to collapse.')
 		
 		# This relies on knowing how squares are returned.
@@ -446,7 +456,7 @@ class Lamination(object):
 		
 		# We'll first deal with some bad cases that con occur when some of the sides of the square are in fact the same.
 		if a == ~b or c == ~d:
-			# This implies that self[a] (respectively self[c]) == 0.
+			# This implies that self(a) (respectively self(c)) == 0.
 			raise flipper.AssumptionError('Additional weightless edge.')
 		
 		# There is at most one duplicated pair.
@@ -521,7 +531,7 @@ class Lamination(object):
 		T = flipper.kernel.Triangulation(new_triangles)
 		
 		bad_edges = [a, b, c, d, e, ~e]  # These are the edges for which edge_map is not defined.
-		geometric = [[self[edge] for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
+		geometric = [[self(edge) for edge in self.triangulation.edges if edge not in bad_edges and edge_map[edge].index == i][0] for i in range(edge_count)]
 		algebraic = [0] * edge_count
 		lamination = Lamination(T, geometric, algebraic)
 		
@@ -595,7 +605,7 @@ class Lamination(object):
 			# There is probably a more efficient way to do this.
 			while True:
 				for edge_index in range(lamination.zeta):
-					if lamination[edge_index] == max_weight:
+					if lamination(edge_index) == max_weight:
 						E = lamination.triangulation.encode_flip(edge_index)
 						encodings.append(E)
 						lamination = E(lamination)
@@ -603,7 +613,7 @@ class Lamination(object):
 						
 						# Check if we have created any edges of weight 0.
 						# It is enough to just check edge_index.
-						if lamination[edge_index] == 0:
+						if lamination(edge_index) == 0:
 							try:
 								# If this fails it's because the lamination isn't filling.
 								lamination, E2 = lamination.collapse_trivial_weight(edge_index)
@@ -675,15 +685,15 @@ class Lamination(object):
 		
 		triangulation = short_lamination.triangulation
 		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
 		# If the curve is going vertically through the square then ...
-		if short_lamination[a] == 1 and short_lamination[c] == 1:
+		if short_lamination(a) == 1 and short_lamination(c) == 1:
 			# swap the labels round so it goes horizontally.
 			e1, e2 = e2, e1
 			a, b, c, d = triangulation.square_about_edge(e1)
-		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+		elif short_lamination(b) == 1 and short_lamination(d) == 1:
 			pass
 		
 		# We now have:
@@ -720,15 +730,15 @@ class Lamination(object):
 		short_lamination = conjugation(self)
 		
 		triangulation = short_lamination.triangulation
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
 		# If the curve is going vertically through the square then ...
-		if short_lamination[a] == 1 and short_lamination[c] == 1:
+		if short_lamination(a) == 1 and short_lamination(c) == 1:
 			# swap the labels round so it goes horizontally.
 			e1, e2 = e2, e1
 			a, b, c, d = triangulation.square_about_edge(e1)
-		elif short_lamination[b] == 1 and short_lamination[d] == 1:
+		elif short_lamination(b) == 1 and short_lamination(d) == 1:
 			pass
 		
 		# Get some more edges.
@@ -791,7 +801,7 @@ class Lamination(object):
 		short_lamination = conjugator(lamination)
 		
 		triangulation = short.triangulation
-		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short[edge_index] > 0]
+		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short(edge_index) > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
 		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		

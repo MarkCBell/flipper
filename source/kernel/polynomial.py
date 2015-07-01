@@ -194,11 +194,14 @@ class Polynomial(object):
 		return self // self.gcd(self.derivative())
 	
 	def signs_at_interval_endpoints(self, interval):
-		''' Return the signs of this polynomial at the endpoints of the given polynomial. '''
+		''' Return the signs of this polynomial at the endpoints of the given interval. '''
+		
+		assert(isinstance(interval, flipper.kernel.Interval))
 		
 		lower, upper, precision = interval.lower, interval.upper, interval.precision
 		lower_sign = sum(coefficient * lower**index * 10**(precision*(self.degree - index)) for index, coefficient in enumerate(self))
 		upper_sign = sum(coefficient * upper**index * 10**(precision*(self.degree - index)) for index, coefficient in enumerate(self))
+		
 		return (-1 if lower_sign < 0 else 0 if lower_sign == 0 else +1), (-1 if upper_sign < 0 else 0 if upper_sign == 0 else +1)
 	
 	def sturm_chain(self):

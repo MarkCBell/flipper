@@ -513,7 +513,9 @@ class Encoding(object):
 	def invariant_lamination(self):
 		''' Return a projectively invariant lamination of this mapping class.
 		
-		This encoding must be a mapping class. '''
+		This encoding must be a mapping class.
+		
+		Assumes that this encoding is pseudo-Anosov. '''
 		
 		_, lamination = self.pml_fixedpoint()
 		return lamination
@@ -524,7 +526,7 @@ class Encoding(object):
 		This encoding must be a mapping class. '''
 		
 		if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
-			return 1
+			return flipper.kernel.NumberField().one  # This is equivalent to ZZ[1].one.
 		else:
 			lmbda, _ = self.pml_fixedpoint()
 			return lmbda

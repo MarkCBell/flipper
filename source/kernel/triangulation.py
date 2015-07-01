@@ -566,29 +566,22 @@ class Triangulation(object):
 		while to_process:
 			from_corner, to_corner = to_process.pop()
 			
-			new_from_corner, new_to_corner = self.opposite_corner(from_corner), other.opposite_corner(to_corner)
-			if new_from_corner in corner_map:
-				if new_to_corner != corner_map[new_from_corner] or source_orders[new_from_corner] != target_orders[new_to_corner]:
-					# Map does not extend to a consistent isometry.
-					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
-			else:
-				corner_map[new_from_corner] = new_to_corner
-				to_process.append((new_from_corner, new_to_corner))
-			
-			new_from_corner, new_to_corner = self.rotate_corner(from_corner), other.rotate_corner(to_corner)
-			if new_from_corner in corner_map:
-				if new_to_corner != corner_map[new_from_corner] or source_orders[new_from_corner] != target_orders[new_to_corner]:
-					# Map does not extend to a consistent isometry.
-					raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
-			else:
-				corner_map[new_from_corner] = new_to_corner
-				to_process.append((new_from_corner, new_to_corner))
+			neighbours = [
+				(self.opposite_corner(from_corner), other.opposite_corner(to_corner)),
+				(self.rotate_corner(from_corner), other.rotate_corner(to_corner))
+				]
+			for new_from_corner, new_to_corner in neighbours:
+				# Check that this map is still consistent.
+				if new_from_corner in corner_map:
+					if new_to_corner != corner_map[new_from_corner] or \
+						source_orders[new_from_corner] != target_orders[new_to_corner] or \
+						respect_fillings and new_from_corner.vertex.filled != new_to_corner.vertex.filled:
+						raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
+				else:
+					corner_map[new_from_corner] = new_to_corner
+					to_process.append((new_from_corner, new_to_corner))
 		
-		isometry = flipper.kernel.Isometry(self, other, corner_map)
-		if respect_fillings and any(vertex.filled != isometry(vertex).filled for vertex in self.vertices):  #pylint: disable=maybe-no-member
-			raise flipper.AssumptionError('Isometry does not respect fillings.')
-		
-		return isometry
+		return flipper.kernel.Isometry(self, other, corner_map)
 	
 	def isometries_to(self, other, respect_fillings=True):
 		''' Return a list of all isometries from this triangulation to other. '''

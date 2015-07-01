@@ -149,9 +149,9 @@ class NumberFieldElement(object):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot add elements of different number fields.')
-			return NumberFieldElement(self.number_field, [a+b for a, b in zip(self, other)])
+			return self.number_field.element([a+b for a, b in zip(self, other)])
 		elif isinstance(other, flipper.IntegerType):
-			return NumberFieldElement(self.number_field, [self.linear_combination[0] + other] + self.linear_combination[1:])
+			return self.number_field.element([self.linear_combination[0] + other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
 	def __radd__(self, other):
@@ -160,9 +160,9 @@ class NumberFieldElement(object):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:
 				raise TypeError('Cannot subtract elements of different number fields.')
-			return NumberFieldElement(self.number_field, [a-b for a, b in zip(self, other)])
+			return self.number_field.element([a-b for a, b in zip(self, other)])
 		elif isinstance(other, flipper.IntegerType):
-			return NumberFieldElement(self.number_field, [self.linear_combination[0] - other] + self.linear_combination[1:])
+			return self.number_field.element([self.linear_combination[0] - other] + self.linear_combination[1:])
 		else:
 			return NotImplemented
 	def __rsub__(self, other):

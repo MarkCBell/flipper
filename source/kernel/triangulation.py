@@ -573,11 +573,12 @@ class Triangulation(object):
 			for new_from_corner, new_to_corner in neighbours:
 				# Check that this map is still consistent.
 				if new_from_corner in corner_map:
-					if new_to_corner != corner_map[new_from_corner] or \
-						source_orders[new_from_corner] != target_orders[new_to_corner] or \
-						respect_fillings and new_from_corner.vertex.filled != new_to_corner.vertex.filled:
+					if new_to_corner != corner_map[new_from_corner]:
 						raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
 				else:
+					if source_orders[new_from_corner] != target_orders[new_to_corner] or \
+						respect_fillings and new_from_corner.vertex.filled != new_to_corner.vertex.filled:
+						raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
 					corner_map[new_from_corner] = new_to_corner
 					to_process.append((new_from_corner, new_to_corner))
 		

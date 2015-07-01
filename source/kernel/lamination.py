@@ -59,6 +59,7 @@ class Lamination(object):
 		return iter(self.geometric)
 	
 	def __call__(self, item):
+		''' Return the geometric measure assigned to item. '''
 		if isinstance(item, flipper.IntegerType):
 			return self.geometric[flipper.kernel.norm(item)]
 		elif isinstance(item, flipper.kernel.Edge):
@@ -67,6 +68,7 @@ class Lamination(object):
 			return NotImplemented
 	
 	def __getitem__(self, item):
+		''' Return the algebraic measure assigned to item. '''
 		if isinstance(item, flipper.IntegerType):
 			normalised = flipper.kernel.norm(item)
 			return self.algebraic[normalised] * (1 if normalised == item else -1)

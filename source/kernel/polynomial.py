@@ -130,6 +130,8 @@ class Polynomial(object):
 			if other.is_zero():
 				raise ZeroDivisionError
 			
+			# We really should do this calculation modulo some large prime
+			# to avoid exponential blowup.
 			quotient = Polynomial([0])
 			remainder = self
 			scale = 1

@@ -94,6 +94,7 @@ class EquippedTriangulation(object):
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
 	def generate_skip(self, length, letters=None):
+		''' Return a set of substrings that cannot appear in reduced words. '''
 		
 		letters = letters if letters is not None else sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase()))
 		order = generate_ordering(letters)
@@ -122,8 +123,8 @@ class EquippedTriangulation(object):
 			'letters': letters,
 			'order': order,
 			'exact': True,
-			'prefixes': False,
-			'skip': skip
+			'skip': skip,
+			'prefixes': False
 			}
 		for i in range(1, length+1):
 			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)) == identity]
@@ -186,11 +187,11 @@ class EquippedTriangulation(object):
 			inverse=True -- yield few words representing the same fibre class.
 			exact=False -- skip words that do not have exactly the required length.
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
-			relator_len=2 -- search words of length at most this much looking for relations.
 			skip=None -- an iterable containing substrings that cannot appear.
+			relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
 		
 		Notes:
-			- Letters are sorted by (length, lower case, swapcase).
+			- By default letters are sorted by (length, lower case, swapcase).
 			- inverse ==> conjugacy ==> group. '''
 		
 		prefix = tuple() if prefix is None else tuple(self.decompose_word(prefix))
@@ -201,8 +202,8 @@ class EquippedTriangulation(object):
 			'inverse': True,
 			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
 			'exact': False,
-			'relator_len': 2,  # 6 is also a good default as it gets all commutators and braids.
-			'skip': None
+			'skip': None,
+			'relator_len': 2  # 6 is also a good default as it gets all commutators and braids.
 			}
 		
 		# Install any missing options with defaults.
@@ -215,8 +216,7 @@ class EquippedTriangulation(object):
 		
 		# Build the ordering based on the letters given.
 		letters = options['letters']
-		order = generate_ordering(letters)
-		options['order'] = order
+		options['order'] = generate_ordering(letters)
 		
 		# Build the list of substrings that must be avoided.
 		if options['skip'] is not None:

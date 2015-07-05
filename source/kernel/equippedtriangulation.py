@@ -4,9 +4,18 @@
 Provides one class: EquippedTriangulation. '''
 
 from random import choice
+from itertools import product
 import re
 
 import flipper
+
+def inverse(word):
+	return tuple([letter.swapcase() for letter in reversed(word)])
+
+def generate_ordering(letters):
+	positions = dict([(letter, index) for index, letter in enumerate(letters)])
+	# Return if v >= w for words w and v. We use the short-lex ordering.
+	return lambda v, w: [len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
 
 class EquippedTriangulation(object):
 	''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
@@ -84,67 +93,141 @@ class EquippedTriangulation(object):
 		
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
+	def generate_skip(self, length, letters=None):
+		
+		letters = letters if letters is not None else sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase()))
+		order = generate_ordering(letters)
+		identity = self.mapping_class('')
+		
+		skip = set()
+		# Start by finding some common relations:
+		for letter in letters:
+			skip.add((letter, letter.swapcase()))
+		for a, b in product(letters, repeat=2):
+			A, B = a.swapcase(), b.swapcase()
+			for relator in [(a, b, A, B), (a, b, a, B, A, B)]:  # Look for commuting and braiding.
+				j = len(relator) // 2
+				for k in range(len(relator)):  # Cycling.
+					if self.mapping_class('.'.join(relator)) == identity:
+						ww = relator[k:] + relator[:k]
+						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
+							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
+								skip.add(ww[:j])
+		
+		# Then do the actual search to the given relator_len.
+		temp_options = {
+			'group': True,
+			'conjugacy': True,
+			'inverse': False,
+			'letters': letters,
+			'order': order,
+			'exact': True,
+			'prefixes': False,
+			'skip': skip
+			}
+		for i in range(1, length+1):
+			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)) == identity]
+			for j in range(i // 2, i+1):  # Slice length.
+				for relator in relators:
+					for k in range(i):  # Cycling.
+						ww = relator[k:] + relator[:k]
+						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
+							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
+								skip.add(ww[:j])
+		
+		return skip
+	
 	def all_words_unjoined(self, length, prefix, **options):
 		''' Yield all words of given length.
 		
 		Users should not call directly but should use self.all_words(...) instead.
 		Assumes that various options have been set. '''
 		
-		def order(v, w):
-			''' Return if v >= w for words w and v. '''
-			return [options['position'][x] for x in v] >= [options['position'][y] for y in w]
+		order = options['order']
+		letters = options['letters']
+		skip = options['skip']
+		lp = len(prefix)
+		lp2 = lp + 1
 		
 		if not options['exact'] or length == 0:
-			lp = len(prefix)
 			prefix_inv = [x.swapcase() for x in prefix[::-1]]
-			if not options['conjugate'] or not prefix or prefix[0] != prefix[-1].swapcase():
-				if not options['conjugate'] or all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)):
-					if not options['inverse'] or any(x not in options['letters'] for x in prefix_inv) or all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)):
-						yield prefix
+			
+			good = True
+			if options['conjugacy'] and good and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
+			if options['inverse'] and good and all(x in letters for x in prefix_inv) and not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False
+			if good:
+				yield prefix
 		
 		if length > 0:
-			for letter in options['letters']:
-				if not options['reduced'] or not prefix or letter != prefix[-1].swapcase():
-					prefix2 = prefix + [letter]
-					lp = len(prefix2)
-					if not options['conjugate'] or all(order(prefix2[i:2*i], prefix2[:min(i, len(prefix2)-i)]) for i in range(lp // 2, lp)):
-						for word in self.all_words_unjoined(length-1, prefix2, **options):
-							yield word
+			for letter in letters:
+				prefix2 = prefix + (letter,)
+				
+				good = True
+				if options['group'] and good and prefix and any(prefix2[i:] in skip for i in range(lp2)): good = False
+				if options['conjugacy'] and good and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
+				if good:
+					for word in self.all_words_unjoined(length-1, prefix2, **options):
+						yield word
 		
 		return
 	
 	def all_words(self, length, prefix=None, **options):
-		''' Yield all words of given length.
+		''' Yield all words of at most the specified length.
+		
+		There are several equivalence relations defined on these words.
+		Words may represent the same:
+			- mapping class group element (==),
+			- conjugacy class (~~), or
+			- fibre class (~?).
 		
 		Valid options and their defaults:
-			reduced=True -- skip words that can be simplified by free reduction.
-			conjugate=True -- skip words that can be simplified by cyclic reduction.
-			inverse=True -- skip words that can be simplified by inverting reduction
+			group=True -- yield few words representing the same group element.
+			conjugacy=True -- yield few words representing the same conjugacy class.
+			inverse=True -- yield few words representing the same fibre class.
 			exact=False -- skip words that do not have exactly the required length.
-			letters=self.mapping_classes - a list of available letters to use in alphabetical order.
+			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
+			relator_len=2 -- search words of length at most this much looking for relations.
+			skip=None -- an iterable containing substrings that cannot appear.
 		
 		Notes:
-			- By default letters are sorted by length, then by lower case and
-				then by swapcase.
-			- Inverse implies conjugate and conjugate implies reduced. '''
-
+			- Letters are sorted by (length, lower case, swapcase).
+			- inverse ==> conjugacy ==> group. '''
 		
-		if prefix is None: prefix = []
+		prefix = tuple() if prefix is None else tuple(self.decompose_word(prefix))
 		
 		default_options = {
-			'reduced': True,
-			'conjugate': True,
+			'group': True,
+			'conjugacy': True,
 			'inverse': True,
 			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
-			'exact': False
+			'exact': False,
+			'relator_len': 2,  # 6 is also a good default as it gets all commutators and braids.
+			'skip': None
 			}
 		
+		# Install any missing options with defaults.
 		for option in default_options:
 			if option not in options: options[option] = default_options[option]
 		
-		options['position'] = dict([(letter, index) for index, letter in enumerate(options['letters'])])
+		# Set implications. We use the contrapositive as these flags are set to True by default.
+		if not options['group']: options['conjugacy'] = False
+		if not options['conjugacy']: options['inverse'] = False
 		
-		for word in self.all_words_unjoined(length, prefix, **options):
+		# Build the ordering based on the letters given.
+		letters = options['letters']
+		order = generate_ordering(letters)
+		options['order'] = order
+		
+		# Build the list of substrings that must be avoided.
+		if options['skip'] is not None:
+			skip = set(options['skip'])
+		elif options['group']:
+			skip = self.generate_skip(options['relator_len'], letters)
+		else:
+			skip = set()
+		options['skip'] = skip
+		
+		for word in self.all_words_unjoined(length - len(prefix), prefix, **options):
 			yield '.'.join(word)
 	
 	def decompose_word(self, word):
@@ -158,14 +241,15 @@ class EquippedTriangulation(object):
 		# get a match it is as long as possible.
 		available_letters = sorted(self.mapping_classes, key=len, reverse=True)
 		decomposition = []
-		while word:
-			for letter in available_letters:
-				if word.startswith(letter):
-					decomposition.append(letter)
-					word = word[len(letter):]
-					break
-			else:
-				raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
+		for subword in word.split('.'):
+			while subword:
+				for letter in available_letters:
+					if subword.startswith(letter):
+						decomposition.append(letter)
+						subword = subword[len(letter):]
+						break
+				else:
+					raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
 		
 		return decomposition
 	
@@ -206,7 +290,7 @@ class EquippedTriangulation(object):
 				word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
 		
 		# This can fail with a KeyError.
-		decomposition = [self.mapping_classes[letter] for subword in word.split('.') for letter in self.decompose_word(subword)]
+		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
 		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding())
 
 

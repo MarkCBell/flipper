@@ -444,6 +444,7 @@ class Encoding(object):
 		max_order = triangulation.max_order
 		curves = [triangulation.key_curves()[0]]
 		seen = {curve_hash(curves[0], resolution): [0]}
+		tested = set()
 		# Experimentally this is a good number to do.
 		# Should it be max_order**2 or even depend on len(self)?
 		for i in range(max(10 * max_order, 100)):
@@ -460,24 +461,25 @@ class Encoding(object):
 					# Average the last few curves in case they have 'spiralled' around the fixedpoint.
 					average_curve = sum(curves[j:])
 					action_matrix, condition_matrix = self.applied_geometric(average_curve)
-					# We could also store condition_matrix in a set to ensure that we never test the same cell
-					# twice. However this does not appear to happen in practice so we wont bother (yet).
-					try:
-						eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
-							action_matrix, condition_matrix, average_curve)
-					except flipper.ComputationError:
-						pass  # Could not find an eigenvector in the cone.
-					except flipper.AssumptionError:
-						raise flipper.AssumptionError('Mapping class is reducible.')
-					else:
-						# Test if the vector we found lies in the cone given by the condition matrix.
-						# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
-						# but this is much faster.
-						if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-							# If it does then we have a projectively invariant lamination.
-							invariant_lamination = triangulation.lamination(eigenvector)
-							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-								return eigenvalue, invariant_lamination
+					# We'll store condition_matrix in a set to ensure that we never test the same cell twice.
+					if condition_matrix not in tested:
+						tested.add(condition_matrix)
+						try:
+							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
+								action_matrix, condition_matrix, average_curve)
+						except flipper.ComputationError:
+							pass  # Could not find an eigenvector in the cone.
+						except flipper.AssumptionError:
+							raise flipper.AssumptionError('Mapping class is reducible.')
+						else:
+							# Test if the vector we found lies in the cone given by the condition matrix.
+							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
+							# but this is much faster.
+							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+								# If it does then we have a projectively invariant lamination.
+								invariant_lamination = triangulation.lamination(eigenvector)
+								if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+									return eigenvalue, invariant_lamination
 				
 				seen[hsh].append(i+1)
 			else:

@@ -42,5 +42,3 @@ flipper.AssumptionError = flipper.kernel.AssumptionError
 flipper.ComputationError = flipper.kernel.ComputationError
 flipper.FatalError = flipper.kernel.FatalError
 
-flipper.package = flipper.kernel.package
-

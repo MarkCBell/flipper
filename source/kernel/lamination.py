@@ -41,6 +41,8 @@ class Lamination(object):
 		self.zeta = self.triangulation.zeta
 		self.geometric = list(geometric)
 		self.algebraic = list(algebraic)
+		assert(len(self.geometric) == self.zeta)
+		assert(len(self.algebraic) == self.zeta)
 		
 		self._cache = {}  # For caching hard to compute results.
 	

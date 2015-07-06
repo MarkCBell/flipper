@@ -39,19 +39,6 @@ def name_objects(objects, skip=None):
 	
 	return zip(string_generator(len(objects), skip), objects)
 
-def package(objects):
-	''' Package up some objects for writing to disk. '''
-	
-	spec = 'A flipper kernel file.'
-	version = flipper.__version__
-	
-	if isinstance(objects, flipper.kernel.EquippedTriangulation):
-		equipped_triangulation = objects
-	else:
-		equipped_triangulation = flipper.kernel.create_equipped_triangulation(objects)
-	
-	return pickle.dumps((spec, version, equipped_triangulation))
-
 ###############################################################################
 
 def product(iterable, start=1, left=True):

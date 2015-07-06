@@ -80,7 +80,6 @@ create_polynomial_root = polynomial.create_polynomial_root
 create_interval = interval.create_interval
 create_number_field = numberfield.create_number_field
 
-package = utilities.package
 product = utilities.product
 gcd = utilities.gcd
 

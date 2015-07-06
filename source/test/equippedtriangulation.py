@@ -7,7 +7,7 @@ def main(verbose=False):
 	
 	S = flipper.load.equipped_triangulation('S_1_2')
 	
-	all_words = set(S.all_words(5, reduced=False, conjugate=False, inverse=False, exact=False))
+	all_words = set(S.all_words(5, group=False))
 	# There should be 8^5 + 8^4 + ... + 8^0 = 37449 words.
 	if verbose: print('Constructed %d words.' % len(all_words))
 	for _ in range(10):

@@ -10,11 +10,12 @@ import re
 import flipper
 
 def inverse(word):
+	''' Return the inverse of a word by reversing and swapcasing it. '''
 	return tuple([letter.swapcase() for letter in reversed(word)])
 
 def generate_ordering(letters):
+	''' Return a function which determines if v >= w (with respect to the short-lex ordering). '''
 	positions = dict([(letter, index) for index, letter in enumerate(letters)])
-	# Return if v >= w for words w and v. We use the short-lex ordering.
 	return lambda v, w: [len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
 
 class EquippedTriangulation(object):

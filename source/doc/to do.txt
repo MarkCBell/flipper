@@ -1,0 +1,36 @@
+
+### Application ###
+undo and redo
+autosave session
+have weighted brush for painting laminations (in a given field?)
+show arrows 2/3 of the way along edges
+switch lamination drawing method on update
+show warning when automatically adding peripheral components
+show vertices as filled / unfilled
+
+### Documentation ###
+documentation for kernel - sphinx?
+document bad cases for default symbolic libarary
+change `good curves' to `non-isolating curves'
+redo installation / testing instructions
+autogenerate docs / README
+upload version with:
+	python setup.py sdist register upload
+
+### Kernel ###
+rescale invariant lamination such that weight is in [1, lamination)
+deal with disconnected surfaces
+extend symboliccomputation_dummy to work in all cases
+faster Matrix.kernel
+lamination should have an associated number field
+be able to (half) twist along all curves - construct chain - use H_1 code?
+recheck ALL number theory bounds
+Add function to convert Twister surface files to flipper.EquippedTriangulations
+
+### Tests ###
+add more tests
+tests for every module
+
+### Profiles ###
+add better profiling to see speedup progress
+

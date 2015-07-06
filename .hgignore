@@ -1,0 +1,16 @@
+
+syntax:glob
+build/*
+dist/*
+flipper.egg-info/*
+__pycache__/*
+experiments/*
+*.pyc
+*.bat
+*.swp
+*.orig
+lint.html
+.coverage
+htmlcov/*
+test.py
+

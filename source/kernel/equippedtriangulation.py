@@ -94,26 +94,25 @@ class EquippedTriangulation(object):
 		return '.'.join(choice(available_letters) for _ in range(length))
 	
 	def generate_skip(self, length, letters=None):
-		''' Return a set of substrings that cannot appear in reduced words. '''
+		''' Return a dictionary whose keys are substrings that cannot appear in reduced words. '''
 		
 		letters = letters if letters is not None else sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase()))
 		order = generate_ordering(letters)
-		identity = self.mapping_class('')
 		
-		skip = set()
+		skip = dict()
 		# Start by finding some common relations:
 		for letter in letters:
-			skip.add((letter, letter.swapcase()))
+			skip[(letter, letter.swapcase())] = tuple()
 		for a, b in product(letters, repeat=2):
 			A, B = a.swapcase(), b.swapcase()
 			for relator in [(a, b, A, B), (a, b, a, B, A, B)]:  # Look for commuting and braiding.
 				j = len(relator) // 2
 				for k in range(len(relator)):  # Cycling.
-					if self.mapping_class('.'.join(relator)) == identity:
+					if self.mapping_class('.'.join(relator)).is_identity():
 						ww = relator[k:] + relator[:k]
 						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
 							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
-								skip.add(ww[:j])
+								skip[ww[:j]] = inverse(ww[j:])
 		
 		# Then do the actual search to the given relator_len.
 		temp_options = {
@@ -127,14 +126,14 @@ class EquippedTriangulation(object):
 			'prefixes': False
 			}
 		for i in range(1, length+1):
-			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)) == identity]
+			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
 			for j in range(i // 2, i+1):  # Slice length.
 				for relator in relators:
 					for k in range(i):  # Cycling.
 						ww = relator[k:] + relator[:k]
 						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
 							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
-								skip.add(ww[:j])
+								skip[ww[:j]] = inverse(ww[j:])
 		
 		return skip
 	
@@ -154,8 +153,9 @@ class EquippedTriangulation(object):
 			prefix_inv = [x.swapcase() for x in prefix[::-1]]
 			
 			good = True
-			if options['conjugacy'] and good and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
-			if options['inverse'] and good and all(x in letters for x in prefix_inv) and not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False
+			if good and options['conjugacy'] and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
+			if good and options['inverse'] and all(x in letters for x in prefix_inv):
+				if not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False
 			if good:
 				yield prefix
 		
@@ -164,8 +164,8 @@ class EquippedTriangulation(object):
 				prefix2 = prefix + (letter,)
 				
 				good = True
-				if options['group'] and good and prefix and any(prefix2[i:] in skip for i in range(lp2)): good = False
-				if options['conjugacy'] and good and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
+				if good and options['group'] and prefix and any(prefix2[i:] in skip for i in range(lp2)): good = False
+				if good and options['conjugacy'] and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
 				if good:
 					for word in self.all_words_unjoined(length-1, prefix2, **options):
 						yield word

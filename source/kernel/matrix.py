@@ -50,6 +50,8 @@ class Matrix(object):
 		return str(self)
 	def __str__(self):
 		return '[\n' + ',\n'.join('[' + ', '.join(str(entry) for entry in row) + ']' for row in self) + '\n]'
+	def __hash__(self):
+		return hash(tuple([self.width, self.height] + [tuple(row) for row in self]))
 	def __len__(self):
 		return self.height
 	def __iter__(self):

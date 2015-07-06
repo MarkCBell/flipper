@@ -426,11 +426,11 @@ class FlipperApplication(object):
 		We can load from:
 			- the path to a flipper file,
 			- the contents of flipper file, or
-			- something that flipper.package can eat.
+			- something that flipper.kernel.package can eat.
 		If given nothing it asks the user to select a flipper (kernel) file.
 		
 		asks for a flipper (kernel) file. Alternatively can be passed the contents of
-		a file, a file object or something that flipper.package can eat. '''
+		a file, a file object or something that flipper.kernel.package can eat. '''
 		try:
 			if load_from is None:
 				load_from = tkFileDialog.askopenfilename(
@@ -452,9 +452,9 @@ class FlipperApplication(object):
 			else:
 				# This can raise a ValueError in a lot of different ways.
 				try:
-					string_contents = flipper.package(load_from)
+					string_contents = flipper.kernel.package(load_from)
 				except ValueError as error:
-					raise flipper.AssumptionError('Error 102: Cannot package package the given data:\n %s.' % error.message)
+					raise flipper.AssumptionError('Error 102: Cannot package the given data:\n %s.' % error.message)
 			
 			try:
 				spec, version, data = pickle.loads(string_contents)
@@ -621,7 +621,7 @@ class FlipperApplication(object):
 			path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper kernel file', '.flp'), ('all files', '.*')], title='Export Kernel File')
 			if path != '':
 				try:
-					example = flipper.package(self.equipped_triangulation)
+					example = flipper.kernel.package(self.equipped_triangulation)
 					with open(path, 'wb') as disk_file:
 						disk_file.write(example)
 				except IOError:

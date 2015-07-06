@@ -313,6 +313,17 @@ class Encoding(object):
 		
 		return min(possible_orders)
 	
+	def is_identity(self):
+		''' Return if this encoding is the identity map.
+		
+		>>> i.is_identity()
+		True
+		>>> aB.is_identity()
+		False
+		'''
+		
+		return self.is_mapping_class() and all(self(curve) == curve for curve in self.source_triangulation.key_curves())
+	
 	def is_periodic(self):
 		''' Return if this encoding has finite order.
 		

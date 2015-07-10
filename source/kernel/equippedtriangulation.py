@@ -102,14 +102,16 @@ class EquippedTriangulation(object):
 		
 		skip = dict()
 		# Start by finding some common relations:
+		# Trivial relations.
 		for letter in letters:
 			skip[(letter, letter.swapcase())] = tuple()
+		# Commuting and braiding.
 		for a, b in product(letters, repeat=2):
 			A, B = a.swapcase(), b.swapcase()
-			for relator in [(a, b, A, B), (a, b, a, B, A, B)]:  # Look for commuting and braiding.
-				j = len(relator) // 2
-				for k in range(len(relator)):  # Cycling.
-					if self.mapping_class('.'.join(relator)).is_identity():
+			for relator in [(a, b, A, B), (a, b, a, B, A, B)]:
+				if self.mapping_class('.'.join(relator)).is_identity():
+					j = len(relator) // 2
+					for k in range(len(relator)):  # Cycling.
 						ww = relator[k:] + relator[:k]
 						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
 							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
@@ -119,7 +121,7 @@ class EquippedTriangulation(object):
 		temp_options = {
 			'group': True,
 			'conjugacy': True,
-			'inverse': False,
+			'bundle': False,
 			'letters': letters,
 			'order': order,
 			'exact': True,
@@ -127,7 +129,7 @@ class EquippedTriangulation(object):
 			'prefixes': False
 			}
 		for i in range(1, length+1):
-			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
+			relators = [word for word in self.all_words_unjoined(i, **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
 			for j in range(i // 2, i+1):  # Slice length.
 				for relator in relators:
 					for k in range(i):  # Cycling.
@@ -138,12 +140,13 @@ class EquippedTriangulation(object):
 		
 		return skip
 	
-	def all_words_unjoined(self, length, prefix, **options):
+	def all_words_unjoined(self, length, prefix=None, **options):
 		''' Yield all words of given length.
 		
 		Users should not call directly but should use self.all_words(...) instead.
 		Assumes that various options have been set. '''
 		
+		if prefix is None: prefix = tuple()
 		order = options['order']
 		letters = options['letters']
 		skip = options['skip']
@@ -155,7 +158,7 @@ class EquippedTriangulation(object):
 			
 			good = True
 			if good and options['conjugacy'] and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
-			if good and options['inverse'] and all(x in letters for x in prefix_inv):
+			if good and options['bundle'] and all(x in letters for x in prefix_inv):
 				if not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False
 			if good:
 				yield prefix
@@ -185,7 +188,7 @@ class EquippedTriangulation(object):
 		Valid options and their defaults:
 			group=True -- yield few words representing the same group element.
 			conjugacy=True -- yield few words representing the same conjugacy class.
-			inverse=True -- yield few words representing the same fibre class.
+			bundle=True -- yield few words representing the same mapping torus.
 			exact=False -- skip words that do not have exactly the required length.
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
 			skip=None -- an iterable containing substrings that cannot appear.
@@ -193,14 +196,14 @@ class EquippedTriangulation(object):
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- inverse ==> conjugacy ==> group. '''
+			- bundle ==> conjugacy ==> group. '''
 		
 		prefix = tuple() if prefix is None else tuple(self.decompose_word(prefix))
 		
 		default_options = {
 			'group': True,
 			'conjugacy': True,
-			'inverse': True,
+			'bundle': True,
 			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
 			'exact': False,
 			'skip': None,
@@ -213,7 +216,7 @@ class EquippedTriangulation(object):
 		
 		# Set implications. We use the contrapositive as these flags are set to True by default.
 		if not options['group']: options['conjugacy'] = False
-		if not options['conjugacy']: options['inverse'] = False
+		if not options['conjugacy']: options['bundle'] = False
 		
 		# Build the ordering based on the letters given.
 		letters = options['letters']

@@ -72,6 +72,11 @@ class EdgeFlip(object):
 		''' Return the Encoding induced by this EdgeFlip. '''
 		
 		return Encoding([self])
+	
+	def flip_length(self):
+		''' Return the number of flips needed to realise this move. '''
+		
+		return 1
 
 class LinearTransformation(object):
 	''' Represents the change to a lamination caused by a linear map. '''
@@ -122,6 +127,11 @@ class LinearTransformation(object):
 		''' Return the Encoding induced by this linear map. '''
 		
 		return Encoding([self])
+	
+	def flip_length(self):
+		''' Return the number of flips needed to realise this move. '''
+		
+		return 0
 
 class Encoding(object):
 	''' This represents a map between two Triagulations.
@@ -182,6 +192,10 @@ class Encoding(object):
 		return str(self.sequence)
 	def __len__(self):
 		return len(self.sequence)
+	def flip_length(self):
+		''' Return the number of flips needed to realise this sequence. '''
+		
+		return sum(item.flip_length() for item in self)
 	def __getitem__(self, value):
 		if isinstance(value, slice):
 			# It turns out that handling all slices correctly is really hard.
@@ -818,9 +832,7 @@ class Encoding(object):
 		
 		lower_triangulation, upper_triangulation = triangulation, triangulation
 		
-		num_flips = len([item for item in self.sequence if isinstance(item, EdgeFlip)])
-		triangulation3 = flipper.kernel.Triangulation3(num_flips)
-		
+		triangulation3 = flipper.kernel.Triangulation3(self.flip_length())
 		# These are maps taking triangles of lower (respectively upper) triangulation to either:
 		#  - A pair (triangle, permutation) where triangle is in upper (resp. lower) triangulation, or
 		#  - A pair (tetrahedron, permutation) of triangulation3.

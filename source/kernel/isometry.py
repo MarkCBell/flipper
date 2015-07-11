@@ -125,6 +125,11 @@ class Isometry(object):
 		applied to the geometric coordinates of the given lamination. '''
 		
 		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
+	
+	def flip_length(self):
+		''' Return the number of flips needed to realise this move. '''
+		
+		return 0
 
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''

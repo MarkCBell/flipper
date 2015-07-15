@@ -9,130 +9,6 @@ NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
-class EdgeFlip(object):
-	''' Represents the change to a lamination caused by flipping an edge. '''
-	def __init__(self, source_triangulation, target_triangulation, edge_label):
-		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(edge_label, flipper.IntegerType))
-		
-		self.source_triangulation = source_triangulation
-		self.target_triangulation = target_triangulation
-		self.edge_label = edge_label
-		self.edge_index = flipper.kernel.norm(self.edge_label)
-		self.zeta = self.source_triangulation.zeta
-		assert(self.source_triangulation.is_flippable(self.edge_index))
-		
-		self.square = self.source_triangulation.square_about_edge(self.edge_label)
-	
-	def __repr__(self):
-		return str(self)
-	def __str__(self):
-		return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
-	def __reduce__(self):
-		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label))
-	
-	def __call__(self, other):
-		if isinstance(other, flipper.kernel.Lamination):
-			if other.triangulation != self.source_triangulation:
-				raise TypeError('Cannot apply EdgeFlip to a lamination not on the source triangulation.')
-			
-			a, b, c, d = self.square
-			geometric = list(other.geometric)
-			algebraic = list(other.algebraic)
-			m = max(geometric[a.index] + geometric[c.index], geometric[b.index] + geometric[d.index])
-			geometric[self.edge_index] = m - geometric[self.edge_index]
-			algebraic[self.edge_index] = b.sign() * algebraic[b.index] + c.sign() * algebraic[c.index]
-			
-			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
-		else:
-			return NotImplemented
-	
-	def inverse(self):
-		''' Return the inverse of this map. '''
-		
-		return EdgeFlip(self.target_triangulation, self.source_triangulation, ~self.edge_label)
-	
-	def applied_geometric(self, lamination):
-		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination. '''
-		
-		assert(isinstance(lamination, flipper.kernel.Lamination))
-		
-		I = flipper.kernel.id_matrix(self.zeta)
-		Z = flipper.kernel.zero_matrix(self.zeta, 1)
-		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
-		geometric = list(lamination.geometric)
-		if geometric[a] + geometric[c] >= geometric[b] + geometric[d]:
-			return I.tweak([(e, a), (e, c)], [(e, e), (e, e)]), Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
-		else:
-			return I.tweak([(e, b), (e, d)], [(e, e), (e, e)]), Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
-	
-	def encode(self):
-		''' Return the Encoding induced by this EdgeFlip. '''
-		
-		return Encoding([self])
-	
-	def flip_length(self):
-		''' Return the number of flips needed to realise this move. '''
-		
-		return 1
-
-class LinearTransformation(object):
-	''' Represents the change to a lamination caused by a linear map. '''
-	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
-		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(geometric, flipper.kernel.Matrix))
-		assert(isinstance(algebraic, flipper.kernel.Matrix))
-		
-		self.source_triangulation = source_triangulation
-		self.target_triangulation = target_triangulation
-		self.geometric = geometric
-		self.algebraic = algebraic
-	
-	def __repr__(self):
-		return str(self)
-	def __str__(self):
-		return str(self.geometric) + str(self.algebraic)
-	
-	def __call__(self, other):
-		if isinstance(other, flipper.kernel.Lamination):
-			if other.triangulation != self.source_triangulation:
-				raise TypeError('Cannot apply LinearTransformation to a lamination not on the source triangulation.')
-			
-			geometric = self.geometric(other.geometric)
-			algebraic = self.algebraic(other.algebraic)
-			
-			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
-		else:
-			return NotImplemented
-	
-	def inverse(self):
-		''' Return the inverse of this map.
-		
-		Note that these do not exist and so NotImplemented is returned. '''
-		
-		return NotImplemented
-	
-	def applied_geometric(self, lamination):
-		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination. '''
-		
-		assert(isinstance(lamination, flipper.kernel.Lamination))
-		
-		return self.geometric, flipper.kernel.zero_matrix(0)
-	
-	def encode(self):
-		''' Return the Encoding induced by this linear map. '''
-		
-		return Encoding([self])
-	
-	def flip_length(self):
-		''' Return the number of flips needed to realise this move. '''
-		
-		return 0
-
 class Encoding(object):
 	''' This represents a map between two Triagulations.
 	
@@ -158,7 +34,7 @@ class Encoding(object):
 	def __init__(self, sequence, name=None):
 		assert(isinstance(sequence, (list, tuple)))
 		assert(len(sequence) > 0)
-		assert(all(isinstance(item, (EdgeFlip, LinearTransformation, flipper.kernel.Isometry)) for item in sequence))
+		assert(all(isinstance(item, flipper.kernel.Move) for item in sequence))
 		assert(isinstance(name, flipper.StringType) or name is None)
 		# We used to also test:
 		#  assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
@@ -741,7 +617,7 @@ class Encoding(object):
 		# follow the sequence of folds (and isometries) which this train track
 		# undergoes and track how the edges are mapped using M.
 		for item in reversed(h.sequence):
-			if isinstance(item, EdgeFlip):
+			if isinstance(item, flipper.kernel.EdgeFlip):
 				triangulation = lamination.triangulation
 				a, b, c, d = triangulation.square_about_edge(item.edge_label)
 				
@@ -852,7 +728,7 @@ class Encoding(object):
 			new_lower_map = dict()  # We are allowed to leave blanks in new_lower_map.
 			# These will be filled in at the end using lower_map.
 			
-			if isinstance(item, EdgeFlip):
+			if isinstance(item, flipper.kernel.EdgeFlip):
 				# Get the next tetrahedra to add.
 				tetrahedron = triangulation3.tetrahedra[tetra_count]
 				tetra_count += 1
@@ -912,7 +788,8 @@ class Encoding(object):
 				
 			elif isinstance(item, flipper.kernel.Isometry):
 				for triangle in upper_triangulation:
-					new_triangle, perm = item(triangle), item.triangle_permutation(triangle)
+					new_triangle = item(triangle)
+					perm = flipper.kernel.permutation.cyclic_permutation(item(triangle.corners[0]).side - 0, 3)
 					old_target, old_perm = upper_map[triangle]
 					
 					if maps_to_triangle(upper_map[triangle]):

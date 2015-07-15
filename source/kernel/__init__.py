@@ -22,6 +22,7 @@ from . import interval
 from . import isometry
 from . import lamination
 from . import matrix
+from . import moves
 from . import numberfield
 from . import permutation
 from . import polynomial
@@ -40,8 +41,6 @@ Triangulation = triangulation.Triangulation
 Corner = triangulation.Corner
 AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
 Bundle = bundle.Bundle
-EdgeFlip = encoding.EdgeFlip
-LinearTransformation = encoding.LinearTransformation
 Encoding = encoding.Encoding
 AbortError = error.AbortError
 ApproximationError = error.ApproximationError
@@ -53,6 +52,9 @@ Interval = interval.Interval
 Isometry = isometry.Isometry
 Lamination = lamination.Lamination
 Matrix = matrix.Matrix
+EdgeFlip = moves.EdgeFlip
+LinearTransformation = moves.LinearTransformation
+Move = (EdgeFlip, LinearTransformation, Isometry)
 NumberField = numberfield.NumberField
 NumberFieldElement = numberfield.NumberFieldElement
 PolynomialRoot = polynomial.PolynomialRoot

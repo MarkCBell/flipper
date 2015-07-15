@@ -1,4 +1,8 @@
 
+''' A module for representing basic ways of changing triangulations.
+
+Provides two classes: EdgeFlip and LinearTransformation. '''
+
 import flipper
 
 class EdgeFlip(object):

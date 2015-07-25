@@ -33,7 +33,7 @@ def main():
 	print('Building prefixes of length at most %d.' % prefix_length)
 	Y = list(S.all_words(prefix_length, conjugacy=False, exact=True, skip=skip))
 	print('Built %d prefixes.' % len(Y))
-	# This next section can be trivially multiprocessed. If doing so one should definitely pass in the skip list.
+	# This next section is trivial to multiprocess. If doing so one should definitely pass in the skip list.
 	print('Building words of length at most %d.' % length)
 	Z = list(S.all_words(prefix_length-1, skip=skip, filter=filt)) + [word for y in Y for word in S.all_words(length, prefix=y, skip=skip, filter=filt)]
 	print('Built %d words.' % len(Z))

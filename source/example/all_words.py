@@ -44,3 +44,6 @@ def main():
 		print('Lists DONT match.')
 	print('Completed in %0.3fs' % (time() - start_time))
 
+if __name__ == '__main__':
+	main()
+

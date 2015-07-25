@@ -122,11 +122,12 @@ class EquippedTriangulation(object):
 			'group': True,
 			'conjugacy': True,
 			'bundle': False,
+			'exact': True,
 			'letters': letters,
 			'order': order,
-			'exact': True,
 			'skip': skip,
-			'prefixes': False
+			'prefilter': None,
+			'filter': None
 			}
 		for i in range(1, length+1):
 			relators = [word for word in self.all_words_unjoined(i, **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
@@ -160,6 +161,7 @@ class EquippedTriangulation(object):
 			if good and options['conjugacy'] and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
 			if good and options['bundle'] and all(x in letters for x in prefix_inv):
 				if not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False
+			if good and options['filter'] is not None and not options['filter'](prefix): good = False
 			if good:
 				yield prefix
 		
@@ -170,6 +172,7 @@ class EquippedTriangulation(object):
 				good = True
 				if good and options['group'] and prefix and any(prefix2[i:] in skip for i in range(lp2)): good = False
 				if good and options['conjugacy'] and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
+				if good and options['prefilter'] is not None and not options['prefilter'](prefix): good = False
 				if good:
 					for word in self.all_words_unjoined(length-1, prefix2, **options):
 						yield word
@@ -193,6 +196,8 @@ class EquippedTriangulation(object):
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
 			skip=None -- an iterable containing substrings that cannot appear.
 			relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
+			prefilter=None -- fliter the prefixes of words by this function.
+			filter=None -- fliter the words by this function.
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
@@ -207,7 +212,9 @@ class EquippedTriangulation(object):
 			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
 			'exact': False,
 			'skip': None,
-			'relator_len': 2  # 6 is also a good default as it gets all commutators and braids.
+			'relator_len': 2,  # 6 is also a good default as it gets all commutators and braids.
+			'prefilter': None,
+			'filter': None
 			}
 		
 		# Install any missing options with defaults.

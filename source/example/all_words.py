@@ -9,6 +9,8 @@ def helper(data):
 	S, length, prefix, skip, filt = data
 	return list(S.all_words(length, prefix=prefix, skip=skip, filter=filt))
 
+# We'll add a filter. Words missing b, c, or a and x are definitely not pseudo-Anosov.
+# So lets filter those out as they are boring.
 def filt(word):
 	return \
 		('a' in word or 'A' in word or 'x' in word or 'X' in word) and \
@@ -20,9 +22,6 @@ def main():
 	
 	length = 7
 	# Note this will work even if you want to set additional flags, such as conjugacy=False.
-	
-	# We'll add a filter. Words missing b, c, or a and x are definitely not pseudo-Anosov.
-	# So lets filter those out as they are boring.
 	
 	print('Building words of length at most %d.' % length)
 	# One can generate all words directly.

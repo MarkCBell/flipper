@@ -5,6 +5,7 @@ Provides one class: Lamination. '''
 
 import flipper
 
+import heapq
 try:
 	from Queue import Queue
 except ImportError:
@@ -600,47 +601,55 @@ class Lamination(object):
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
 		# This ensures that at least one maximal split will be done.
+		
+		# We'll store the edge weights in a heapq. This allows us to quickly find the maximal weight edges.
+		flip_first = lambda (a, b): (-a, b)  # A small function allowing us to use Pythons defaul min heap as a max heap.
+		weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]
+		heapq.heapify(weights_heap)
+		# Get the index of the largest weight edge.
+		flip_weight, flip_index = flip_first(heapq.heappop(weights_heap))
 		while True:
-			# We flip all edges of maximal weight in order to perform a maximal splitting.
-			max_weight = max(lamination)
-			# Note that we cannot simply compute the list of all edge indices of max weight and
-			# iterate over it as the calls to collapse_trivial_weight may reindex some edges.
-			# Hence we repeatedly loop over the edges until all the max weight ones have been flipped.
-			# There is probably a more efficient way to do this.
-			while True:
-				for edge_index in range(lamination.zeta):
-					if lamination(edge_index) == max_weight:
-						E = lamination.triangulation.encode_flip(edge_index)
-						encodings.append(E)
-						lamination = E(lamination)
+			max_weight = flip_weight
+			# Flip all edges weight max_weight. As the heap outputs these in sorted order,
+			# we do this by poping an element and flipping it until we reach one of 
+			# weight < max_weight.
+			while flip_weight == max_weight:
+				# Do the flip.
+				E = lamination.triangulation.encode_flip(flip_index)
+				lamination = E(lamination)
+				# Record information about the flip.
+				encodings.append(E)
+				laminations.append(lamination)
+				
+				# Check if we have created any edges of weight 0. Of course it is enough to just check flip_index.
+				if lamination(flip_index) == 0:
+					try:
+						# If this fails it's because the lamination isn't filling.
+						lamination, E2 = lamination.collapse_trivial_weight(flip_index)
+						encodings.append(E2)
 						laminations.append(lamination)
-						
-						# Check if we have created any edges of weight 0.
-						# It is enough to just check edge_index.
-						if lamination(edge_index) == 0:
-							try:
-								# If this fails it's because the lamination isn't filling.
-								lamination, E2 = lamination.collapse_trivial_weight(edge_index)
-								encodings.append(E2)
-								laminations.append(lamination)
-							except flipper.AssumptionError:
-								raise flipper.AssumptionError('Lamination is not filling.')
-						
-						break
-				else:  # We have no edges of max_weight left.
-					break
+						# Need to rebuild the heap as indices no longer correspond.
+						weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]
+						heapq.heapify(weights_heap)
+					except flipper.AssumptionError:
+						raise flipper.AssumptionError('Lamination is not filling.')
+				else:
+					# Add the new edge weight back into the heap.
+					heapq.heappush(weights_heap, flip_first((lamination(flip_index), flip_index)))
+				
+				# Get the next largest edge.
+				flip_weight, flip_index = flip_first(heapq.heappop(weights_heap))
 			
-			# In the next block we have a lot of tests to do. We'll do these in
-			# order of difficulty of computation. For example, computing
-			# projective_isometries is slow; so we'll leave that to last to give
-			# us the best chance that a faster test failing will allow us to
-			# skip it.
-			
-			# Check if it (projectively) matches a lamination we've already seen.
+			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
 				for index in seen[target]:
 					old_lamination = laminations[index]
+					# In the next block we have a lot of tests to do. We'll do these in
+					# order of difficulty of computation. For example, computing
+					# projective_isometries is slow; so we'll leave that to last to give
+					# us the best chance that a faster test failing will allow us to
+					# skip it.
 					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
 						isometries = lamination.all_projective_isometries(old_lamination)
 						if len(isometries) > 0:
@@ -656,6 +665,7 @@ class Lamination(object):
 						break
 				seen[target].append(len(laminations)-1)
 			else:
+				# Start a new class containing this lamination.
 				seen[target] = [len(laminations)-1]
 	
 	def splitting_sequences(self, dilatation=None):

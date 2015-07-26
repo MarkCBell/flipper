@@ -28,6 +28,7 @@ def main(verbose=False):
 		('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
 		('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
 		('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
+		('E_12', 'aaaaBBaBaBBBBBaBBabbababBaBabaBBp', NT_TYPE_PSEUDO_ANOSOV),
 		]
 	
 	for surface, word, _ in tests:

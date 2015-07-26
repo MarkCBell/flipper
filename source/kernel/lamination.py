@@ -602,7 +602,7 @@ class Lamination(object):
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
 		# This ensures that at least one maximal split will be done.
 		
-		# We'll store the edge weights in a heapq. This allows us to quickly find the maximal weight edges.
+		# We'll store the edge weights in a maximal heap using heapq. This allows us to quickly find the maximal weight edges.
 		flip_first = lambda (a, b): (-a, b)  # A small function allowing us to use Pythons defaul min heap as a max heap.
 		weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]
 		heapq.heapify(weights_heap)

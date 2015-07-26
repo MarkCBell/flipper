@@ -279,6 +279,10 @@ class NumberFieldElement(object):
 	def sign(self):
 		''' Return the sign of this algebraic number. '''
 		
+		# If all the entries of self.linear_combination are 0 then we are 0 and so have sign 0.
+		# This is faster than computing self.algebraic_approximation().
+		if not any(self): return 0
+		
 		return self.algebraic_approximation().sign()
 	
 	def interval_approximation(self, accuracy=0):

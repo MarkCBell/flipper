@@ -243,7 +243,9 @@ class Polynomial(object):
 	def real_roots(self):
 		''' Return a list of (real) PolynomialRoots, one for each root of self.
 		
-		Repeated roots are not returned multiple times. '''
+		Repeated roots are not returned multiple times. If you are planning on using
+		these roots you should really use self.square_free().real_roots() to ensure
+		the Newton-Raphson convergence of these is effective. '''
 		
 		k = int(self.height + self.log_degree) + 2
 		# Roots of self are guaranteed to be separated by at least 10^-k and lie in:
@@ -298,7 +300,8 @@ class PolynomialRoot(object):
 	It is specified by a Polynomial and an Interval.
 	
 	The interval must contain exactly one root of the polynomial. If
-	not an ApproximationError will be raised. '''
+	not an ApproximationError will be raised. These methods are significantly
+	faster when the polynomial is square free. '''
 	def __init__(self, polynomial, interval):
 		assert(isinstance(polynomial, flipper.kernel.Polynomial))
 		assert(isinstance(interval, flipper.kernel.Interval))
@@ -327,6 +330,14 @@ class PolynomialRoot(object):
 		return self.algebraic_approximation(accuracy_needed) == other.algebraic_approximation(accuracy_needed)
 	def __ne__(self, other):
 		return not (self == other)
+	
+	def square_free(self):
+		''' Return this PolynomialRoot but with a square free polynomial.
+		
+		This can be useful as Newton-Raphson works much better (and so
+		convergence happens much faster) for square-free polynomials. '''
+		
+		return PolynomialRoot(self.polynomial.square_free(), self.interval)
 	
 	def subdivide_iterate(self):
 		''' Return a subinterval of self.interval which contains a root of self.polynomial.

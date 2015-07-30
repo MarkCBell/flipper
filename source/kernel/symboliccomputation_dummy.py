@@ -39,7 +39,8 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	Assumes that C contains at most one interesting eigenvector. '''
 	
 	dot = flipper.kernel.dot
-	eigenvalues = action_matrix.characteristic_polynomial().real_roots()
+	# Getting the square free representative makes this faster.
+	eigenvalues = [eigenvalue for eigenvalue in action_matrix.characteristic_polynomial().square_free().real_roots() if eigenvalue > 1]
 	
 	k = max(flipper.kernel.height_int(entry) for row in action_matrix for entry in row)
 	n = action_matrix.width  # This bounds the degree of an eigenvalue.

@@ -432,50 +432,52 @@ class FlipperApplication(object):
 		asks for a flipper (kernel) file. Alternatively can be passed the contents of
 		a file, a file object or something that flipper.kernel.package can eat. '''
 		try:
-			if load_from is None:
-				load_from = tkFileDialog.askopenfilename(
-					defaultextension='.flp',
-					filetypes=[('flipper files', '.flp'), ('all files', '.*')],
-					title='Open flipper File')
-				if load_from == '':  # Cancelled the dialog.
-					return
+			if load_from is None or isinstance(load_from, (file, flipper.StringType)):
+				if load_from is None:
+					file_path = tkFileDialog.askopenfilename(
+						defaultextension='.flp',
+						filetypes=[('flipper files', '.flp'), ('all files', '.*')],
+						title='Open flipper File')
+					if file_path == '':  # Cancelled the dialog.
+						return
+					try:
+						string_contents = open(load_from, 'rb').read()
+					except IOError:
+						raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
+				elif isinstance(load_from, file):
+					string_contents = load_from.read()
+				elif isinstance(load_from, flipper.StringType):
+					try:
+						string_contents = open(load_from, 'rb').read()
+					except IOError:
+						string_contents = load_from
+				
 				try:
-					string_contents = open(load_from, 'rb').read()
-				except IOError:
-					raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
-			elif isinstance(load_from, flipper.StringType):
-				try:
-					with open(load_from, 'rb') as f:
-						string_contents = f.read()
-				except IOError:
-					string_contents = load_from
-			else:
-				# This can raise a ValueError in a lot of different ways.
-				try:
-					string_contents = flipper.kernel.package(load_from)
-				except ValueError as error:
-					raise flipper.AssumptionError('Error 102: Cannot package the given data:\n %s.' % error.message)
-			
-			try:
-				spec, version, data = pickle.loads(string_contents)
-			except (EOFError, AttributeError, KeyError):
-				raise flipper.AssumptionError('Error 103: Cannot depickle information provided.')
-			except ValueError:
-				raise flipper.AssumptionError('Error 104: Invalid depickle.')
-			
-			if version != flipper.__version__:
-				raise flipper.AssumptionError('Error 105: This file was created in an older version of flipper (%s)' % version)
-			
-			if spec == 'A flipper file.':
+					spec, version, data = pickle.load(string_contents)
+				except (EOFError, AttributeError, KeyError):
+					raise flipper.AssumptionError('Error 103: Cannot depickle information provided.')
+				except ValueError:
+					raise flipper.AssumptionError('Error 104: Invalid depickle.')
+				
+				if version != flipper.__version__:
+					raise flipper.AssumptionError('Error 105: This file was created in an older version of flipper (%s)' % version)
+				
+				if spec != 'A flipper file.':
+					raise flipper.AssumptionError('Error 108: Invalid specification.')
+				
 				try:
 					equipped_triangulation, (vertices, edges) = data
 				except ValueError:
 					raise flipper.AssumptionError('Error 106: Invalid depickle.')
-			elif spec == 'A flipper kernel file.':
-				equipped_triangulation = data
-				
-				if not isinstance(equipped_triangulation, flipper.kernel.EquippedTriangulation):
-					raise flipper.AssumptionError('Error 107: Invalid depickle.')
+			else:
+				if isinstance(load_from, flipper.kernel.EquippedTriangulation):
+					equipped_triangulation = load_from
+				else:
+					try:
+						# Creating an equippedTriangulation can raise a ValueError in a lot of different ways.
+						equipped_triangulation = flipper.kernel.create_equipped_triangulation(load_from)
+					except ValueError as error:
+						raise flipper.AssumptionError('Error 102: Cannot package the given data:\n %s.' % error.message)
 				
 				triangulation = equipped_triangulation.triangulation
 				
@@ -534,8 +536,6 @@ class FlipperApplication(object):
 					if edges[i][2] == edges[j][2]:
 						edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
 						edges[j] = (edges[j][0], edges[j][1], edges[j][2], i)
-			else:
-				raise flipper.AssumptionError('Error 108: Invalid specification.')
 			
 			if not self.initialise():
 				return

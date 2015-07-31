@@ -87,6 +87,8 @@ class NumberField(object):
 	def __reduce__(self):
 		# NumberFields are already pickleable but this results in a smaller pickle.
 		return (self.__class__, (self.polynomial_root,))
+	def __hash__(self):
+		return hash(self.polynomial_root)
 	def __eq__(self, other):
 		return self.polynomial == other.polynomial and self.polynomial_root == other.polynomial_root
 	def __ne__(self, other):
@@ -127,7 +129,11 @@ class NumberFieldElement(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return str(float(self.algebraic_approximation()))
+		return self.approximate_string()
+	def approximate_string(self, accuracy=None):
+		''' Return a string approximating this NumberFieldElement. '''
+		
+		return self.algebraic_approximation(accuracy).approximate_string(accuracy)
 	def __reduce__(self):
 		# NumberFieldElements are already pickleable but this results in a smaller pickle.
 		return (self.__class__, (self.number_field, self.linear_combination))

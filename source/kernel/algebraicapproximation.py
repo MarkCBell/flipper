@@ -56,8 +56,6 @@ class AlgebraicApproximation(object):
 	'''
 	def __init__(self, interval, log_degree, height):
 		assert(isinstance(interval, flipper.kernel.Interval))
-		assert(isinstance(log_degree, flipper.kernel.NumberType))
-		assert(isinstance(height, flipper.kernel.NumberType))
 		
 		self.interval = interval
 		self.log_degree = log_degree
@@ -73,6 +71,10 @@ class AlgebraicApproximation(object):
 		return str(self)
 	def __str__(self):
 		return str(self.interval)
+	def approximate_string(self, accuracy=None):
+		''' Return a string approximating this algebraic number. '''
+		
+		return self.interval.approximate_string(accuracy)
 	
 	def __float__(self):
 		return float(self.interval)
@@ -184,7 +186,6 @@ class AlgebraicApproximation(object):
 		return not (self == other)
 	def __gt__(self, other):
 		return (self - other).sign() == +1
-	
 	def __le__(self, other):
 		return self < other or self == other
 	def __ge__(self, other):

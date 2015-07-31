@@ -58,6 +58,8 @@ class Polynomial(object):
 			return NotImplemented
 	def __ne__(self, other):
 		return not (self == other)
+	def __hash__(self):
+		return hash(tuple(self.coefficients))
 	def __neg__(self):
 		return Polynomial([-x for x in self])
 	
@@ -322,14 +324,34 @@ class PolynomialRoot(object):
 		return 'Root of %s (~%0.6f)' % (self.polynomial, float(self))
 	def __float__(self):
 		return float(self.algebraic_approximation())
+	def __hash__(self):
+		# Just hashing self.polynomial works well as the map:
+		#   algebraic number |--> min polynomial
+		# is finite-to-one.
+		return hash(self.polynomial)
 	
+	def compare(self, other, operator):
+		if isinstance(other, PolynomialRoot):
+			accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
+			return operator(self.algebraic_approximation(accuracy_needed), other.algebraic_approximation(accuracy_needed))
+		elif isinstance(other, flipper.IntegerType):
+			accuracy_needed = int(self.height + self.log_degree + flipper.kernel.height_int(other) + 0) + 5
+			return operator(self.algebraic_approximation(accuracy_needed), other)
+		else:
+			return NotImplemented
+	
+	def __lt__(self, other):
+		return self.compare(other, lambda x, y: x < y)
 	def __eq__(self, other):
-		assert(isinstance(other, PolynomialRoot))
-		
-		accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
-		return self.algebraic_approximation(accuracy_needed) == other.algebraic_approximation(accuracy_needed)
+		return self.compare(other, lambda x, y: x == y)
 	def __ne__(self, other):
 		return not (self == other)
+	def __gt__(self, other):
+		return self.compare(other, lambda x, y: x > y)
+	def __le__(self, other):
+		return self < other or self == other
+	def __ge__(self, other):
+		return self > other or self == other
 	
 	def square_free(self):
 		''' Return this PolynomialRoot but with a square free polynomial.

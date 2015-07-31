@@ -34,7 +34,6 @@ flipper.triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 
 flipper.StringType = flipper.kernel.StringType
 flipper.IntegerType = flipper.kernel.IntegerType
-flipper.NumberType = flipper.kernel.NumberType
 
 flipper.AbortError = flipper.kernel.AbortError
 flipper.ApproximationError = flipper.kernel.ApproximationError

@@ -331,6 +331,8 @@ class PolynomialRoot(object):
 		return hash(self.polynomial)
 	
 	def compare(self, other, operator):
+		''' Return the result of operator on sufficiently good algebraic approximations of self and other. '''
+		
 		if isinstance(other, PolynomialRoot):
 			accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
 			return operator(self.algebraic_approximation(accuracy_needed), other.algebraic_approximation(accuracy_needed))

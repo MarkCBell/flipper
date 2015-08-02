@@ -235,6 +235,7 @@ class Matrix(object):
 			3) is in a column > zeroing_width.
 		if zeroing_width is None: zeroing_width = self.width. '''
 		
+		if zeroing_width is None: zeroing_width = self.width
 		i, j = 0, 0
 		A = [list(row) for row in self]
 		while j < zeroing_width:

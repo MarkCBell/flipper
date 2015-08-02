@@ -40,7 +40,7 @@ class EdgeFlip(object):
 			geometric[self.edge_index] = m - geometric[self.edge_index]
 			algebraic[self.edge_index] = b.sign() * algebraic[b.index] + c.sign() * algebraic[c.index]
 			
-			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
+			return self.target_triangulation.lamination(geometric, algebraic, remove_peripheral=False)
 		else:
 			return NotImplemented
 	
@@ -100,7 +100,7 @@ class LinearTransformation(object):
 			geometric = self.geometric(other.geometric)
 			algebraic = self.algebraic(other.algebraic)
 			
-			return flipper.kernel.Lamination(self.target_triangulation, geometric, algebraic)
+			return self.target_triangulation.lamination(geometric, algebraic, remove_peripheral=False)
 		else:
 			return NotImplemented
 	

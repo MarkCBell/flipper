@@ -25,10 +25,10 @@ def main(verbose=False):
 		('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
 		('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
 		# ('S_5_1', 'abcdefgHIl', NT_TYPE_PSEUDO_ANOSOV),
-		('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
-		('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
-		('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
-		('E_12', 'aaaaBBaBaBBBBBaBBabbababBaBabaBBp', NT_TYPE_PSEUDO_ANOSOV),
+		# ('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
+		# ('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
+		# ('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
+		# ('E_12', 'aaaaBBaBaBBBBBaBBabbababBaBabaBBp', NT_TYPE_PSEUDO_ANOSOV),
 		]
 	
 	for surface, word, _ in tests:
@@ -43,5 +43,5 @@ if __name__ == '__main__':
 	# print(main(verbose=True))
 	#pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_callers(20)
 	#pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('cumtime').print_callees(20)
-	pstats.Stats(cProfile.Profile().run('main()')).strip_dirs().sort_stats('time').print_stats(30)
+	pstats.Stats(cProfile.Profile().run('main(verbose=True)')).strip_dirs().sort_stats('time').print_stats(30)
 

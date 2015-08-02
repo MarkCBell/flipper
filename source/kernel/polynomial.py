@@ -117,7 +117,7 @@ class Polynomial(object):
 		#   a_0 + x*(a_1 + x*( ... + x*(a_n + x * 0) ... ) ).
 		
 		total = 0
-		for coefficient in reversed(list(self)):
+		for coefficient in reversed(self):
 			total = (other * total) + coefficient
 		return total
 	def __divmod__(self, other):

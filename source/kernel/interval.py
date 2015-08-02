@@ -69,7 +69,8 @@ class Interval(object):
 	def approximate_string(self, accuracy=None):
 		''' Return a string approximating the centre of this interval. '''
 		
-		if accuracy is None or accuracy > self.accuracy: accuracy = self.accuracy-1
+		if accuracy is None or accuracy > self.accuracy:
+			accuracy = self.precision if self.accuracy == INFTY else self.accuracy-1
 		I = self.change_denominator(accuracy)
 		v = (I.lower + I.upper) // 2
 		s = str(v).zfill(accuracy + (2 if v < 0 else 1))

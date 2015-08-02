@@ -129,7 +129,7 @@ class NumberFieldElement(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return self.approximate_string()
+		return self.approximate_string(6)
 	def approximate_string(self, accuracy=None):
 		''' Return a string approximating this NumberFieldElement. '''
 		

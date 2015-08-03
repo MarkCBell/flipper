@@ -27,7 +27,7 @@ class Encoding(object):
 	>>> a = S.mapping_class('a')
 	>>> a
 	[Isometry [0, 1, 2], Isometry [~2, 1, 0], Flip 2, Isometry [0, 1, 2], Isometry [0, 1, 2]]
-	>>> x = S.triangulation.encode_flips([1])
+	>>> x = S.triangulation.encode([1])
 	>>> x
 	[Flip 1, Isometry [0, 1, 2]]
 	'''
@@ -690,7 +690,7 @@ class Encoding(object):
 					# To do this we must first flip the boundary edge.
 					boundary_edge = triangulation.nonflippable_boundary(i)
 					# This edge is always flippable and, after flipping it, i is too.
-					extra = triangulation.encode_flips([boundary_edge, i])
+					extra = triangulation.encode([i, boundary_edge])
 					safe_encoding = extra.inverse() * extra * safe_encoding
 			
 			return safe_encoding.bundle(canonical=False, _safety=False)
@@ -872,7 +872,7 @@ def doctest_globs():
 	ab = S.mapping_class('ab')
 	i = S.mapping_class('')
 	a = S.mapping_class('a')
-	x = S.triangulation.encode_flips([1])
+	x = S.triangulation.encode([1])
 	
 	return {'aB': aB, 'bA': bA, 'ab': ab, 'i': i, 'a': a, 'x': x}
 

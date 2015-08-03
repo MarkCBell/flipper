@@ -75,6 +75,13 @@ class Isometry(object):
 		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in range(self.zeta)])
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.label_map))
+	def package(self):
+		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
+		
+		if not all(self(i) == i for i in range(self.zeta)):  # If self is not the identity isometry.
+			return self.label_map
+		else:
+			return None
 	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
@@ -146,6 +153,10 @@ class EdgeFlip(object):
 		return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label))
+	def package(self):
+		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
+		
+		return self.edge_label
 	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
@@ -210,6 +221,10 @@ class LinearTransformation(object):
 		return str(self)
 	def __str__(self):
 		return str(self.geometric) + str(self.algebraic)
+	def package(self):
+		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
+		
+		return self
 	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):

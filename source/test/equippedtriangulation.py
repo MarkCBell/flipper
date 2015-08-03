@@ -15,6 +15,9 @@ def main(verbose=False):
 		if word not in all_words:
 			return False
 	
+	if not S.mapping_class('abababababab') == S.mapping_class('xx'):
+		return False
+	
 	return True
 
 if __name__ == '__main__':

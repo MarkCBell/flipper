@@ -51,7 +51,7 @@ def example_1_2():
 		'a': a, 'b': b, 'c': c, 'x': x
 		}, {
 		'a': a.encode_twist(), 'b': b.encode_twist(), 'c': c.encode_twist(),
-		'x': T.encode_flips_and_close([2, 4, 0, 3, 2, 5, 4], 1, ~1)
+		'x': T.encode([{0: ~2}, 4, 5, 2, 3, 0, 4, 2])
 		})
 
 def example_2_1():

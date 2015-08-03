@@ -13,9 +13,9 @@ from time import time
 def tetrahedra_shapes(manifold):
 	# Return the exact shapes of the tetrahedra using snap.
 	T = snappy.snap.tetrahedra_field_gens(manifold)
-	_, generator, shapes = T.find_field(prec=100, degree=20, optimize=True)
+	_, generator, shapes = T.find_field(prec=200, degree=20, optimize=True)
 	generator_approximation = generator(100)
-	return [shape(generator_approximation).imag() for shape in shapes]
+	return [shape.polynomial()(generator_approximation).imag() for shape in shapes]
 
 def is_geometric(manifold):
 	return all([shape > 0 for shape in tetrahedra_shapes(manifold)])
@@ -28,9 +28,9 @@ def is_degenerate(manifold):
 def vincents_example():
 	T = flipper.create_triangulation([[3, 0, ~4], [4, ~5, ~0], [5, 2, ~6], [6, ~7, ~1], [7, 1, ~8], [8, ~3, ~2]])
 	
-	a = T.encode_flips_and_close([4], 3, 3)
-	b = T.encode_flips_and_close([4, 6, 8], 1, 2)
-	c = T.encode_flips_and_close([6, 8, 1, 2], 0, 0)
+	a = T.encode([{3: 3}, 4])
+	b = T.encode([{1: 2}, 8, 6, 4])
+	c = T.encode([{0: 0}, 2, 1, 8, 6])
 	# d = ???  # Ask Vincent for the 4th generator.
 	
 	return flipper.kernel.EquippedTriangulation(T, [], [a, b, c])
@@ -57,7 +57,7 @@ def test1():
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
 		try:
-			M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+			M = snappy.Manifold(h.bundle().snappy_string(filled=False))
 			if M.solution_type() != 'all tetrahedra positively oriented':
 				print('##############################')
 				print('(POSSIBLY) NON GEOMETRIC')
@@ -77,7 +77,7 @@ def test2():
 		print('Testing: %s' % word)
 		h = S.mapping_class(word)
 		try:
-			M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+			M = snappy.Manifold(h.bundle().snappy_string(filled=False))
 			if M.solution_type() != 'all tetrahedra positively oriented' and is_degenerate(M):
 				print('##############################')
 				print('(POSSIBLY) NON GEOMETRIC')
@@ -99,7 +99,7 @@ def test3():
 	# BAbAc == bcBA == abCB
 	# cbA == aBC
 	
-	M = snappy.Manifold(h.bundle(filled=False).snappy_string())
+	M = snappy.Manifold(h.bundle().snappy_string(filled=False))
 	print(snappy.Manifold(splitting.bundle().snappy_string(filled=False)).solution_type())
 	M.save('test.tri')
 

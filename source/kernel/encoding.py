@@ -31,7 +31,7 @@ class Encoding(object):
 	>>> x
 	[Flip 1, Isometry [0, 1, 2]]
 	'''
-	def __init__(self, sequence, name=None):
+	def __init__(self, sequence, name=None, _cache=None):
 		assert(isinstance(sequence, (list, tuple)))
 		assert(len(sequence) > 0)
 		assert(all(isinstance(item, flipper.kernel.Move) for item in sequence))
@@ -47,7 +47,7 @@ class Encoding(object):
 		self.target_triangulation = self.sequence[0].target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		self._cache = {}  # For caching hard to compute results.
+		self._cache = {} if _cache is None else _cache  # For caching hard to compute results.
 	
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.
@@ -68,6 +68,8 @@ class Encoding(object):
 		return str(self.sequence)
 	def __len__(self):
 		return len(self.sequence)
+	def __reduce__(self):
+		return (self.__class__, (self.sequence, self.name, self._cache))
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
 		

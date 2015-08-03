@@ -798,8 +798,8 @@ class Triangulation(object):
 		This consists of EdgeFlips, Isometries and LinearTransformations. Furthermore there are
 		several conventions that allow these to be specified by a small amount of information.
 		 - An integer x represents EdgeFlip(..., edge_label=x)
-		 - A dictionary, list or tuple of length self.zeta represents a relabelling.
-		 - A dictionary, list or tuple of length < self.zeta represents an isometry back to self.
+		 - A dictionary which has i or ~i as a key (for every i) represents a relabelling.
+		 - A dictionary which is missing i and ~i (for some i) represents an isometry back to self.
 		
 		This sequence is read in reverse in order respect composition. For example:
 			self.encode([1, {1: ~2}, 2, 3, ~4])
@@ -813,13 +813,11 @@ class Triangulation(object):
 		for item in reversed(sequence):
 			if isinstance(item, flipper.IntegerType):
 				h = h.target_triangulation.encode_flip(item) * h
-			elif isinstance(item, (list, tuple, dict)):
-				if len(item) < self.zeta:
-					h = h.target_triangulation.find_isometry(h.source_triangulation, item).encode() * h
-				elif len(item) == self.zeta:
+			elif isinstance(item, dict):
+				if all(i in item or ~i in item for i in range(self.zeta)):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
 				else:
-					raise flipper.FatalError('A relabelling must have %d items (or less if it is mapping back to the starting triangulation.' % self.zeta)
+					h = h.target_triangulation.find_isometry(self, item).encode() * h
 			else:
 				h = item * h
 		return h

@@ -792,14 +792,15 @@ class Triangulation(object):
 		
 		return flipper.kernel.Isometry(self, new_triangulation, label_map).encode()
 	
-	def encode(self, sequence):
+	def encode(self, sequence, _cache=None):
 		''' Return the encoding given by sequence.
 		
 		This consists of EdgeFlips, Isometries and LinearTransformations. Furthermore there are
-		several conventions that allow these to be specified by a small amount of information.
+		several conventions that allow these to be specified by a smaller amount of information.
 		 - An integer x represents EdgeFlip(..., edge_label=x)
 		 - A dictionary which has i or ~i as a key (for every i) represents a relabelling.
 		 - A dictionary which is missing i and ~i (for some i) represents an isometry back to self.
+		 - None represents the identity isometry.
 		
 		This sequence is read in reverse in order respect composition. For example:
 			self.encode([1, {1: ~2}, 2, 3, ~4])
@@ -818,8 +819,11 @@ class Triangulation(object):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
 				else:
 					h = h.target_triangulation.find_isometry(self, item).encode() * h
+			elif item is None:
+				h = h.target_triangulation.id_encoding() * h
 			else:
 				h = item * h
+		h._cache = {} if _cache is None else _cache
 		return h
 	
 	def encode_flips_and_close(self, edge_labels, edge_from_label, edge_to_label):

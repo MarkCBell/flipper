@@ -726,9 +726,9 @@ class Lamination(object):
 		# #---------->#
 		# And e.index = e1 and b.index = d.index = e2.
 		
-		T = triangulation.encode_flips_and_close([e1], a.label, a.label)
+		twist = triangulation.encode([{i: i for i in range(self.zeta) if i not in [e1, e2]}, e1])
 		
-		return conjugation.inverse() * T**k * conjugation
+		return conjugation.inverse() * twist**k * conjugation
 	
 	def encode_halftwist(self, k=1):
 		''' Return an Encoding of a left half twist about this lamination raised to the power k.
@@ -794,7 +794,7 @@ class Lamination(object):
 		# Where e.index = e1 and b.index = d.index = e2,
 		# and additionally x.index = y.index.
 		
-		T = triangulation.encode_flips_and_close([c.index, e1, e2], a.label, a.label)
+		twist = triangulation.encode([{i: i for i in range(self.zeta) if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
 		
 		return conjugation.inverse() * T**k * conjugation
 	

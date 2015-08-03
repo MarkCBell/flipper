@@ -807,6 +807,8 @@ class Triangulation(object):
 		back to the starting triangulation via the isometry which takes 1 to ~2 and
 		then finally flips edge 1. '''
 		
+		assert(isinstance(sequence, (list, tuple)))
+		
 		h = self.id_encoding()
 		for item in reversed(sequence):
 			if isinstance(item, flipper.IntegerType):

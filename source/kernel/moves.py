@@ -74,7 +74,8 @@ class Isometry(object):
 	def __str__(self):
 		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in range(self.zeta)])
 	def __reduce__(self):
-		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.corner_map))
+		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.label_map))
+	
 	def __call__(self, other):
 		if isinstance(other, flipper.kernel.Lamination):
 			if other.triangulation != self.source_triangulation:

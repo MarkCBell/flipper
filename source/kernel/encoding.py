@@ -66,6 +66,8 @@ class Encoding(object):
 		return str(self)
 	def __str__(self):
 		return str(self.sequence)
+	def __iter__(self):
+		return iter(self.sequence)
 	def __len__(self):
 		return len(self.sequence)
 	def __reduce__(self):

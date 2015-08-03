@@ -459,8 +459,13 @@ class Triangulation(object):
 		return Triangulation(triangles + [triangle_A2, triangle_B2])
 	
 	def relabel_edges(self, label_map):
+		''' Return a new triangulation obtained by relabelling the edges according to label_map. '''
 		
-		label_map = dict(label_map)
+		if isinstance(label_map, (list, tuple)):
+			label_map = dict(enumerate(label_map))
+		else:
+			label_map = dict(label_map)
+		
 		for i in range(self.zeta):
 			if i in label_map and ~i in label_map:
 				pass
@@ -780,37 +785,59 @@ class Triangulation(object):
 		
 		return flipper.kernel.EdgeFlip(self, new_triangulation, edge_label).encode()
 	
-	def encode_flips(self, edge_labels):
-		''' Return an encoding of the effect of flipping the given sequences of edges. '''
+	def encode_relabel_edges(self, label_map):
+		''' Return an encoding of the effect of flipping the given edge. '''
 		
-		h = self.id_encoding()
-		for edge_label in edge_labels:
-			h = h.target_triangulation.encode_flip(edge_label) * h
-		return h
+		new_triangulation = self.relabel_edges(label_map)
+		
+		return flipper.kernel.Isometry(self, new_triangulation, label_map).encode()
 	
 	def encode(self, sequence):
+		''' Return the encoding given by sequence.
+		
+		This consists of EdgeFlips, Isometries and LinearTransformations. Furthermore there are
+		several conventions that allow these to be specified by a small amount of information.
+		 - An integer x represents EdgeFlip(..., edge_label=x)
+		 - A dictionary, list or tuple of length self.zeta represents a relabelling.
+		 - A dictionary, list or tuple of length < self.zeta represents an isometry back to self.
+		
+		This sequence is read in reverse in order respect composition. For example:
+			self.encode([1, {1: ~2}, 2, 3, ~4])
+		is the mapping class which: flips edge ~4, then 3, then 2, then relabels
+		back to the starting triangulation via the isometry which takes 1 to ~2 and
+		then finally flips edge 1. '''
 		
 		h = self.id_encoding()
 		for item in reversed(sequence):
 			if isinstance(item, flipper.IntegerType):
 				h = h.target_triangulation.encode_flip(item) * h
-			elif isinstance(item, dict):
-				h = h.target_triangulation.encode_relabel_edges(item) * h
+			elif isinstance(item, (list, tuple, dict)):
+				if len(item) < self.zeta:
+					h = h.target_triangulation.find_isometry(h.source_triangulation, item).encode() * h
+				elif len(item) == self.zeta:
+					h = h.target_triangulation.encode_relabel_edges(item) * h
+				else:
+					raise flipper.FatalError('A relabelling must have %d items (or less if it is mapping back to the starting triangulation.' % self.zeta)
 			else:
 				h = item * h
 		return h
 	
 	def encode_flips_and_close(self, edge_labels, edge_from_label, edge_to_label):
-		''' Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
+		''' DEPRECIATED: Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
 		
-		The isometry used is the one taking edge_from_label to edge_to_label. '''
+		The isometry used is the one taking edge_from_label to edge_to_label.
+		
+		This function has been depreciated in favour of self.encode() and is equivalent to:
+			self.encode([{edge_from_label: edge_to_label}] + list(reversed(edge_labels)))
+		Note that edge_labels needs to be reversed in order to match the order of
+		composition used in self.encode(). '''
 		
 		assert(isinstance(edge_labels, (list, tuple)))
 		assert(all(isinstance(label, flipper.IntegerType) for label in edge_labels))
 		assert(isinstance(edge_from_label, flipper.IntegerType))
 		assert(isinstance(edge_to_label, flipper.IntegerType))
 		
-		E = self.encode_flips(edge_labels)
+		E = self.encode(list(reversed(edge_labels)))
 		return E.target_triangulation.find_isometry(self, {edge_from_label: edge_to_label}).encode() * E
 	
 	def all_flips(self, depth, prefix=None):
@@ -847,7 +874,7 @@ class Triangulation(object):
 		prefix = [] if prefix is None else list(prefix)
 		
 		for sequence in self.all_flips(depth, prefix):
-			yield self.encode_flips(prefix + sequence)
+			yield self.encode(list(reversed(prefix + sequence)))
 	
 	def all_mapping_classes(self, depth, prefix=None):
 		''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''

@@ -438,14 +438,51 @@ class Triangulation(object):
 		# V/    c     |     |          V|
 		# #---------->#     #-----------#
 		
+		vertex_map = dict()
+		for vertex in self.vertices:
+			vertex_map[vertex] = flipper.kernel.Vertex(vertex.label, filled=vertex.filled)
+		
+		edge_map = dict()
+		# Far away edges should go to an exact copy of themselves.
+		for edge in self.oriented_edges:
+			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge.label)
+			edge_map[~edge] = ~edge_map[edge]
+		
 		a, b, c, d = self.square_about_edge(edge_label)
-		new_edge = Edge(a.target_vertex, c.target_vertex, edge_label)
+		new_edge = Edge(vertex_map[a.target_vertex], vertex_map[c.target_vertex], edge_label)
 		
-		triangle_A2 = Triangle([new_edge, d, a])
-		triangle_B2 = Triangle([~new_edge, b, c])
+		triangle_A2 = Triangle([new_edge, edge_map[d], edge_map[a]])
+		triangle_B2 = Triangle([~new_edge, edge_map[b], edge_map[c]])
 		
-		unchanged_triangles = [triangle for triangle in self if edge_label not in triangle.labels and ~edge_label not in triangle]
-		return Triangulation(unchanged_triangles + [triangle_A2, triangle_B2])
+		triangles = [flipper.kernel.Triangle([edge_map[edge] for edge in triangle]) for triangle in self if edge_label not in triangle.labels and ~edge_label not in triangle]
+		
+		return Triangulation(triangles + [triangle_A2, triangle_B2])
+	
+	def relabel_edges(self, label_map):
+		
+		label_map = dict(label_map)
+		for i in range(self.zeta):
+			if i in label_map and ~i in label_map:
+				pass
+			elif i not in label_map and ~i in label_map:
+				label_map[i] = ~label_map[~i]
+			elif i in label_map and ~i not in label_map:
+				label_map[~i] = ~label_map[i]
+			else:
+				raise flipper.AssumptionError('Missing new label for %d.' % i)
+		
+		vertex_map = dict()
+		for vertex in self.vertices:
+			vertex_map[vertex] = flipper.kernel.Vertex(vertex.label, filled=vertex.filled)
+		
+		edge_map = dict()
+		# Far away edges should go to an exact copy of themselves.
+		for edge in self.oriented_edges:
+			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], label_map[edge.label])
+			edge_map[~edge] = ~edge_map[edge]
+		
+		triangles = [flipper.kernel.Triangle([edge_map[edge] for edge in triangle]) for triangle in self]
+		return Triangulation(triangles)
 	
 	def tree_and_dual_tree(self, respect_fillings=False):
 		''' Return a maximal tree in the 1--skeleton of this triangulation and a
@@ -545,44 +582,13 @@ class Triangulation(object):
 		
 		return homology_generators
 	
-	def find_isometry(self, other, edge_from_label, edge_to_label, respect_fillings=True):
+	def find_isometry(self, other, label_map, respect_fillings=True):
 		''' Return the isometry from this triangulation to other that sends edge_from_label to
 		to edge_to_label.
 		
 		Assumes (and checks) that such an isometry exists and is unique. '''
-		assert(isinstance(other, Triangulation))
-		assert(isinstance(edge_from_label, flipper.IntegerType))
-		assert(isinstance(edge_to_label, flipper.IntegerType))
-		assert(isinstance(respect_fillings, bool))
 		
-		source_corner = self.corner_of_edge(edge_from_label)
-		target_corner = other.corner_of_edge(edge_to_label)
-		source_orders = dict([(corner, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class])
-		target_orders = dict([(corner, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class])
-		# We do a depth first search extending the corner map across the triangulation.
-		corner_map = {source_corner: target_corner}
-		# This is a stack of triangles that may still have consequences.
-		to_process = [(source_corner, target_corner)]
-		while to_process:
-			from_corner, to_corner = to_process.pop()
-			
-			neighbours = [
-				(self.opposite_corner(from_corner), other.opposite_corner(to_corner)),
-				(self.rotate_corner(from_corner), other.rotate_corner(to_corner))
-				]
-			for new_from_corner, new_to_corner in neighbours:
-				# Check that this map is still consistent.
-				if new_from_corner in corner_map:
-					if new_to_corner != corner_map[new_from_corner]:
-						raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
-				else:
-					if source_orders[new_from_corner] != target_orders[new_to_corner] or \
-						respect_fillings and new_from_corner.vertex.filled != new_to_corner.vertex.filled:
-						raise flipper.AssumptionError('edge_from_label and edge_to_label do not determine an isometry.')
-					corner_map[new_from_corner] = new_to_corner
-					to_process.append((new_from_corner, new_to_corner))
-		
-		return flipper.kernel.Isometry(self, other, corner_map)
+		return flipper.kernel.Isometry(self, other, label_map, respect_fillings)
 	
 	def isometries_to(self, other, respect_fillings=True):
 		''' Return a list of all isometries from this triangulation to other. '''
@@ -592,6 +598,8 @@ class Triangulation(object):
 		
 		if self.zeta != other.zeta:
 			return []
+		
+		# !?! This needs to be modified to work on disconnected surfaces.
 		
 		# Isometries are determined by where a single triangle is sent.
 		# We take a corner of smallest degree.
@@ -603,7 +611,7 @@ class Triangulation(object):
 		isometries = []
 		for target_corner in target_corners:
 			try:
-				isometries.append(self.find_isometry(other, source_corner.label, target_corner.label, respect_fillings))
+				isometries.append(self.find_isometry(other, {source_corner.label: target_corner.label}, respect_fillings))
 			except flipper.AssumptionError:
 				pass
 		
@@ -754,7 +762,7 @@ class Triangulation(object):
 	def id_isometry(self):
 		''' Return the isometry representing the identity map. '''
 		
-		return flipper.kernel.Isometry(self, self, dict((corner, corner) for corner in self.corners))
+		return flipper.kernel.Isometry(self, self, dict((i, i) for i in range(-self.zeta, self.zeta)))
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
@@ -780,6 +788,18 @@ class Triangulation(object):
 			h = h.target_triangulation.encode_flip(edge_label) * h
 		return h
 	
+	def encode(self, sequence):
+		
+		h = self.id_encoding()
+		for item in reversed(sequence):
+			if isinstance(item, flipper.IntegerType):
+				h = h.target_triangulation.encode_flip(item) * h
+			elif isinstance(item, dict):
+				h = h.target_triangulation.encode_relabel_edges(item) * h
+			else:
+				h = item * h
+		return h
+	
 	def encode_flips_and_close(self, edge_labels, edge_from_label, edge_to_label):
 		''' Return an encoding of the effect of flipping the given sequences of edges followed by an isometry.
 		
@@ -791,7 +811,7 @@ class Triangulation(object):
 		assert(isinstance(edge_to_label, flipper.IntegerType))
 		
 		E = self.encode_flips(edge_labels)
-		return E.target_triangulation.find_isometry(self, edge_from_label, edge_to_label).encode() * E
+		return E.target_triangulation.find_isometry(self, {edge_from_label: edge_to_label}).encode() * E
 	
 	def all_flips(self, depth, prefix=None):
 		''' Return all flip sequences of at most the given number of flips. '''

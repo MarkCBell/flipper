@@ -20,14 +20,17 @@ class Isometry(object):
 		
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(label_map, dict))
+		assert(isinstance(label_map, (list, tuple, dict)))
 		assert(isinstance(respect_fillings, bool))
 		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		self.label_map = dict(label_map)
+		if isinstance(label_map, (list, tuple)):
+			self.label_map = dict(enumerate(label_map))
+		else:
+			self.label_map = dict(label_map)
 		
 		# If we are missing any labels then use a depth first search to find the missing ones.
 		# Hmmm, should always we do this just to check consistency?
@@ -69,7 +72,7 @@ class Isometry(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Isometry ' + str([self.target_triangulation.edge_lookup(self(i)) for i in range(self.zeta)])
+		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in range(self.zeta)])
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.corner_map))
 	def __call__(self, other):

@@ -449,7 +449,7 @@ class Triangulation(object):
 			edge_map[~edge] = ~edge_map[edge]
 		
 		a, b, c, d = self.square_about_edge(edge_label)
-		new_edge = Edge(vertex_map[a.target_vertex], vertex_map[c.target_vertex], edge_label)
+		new_edge = Edge(vertex_map[a.target_vertex], vertex_map[c.target_vertex], norm(edge_label))
 		
 		triangle_A2 = Triangle([new_edge, edge_map[d], edge_map[a]])
 		triangle_B2 = Triangle([~new_edge, edge_map[b], edge_map[c]])

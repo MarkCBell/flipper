@@ -19,7 +19,6 @@ from . import encoding
 from . import error
 from . import equippedtriangulation
 from . import interval
-from . import isometry
 from . import lamination
 from . import matrix
 from . import moves
@@ -49,9 +48,9 @@ ComputationError = error.ComputationError
 FatalError = error.FatalError
 EquippedTriangulation = equippedtriangulation.EquippedTriangulation
 Interval = interval.Interval
-Isometry = isometry.Isometry
 Lamination = lamination.Lamination
 Matrix = matrix.Matrix
+Isometry = moves.Isometry
 EdgeFlip = moves.EdgeFlip
 LinearTransformation = moves.LinearTransformation
 Move = (EdgeFlip, LinearTransformation, Isometry)

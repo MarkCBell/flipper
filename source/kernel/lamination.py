@@ -796,7 +796,7 @@ class Lamination(object):
 		
 		twist = triangulation.encode([{i: i for i in range(self.zeta) if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
 		
-		return conjugation.inverse() * T**k * conjugation
+		return conjugation.inverse() * twist**k * conjugation
 	
 	def geometric_intersection(self, lamination):
 		''' Return the geometric intersection number between this lamination and the given one.

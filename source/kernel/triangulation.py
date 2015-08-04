@@ -453,6 +453,7 @@ class Triangulation(object):
 			edge_map[~edge] = ~edge_map[edge]
 		
 		a, b, c, d = self.square_about_edge(edge_label)
+		# We need to label new_edge with norm(edge_label) so that self.flip_edge(i).flip_edge(~i) == self.
 		new_edge = Edge(vertex_map[a.target_vertex], vertex_map[c.target_vertex], norm(edge_label))
 		
 		triangle_A2 = Triangle([new_edge, edge_map[d], edge_map[a]])

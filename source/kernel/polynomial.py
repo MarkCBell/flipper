@@ -321,7 +321,11 @@ class PolynomialRoot(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Root of %s (~%0.6f)' % (self.polynomial, float(self))
+		return 'Root of %s (~%s)' % (self.polynomial, self.approximate_string(6))
+	def approximate_string(self, accuracy=None):
+		''' Return a string approximating this NumberFieldElement. '''
+		
+		return self.algebraic_approximation(accuracy).approximate_string(accuracy)
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	def __hash__(self):
@@ -427,11 +431,10 @@ class PolynomialRoot(object):
 		
 		return self.interval
 	
-	def algebraic_approximation(self, accuracy=0):
+	def algebraic_approximation(self, accuracy=None):
 		''' Return an AlgebraicApproximation of this root to at least the requested accuracy. '''
 		
-		assert(isinstance(accuracy, flipper.IntegerType))
-		
+		if accuracy is None: accuracy = 0
 		min_accuracy = self.height + self.log_degree  # This ensures the AlgebraicApproximation is well defined.
 		target_accuracy = max(accuracy, min_accuracy)
 		

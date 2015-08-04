@@ -308,7 +308,7 @@ class NumberFieldElement(object):
 		
 		return self._interval
 	
-	def algebraic_approximation(self, accuracy=0):
+	def algebraic_approximation(self, accuracy=None):
 		''' Return an AlgebraicApproximation of this element which is correct to at least the requested accuracy.
 		
 		The accuracy returned is at least the minimum accuracy needed to determine a unique algebraic number. '''
@@ -320,6 +320,7 @@ class NumberFieldElement(object):
 		# Then by induction on D:
 		#   h(self) <= sum(h(a_i)) + d (h(L) + lg(2)) and
 		#   deg(self) <= D.
+		if accuracy is None: accuracy = 0
 		min_accuracy = self.height + self.log_degree
 		target_accuracy = max(accuracy, min_accuracy)
 		

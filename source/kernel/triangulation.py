@@ -168,6 +168,8 @@ class Triangulation(object):
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
+		self.labels = [edge.label for edge in self.edges]
+		self.indices = [edge.index for edge in self.oriented_edges]
 		self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
 		assert(not all(vertex.filled for vertex in self.vertices))
 		self.corners = [corner for triangle in self for corner in triangle.corners]

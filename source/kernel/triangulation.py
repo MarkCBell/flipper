@@ -245,7 +245,7 @@ class Triangulation(object):
 			return NotImplemented
 	def __reduce__(self):
 		# Triangulations are already pickleable but this results in a smaller pickle.
-		#return (flipper.create_triangulation, (
+		#return (create_triangulation, (
 		#	[t.labels for t in self],
 		#	{corner.label: corner.vertex.label for corner in self.corners},
 		#	{vertex.label: vertex.filled for vertex in self.vertices}

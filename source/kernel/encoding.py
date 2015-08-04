@@ -71,6 +71,7 @@ class Encoding(object):
 	def __len__(self):
 		return len(self.sequence)
 	def __reduce__(self):
+		#return (create_encoding, (self.source_triangulation, [item.package() for item in self], self._cache))
 		return (self.__class__, (self.sequence, self.name, self._cache))
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
@@ -864,6 +865,18 @@ class Encoding(object):
 				fibre_immersion[source_triangle] = lower_map[source_triangle]
 		
 		return flipper.kernel.Bundle(triangulation, triangulation3, fibre_immersion)
+
+def create_encoding(source_triangulation, sequence, _cache=None):
+	''' Return the encoding defined by sequence starting at source_triangulation.
+	
+	This is only really here to help with pickling. Users should use
+	  source_triangulation.encode(sequence)
+	directly. '''
+	
+	assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+	
+	# Should we do name too?
+	return source_triangulation.encode(sequence, _cache)
 
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''

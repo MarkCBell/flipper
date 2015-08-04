@@ -35,5 +35,5 @@ class SplittingSequence(object):
 		# This is the same as: flipper.kernel.product(encodings[self.index:]).inverse()
 		self.mapping_class = encoding[:-self.index].inverse()
 		# Write some things into the cache.
-		# self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
+		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 

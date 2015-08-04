@@ -24,10 +24,13 @@ class SplittingSequence(object):
 		
 		self.triangulation = self.lamination.triangulation
 		
-		self.preperiodic = flipper.kernel.product(encodings[:self.index])
+		# This is the same as: flipper.kernel.product(encodings[:self.index])
+		self.preperiodic = self.encodings[-self.index:]
+		
 		# We will reverse the direction of self.mapping_class so that self.lamination
 		# is the stable lamination.
-		self.mapping_class = flipper.kernel.product(encodings[self.index:]).inverse()  #pylint: disable=maybe-no-member
+		# This is the same as: flipper.kernel.product(encodings[self.index:]).inverse()
+		self.mapping_class = self.encodings[:-self.index].inverse()
 		# Write some things into the cache.
 		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 

@@ -955,6 +955,7 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 	
 	def rotate(edge_label):
 		''' Return the edge label one click round from edge_label. '''
+		
 		label, i = finder(edge_label)
 		return label[(i+1) % 3]
 	
@@ -1017,6 +1018,7 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 	
 	def vertexer(edge_label):
 		''' Return the vertex at the tail of the given edge label. '''
+		
 		return vertices[vertex_labels[rotate(edge_label)]]
 	
 	# Build the Edges.

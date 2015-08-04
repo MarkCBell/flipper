@@ -16,8 +16,11 @@ class SplittingSequence(object):
 		
 		# By taking the product of these encodings we can pickle them
 		# without having to record all of the triangulations involved. This
-		# saves a massive amount of memory.
-		self.encodings = flipper.kernel.product(encodings)
+		# saves a massive amount of memory. Additionally, we wont bother to
+		# save encoding as it will be equivalent to:
+		#  self.mapping_class.inverse() * self.preperiodic
+		encoding = flipper.kernel.product(encodings)
+		
 		self.index = index
 		self.dilatation = dilatation
 		self.lamination = lamination
@@ -25,12 +28,12 @@ class SplittingSequence(object):
 		self.triangulation = self.lamination.triangulation
 		
 		# This is the same as: flipper.kernel.product(encodings[:self.index])
-		self.preperiodic = self.encodings[-self.index:]
+		self.preperiodic = encoding[-self.index:]
 		
 		# We will reverse the direction of self.mapping_class so that self.lamination
 		# is the stable lamination.
 		# This is the same as: flipper.kernel.product(encodings[self.index:]).inverse()
-		self.mapping_class = self.encodings[:-self.index].inverse()
+		self.mapping_class = encoding[:-self.index].inverse()
 		# Write some things into the cache.
 		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 

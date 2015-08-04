@@ -45,10 +45,6 @@ class Polynomial(object):
 					s += ' %s %sx%s' % ('+' if pos else '-', coeff, power)
 		
 		return '0' if s == '' else s
-	def __reduce__(self):
-		# Polynomials are already pickleable but this results in a smaller pickle.
-		# In particular this doesn't save self._chain.
-		return (self.__class__, (self.coefficients,))
 	def __bool__(self):
 		return not self.is_zero()
 	def __nonzero__(self):  # For Python2.
@@ -330,11 +326,6 @@ class PolynomialRoot(object):
 		''' Return a string approximating this NumberFieldElement. '''
 		
 		return self.algebraic_approximation(accuracy).approximate_string(accuracy)
-	def __reduce__(self):
-		# PolynomialRoots are already pickleable but this results in a smaller pickle.
-		# We only need this many decimal places in order to uniquely determine PolynomialRoot.
-		m = int(self.degree + self.height) + 3
-		return (self.__class__, (self.polynomial, self.interval_approximation(m).change_denominator(m)))
 	def __float__(self):
 		return float(self.algebraic_approximation())
 	def __hash__(self):

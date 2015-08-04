@@ -245,6 +245,11 @@ class Triangulation(object):
 			return NotImplemented
 	def __reduce__(self):
 		# Triangulations are already pickleable but this results in a smaller pickle.
+		#return (flipper.create_triangulation, (
+		#	[t.labels for t in self],
+		#	{corner.label: corner.vertex.label for corner in self.corners},
+		#	{vertex.label: vertex.filled for vertex in self.vertices}
+		#	))
 		return (self.__class__, (self.triangles,))
 	def __eq__(self, other):
 		return self.signature == other.signature
@@ -714,7 +719,7 @@ class Triangulation(object):
 		curves = []
 		
 		for edge_index in range(self.zeta):
-	 		# Build the curve which is the boundary of a regular neighbourhood of this edge.
+			# Build the curve which is the boundary of a regular neighbourhood of this edge.
 			endpoints = self.vertices_of_edge(edge_index)
 			
 			# If the given edge actually forms a loop then we will build two curves, one for
@@ -913,18 +918,18 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 	Two optional arguments allow the states of vertices to be specified. These
 	are intended to only really be used by pickling methods.
 	
-	Firstly, if given, vertex_labels is a dictionary such that the vertex
-	at the tail of edge x is labelled vertex_labels[x]. NOTE: This is NOT
-	the standard way that vertices are looked up in a Triangulation.
+	Firstly, if given, vertex_labels is a dictionary taking x to the label of the
+	vertex opposite edge x. Vertices can be labelled by anything but using something
+	like 0, ..., num_vertices-1 is sensible.
 	
-	Secondly, if given, vertex_states is a list or tuple of Boolean flags such that
+	Secondly, if given, vertex_states is a dict, list or tuple of Boolean flags such that
 	the vertex labelled i is filled iff vertex_states[i] == True. '''
 	
 	assert(isinstance(edge_labels, (list, tuple)))
 	assert(all(isinstance(labels, (list, tuple)) for labels in edge_labels))
 	assert(all(len(labels) == 3 for labels in edge_labels))
 	assert(vertex_labels is None or isinstance(vertex_labels, dict))
-	assert(vertex_states is None or isinstance(vertex_states, (list, tuple)))
+	assert(vertex_states is None or isinstance(vertex_states, (list, tuple, dict)))
 	
 	zeta = len(edge_labels) * 3 // 2
 	
@@ -945,6 +950,11 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 					return (labels, i)
 		raise flipper.FatalError('Label now missing.')
 	
+	def rotate(edge_label):
+		''' Return the edge label one click round from edge_label. '''
+		label, i = finder(edge_label)
+		return label[(i+1) % 3]
+	
 	# Group the edges into vertex classes. Here two edges are in the same
 	# class iff they have the same tail.
 	unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
@@ -963,21 +973,51 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 		vertex_classes.append(new_vertex)
 	
 	num_vertices = len(vertex_classes)
-	# Build the vertex_states if not given.
-	if vertex_states is None:
-		vertex_states = [False] * num_vertices
-	
-	if len(vertex_states) != num_vertices:
-		raise TypeError('This triangulation has %d vertices but %d vertex states were given.' % (num_vertices, len(vertex_states)))
-	# Build the vertices.
-	vertices = [Vertex(index, filled=state) for index, state in enumerate(vertex_states)]
 	
 	# Build the vertex_labels if not given.
 	if vertex_labels is None:
-		vertex_labels = dict((edge_label, index) for index, vertex_class in enumerate(vertex_classes) for edge_label in vertex_class)
+		vertex_labels = dict()
+		# We will label the vertices 0, ..., num_vertices-1 in some order.
+		for index, vertex_class in enumerate(vertex_classes):
+			for edge_label in vertex_class:
+				vertex_labels[rotate(edge_label)] = index
+	
+	# Sanity check vertex_labels now.
+	# All edges should have a label.
+	# Edges should have the same label iff they are opposite the same vertex.
+	
+	for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:
+		if edge_label not in vertex_labels:
+			raise TypeError('Missing vertex label for edge %d.' % edge_label)
+	
+	for vertex_class in vertex_classes:
+		for edge_label in vertex_class:
+			if vertex_labels[rotate(edge_label)] != vertex_labels[rotate(vertex_class[0])]:
+				raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate(edge_label), rotate(vertex_class[0])))
+	
+	X = set(vertex_labels.values())
+	# Check we have the right number of labels. This also checks that distinct vertex_classes have distinct labels.
+	if len(X) != num_vertices:
+		raise TypeError('There are %d vertices but %d vertex labels were given.' % (num_vertices, len(X)))
+	
+	# Build the vertex_states if not given.
+	if vertex_states is None:
+		vertex_states = {label: False for label in X}
+	
+	# Check we have a state for each vertex.
+	for label in X:
+		if label not in vertex_states:
+			raise TypeError('No state given for vertex %s.' % label)
+	
+	# Build the vertices.
+	vertices = [Vertex(label, filled=vertex_states[label]) for label in X]
+	
+	def vertexer(edge_label):
+		''' Return the vertex at the tail of the given edge label. '''
+		return vertices[vertex_labels[rotate(edge_label)]]
 	
 	# Build the Edges.
-	edges_map = dict((i, Edge(vertices[vertex_labels[i]], vertices[vertex_labels[~i]], i)) for i in range(zeta))
+	edges_map = dict((i, Edge(vertexer(i), vertexer(~i), i)) for i in range(zeta))
 	for i in range(zeta):
 		edges_map[~i] = ~edges_map[i]
 	

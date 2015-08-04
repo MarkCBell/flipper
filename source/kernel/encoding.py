@@ -31,17 +31,15 @@ class Encoding(object):
 	>>> x
 	[Flip 1, Isometry [0, 1, 2]]
 	'''
-	def __init__(self, sequence, name=None, _cache=None):
+	def __init__(self, sequence, _cache=None):
 		assert(isinstance(sequence, (list, tuple)))
 		assert(len(sequence) > 0)
 		assert(all(isinstance(item, flipper.kernel.Move) for item in sequence))
-		assert(isinstance(name, flipper.StringType) or name is None)
 		# We used to also test:
 		#  assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
 		# However this makes composing Encodings a quadratic time algorithm!
 		
 		self.sequence = sequence
-		self.name = name
 		
 		self.source_triangulation = self.sequence[-1].source_triangulation
 		self.target_triangulation = self.sequence[0].target_triangulation
@@ -72,7 +70,7 @@ class Encoding(object):
 		return len(self.sequence)
 	def __reduce__(self):
 		#return (create_encoding, (self.source_triangulation, [item.package() for item in self], self._cache))
-		return (self.__class__, (self.sequence, self.name, self._cache))
+		return (self.__class__, (self.sequence, self._cache))
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
 		
@@ -145,9 +143,7 @@ class Encoding(object):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
-			return Encoding(
-				self.sequence + other.sequence,
-				other.name + '.' + self.name if self.name is not None and other.name is not None else None)
+			return Encoding(self.sequence + other.sequence)
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -875,7 +871,6 @@ def create_encoding(source_triangulation, sequence, _cache=None):
 	
 	assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 	
-	# Should we do name too?
 	return source_triangulation.encode(sequence, _cache)
 
 def doctest_globs():

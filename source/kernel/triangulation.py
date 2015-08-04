@@ -828,7 +828,10 @@ class Triangulation(object):
 				h = h.target_triangulation.id_encoding() * h
 			else:
 				h = item * h
-		h._cache = {} if _cache is None else _cache
+		
+		# Install a cache if we were given one.
+		if _cache is not None: h._cache = _cache
+		
 		return h
 	
 	def encode_flips_and_close(self, edge_labels, edge_from_label, edge_to_label):

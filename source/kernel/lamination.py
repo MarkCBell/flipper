@@ -448,6 +448,7 @@ class Lamination(object):
 		and an encoding which is at least algebraically correct.
 		
 		Assumes (and checks) that:
+			- edge_index is a flippable edge,
 			- self.triangulation is not S_{0,3},
 			- the given edge does not connect between two unfilled vertices, and
 			- edge_index is the only edge of weight 0. '''
@@ -585,18 +586,39 @@ class Lamination(object):
 		assert(len(set([entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement)])) <= 1)
 		
 		# Check if the lamination is obviously non-filling.
-		if any(v == 0 for v in self):
-			raise flipper.AssumptionError('Lamination is not filling.')
-		
 		if all(isinstance(v, flipper.IntegerType) for v in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
-		# Puncture all the triangles where the lamination is a tripod.
-		E = self.puncture_tripods() if len(self.tripod_regions()) > 0 else self.triangulation.id_encoding()
-		lamination = E(self)
+		# We should call lamination.collapse_trivial_weight(flip_index) on each
+		# weight 0 edge and rely on it to either collapse the edge or raise the
+		# approprate error.
 		
-		encodings = [E]
-		laminations = [self, lamination]
+		# !?! This is still wrong, collapse_trivial_weights has too many assumptions.
+		lamination = self
+		encodings = []
+		laminations = [lamination]
+		# Start by collapsing any edges of weight zero.
+		if False:
+			while True:
+				for flip_index in range(lamination.zeta):
+					if lamination(flip_index) == 0:
+						try:
+							# If this fails it's because the lamination isn't filling.
+							lamination, E = lamination.collapse_trivial_weight(flip_index)
+							encodings.append(E)
+							laminations.append(lamination)
+							break
+						except flipper.AssumptionError:
+							raise flipper.AssumptionError('Lamination is not filling.')
+				else:
+					break
+		
+		E = lamination.puncture_tripods()
+		lamination = E(self)
+		encdoings.append(E)
+		laminations.append(lamination)
+		
+		# Puncture all the triangles where the lamination is a tripod.
 		seen = {}
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
@@ -611,7 +633,7 @@ class Lamination(object):
 		while True:
 			max_weight = flip_weight
 			# Flip all edges weight max_weight. As the heap outputs these in sorted order,
-			# we do this by poping an element and flipping it until we reach one of 
+			# we do this by popping an element and flipping it until we reach one of
 			# weight < max_weight.
 			while flip_weight == max_weight:
 				# Do the flip.
@@ -625,8 +647,8 @@ class Lamination(object):
 				if lamination(flip_index) == 0:
 					try:
 						# If this fails it's because the lamination isn't filling.
-						lamination, E2 = lamination.collapse_trivial_weight(flip_index)
-						encodings.append(E2)
+						lamination, E = lamination.collapse_trivial_weight(flip_index)
+						encodings.append(E)
 						laminations.append(lamination)
 						# Need to rebuild the heap as indices no longer correspond.
 						weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]

@@ -14,17 +14,20 @@ class SplittingSequence(object):
 		# assert(isinstance(dilatation, flipper.kernel.NumberFieldElement))
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		
-		self.encodings = encodings
+		# By taking the product of these encodings we can pickle them
+		# without having to record all of the triangulations involved. This
+		# saves a massive amount of memory.
+		self.encodings = flipper.kernel.product(encodings)
 		self.index = index
 		self.dilatation = dilatation
 		self.lamination = lamination
 		
 		self.triangulation = self.lamination.triangulation
 		
-		self.preperiodic = flipper.kernel.product(self.encodings[:self.index])
+		self.preperiodic = flipper.kernel.product(encodings[:self.index])
 		# We will reverse the direction of self.mapping_class so that self.lamination
 		# is the stable lamination.
-		self.mapping_class = flipper.kernel.product(self.encodings[self.index:]).inverse()  #pylint: disable=maybe-no-member
+		self.mapping_class = flipper.kernel.product(encodings[self.index:]).inverse()  #pylint: disable=maybe-no-member
 		# Write some things into the cache.
 		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 

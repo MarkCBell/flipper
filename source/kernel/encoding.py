@@ -69,8 +69,7 @@ class Encoding(object):
 	def __len__(self):
 		return len(self.sequence)
 	def __reduce__(self):
-		#return (create_encoding, (self.source_triangulation, [item.package() for item in self], self._cache))
-		return (self.__class__, (self.sequence, self._cache))
+		return (create_encoding, (self.source_triangulation, [item.package() for item in self], self._cache))
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
 		

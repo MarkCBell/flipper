@@ -167,15 +167,15 @@ class Triangulation(object):
 		self.triangles = sorted(triangles, key=lambda t: [e.label for e in t])
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges]
-		self.oriented_edges = [edge for edge in self.edges if edge.is_positive()]
+		self.positive_edges = [edge for edge in self.edges if edge.is_positive()]
 		self.labels = [edge.label for edge in self.edges]
-		self.indices = [edge.index for edge in self.oriented_edges]
+		self.indices = [edge.index for edge in self.positive_edges]
 		self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
 		assert(not all(vertex.filled for vertex in self.vertices))
 		self.corners = [corner for triangle in self for corner in triangle.corners]
 		
 		self.num_triangles = len(self.triangles)
-		self.zeta = len(self.oriented_edges)
+		self.zeta = len(self.positive_edges)
 		assert(self.zeta == self.num_triangles * 3 // 2)
 		self.num_vertices = len(self.vertices)
 		self.num_filled_vertices = len([vertex for vertex in self.vertices if vertex.filled])
@@ -450,7 +450,7 @@ class Triangulation(object):
 		
 		edge_map = dict()
 		# Far away edges should go to an exact copy of themselves.
-		for edge in self.oriented_edges:
+		for edge in self.positive_edges:
 			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge.label)
 			edge_map[~edge] = ~edge_map[edge]
 		
@@ -489,7 +489,7 @@ class Triangulation(object):
 		
 		edge_map = dict()
 		# Far away edges should go to an exact copy of themselves.
-		for edge in self.oriented_edges:
+		for edge in self.positive_edges:
 			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], label_map[edge.label])
 			edge_map[~edge] = ~edge_map[edge]
 		

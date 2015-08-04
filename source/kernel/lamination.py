@@ -402,7 +402,7 @@ class Lamination(object):
 		
 		edge_map = dict()
 		# Far away edges should go to an exact copy of themselves.
-		for edge in triangulation.oriented_edges:
+		for edge in triangulation.positive_edges:
 			edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge.label)
 			edge_map[~edge] = ~edge_map[edge]
 		
@@ -502,7 +502,7 @@ class Lamination(object):
 		edge_count = 0
 		edge_map = dict()
 		# Far away edges should go to an exact copy of themselves.
-		for edge in self.triangulation.oriented_edges:
+		for edge in self.triangulation.positive_edges:
 			if edge not in [a, b, c, d, e, ~a, ~b, ~c, ~d, ~e]:
 				edge_map[edge] = flipper.kernel.Edge(vertex_map[edge.source_vertex], vertex_map[edge.target_vertex], edge_count)
 				edge_map[~edge] = ~edge_map[edge]

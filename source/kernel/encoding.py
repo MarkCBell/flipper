@@ -866,8 +866,7 @@ def create_encoding(source_triangulation, sequence, _cache=None):
 	''' Return the encoding defined by sequence starting at source_triangulation.
 	
 	This is only really here to help with pickling. Users should use
-	  source_triangulation.encode(sequence)
-	directly. '''
+	source_triangulation.encode(sequence) directly. '''
 	
 	assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 	

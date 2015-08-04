@@ -244,13 +244,12 @@ class Triangulation(object):
 		else:
 			return NotImplemented
 	def __reduce__(self):
-		# Triangulations are already pickleable but this results in a smaller pickle.
-		#return (create_triangulation, (
-		#	[t.labels for t in self],
-		#	{corner.label: corner.vertex.label for corner in self.corners},
-		#	{vertex.label: vertex.filled for vertex in self.vertices}
-		#	))
-		return (self.__class__, (self.triangles,))
+		# Triangulations are already pickleable but this results in a much smaller pickle.
+		return (create_triangulation, (
+			[t.labels for t in self],
+			{corner.label: corner.vertex.label for corner in self.corners},
+			{vertex.label: vertex.filled for vertex in self.vertices}
+			))
 	def __eq__(self, other):
 		return self.signature == other.signature
 	def __ne__(self, other):

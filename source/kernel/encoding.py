@@ -683,7 +683,7 @@ class Encoding(object):
 				extra = triangulation.encode_flip(i)
 				safe_encoding = extra.inverse() * extra * safe_encoding
 			# Then add a flip and unflip for each non-flippable edge.
-			for i in range(triangulation.zeta):
+			for i in triangulation.indices:
 				if not triangulation.is_flippable(i):
 					# To do this we must first flip the boundary edge.
 					boundary_edge = triangulation.nonflippable_boundary(i)

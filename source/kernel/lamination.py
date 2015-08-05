@@ -129,7 +129,7 @@ class Lamination(object):
 		
 		# We used to just test other == isom.encode()(self) but this is much faster.
 		# Should we check algebraic too?
-		return [isom for isom in self.triangulation.isometries_to(other.triangulation) if all(other(isom.index_map[i]) == self(i) for i in range(self.zeta))]
+		return [isom for isom in self.triangulation.isometries_to(other.triangulation) if all(other(isom.index_map[i]) == self(i) for i in self.triangulation.indices)]
 	
 	def self_isometries(self):
 		''' Returns a list of isometries taking this lamination to itself. '''
@@ -280,7 +280,7 @@ class Lamination(object):
 		# one vertex triangulation.
 		triangulation = short_lamination.triangulation
 		vertex_numbers = dict(zip(list(triangulation.vertices), range(len(triangulation.vertices))))
-		for edge_index in range(triangulation.zeta):
+		for edge_index in triangulation.indices:
 			if self(edge_index) == 0:
 				c1, c2 = triangulation.vertices_of_edge(edge_index)
 				a, b = vertex_numbers[c1], vertex_numbers[c2]
@@ -328,7 +328,7 @@ class Lamination(object):
 		
 		triangulation = short_lamination.triangulation
 		
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
+		e1, e2 = [edge_index for edge_index in short_lamination.triangulation.indices if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
 		if short_lamination(a) == 1 and short_lamination(c) == 1:
@@ -600,7 +600,7 @@ class Lamination(object):
 		# Start by collapsing any edges of weight zero.
 		if False:
 			while True:
-				for flip_index in range(lamination.zeta):
+				for flip_index in lamination.triangulation.indices:
 					if lamination(flip_index) == 0:
 						try:
 							# If this fails it's because the lamination isn't filling.
@@ -721,7 +721,7 @@ class Lamination(object):
 		
 		triangulation = short_lamination.triangulation
 		# Grab the indices of the two edges we meet.
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
+		e1, e2 = [edge_index for edge_index in short_lamination.triangulation.indices if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
 		# If the curve is going vertically through the square then ...
@@ -748,7 +748,7 @@ class Lamination(object):
 		# #---------->#
 		# And e.index = e1 and b.index = d.index = e2.
 		
-		twist = triangulation.encode([{i: i for i in range(self.zeta) if i not in [e1, e2]}, e1])
+		twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2]}, e1])
 		
 		return conjugation.inverse() * twist**k * conjugation
 	
@@ -766,7 +766,7 @@ class Lamination(object):
 		short_lamination = conjugation(self)
 		
 		triangulation = short_lamination.triangulation
-		e1, e2 = [edge_index for edge_index in range(short_lamination.zeta) if short_lamination(edge_index) > 0]
+		e1, e2 = [edge_index for edge_index in short_lamination.triangulation.indices if short_lamination(edge_index) > 0]
 		
 		a, b, c, d = triangulation.square_about_edge(e1)
 		# If the curve is going vertically through the square then ...
@@ -816,7 +816,7 @@ class Lamination(object):
 		# Where e.index = e1 and b.index = d.index = e2,
 		# and additionally x.index = y.index.
 		
-		twist = triangulation.encode([{i: i for i in range(self.zeta) if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
+		twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
 		
 		return conjugation.inverse() * twist**k * conjugation
 	
@@ -837,7 +837,7 @@ class Lamination(object):
 		short_lamination = conjugator(lamination)
 		
 		triangulation = short.triangulation
-		e1, e2 = [edge_index for edge_index in range(triangulation.zeta) if short(edge_index) > 0]
+		e1, e2 = [edge_index for edge_index in triangulation.indices if short(edge_index) > 0]
 		# We might need to swap these edge indices so we have a good frame of reference.
 		if triangulation.corner_of_edge(e1).indices[2] != e2: e1, e2 = e2, e1
 		

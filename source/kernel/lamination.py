@@ -85,7 +85,7 @@ class Lamination(object):
 	
 	def __eq__(self, other):
 		return self.triangulation == other.triangulation and \
-			all(v == w for v, w in zip(self, other)) and \
+			all(v == w for v, w in zip(self.geometric, other.geometric)) and \
 			all(v == w for v, w in zip(self.algebraic, other.algebraic))
 	def __ne__(self, other):
 		return not (self == other)

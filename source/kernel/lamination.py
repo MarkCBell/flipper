@@ -615,7 +615,7 @@ class Lamination(object):
 		
 		E = lamination.puncture_tripods()
 		lamination = E(self)
-		encdoings.append(E)
+		encodings.append(E)
 		laminations.append(lamination)
 		
 		# Puncture all the triangles where the lamination is a tripod.

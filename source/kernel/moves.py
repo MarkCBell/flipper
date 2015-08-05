@@ -10,7 +10,7 @@ class Isometry(object):
 	
 	Triangulations can create the isometries between themselves and this
 	is the standard way users are expected to create these. '''
-	def __init__(self, source_triangulation, target_triangulation, label_map, respect_fillings=True):
+	def __init__(self, source_triangulation, target_triangulation, label_map):
 		''' This represents an isometry from source_triangulation to target_triangulation.
 		
 		It is given by a map taking each edge label of source_triangulation to a label of target_triangulation.
@@ -20,65 +20,37 @@ class Isometry(object):
 		
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-		assert(isinstance(label_map, (list, tuple, dict)))
-		assert(isinstance(respect_fillings, bool))
+		assert(isinstance(label_map, dict))
 		
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		if isinstance(label_map, (list, tuple)):
-			self.label_map = dict(enumerate(label_map))
-		else:
-			self.label_map = dict(label_map)
+		self.label_map = dict(label_map)
 		
 		# If we are missing any labels then use a depth first search to find the missing ones.
 		# Hmmm, should always we do this just to check consistency?
-		if any(i not in self.label_map for i in range(self.zeta)) or any(~i not in self.label_map for i in range(self.zeta)):
-			source_orders = dict([(corner.label, len(corner_class)) for corner_class in self.source_triangulation.corner_classes for corner in corner_class])
-			target_orders = dict([(corner.label, len(corner_class)) for corner_class in self.target_triangulation.corner_classes for corner in corner_class])
-			# We do a depth first search extending the corner map across the triangulation.
-			# This is a stack of labels that may still have consequences to check.
-			to_process = [(edge_from_label, self.label_map[edge_from_label]) for edge_from_label in self.label_map]
-			while to_process:
-				from_label, to_label = to_process.pop()
-				
-				neighbours = [
-					(~from_label, ~to_label),
-					(self.source_triangulation.corner_lookup[from_label].labels[1], self.target_triangulation.corner_lookup[to_label].labels[1])
-					]
-				for new_from_label, new_to_label in neighbours:
-					if new_from_label in self.label_map:
-						# Check that this map is still consistent.
-						if new_to_label != self.label_map[new_from_label]:
-							raise flipper.AssumptionError('This label_map does not extend to an isometry.')
-					else:
-						# Extend the map.
-						if source_orders[new_from_label] != target_orders[new_to_label] or \
-							respect_fillings and self.source_triangulation.vertex_lookup[new_from_label].filled != self.target_triangulation.vertex_lookup[new_to_label].filled:
-							raise flipper.AssumptionError('This label_map does not extend to an isometry.')
-						self.label_map[new_from_label] = new_to_label
-						to_process.append((new_from_label, new_to_label))
-			
-			if any(i not in self.label_map for i in range(self.zeta)) or any(~i not in self.label_map for i in range(self.zeta)):
-				raise flipper.AssumptionError('This label_map does not determine an isometry.')
+		for i in self.source_triangulation.labels:
+			if i not in self.label_map:
+				raise flipper.AssumptionError('This label_map not defined on edge %d.' % i)
 		
-		self.index_map = dict((i, flipper.kernel.norm(self.label_map[i])) for i in range(self.zeta))
+		
+		self.index_map = dict((i, flipper.kernel.norm(self.label_map[i])) for i in self.source_triangulation.indices)
 		# Store the inverses too while we're at it.
-		self.inverse_label_map = dict((self(i), i) for i in range(-self.zeta, self.zeta))
-		self.inverse_index_map = dict((i, flipper.kernel.norm(self.inverse_label_map[i])) for i in range(self.zeta))
-		self.inverse_signs = dict((i, +1 if self.inverse_index_map[i] == self.inverse_label_map[i] else -1) for i in range(self.zeta))
+		self.inverse_label_map = dict((self(i), i) for i in self.source_triangulation.labels)
+		self.inverse_index_map = dict((i, flipper.kernel.norm(self.inverse_label_map[i])) for i in self.source_triangulation.indices)
+		self.inverse_signs = dict((i, +1 if self.inverse_index_map[i] == self.inverse_label_map[i] else -1) for i in self.source_triangulation.indices)
 	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in range(self.zeta)])
+		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in self.source_triangulation.indices])
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.label_map))
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
-		if not all(self(i) == i for i in range(self.zeta)):  # If self is not the identity isometry.
+		if not all(self(i) == i for i in self.source_triangulation.indices):  # If self is not the identity isometry.
 			return self.label_map
 		else:
 			return None

@@ -168,8 +168,8 @@ class Triangulation(object):
 		
 		self.edges = [edge for triangle in self for edge in triangle.edges]
 		self.positive_edges = [edge for edge in self.edges if edge.is_positive()]
-		self.labels = [edge.label for edge in self.edges]
-		self.indices = [edge.index for edge in self.positive_edges]
+		self.labels = sorted([edge.label for edge in self.edges])
+		self.indices = sorted([edge.index for edge in self.positive_edges])
 		self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
 		assert(not all(vertex.filled for vertex in self.vertices))
 		self.corners = [corner for triangle in self for corner in triangle.corners]
@@ -595,12 +595,49 @@ class Triangulation(object):
 		return homology_generators
 	
 	def find_isometry(self, other, label_map, respect_fillings=True):
-		''' Return the isometry from this triangulation to other that sends edge_from_label to
-		to edge_to_label.
+		''' Return the isometry from this triangulation to other defined by label_map.
+		
+		label_map must either be a dictionary mapping self.labels to other.labels or
+		a list or tuple when self.indices = [0, ..., self.zeta-1]. In the first case
+		labels may be omitted if they are determined by other given ones and these will
+		be found automatically.
 		
 		Assumes (and checks) that such an isometry exists and is unique. '''
 		
-		return flipper.kernel.Isometry(self, other, label_map, respect_fillings)
+		if isinstance(label_map, (list, tuple)):
+			label_map = dict(enumerate(label_map))
+		else:
+			label_map = dict(label_map)
+		
+		source_orders = dict([(corner.label, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class])
+		target_orders = dict([(corner.label, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class])
+		# We do a depth first search extending the corner map across the triangulation.
+		# This is a stack of labels that may still have consequences to check.
+		to_process = [(edge_from_label, label_map[edge_from_label]) for edge_from_label in label_map]
+		while to_process:
+			from_label, to_label = to_process.pop()
+			
+			neighbours = [
+				(~from_label, ~to_label),
+				(self.corner_lookup[from_label].labels[1], other.corner_lookup[to_label].labels[1])
+				]
+			for new_from_label, new_to_label in neighbours:
+				if new_from_label in label_map:
+					# Check that this map is still consistent.
+					if new_to_label != label_map[new_from_label]:
+						raise flipper.AssumptionError('This label_map does not extend to an isometry.')
+				else:
+					# Extend the map.
+					if source_orders[new_from_label] != target_orders[new_to_label] or \
+						respect_fillings and self.vertex_lookup[new_from_label].filled != other.vertex_lookup[new_to_label].filled:
+						raise flipper.AssumptionError('This label_map does not extend to an isometry.')
+					label_map[new_from_label] = new_to_label
+					to_process.append((new_from_label, new_to_label))
+		
+		if any(i not in label_map for i in self.labels):
+			raise flipper.AssumptionError('This label_map cannot be extended to an isometry.')
+		
+		return flipper.kernel.Isometry(self, other, label_map)
 	
 	def isometries_to(self, other, respect_fillings=True):
 		''' Return a list of all isometries from this triangulation to other. '''

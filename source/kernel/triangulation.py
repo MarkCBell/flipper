@@ -599,17 +599,16 @@ class Triangulation(object):
 	def find_isometry(self, other, label_map, respect_fillings=True):
 		''' Return the isometry from this triangulation to other defined by label_map.
 		
-		label_map must either be a dictionary mapping self.labels to other.labels or
-		a list or tuple mapping self.indices to other.labels when
-		self.indices = [0, ..., self.zeta-1]. In the first case labels may be omitted
-		if they are determined by other given ones and these will be found automatically.
+		label_map must be a dictionary mapping self.labels to other.labels. Labels may
+		be omitted if they are determined by other given ones and these will be found
+		automatically.
 		
 		Assumes (and checks) that such an isometry exists and is unique. '''
 		
-		if isinstance(label_map, (list, tuple)):
-			label_map = dict(enumerate(label_map))
-		else:
-			label_map = dict(label_map)
+		assert(isinstance(label_map, dict))
+		
+		# Make a local copy as we may need to make a lot of changes.
+		label_map = dict(label_map)
 		
 		source_orders = dict([(corner.label, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class])
 		target_orders = dict([(corner.label, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class])
@@ -937,6 +936,11 @@ class Triangulation(object):
 		for encoding in self.all_encodings(depth, prefix):
 			for isom in encoding.closing_isometries():
 				yield isom.encode() * encoding
+	
+	def components(self):
+		''' Return a list of pairs (connected component of self, embedding). '''
+		
+		pass
 
 
 #######################################################

@@ -586,7 +586,7 @@ class Lamination(object):
 		assert(len(set([entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement)])) <= 1)
 		
 		# Check if the lamination is obviously non-filling.
-		if all(isinstance(v, flipper.IntegerType) for v in self):
+		if all(isinstance(entry, flipper.IntegerType) for entry in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
 		# We should call lamination.collapse_trivial_weight(flip_index) on each

@@ -180,8 +180,10 @@ class Triangulation(object):
 		self.num_vertices = len(self.vertices)
 		self.num_filled_vertices = len([vertex for vertex in self.vertices if vertex.filled])
 		self.num_unfilled_vertices = self.num_vertices - self.num_filled_vertices
+		# Check that the vertices are labelled 0, ..., num_vertices-1.
 		assert(set([vertex.label for vertex in self.vertices]) == set(range(self.num_vertices)))
-		assert(set(edge.label for edge in self.edges) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)]))
+		# Check that the edges have indices 0, ..., zeta-1.
+		assert(set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)]))
 		
 		self.triangle_lookup = dict((edge.label, triangle) for triangle in self for edge in triangle.edges)
 		self.edge_lookup = dict((edge.label, edge) for edge in self.edges)
@@ -383,7 +385,7 @@ class Triangulation(object):
 	def flippable_edges(self):
 		''' Return this list of flippable edges of this triangulation. '''
 		
-		return [i for i in range(self.zeta) if self.is_flippable(i)]
+		return [i for i in self.indices if self.is_flippable(i)]
 	
 	def nonflippable_boundary(self, edge_label):
 		''' Return the label of the edge bounding the once-punctured monogon containing edge_label.
@@ -473,7 +475,7 @@ class Triangulation(object):
 		else:
 			label_map = dict(label_map)
 		
-		for i in range(self.zeta):
+		for i in self.indices:
 			if i in label_map and ~i in label_map:
 				pass
 			elif i not in label_map and ~i in label_map:
@@ -598,9 +600,9 @@ class Triangulation(object):
 		''' Return the isometry from this triangulation to other defined by label_map.
 		
 		label_map must either be a dictionary mapping self.labels to other.labels or
-		a list or tuple when self.indices = [0, ..., self.zeta-1]. In the first case
-		labels may be omitted if they are determined by other given ones and these will
-		be found automatically.
+		a list or tuple mapping self.indices to other.labels when
+		self.indices = [0, ..., self.zeta-1]. In the first case labels may be omitted
+		if they are determined by other given ones and these will be found automatically.
 		
 		Assumes (and checks) that such an isometry exists and is unique. '''
 		
@@ -757,7 +759,7 @@ class Triangulation(object):
 		
 		curves = []
 		
-		for edge_index in range(self.zeta):
+		for edge_index in self.indices:
 			# Build the curve which is the boundary of a regular neighbourhood of this edge.
 			endpoints = self.vertices_of_edge(edge_index)
 			
@@ -811,7 +813,7 @@ class Triangulation(object):
 	def id_isometry(self):
 		''' Return the isometry representing the identity map. '''
 		
-		return flipper.kernel.Isometry(self, self, dict((i, i) for i in range(-self.zeta, self.zeta)))
+		return flipper.kernel.Isometry(self, self, dict((i, i) for i in self.labels))
 	
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
@@ -859,7 +861,7 @@ class Triangulation(object):
 			if isinstance(item, flipper.IntegerType):
 				h = h.target_triangulation.encode_flip(item) * h
 			elif isinstance(item, dict):
-				if all(i in item or ~i in item for i in range(self.zeta)):
+				if all(i in item for i in self.indices):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
 				else:
 					h = h.target_triangulation.find_isometry(self, item).encode() * h

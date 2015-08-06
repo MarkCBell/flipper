@@ -2,24 +2,25 @@
 ### Application ###
 undo and redo
 autosave session
+fix keyboard shortcuts on mac
 have weighted brush for painting laminations (in a given field?)
 show arrows 2/3 of the way along edges
 switch lamination drawing method on update
 show warning when automatically adding peripheral components
 show vertices as filled / unfilled
+add ability to export a python script - exporting invariant laminations could be hard
 
 ### Documentation ###
-documentation for kernel - sphinx?
 document bad cases for default symbolic libarary
-change `good curves' to `non-isolating curves'
 redo installation / testing instructions
 autogenerate docs / README
 upload version with:
 	python setup.py sdist register upload
 
 ### Kernel ###
+check we can completely handle disconnected surfaces
+redo flipper.load and separate off the censuses
 rescale invariant lamination such that weight is in [1, lamination)
-deal with disconnected surfaces
 extend symboliccomputation_dummy to work in all cases
 faster Matrix.kernel
 lamination should have an associated number field

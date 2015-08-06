@@ -505,6 +505,8 @@ class Triangulation(object):
 		These are given as lists of Booleans signaling if each edge is in the tree.
 		No edge is used in both the tree and the dual tree. '''
 		
+		# !?! This needs to be modified for a disconnected surface.
+		
 		tree = [False] * self.zeta
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
 		# Get some starting vertices.
@@ -551,6 +553,8 @@ class Triangulation(object):
 		to a good curve. Each path will meet each edge at most once.
 		
 		Each pair of paths is guaranteed to meet at most once. '''
+		
+		# !?! This needs to be modified for a disconnected surface.
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		# and a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
@@ -926,7 +930,7 @@ class Triangulation(object):
 		prefix = [] if prefix is None else list(prefix)
 		
 		for sequence in self.all_flips(depth, prefix):
-			yield self.encode(list(reversed(sequence) + reversed(prefix))))
+			yield self.encode(list(reversed(sequence) + reversed(prefix)))
 	
 	def all_mapping_classes(self, depth, prefix=None):
 		''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''
@@ -940,7 +944,23 @@ class Triangulation(object):
 	def components(self):
 		''' Return a list of pairs (connected component of self, embedding). '''
 		
-		pass
+		remaining_labels = set(self.labels)
+		components = []
+		while remaining_labels:
+			to_process = [remaining_labels.pop()]
+			component = set(to_process)
+			while to_process:
+				label = to_process.pop()
+				neighbours = [~label, self.corner_lookup[label].labels[1]]
+				for new_label in neighbours:
+					if new_label not in component:
+						remaining_labels.remove(new_label)
+						component.add(new_label)
+						to_process.append(new_label)
+			
+			components.append(component)
+		
+		return components
 
 
 #######################################################

@@ -149,7 +149,7 @@ class NumberFieldElement(object):
 		return self.__bool__()
 	def __hash__(self):
 		# Warning: This is only really a hash when self.number_field.polynomial is irreducible.
-		return hash(tuple(self.linear_combination))
+		return hash((self.number_field, tuple(self.linear_combination)))
 	
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])
@@ -269,27 +269,31 @@ class NumberFieldElement(object):
 		
 		return f
 	
+	def compare(self, other, operator):
+		''' Return the result of operator on sufficiently good algebraic approximations of self and other. '''
+		
+		if isinstance(other, flipper.IntegerType):
+			accuracy_needed = int(self.height + self.log_degree + flipper.kernel.height_int(other) + 0) + 5
+			return operator(self.algebraic_approximation(accuracy_needed), other)
+		else:
+			try:
+				accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
+				return operator(self.algebraic_approximation(accuracy_needed), other.algebraic_approximation(accuracy_needed))
+			except AttributeError:
+				return NotImplemented
+	
 	def __lt__(self, other):
-		return (self - other).sign() == -1
+		return self.compare(other, lambda x, y: x < y)
 	def __eq__(self, other):
-		return (self - other).sign() == 0
+		return self.compare(other, lambda x, y: x == y)
+	def __gt__(self, other):
+		return self.compare(other, lambda x, y: x > y)
+	def __le__(self, other):
+		return not (self > other)
 	def __ne__(self, other):
 		return not (self == other)
-	def __gt__(self, other):
-		return (self - other).sign() == +1
-	def __le__(self, other):
-		return self < other or self == other
 	def __ge__(self, other):
-		return self > other or self == other
-	
-	def sign(self):
-		''' Return the sign of this algebraic number. '''
-		
-		# If all the entries of self.linear_combination are 0 then we are 0 and so have sign 0.
-		# This is faster than computing self.algebraic_approximation().
-		if not any(self): return 0
-		
-		return self.algebraic_approximation().sign()
+		return not (self < other)
 	
 	def interval_approximation(self, accuracy=0):
 		''' Return an interval containing this algebraic number, correct to at least the requested accuracy. '''

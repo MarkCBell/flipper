@@ -337,27 +337,28 @@ class PolynomialRoot(object):
 	def compare(self, other, operator):
 		''' Return the result of operator on sufficiently good algebraic approximations of self and other. '''
 		
-		if isinstance(other, PolynomialRoot):
-			accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
-			return operator(self.algebraic_approximation(accuracy_needed), other.algebraic_approximation(accuracy_needed))
-		elif isinstance(other, flipper.IntegerType):
+		if isinstance(other, flipper.IntegerType):
 			accuracy_needed = int(self.height + self.log_degree + flipper.kernel.height_int(other) + 0) + 5
 			return operator(self.algebraic_approximation(accuracy_needed), other)
 		else:
-			return NotImplemented
+			try:
+				accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
+				return operator(self.algebraic_approximation(accuracy_needed), other.algebraic_approximation(accuracy_needed))
+			except AttributeError:
+				return NotImplemented
 	
 	def __lt__(self, other):
 		return self.compare(other, lambda x, y: x < y)
 	def __eq__(self, other):
 		return self.compare(other, lambda x, y: x == y)
-	def __ne__(self, other):
-		return not (self == other)
 	def __gt__(self, other):
 		return self.compare(other, lambda x, y: x > y)
 	def __le__(self, other):
-		return self < other or self == other
+		return not (self > other)
+	def __ne__(self, other):
+		return not (self == other)
 	def __ge__(self, other):
-		return self > other or self == other
+		return not (self < other)
 	
 	def square_free(self):
 		''' Return this PolynomialRoot but with a square free polynomial.

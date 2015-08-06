@@ -156,9 +156,10 @@ class EquippedTriangulation(object):
 		lp2 = lp + 1
 		
 		if not options['exact'] or length == 0:
-			prefix_inv = [x.swapcase() for x in prefix[::-1]]
+			prefix_inv = inverse(prefix)
 			
 			good = True
+			if good and options['conjugacy'] and prefix[-1:] == inverse(prefix[:1]): good = False
 			if good and options['conjugacy'] and not all(order(prefix[i:] + prefix[:i], prefix) for i in range(lp)): good = False
 			if good and options['bundle'] and all(x in letters for x in prefix_inv):
 				if not all(order(prefix_inv[i:] + prefix_inv[:i], prefix) for i in range(lp)): good = False

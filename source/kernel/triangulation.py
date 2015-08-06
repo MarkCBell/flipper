@@ -503,19 +503,33 @@ class Triangulation(object):
 		maximal tree in 1--skeleton of the dual of this triangulation.
 		
 		These are given as lists of Booleans signaling if each edge is in the tree.
-		No edge is used in both the tree and the dual tree. '''
+		No edge is used in both the tree and the dual tree. Note that when this surface
+		is disconnected this tree is actually a forest. '''
 		
-		# !?! This needs to be modified for a disconnected surface.
+		components = self.components()
 		
 		tree = [False] * self.zeta
 		vertices_used = dict((vertex, False) for vertex in self.vertices)
 		# Get some starting vertices.
-		for vertex in self.vertices:
-			if not vertex.filled:
-				vertices_used[vertex] = True
-				if not respect_fillings:
-					# Stop as soon as we've marked one.
-					break
+		if respect_fillings:
+			for vertex in self.vertices:
+				if not vertex.filled:
+					vertices_used[vertex] = True
+		else:
+			for component in components:
+				for edge_label in component:
+					vertex = self.edge_lookup[edge_label].source_vertex
+					if not vertex.filled:
+						vertices_used[vertex] = True
+						break
+		
+		if False:
+			for vertex in self.vertices:
+				if not vertex.filled:
+					vertices_used[vertex] = True
+					if not respect_fillings:
+						# Stop as soon as we've marked one.
+						break
 		
 		while True:
 			for edge_index in range(self.zeta):
@@ -531,7 +545,9 @@ class Triangulation(object):
 		
 		dual_tree = [False] * self.zeta
 		faces_used = dict((triangle, False) for triangle in self.triangles)
-		faces_used[self.triangles[0]] = True
+		for component in components:
+			faces_used[self.triangle_lookup[component[0]]] = True
+		
 		while True:
 			for edge_index in range(self.zeta):
 				if not tree[edge_index] and not dual_tree[edge_index]:
@@ -553,8 +569,6 @@ class Triangulation(object):
 		to a good curve. Each path will meet each edge at most once.
 		
 		Each pair of paths is guaranteed to meet at most once. '''
-		
-		# !?! This needs to be modified for a disconnected surface.
 		
 		# Construct a maximal spanning tree in the 1--skeleton of the triangulation.
 		# and a maximal spanning tree in the complement of the tree in the 1--skeleton of the dual triangulation.
@@ -958,7 +972,7 @@ class Triangulation(object):
 						component.add(new_label)
 						to_process.append(new_label)
 			
-			components.append(component)
+			components.append(list(component))
 		
 		return components
 

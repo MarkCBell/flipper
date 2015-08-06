@@ -179,17 +179,17 @@ class AlgebraicApproximation(object):
 			return 0
 	
 	def __lt__(self, other):
-		return (self - other).sign() == -1
+		return (self - other).sign() < 0
 	def __eq__(self, other):
 		return (self - other).sign() == 0
 	def __ne__(self, other):
 		return not (self == other)
 	def __gt__(self, other):
-		return (self - other).sign() == +1
+		return (self - other).sign() > 0
 	def __le__(self, other):
-		return self < other or self == other
+		return not (self > other)
 	def __ge__(self, other):
-		return self > other or self == other
+		return not (self < other)
 
 #### Some special Algebraic approximations we know how to build.
 # These are useful for creating tests.

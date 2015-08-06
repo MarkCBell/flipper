@@ -10,7 +10,7 @@ def main(n=6, verbose=False):
 		h = S.mapping_class(word)
 		# Currently, we can only determine conjugacy classes for
 		# pseudo-Anosovs, so we had better filter by them.
-		if h.nielsen_thurston_type() == 'Pseudo-Anosov':
+		if h.is_pseudo_anosov():
 			# Check if this is conjugate to a mapping class we have seen.
 			for bucket in buckets:
 				# Conjugacy is transitive, so we only have to bother checking

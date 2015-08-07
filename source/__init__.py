@@ -23,21 +23,23 @@ from flipper.version import __version__
 # import flipper.application  # Uses tkinter.
 import flipper.kernel
 # import flipper.example  # Uses snappy.
-import flipper.load
 import flipper.doc
 # import flipper.test  # Uses snappy.
 import flipper.profile
 
+from flipper.load import load
+from flipper.census import census
+
 # Set up really short names for the most commonly used classes and functions by users.
-flipper.create_triangulation = flipper.kernel.create_triangulation
-flipper.triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
+create_triangulation = flipper.kernel.create_triangulation
+triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 
-flipper.StringType = flipper.kernel.StringType
-flipper.IntegerType = flipper.kernel.IntegerType
+StringType = flipper.kernel.StringType
+IntegerType = flipper.kernel.IntegerType
 
-flipper.AbortError = flipper.kernel.AbortError
-flipper.ApproximationError = flipper.kernel.ApproximationError
-flipper.AssumptionError = flipper.kernel.AssumptionError
-flipper.ComputationError = flipper.kernel.ComputationError
-flipper.FatalError = flipper.kernel.FatalError
+AbortError = flipper.kernel.AbortError
+ApproximationError = flipper.kernel.ApproximationError
+AssumptionError = flipper.kernel.AssumptionError
+ComputationError = flipper.kernel.ComputationError
+FatalError = flipper.kernel.FatalError
 

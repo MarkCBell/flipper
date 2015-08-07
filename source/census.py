@@ -19,18 +19,18 @@ def find_databases():
 	
 	return databases
 
-def load(file_name, find=None):
+def census(census_name, find=None):
 	''' Iterates through the requested database.
 	
 	If given, only results containing find are returned. '''
 	
-	assert(isinstance(file_name, flipper.StringType))
+	assert(isinstance(census_name, flipper.StringType))
 	assert(find is None or isinstance(find, flipper.StringType))
 	
-	if file_name in find_databases():
-		file_name = os.path.join(DATABASE_DIRECTORY, file_name + '.dat')
+	if census_name in find_databases():
+		census_name = os.path.join(DATABASE_DIRECTORY, census_name + '.dat')
 	
-	with open(file_name) as f:
+	with open(census_name) as f:
 		for line in f:
 			if find is None or line.find(find) != -1:
 				line = line.strip()

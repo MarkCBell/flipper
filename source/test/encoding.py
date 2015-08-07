@@ -10,7 +10,7 @@ NT_TYPE_PSEUDO_ANOSOV = flipper.kernel.encoding.NT_TYPE_PSEUDO_ANOSOV
 def main(verbose=False):
 	if verbose: print('Running encoding tests.')
 	
-	S = flipper.load.equipped_triangulation('S_1_1')
+	S = flipper.load('S_1_1')
 	f, g = S.mapping_class('aB'), S.mapping_class('bA')  # Some pseudo-Anosov ones.
 	h, i = S.mapping_class('ab'), S.mapping_class('')  # Some finite order ones.
 	
@@ -50,7 +50,7 @@ def main(verbose=False):
 	
 	for surface, word, mapping_class_type in examples:
 		if verbose: print(word)
-		S = flipper.load.equipped_triangulation(surface)
+		S = flipper.load(surface)
 		if S.mapping_class(word).nielsen_thurston_type() != mapping_class_type:
 			return False
 	

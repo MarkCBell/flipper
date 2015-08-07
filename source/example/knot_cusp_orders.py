@@ -5,10 +5,10 @@ from time import time
 import flipper
 
 def main(verbose=False):
-	for surface, word, target in flipper.load.database('knot_monodromies'):
+	for surface, word, target in flipper.census('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
-		stratum = flipper.load.equipped_triangulation(surface).mapping_class(word).stratum()
+		stratum = flipper.load(surface).mapping_class(word).stratum()
 		vertex_orders = [stratum[singularity] for singularity in stratum]
 		# A singularity is real if and only if its label is non-negative.
 		real_vertex_orders = [stratum[singularity] for singularity in stratum if not singularity.filled]

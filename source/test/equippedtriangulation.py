@@ -5,7 +5,7 @@ from random import seed
 def main(verbose=False):
 	seed(1)  # To make this test deterministic.
 	
-	S = flipper.load.equipped_triangulation('S_1_2')
+	S = flipper.load('S_1_2')
 	
 	all_words = set(S.all_words(5, group=False))
 	# There should be 8^5 + 8^4 + ... + 8^0 = 37449 words.

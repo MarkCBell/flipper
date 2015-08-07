@@ -12,7 +12,7 @@ def main():
 		surface = raw_input('Choose surface (leave blank to quit): ')
 		if surface == '': break
 		try:
-			S = flipper.load.equipped_triangulation(surface)
+			S = flipper.load(surface)
 		except KeyError:
 			print('Not a valid surface name')
 		else:

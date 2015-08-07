@@ -8,7 +8,7 @@ except ImportError:
 import flipper
 
 def test(surface, word, target):
-	snappy_string = flipper.load.equipped_triangulation(surface).mapping_class(word).bundle(canonical=False).snappy_string()
+	snappy_string = flipper.load(surface).mapping_class(word).bundle(canonical=False).snappy_string()
 	# Snappy can fail with a RuntimeError, particularly when canonical=False.
 	M = snappy.Manifold(snappy_string)
 	for _ in range(100):

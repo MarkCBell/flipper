@@ -14,10 +14,10 @@ class Bundle(object):
 	
 	The following will be our standard examples:
 	>>> import flipper
-	>>> B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
-	>>> B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
-	>>> B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
-	>>> B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
+	>>> B4_1 = flipper.load('S_1_1').mapping_class('aB').bundle()
+	>>> B8_21 = flipper.load('S_2_1').mapping_class('abcDF').bundle()
+	>>> B4_1a = flipper.load('S_1_1').mapping_class('aB').bundle(canonical=False)
+	>>> B8_21a = flipper.load('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 	'''
 	def __init__(self, triangulation, triangulation3, immersion):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))
@@ -169,10 +169,10 @@ class Bundle(object):
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''
 	
-	B4_1 = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle()
-	B8_21 = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle()
-	B4_1a = flipper.load.equipped_triangulation('S_1_1').mapping_class('aB').bundle(canonical=False)
-	B8_21a = flipper.load.equipped_triangulation('S_2_1').mapping_class('abcDF').bundle(canonical=False)
+	B4_1 = flipper.load('S_1_1').mapping_class('aB').bundle()
+	B8_21 = flipper.load('S_2_1').mapping_class('abcDF').bundle()
+	B4_1a = flipper.load('S_1_1').mapping_class('aB').bundle(canonical=False)
+	B8_21a = flipper.load('S_2_1').mapping_class('abcDF').bundle(canonical=False)
 	
 	return {'B4_1': B4_1, 'B8_21': B8_21, 'B4_1a': B4_1a, 'B8_21a': B8_21a}
 

@@ -15,7 +15,7 @@ def main(verbose=False):
 	
 	for i in range(10, 30, 3):
 		if verbose: print('Building B_%d' % i)
-		S = flipper.load.equipped_triangulation('B_%d' % i)
+		S = flipper.load('B_%d' % i)
 	
 	return time() - start_time
 

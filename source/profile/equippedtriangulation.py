@@ -23,7 +23,7 @@ def main(verbose=False):
 		]
 	
 	for surface, depth, options in tests:
-		sum(1 for _ in flipper.load.equipped_triangulation(surface).all_words(depth, **options))
+		sum(1 for _ in flipper.load(surface).all_words(depth, **options))
 	
 	return time() - start_time
 

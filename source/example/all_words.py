@@ -18,7 +18,7 @@ def filt(word):
 		('c' in word or 'C' in word)
 
 def main():
-	S = flipper.load.equipped_triangulation('S_1_2')
+	S = flipper.load('S_1_2')
 	
 	length = 7
 	# Note this will work even if you want to set additional flags, such as conjugacy=False.

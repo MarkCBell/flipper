@@ -19,7 +19,7 @@ class Encoding(object):
 	and Isometries which act from right to left.
 	
 	>>> import flipper
-	>>> S = flipper.load.equipped_triangulation('S_1_1')
+	>>> S = flipper.load('S_1_1')
 	>>> aB = S.mapping_class('aB')
 	>>> bA = S.mapping_class('bA')
 	>>> ab = S.mapping_class('ab')
@@ -874,7 +874,7 @@ def create_encoding(source_triangulation, sequence, _cache=None):
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''
 	
-	S = flipper.load.equipped_triangulation('S_1_1')
+	S = flipper.load('S_1_1')
 	aB = S.mapping_class('aB')
 	bA = S.mapping_class('bA')
 	ab = S.mapping_class('ab')

@@ -4,7 +4,7 @@ from __future__ import print_function
 import flipper
 
 def main():
-	S = flipper.load.equipped_triangulation('S_1_2')
+	S = flipper.load('S_1_2')
 	word = 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa'
 	
 	h = S.mapping_class(word)

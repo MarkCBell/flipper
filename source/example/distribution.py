@@ -4,7 +4,7 @@ from __future__ import print_function
 import flipper
 
 def main(surface, lower, upper, step=1, sample=100):
-	S = flipper.load.equipped_triangulation(surface)
+	S = flipper.load(surface)
 	for length in range(lower, upper, step):
 		count = 0
 		for i in range(sample):

@@ -31,7 +31,7 @@ def main(verbose=False):
 	# Check that every triangulation has the correct number of isometries to itself.
 	for surface, num_isoms in num_isometries:
 		if verbose: print('Checking: %s' % surface)
-		S = flipper.load.equipped_triangulation(surface)
+		S = flipper.load(surface)
 		T = S.triangulation
 		T.self_isometries()
 		T2 = flipper.triangulation_from_iso_sig(T.iso_sig())

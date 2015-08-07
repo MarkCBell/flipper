@@ -12,7 +12,7 @@ from time import time
 def test(surface, word, target):
 	M = snappy.Manifold(target)
 	# M = snappy.twister.Surface(surface).bundle(word)  # These should be the same.
-	N = snappy.Manifold(flipper.load.equipped_triangulation(surface).mapping_class(word).bundle().snappy_string())
+	N = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle().snappy_string())
 	for _ in range(100):
 		try:
 			if M.is_isometric_to(N):
@@ -31,7 +31,7 @@ def main():
 	
 	unmatched = []
 	
-	for surface, word, target in flipper.load.database(database):
+	for surface, word, target in flipper.census(database):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
 		if not test(surface, word, target):

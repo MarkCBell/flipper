@@ -4,7 +4,7 @@ from __future__ import print_function
 import flipper
 
 def main(n=6, verbose=False):
-	S = flipper.load.equipped_triangulation('S_1_1')
+	S = flipper.load('S_1_1')
 	buckets = []  # All the different conjugacy classes that we have found.
 	for word in S.all_words(n):
 		h = S.mapping_class(word)

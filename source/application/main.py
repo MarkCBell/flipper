@@ -594,19 +594,19 @@ class FlipperApplication(object):
 		elif example == 'Radial n-gon':
 			self.initialise_radial_n_gon()
 		elif example == 'S_{0,4}':
-			self.load(flipper.load.equipped_triangulation('S_0_4'))
+			self.load(flipper.load('S_0_4'))
 		elif example == 'S_{1,1}':
-			self.load(flipper.load.equipped_triangulation('S_1_1'))
+			self.load(flipper.load('S_1_1'))
 		elif example == 'S_{1,2}':
-			self.load(flipper.load.equipped_triangulation('S_1_2'))
+			self.load(flipper.load('S_1_2'))
 		elif example == 'S_{2,1}':
-			self.load(flipper.load.equipped_triangulation('S_2_1'))
+			self.load(flipper.load('S_2_1'))
 		elif example == 'S_{3,1}':
-			self.load(flipper.load.equipped_triangulation('S_3_1'))
+			self.load(flipper.load('S_3_1'))
 		elif example == 'S_{4,1}':
-			self.load(flipper.load.equipped_triangulation('S_4_1'))
+			self.load(flipper.load('S_4_1'))
 		elif example == 'S_{5,1}':
-			self.load(flipper.load.equipped_triangulation('S_5_1'))
+			self.load(flipper.load('S_5_1'))
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')

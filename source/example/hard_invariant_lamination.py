@@ -46,7 +46,7 @@ def main():
 	
 	for index, (surface, word) in enumerate(examples):
 		print('%3d/%d: %s %s' % (index+1, len(examples), surface, word), end='')
-		S = flipper.load.equipped_triangulation(surface)
+		S = flipper.load(surface)
 		mapping_class = S.mapping_class(word)
 		start_time = time()
 		try:

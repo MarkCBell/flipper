@@ -31,7 +31,7 @@ def main(verbose=False):
 	
 	for surface, word, _ in tests:
 		if verbose: print(word)
-		mapping_class = flipper.load.equipped_triangulation(surface).mapping_class(word)
+		mapping_class = flipper.load(surface).mapping_class(word)
 		try:
 			mapping_class.invariant_lamination()
 		except flipper.AssumptionError:

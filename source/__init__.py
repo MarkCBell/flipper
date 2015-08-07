@@ -14,7 +14,7 @@ or by creating a Triangulation using the helper function:
 or from an isomorphism signature:
 	> flipper.create_triangulation_from_iso_sig(...)
 or by loading one of the provided EquippedTriangulations using:
-	> flipper.load.equipped_triangulation(...) '''
+	> flipper.load(...) '''
 
 from flipper.version import __version__
 

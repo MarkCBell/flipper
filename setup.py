@@ -24,7 +24,6 @@ setup(
 		'flipper',
 		'flipper.application',
 		'flipper.doc',
-		'flipper.load',
 		'flipper.example',
 		'flipper.kernel',
 		'flipper.test',
@@ -32,10 +31,9 @@ setup(
 		],
 	package_dir={'flipper': source_directory},
 	package_data={
-		'': ['README.rst', 'LICENSE'],
+		'flipper': ['censuses/*.dat'],
 		'flipper.doc': ['flipper.pdf'],
 		'flipper.application': ['icon/*', 'frames/*'],
-		'flipper.load': ['censuses/*.dat']
 		}
 	)
 

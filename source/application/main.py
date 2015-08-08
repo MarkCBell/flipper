@@ -881,7 +881,7 @@ class FlipperApplication(object):
 			return None
 		
 		# Check that there are 3 vertices.
-		corner_vertices = list(set([v for e in [e1, e2, e3] for v in e]))
+		corner_vertices = list(set(v for e in [e1, e2, e3] for v in e))
 		if len(corner_vertices) != 3:
 			return None
 		

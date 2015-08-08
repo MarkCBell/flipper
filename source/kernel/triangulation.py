@@ -1,4 +1,3 @@
-
 ''' A module for representing a triangulation of a punctured surface.
 
 Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
@@ -181,7 +180,7 @@ class Triangulation(object):
 		self.num_filled_vertices = len([vertex for vertex in self.vertices if vertex.filled])
 		self.num_unfilled_vertices = self.num_vertices - self.num_filled_vertices
 		# Check that the vertices are labelled 0, ..., num_vertices-1.
-		assert(set([vertex.label for vertex in self.vertices]) == set(range(self.num_vertices)))
+		assert(set(vertex.label for vertex in self.vertices) == set(range(self.num_vertices)))
 		# Check that the edges have indices 0, ..., zeta-1.
 		assert(set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)]))
 		
@@ -885,7 +884,7 @@ class Triangulation(object):
 			elif item is None:
 				h = h.target_triangulation.id_encoding() * h
 			else:
-				h = item * h
+				h = item.encode() * h
 		
 		# Install a cache if we were given one.
 		if _cache is not None: h._cache = _cache

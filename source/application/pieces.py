@@ -153,7 +153,7 @@ class CanvasEdge(DrawableObject):
 
 class CanvasTriangle(DrawableObject):
 	def __init__(self, canvas, edges, options):
-		super(CanvasTriangle, self).__init__(canvas, list(set([v for e in edges for v in e])), options)
+		super(CanvasTriangle, self).__init__(canvas, list(set(v for e in edges for v in e)), options)
 		self.default_colour = self.colour = DEFAULT_TRIANGLE_COLOUR
 		self.edges = edges
 		

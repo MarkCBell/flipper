@@ -583,7 +583,7 @@ class Lamination(object):
 		# this lamination.
 		
 		assert(all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self))
-		assert(len(set([entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement)])) <= 1)
+		assert(len(set(entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement))) <= 1)
 		
 		# Check if the lamination is obviously non-filling.
 		if all(isinstance(entry, flipper.IntegerType) for entry in self):

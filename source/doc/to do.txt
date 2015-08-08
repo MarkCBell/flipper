@@ -19,7 +19,7 @@ upload version with:
 
 ### Kernel ###
 check we can completely handle disconnected surfaces
-redo flipper.load and separate off the censuses
+fix lamination.splitting_sequence by extending collapse
 rescale invariant lamination such that weight is in [1, lamination)
 extend symboliccomputation_dummy to work in all cases
 faster Matrix.kernel

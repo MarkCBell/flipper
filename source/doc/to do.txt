@@ -9,6 +9,7 @@ switch lamination drawing method on update
 show warning when automatically adding peripheral components
 show vertices as filled / unfilled
 add ability to export a python script - exporting invariant laminations could be hard
+need to be able to handle loading disconnected surfaces
 
 ### Documentation ###
 document bad cases for default symbolic libarary

@@ -480,6 +480,7 @@ class FlipperApplication(object):
 						raise flipper.AssumptionError('Error 102: Cannot package the given data:\n %s.' % error.message)
 				
 				triangulation = equipped_triangulation.triangulation
+				# !?! NOTE: Currently this assumes that triangulation is connected.
 				
 				# We don't have any vertices or edges, so we'll create a triangulation ourselves.
 				vertices, edges = [], []

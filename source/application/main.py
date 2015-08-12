@@ -8,7 +8,7 @@ import re
 import os
 import sys
 import pickle
-from math import sin, cos, pi
+from math import sin, cos, pi, ceil, sqrt
 from itertools import combinations
 
 try:
@@ -480,59 +480,73 @@ class FlipperApplication(object):
 						raise flipper.AssumptionError('Error 102: Cannot package the given data:\n %s.' % error.message)
 				
 				triangulation = equipped_triangulation.triangulation
-				# !?! NOTE: Currently this assumes that triangulation is connected.
-				
 				# We don't have any vertices or edges, so we'll create a triangulation ourselves.
 				vertices, edges = [], []
 				
-				n = triangulation.num_triangles
-				ngon = n + 2
+				# Get a dual tree.
+				_, dual_tree = triangulation.tree_and_dual_tree()
+				components = triangulation.components()
+				num_components = len(components)
+				# Make sure we get the right sizes of things.
 				self.parent.update_idletasks()
 				w = int(self.canvas.winfo_width())
 				h = int(self.canvas.winfo_height())
-				r = min(w, h) * (1 + self.options.zoom_fraction) / 4
 				
-				# Create the vertices.
-				for i in range(ngon):
-					vertices.append((w / 2 + r * sin(2 * pi * (i + 0.5) / ngon), h / 2 + r * cos(2 * pi * (i + 0.5) / ngon)))
+				p, q = num_components, 1
+				# TODO: Compute the optimal p & q based on w & h.
+				r = min(w / p, h / q) * (1 + self.options.zoom_fraction) / 4
+				dx = w / p
+				dy = h / q
 				
-				# Get a dual tree.
-				_, dual_tree = equipped_triangulation.triangulation.tree_and_dual_tree()
+				num_used_vertices = 0
+				for index, component in enumerate(components):
+					# Get the number of triangles.
+					n = len(component) // 3  # Remember component double counts edges.
+					ngon = n + 2
+					
+					# Create the vertices.
+					for i in range(ngon):
+						vertices.append((
+							dx * (index % p) + dx / 2 + r * sin(2 * pi * (i + 0.5) / ngon),
+							dy * int(index / (q + 1)) + dy / 2 + r * cos(2 * pi * (i + 0.5) / ngon)
+							))
+					
+					def num_descendants(edge_label):
+						''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
+						
+						corner = triangulation.corner_of_edge(edge_label)
+						left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
+						right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
+						
+						return left, right
+					
+					initial_edge_index = min(i for i in component if i >= 0 and not dual_tree[i])
+					to_extend = [(num_used_vertices, num_used_vertices+1, initial_edge_index)]
+					# Hmmm, need to be more careful here to ensure that we correctly orient the edges.
+					edges.append((num_used_vertices+1, num_used_vertices+0, initial_edge_index, None))
+					while to_extend:
+						source_vertex, target_vertex, label = to_extend.pop()
+						left, right = num_descendants(label)
+						far_vertex = target_vertex + left + 1
+						corner = triangulation.corner_of_edge(label)
+						
+						if corner.labels[2] == corner.indices[2]:
+							edges.append((far_vertex, target_vertex, corner.indices[2], None))
+						else:
+							edges.append((target_vertex, far_vertex, corner.indices[2], None))
+						if corner.labels[1] == corner.indices[1]:
+							edges.append((source_vertex, far_vertex, corner.indices[1], None))
+						else:
+							edges.append((far_vertex, source_vertex, corner.indices[1], None))
+						
+						if left > 0:
+							to_extend.append((far_vertex, target_vertex, ~(corner.labels[2])))
+						
+						if right > 0:
+							to_extend.append((source_vertex, far_vertex, ~(corner.labels[1])))
+					num_used_vertices = len(vertices)
 				
-				def num_descendants(edge_label):
-					''' Return the number of triangles that can be reached in the dual tree starting at the given edge_label. '''
-					
-					corner = triangulation.corner_of_edge(edge_label)
-					left = (1 + sum(num_descendants(~(corner.labels[2])))) if dual_tree[corner.indices[2]] else 0
-					right = (1 + sum(num_descendants(~(corner.labels[1])))) if dual_tree[corner.indices[1]] else 0
-					
-					return left, right
-				
-				initial_edge_index = min(i for i in range(triangulation.zeta) if not dual_tree[i])
-				to_extend = [(0, 1, initial_edge_index)]
-				# Hmmm, need to be more careful here to ensure that we correctly orient the edges.
-				edges = [(1, 0, initial_edge_index, None)]
-				while to_extend:
-					source_vertex, target_vertex, label = to_extend.pop()
-					left, right = num_descendants(label)
-					far_vertex = target_vertex + left + 1
-					corner = triangulation.corner_of_edge(label)
-					
-					if corner.labels[2] == corner.indices[2]:
-						edges.append((far_vertex, target_vertex, corner.indices[2], None))
-					else:
-						edges.append((target_vertex, far_vertex, corner.indices[2], None))
-					if corner.labels[1] == corner.indices[1]:
-						edges.append((source_vertex, far_vertex, corner.indices[1], None))
-					else:
-						edges.append((far_vertex, source_vertex, corner.indices[1], None))
-					
-					if left > 0:
-						to_extend.append((far_vertex, target_vertex, ~(corner.labels[2])))
-					
-					if right > 0:
-						to_extend.append((source_vertex, far_vertex, ~(corner.labels[1])))
-				
+				# Glue together sides with the same index.
 				for i, j in combinations(range(len(edges)), r=2):
 					if edges[i][2] == edges[j][2]:
 						edges[i] = (edges[i][0], edges[i][1], edges[i][2], j)
@@ -560,9 +574,11 @@ class FlipperApplication(object):
 			for index, edge in enumerate(edges):
 				start_index, end_index, edge_index, glued_to_index = edge
 				self.edges[index].index = edge_index
-			self.zoom_to_drawing()
 			
 			self.equipped_triangulation = equipped_triangulation
+			
+			self.zoom_to_drawing()
+			
 			
 			for name, lamination in sorted(self.equipped_triangulation.laminations.items(),
 				key=lambda x: (len(x[0]), x[0])):
@@ -869,8 +885,8 @@ class FlipperApplication(object):
 		self.destroy_edge_identification(edge)
 		self.edges.remove(edge)
 		self.unsaved_work = True
-		self.redraw()
 		self.build_equipped_triangulation()
+		self.redraw()
 	
 	def create_triangle(self, e1, e2, e3):
 		# Check that there are 3 edges.

@@ -33,9 +33,17 @@ def main():
 	print('has these cusps left unfilled.')
 
 if __name__ == '__main__':
-	if snappy is None:
-		print('This example requires SnapPy.')
-		print('Please install it and try again.')
+	import argparse
+	parser = argparse.ArgumentParser(description='Build a bundle and verify it with SnapPy')
+	parser.add_argument('--show', action='store_true', default=False, help='show the source code of this example and exit')
+	args = parser.parse_args()
+	
+	if args.show:
+		print(open(__file__, 'r').read())
 	else:
-		main()
+		if snappy is None:
+			print('This example requires SnapPy.')
+			print('Please install it and try again.')
+		else:
+			main()
 

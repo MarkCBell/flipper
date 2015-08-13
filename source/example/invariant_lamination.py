@@ -29,5 +29,13 @@ def main(n=100):
 	print('Total time: %0.3f' % sum(times.values()))
 
 if __name__ == '__main__':
-	main()
+	import argparse
+	parser = argparse.ArgumentParser(description='Demonstrate the effectiveness of flippers heuristics for finding invariant laminations.')
+	parser.add_argument('--show', action='store_true', default=False, help='show the source code of this example and exit')
+	args = parser.parse_args()
+	
+	if args.show:
+		print(open(__file__, 'r').read())
+	else:
+		main()
 

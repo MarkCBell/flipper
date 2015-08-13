@@ -4,7 +4,7 @@ from time import time
 
 import flipper
 
-def main(verbose=False):
+def main():
 	for surface, word, target in flipper.census('knot_monodromies'):
 		print('Buiding: %s over %s (target %s).' % (word, surface, target))
 		start_time = time()
@@ -15,8 +15,15 @@ def main(verbose=False):
 		# This should be snappy.twister.Surface(surface).bundle(word) == snappy.Manifold(target)
 		# But we wont bother to check this here.
 		print('\tAll: %s, Real: %s' % (vertex_orders, real_vertex_orders))
-		if verbose: print('\tComputed in %0.3fs' % (time() - start_time))
 
 if __name__ == '__main__':
-	main(verbose=True)
+	import argparse
+	parser = argparse.ArgumentParser(description='Compute the singularity orders of knot complements.')
+	parser.add_argument('--show', action='store_true', default=False, help='show the source code of this example and exit')
+	args = parser.parse_args()
+	
+	if args.show:
+		print(open(__file__, 'r').read())
+	else:
+		main()
 

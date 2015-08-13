@@ -493,9 +493,10 @@ class FlipperApplication(object):
 				h = int(self.canvas.winfo_height())
 				
 				# We will layout the components in a p x q grid.
-				# TODO: Compute the optimal p & q based on w & h.
-				# Aim to maximise r === min(w / p, h / q) s.t. pq >= num_components.
-				p, q = num_components, 1
+				# Aim to maximise r === min(w / p, h / q) subject to pq >= num_components.
+				# Note that there is probably a closed formula for the optimal value of p (and so q).
+				p = max(range(1, num_components+1), key=lambda p: min(w / p, h / ceil(float(num_components) / p)))
+				q = int(ceil(float(num_components) / p))
 				
 				r = min(w / p, h / q) * (1 + self.options.zoom_fraction) / 4
 				dx = w / p

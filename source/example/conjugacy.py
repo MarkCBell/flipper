@@ -2,11 +2,13 @@
 from __future__ import print_function
 
 import flipper
+import sys
 
-def main(n=6, verbose=False):
+def main(length):
 	S = flipper.load('S_1_1')
 	buckets = []  # All the different conjugacy classes that we have found.
-	for word in S.all_words(n):
+	# We could order the buckets by something, say dilatation.
+	for index, word in enumerate(S.all_words(length)):
 		h = S.mapping_class(word)
 		# Currently, we can only determine conjugacy classes for
 		# pseudo-Anosovs, so we had better filter by them.
@@ -20,15 +22,20 @@ def main(n=6, verbose=False):
 					break
 			else:  # We have found a new conjugacy class.
 				buckets.append([h])
-		if verbose: print('%d buckets with distribution:\n %s' % (len(buckets), [len(bucket) for bucket in buckets]))
-	
-	if verbose:
-		print(len(buckets))
-		for bucket in buckets:
-			print(bucket)
+		print('\r%d words in %d conjugacy classes.' % (index, len(buckets)), end='')
+		sys.stdout.flush()
 	
 	return buckets
 
 if __name__ == '__main__':
-	main(4, verbose=True)
+	import argparse
+	parser = argparse.ArgumentParser(description='Group mapping classes into conjugacy classes.')
+	parser.add_argument('--length', type=int, default=6, help='length of words to generate')
+	parser.add_argument('--show', action='store_true', default=False, help='show the source code of this example and exit')
+	args = parser.parse_args()
+	
+	if args.show:
+		print(open(__file__, 'r').read())
+	else:
+		main(args.length)
 

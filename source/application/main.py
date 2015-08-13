@@ -492,8 +492,11 @@ class FlipperApplication(object):
 				w = int(self.canvas.winfo_width())
 				h = int(self.canvas.winfo_height())
 				
-				p, q = num_components, 1
+				# We will layout the components in a p x q grid.
 				# TODO: Compute the optimal p & q based on w & h.
+				# Aim to maximise r === min(w / p, h / q) s.t. pq >= num_components.
+				p, q = num_components, 1
+				
 				r = min(w / p, h / q) * (1 + self.options.zoom_fraction) / 4
 				dx = w / p
 				dy = h / q
@@ -508,7 +511,7 @@ class FlipperApplication(object):
 					for i in range(ngon):
 						vertices.append((
 							dx * (index % p) + dx / 2 + r * sin(2 * pi * (i + 0.5) / ngon),
-							dy * int(index / (q + 1)) + dy / 2 + r * cos(2 * pi * (i + 0.5) / ngon)
+							dy * int(index / p) + dy / 2 + r * cos(2 * pi * (i + 0.5) / ngon)
 							))
 					
 					def num_descendants(edge_label):

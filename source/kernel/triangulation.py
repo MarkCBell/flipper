@@ -211,12 +211,14 @@ class Triangulation(object):
 		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
 		
 		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.
+		# NOTE: This assumes connected.
 		self.genus = (2 - self.euler_characteristic - self.num_unfilled_vertices) // 2
 		
 		# The maximum order of a periodic mapping class.
 		# These bounds follow from the 4g + 4 bound on the closed surface [Primer reference]
 		# and the Riemann removable singularity theorem which allows us to cap off the
 		# punctures when the genus > 1 without affecting this bound.
+		# NOTE: This assumes connected.
 		if self.genus > 1:
 			self.max_order = 4 * self.genus + 2
 		elif self.genus == 1:

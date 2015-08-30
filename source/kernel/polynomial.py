@@ -114,7 +114,8 @@ class Polynomial(object):
 	
 	def __call__(self, other):
 		# It is significantly more efficient to compute self(other) as:
-		#   a_0 + x*(a_1 + x*( ... + x*(a_n + x * 0) ... ) ).
+		#   a_0 + x*(a_1 + x*( ... + x*(a_n + x * 0) ... ) )
+		# using Horner's rule.
 		
 		total = 0
 		for coefficient in reversed(self):

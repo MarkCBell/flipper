@@ -911,7 +911,7 @@ class Lamination(object):
 		to_process = Queue()
 		to_process.put(0)
 		to_process.put(~0)
-		while to_process:
+		while not to_process.empty():
 			to_do = to_process.get()
 			corner = self.triangulation.corner_of_edge(to_do)
 			rev_oris = [corner.indices[i] != corner.labels[i] for i in range(3)]

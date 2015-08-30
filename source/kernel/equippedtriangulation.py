@@ -73,27 +73,29 @@ class EquippedTriangulation(object):
 		pos_keys = sorted(self.pos_mapping_classes.keys())
 		return 'Triangulation with laminations: %s and mapping classes: %s.' % (lam_keys, pos_keys)
 	
-	def random_word(self, length, positive=True, negative=True):
+	def random_word(self, length, positive=True, negative=True, letters=None):
 		''' Return a random word of the required length.
 		
-		Positive (respectively negative) mapping classes are used if and only if
-		positve (resp. negative) is True. At least one of them must be. '''
+		The letters to choose from can be specified or, alternatively, the set
+		of positive, negative or all (default) mapping classes can be used by using the 
+		flags postive and negative. '''
 		
 		assert(isinstance(length, flipper.IntegerType))
 		
-		pos_keys = sorted(self.pos_mapping_classes.keys())
-		neg_keys = sorted(self.neg_mapping_classes.keys())
+		if letters is None:
+			pos_keys = sorted(self.pos_mapping_classes.keys())
+			neg_keys = sorted(self.neg_mapping_classes.keys())
+			
+			if positive and negative:
+				letters = pos_keys + neg_keys
+			elif positive and not negative:
+				letters = pos_keys
+			elif not positive and negative:
+				letters = neg_keys
+			else:
+				raise TypeError('At least one of positive and negative must be allowed.')
 		
-		if positive and negative:
-			available_letters = pos_keys + neg_keys
-		elif positive and not negative:
-			available_letters = pos_keys
-		elif not positive and negative:
-			available_letters = neg_keys
-		else:
-			raise TypeError('At least one of positive and negative must be allowed.')
-		
-		return '.'.join(choice(available_letters) for _ in range(length))
+		return '.'.join(choice(letters) for _ in range(length))
 	
 	def generate_skip(self, length, letters=None):
 		''' Return a dictionary whose keys are substrings that cannot appear in reduced words. '''

@@ -156,6 +156,9 @@ class Polynomial(object):
 				return quotient, remainder
 			else:
 				return -quotient, -remainder
+		elif isinstance(other, flipper.IntegerType):
+			# Just so self % d will work.
+			return None, Polynomial([coefficient % other for coefficient in self])
 		else:
 			return NotImplemented
 	def __mod__(self, other):

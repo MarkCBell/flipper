@@ -476,6 +476,7 @@ class Triangulation(object):
 		else:
 			label_map = dict(label_map)
 		
+		# Build any missing labels.
 		for i in self.indices:
 			if i in label_map and ~i in label_map:
 				pass
@@ -852,6 +853,22 @@ class Triangulation(object):
 	def encode_relabel_edges(self, label_map):
 		''' Return an encoding of the effect of flipping the given edge. '''
 		
+		if isinstance(label_map, (list, tuple)):
+			label_map = dict(enumerate(label_map))
+		else:
+			label_map = dict(label_map)
+		
+		# Build any missing labels.
+		for i in self.indices:
+			if i in label_map and ~i in label_map:
+				pass
+			elif i not in label_map and ~i in label_map:
+				label_map[i] = ~label_map[~i]
+			elif i in label_map and ~i not in label_map:
+				label_map[~i] = ~label_map[i]
+			else:
+				raise flipper.AssumptionError('Missing new label for %d.' % i)
+		
 		new_triangulation = self.relabel_edges(label_map)
 		
 		return flipper.kernel.Isometry(self, new_triangulation, label_map).encode()
@@ -863,7 +880,7 @@ class Triangulation(object):
 		several conventions that allow these to be specified by a smaller amount of information.
 		 - An integer x represents EdgeFlip(..., edge_label=x)
 		 - A dictionary which has i or ~i as a key (for every i) represents a relabelling.
-		 - A dictionary which is missing i and ~i (for some i) represents an isometry back to self.
+		 - A dictionary which is missing i and ~i (for some i) represents an isometry back to this triangulation.
 		 - None represents the identity isometry.
 		
 		This sequence is read in reverse in order respect composition. For example:
@@ -879,9 +896,9 @@ class Triangulation(object):
 			if isinstance(item, flipper.IntegerType):
 				h = h.target_triangulation.encode_flip(item) * h
 			elif isinstance(item, dict):
-				if all(i in item for i in self.indices):
+				if all(i in item or ~i in item for i in self.indices):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
-				else:
+				else:  # If some edges are missing then we assume that we must be mapping back to this triangulation.
 					h = h.target_triangulation.find_isometry(self, item).encode() * h
 			elif item is None:
 				h = h.target_triangulation.id_encoding() * h

@@ -51,7 +51,7 @@ class Isometry(object):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
 		if not all(self(i) == i for i in self.source_triangulation.indices):  # If self is not the identity isometry.
-			return self.label_map
+			return {i: self.label_map[i] for i in self.source_triangulation.labels}
 		else:
 			return None
 	

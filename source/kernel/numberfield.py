@@ -265,19 +265,15 @@ class NumberFieldElement(object):
 		
 		# Get a really good approximation. Exactly how good we need is "...subtle, and
 		# depends in part on what one knows about the problem" see Cohen Page 100.
-		I = self.interval_approximation(self.degree + self.height)
-		
-		# We will try finding polynomials of lower degree first.
-		for degree in range(1, self.degree + 1):
-			f = I.polynomial(degree, self.height)
-			# Stop as soon as we find one that self is a root of.
+		t = int(self.degree + self.height) + 1
+		while True:
+			I = self.interval_approximation(t)
+			f = I.polynomial(self.degree, scale=10**t)
+			
 			if f(self) == 0:
-				return f
-		
-		# If this test fails we really should jump back to the beginning and try again with
-		# a different interval approximation.
-		assert(f(self) == 0)
-		
+				break
+			else:
+				t = 2 * t
 		return f
 	
 	def compare(self, other, operator):

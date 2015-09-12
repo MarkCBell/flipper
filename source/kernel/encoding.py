@@ -269,7 +269,7 @@ class Encoding(object):
 		
 		return As, Cs
 	
-	def pml_fixedpoint_uncached(self):
+	def pml_fixedpoint_uncached(self, starting_curve=None):
 		''' Return a rescaling constant and projectively invariant lamination.
 		
 		Assumes that the mapping class is pseudo-Anosov.
@@ -332,7 +332,8 @@ class Encoding(object):
 		
 		triangulation = self.source_triangulation
 		max_order = triangulation.max_order
-		curves = [triangulation.key_curves()[0]]
+		if starting_curve is None: starting_curve = triangulation.key_curves()[0]
+		curves = [starting_curve]
 		seen = {curve_hash(curves[0], resolution): [0]}
 		tested = set()
 		# Experimentally this is a good number to do.

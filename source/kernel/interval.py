@@ -244,17 +244,14 @@ class Interval(object):
 		elif d == 0:
 			return [Interval(self.lower, self.upper, self.precision)]
 	
-	def polynomial(self, degree, height):
+	def polynomial(self, degree, scale):
 		''' Return a polynomial of at most the specified degree and height with a root (hopefully) close to the center of this interval. '''
 		
 		# This needs rechecking against the literature to ensure that M.LLL() works correctly.
-		x = int(log(degree) + height) + 1
-		scale = 10**x
-		
-		# Get an integer approximating self * scale.
-		r = (self.lower + self.upper) // (2 * 10**max(self.precision - x, 0))
 		M = flipper.kernel.id_matrix(degree+1).join(
-			flipper.kernel.Matrix([[scale if i == 0 else r**i // scale**(i-1) for i in range(degree+1)]])).transpose()
+			flipper.kernel.Matrix([[int(scale * self**i) for i in range(degree+1)]])).transpose()
+		
+		# Should this also appear in the symbolic library? Sage is much faster than us at LLL.
 		
 		return flipper.kernel.Polynomial(M.LLL()[0][:-1])
 

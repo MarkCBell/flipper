@@ -299,7 +299,7 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
-	def iso_sig(self, start_points=None):
+	def iso_sig(self, skip=None):
 		''' Return the isomorphism signature of this triangulation. '''
 		
 		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
@@ -318,8 +318,9 @@ class Triangulation(object):
 		best = ([INFTY], [INFTY], [INFTY])
 		num_tri = self.num_triangles
 		
-		if start_points is None:
-			start_points = product(self, flipper.kernel.permutation.all_permutations(3))
+		skip = set() if skip is None else set(skip)
+		
+		start_points = product(self, flipper.kernel.permutation.all_permutations(3))
 		
 		for start_triangle, start_perm in start_points:
 			type_sequence = []
@@ -339,7 +340,10 @@ class Triangulation(object):
 					target_corner = self.corner_of_edge(~triangle.labels[side])
 					target_triangle = target_corner.triangle
 					target_side = target_corner.side
-					if target_triangle not in triangle_labels:
+					if ~triangle.labels[side] in skip:
+						# This edge was really a boundary edge.
+						type_sequence.append(0)
+					elif target_triangle not in triangle_labels:
 						target_perm = perm * transition_perm_lookup[(target_side, side)]
 						triangle_labels[target_triangle] = (len(queue), target_perm)
 						queue.append(target_triangle)

@@ -603,6 +603,7 @@ class FlipperApplication(object):
 		example = flipper.application.get_choice('Open example.', 'Choose example to open.', [
 			'Circular n-gon',
 			'Radial n-gon',
+			'From isomorphism signature',
 			'S_{0,4}',
 			'S_{1,1}',
 			'S_{1,2}',
@@ -614,6 +615,13 @@ class FlipperApplication(object):
 			self.initialise_circular_n_gon()
 		elif example == 'Radial n-gon':
 			self.initialise_radial_n_gon()
+		elif example == 'From isomorphism signature':
+			signature = flipper.application.get_input('Triangulation specification', 'Isomorphism signature:')
+			if signature is not None:
+				try:
+					self.load([flipper.triangulation_from_iso_sig(signature)])
+				except AssertionError:
+					tkMessageBox.showerror('Load Error', 'Invalid isomorphism signature.')
 		elif example == 'S_{0,4}':
 			self.load(flipper.load('S_0_4'))
 		elif example == 'S_{1,1}':

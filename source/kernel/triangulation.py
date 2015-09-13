@@ -11,6 +11,7 @@ There is also a helper function: create_triangulation. '''
 
 import flipper
 
+from Queue import Queue
 from random import choice
 from itertools import product
 import string
@@ -315,59 +316,69 @@ class Triangulation(object):
 			(2, 2): flipper.kernel.Permutation([1, 0, 2])
 			}
 		
+		perm_3 = flipper.kernel.permutation.all_permutations(3)
+		perm_inverse = {perm: perm.inverse() for perm in perm_3}
+		
 		best = ([INFTY], [INFTY], [INFTY])
 		num_tri = self.num_triangles
 		
 		skip = set() if skip is None else set(skip)
 		
-		start_points = product(self, flipper.kernel.permutation.all_permutations(3))
 		
-		for start_triangle, start_perm in start_points:
-			type_sequence = []
-			target_sequence = []
-			permutation_sequence = []
-			
-			queue = [start_triangle]
-			triangle_labels = {start_triangle: (0, start_perm)}
-			
-			for i in range(num_tri):
-				triangle = queue[i]
-				_, perm = triangle_labels[triangle]
-				perm_inv = perm.inverse()
-				
-				for j in range(3):
-					side = perm_inv(j)
-					target_corner = self.corner_of_edge(~triangle.labels[side])
-					target_triangle = target_corner.triangle
-					target_side = target_corner.side
-					if ~triangle.labels[side] in skip:
-						# This edge was really a boundary edge.
-						type_sequence.append(0)
-					elif target_triangle not in triangle_labels:
-						target_perm = perm * transition_perm_lookup[(target_side, side)]
-						triangle_labels[target_triangle] = (len(queue), target_perm)
-						queue.append(target_triangle)
+		# We can start anywhere away from the skipped edges.
+		for start_triangle in self:
+			if all(label not in skip for label in start_triangle.labels):
+				for start_perm in perm_3:
+					type_sequence = []
+					target_sequence = []
+					permutation_sequence = []
+					
+					queue = Queue()
+					queue.put(start_triangle)
+					triangle_labels = {start_triangle: (0, start_perm)}
+					num_triangles_seen = 1
+					
+					while not queue.empty():
+						triangle = queue.get()
+						_, perm = triangle_labels[triangle]
+						perm_inv = perm_inverse[perm]
 						
-						type_sequence.append(1)
-						# We don't need to record the follow as they are implied.
-						# target_sequence.append(len(queue))
-						# permutation_sequence.append(perm_lookup[id_perm])
-					else:
-						target_index, target_perm = triangle_labels[target_triangle]
-						k = target_perm(target_side)
-						if target_index > i or (target_index == i and k > j):  # We've not done this gluing yet.
-							transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
-							
-							type_sequence.append(2)
-							target_sequence.append(target_index)
-							permutation_sequence.append(perm_lookup[transition_perm])
-			
-			best = min((type_sequence, target_sequence, permutation_sequence), best)
+						for j in range(3):
+							side = perm_inv(j)
+							target_corner = self.corner_of_edge(~triangle.labels[side])
+							target_triangle = target_corner.triangle
+							target_side = target_corner.side
+							if ~triangle.labels[side] in skip:
+								# This edge was really a boundary edge.
+								type_sequence.append(0)
+							elif target_triangle not in triangle_labels:
+								target_perm = perm * transition_perm_lookup[(target_side, side)]
+								triangle_labels[target_triangle] = (num_triangles_seen, target_perm)
+								queue.put(target_triangle)
+								num_triangles_seen += 1
+								
+								type_sequence.append(1)
+								# We don't need to record the follow as they are implied.
+								# target_sequence.append(len(queue))
+								# permutation_sequence.append(perm_lookup[id_perm])
+							else:
+								triangle_index, triangle_perm = triangle_labels[triangle]
+								target_index, target_perm = triangle_labels[target_triangle]
+								k = target_perm(target_side)
+								if target_index > triangle_index or (target_index == triangle_index and k > j):  # We've not done this gluing yet.
+									transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
+									
+									type_sequence.append(2)
+									target_sequence.append(target_index)
+									permutation_sequence.append(perm_lookup[transition_perm])
+					
+					best = min((type_sequence, target_sequence, permutation_sequence), best)
 		
 		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 		
 		type_sequence, target_sequence, permutation_sequence = best
-		type_sequence = type_sequence + [0] * (len(type_sequence) % 3)
+		# Pad the type_sequence with 0's so that its length is a multiple of 3.
+		type_sequence = type_sequence + [0] * (-len(type_sequence) % 3)
 		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
 		char_perm = ''.join(char[p] for p in permutation_sequence)
 		if num_tri < 63:

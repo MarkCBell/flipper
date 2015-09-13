@@ -33,6 +33,7 @@ from flipper.census import census
 # Set up really short names for the most commonly used classes and functions by users.
 create_triangulation = flipper.kernel.create_triangulation
 triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
+norm = flipper.kernel.norm
 
 StringType = flipper.kernel.StringType
 IntegerType = flipper.kernel.IntegerType

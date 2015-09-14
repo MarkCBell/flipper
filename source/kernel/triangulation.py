@@ -320,15 +320,14 @@ class Triangulation(object):
 		perm_inverse = {perm: perm.inverse() for perm in perm_3}
 		
 		best = ([INFTY], [INFTY], [INFTY])
-		num_tri = self.num_triangles
 		
 		skip = set() if skip is None else set(skip)
-		
 		
 		# We can start anywhere away from the skipped edges.
 		for start_triangle in self:
 			if all(label not in skip for label in start_triangle.labels):
 				for start_perm in perm_3:
+					good = True
 					type_sequence = []
 					target_sequence = []
 					permutation_sequence = []
@@ -338,7 +337,7 @@ class Triangulation(object):
 					triangle_labels = {start_triangle: (0, start_perm)}
 					num_triangles_seen = 1
 					
-					while not queue.empty():
+					while not queue.empty() and good:
 						triangle = queue.get()
 						_, perm = triangle_labels[triangle]
 						perm_inv = perm_inverse[perm]
@@ -371,8 +370,12 @@ class Triangulation(object):
 									type_sequence.append(2)
 									target_sequence.append(target_index)
 									permutation_sequence.append(perm_lookup[transition_perm])
+							if type_sequence > best[0]:
+								good = False
+								break
 					
-					best = min((type_sequence, target_sequence, permutation_sequence), best)
+					if good:
+						best = min((type_sequence, target_sequence, permutation_sequence), best)
 		
 		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 		
@@ -381,6 +384,8 @@ class Triangulation(object):
 		type_sequence = type_sequence + [0] * (-len(type_sequence) % 3)
 		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
 		char_perm = ''.join(char[p] for p in permutation_sequence)
+		
+		num_tri = self.num_triangles
 		if num_tri < 63:
 			char_start = char[num_tri]
 			char_target = ''.join(char[target] for target in target_sequence)

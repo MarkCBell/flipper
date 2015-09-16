@@ -199,26 +199,13 @@ class CurveComponent(DrawableObject):
 	def __init__(self, canvas, vertices, options, multiplicity=1):
 		super(CurveComponent, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_CURVE_COLOUR
-		self.drawn = self.canvas.create_line([c for v in self.vertices for c in v], width=self.options.line_size, fill=self.colour, tag='curve')
+		self.drawn = self.canvas.create_line(
+			[c for v in self.vertices for c in v],
+			width=self.options.line_size,
+			fill=self.colour,
+			tag='curve'
+			)
 		self.multiplicity = multiplicity
-	
-	def __contains__(self, point):
-		for a, b in zip(self.vertices, self.vertices[1:]):
-			try:
-				(x, y) = point
-				Dx = x - a[0]
-				Dy = y - a[1]
-				dx = b[0] - a[0]
-				dy = b[1] - a[1]
-				length = sqrt(dx*dx + dy*dy)
-				A = (Dx*dx + Dy*dy) / length
-				B = (Dy*dx - Dx*dy) / length
-				if -self.options.epsilon < A < length + self.options.epsilon and -self.options.epsilon < B < self.options.epsilon:
-					return True
-			except ZeroDivisionError:
-				pass
-		
-		return False
 	
 	def append_point(self, point):
 		self.vertices.append(point)

@@ -249,13 +249,16 @@ class Triangulation(object):
 			return item in self.corners
 		else:
 			return NotImplemented
-	def __reduce__(self):
-		# Triangulations are already pickleable but this results in a much smaller pickle.
-		return (create_triangulation, (
+	def package(self):
+		''' Return a small amount of info that create_triagulation can use to reconstruct this triangulation. '''
+		return (
 			[t.labels for t in self],
 			{corner.label: corner.vertex.label for corner in self.corners},
 			{vertex.label: vertex.filled for vertex in self.vertices}
-			))
+			)
+	def __reduce__(self):
+		# Triangulations are already pickleable but this results in a much smaller pickle.
+		return (create_triangulation, self.package())
 	def __eq__(self, other):
 		return self.signature == other.signature
 	def __ne__(self, other):

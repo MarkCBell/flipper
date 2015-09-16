@@ -388,7 +388,8 @@ class Triangulation(object):
 		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
 		char_perm = ''.join(char[p] for p in permutation_sequence)
 		
-		num_tri = self.num_triangles
+		# Only count the number of unskipped triangles.
+		num_tri = len([triangle for triangle in self if all(label not in skip for label in triangle.labels)])
 		if num_tri < 63:
 			char_start = char[num_tri]
 			char_target = ''.join(char[target] for target in target_sequence)

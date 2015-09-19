@@ -11,7 +11,10 @@ There is also a helper function: create_triangulation. '''
 
 import flipper
 
-from Queue import Queue
+try:
+	from Queue import Queue
+except ImportError:
+	from queue import Queue
 from random import choice
 from itertools import product
 import string

@@ -1198,10 +1198,9 @@ class FlipperApplication(object):
 				elif render == flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						scale = float(1) / 2
-						start_point = triangle[i][0] + a[0] * scale, triangle[i][1] + a[1] * scale
-						end_point = triangle[i][0] + b[0] * scale, triangle[i][1] + b[1] * scale
-						vertices = [start_point, end_point]
-						self.create_curve_component(vertices)
+						S, P, Q, E = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale, scale)
+						vertices = [S, P, Q, E]
+						self.create_curve_component(vertices, smooth=True)
 		
 		self.current_lamination = lamination
 		self.create_edge_labels()

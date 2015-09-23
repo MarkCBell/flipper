@@ -247,7 +247,7 @@ class CurveComponent(DrawableObject):
 		self.update()
 
 class TrainTrackBlock(DrawableObject):
-	def __init__(self, canvas, vertices, options, multiplicity=1):
+	def __init__(self, canvas, vertices, options, multiplicity=1, smooth=False):
 		super(TrainTrackBlock, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_TRAIN_TRACK_BLOCK_COLOUR
 		self.drawn = self.canvas.create_polygon(
@@ -255,7 +255,7 @@ class TrainTrackBlock(DrawableObject):
 			fill=self.default_colour,
 			tag='train_track',
 			outline=self.default_colour,
-			smooth=True
+			smooth=smooth
 			)
 		self.multiplicity = multiplicity
 

@@ -220,6 +220,8 @@ class FlipperApplication(object):
 		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=app_font)
 		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
 		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK, var=self.options.render_lamination_var, font=app_font)
+		self.laminationdrawmenu.add_separator()
+		self.laminationdrawmenu.add_checkbutton(label='Draw laminations straight', var=self.options.straight_laminations_var, font=app_font)
 		
 		self.zoommenu = TK.Menu(self.menubar, tearoff=0)
 		self.zoommenu.add_command(label='Zoom in', command=self.zoom_in, accelerator='+', font=app_font)
@@ -999,8 +1001,8 @@ class FlipperApplication(object):
 		self.canvas.delete(curve_component.drawn)
 		self.curve_components.remove(curve_component)
 	
-	def create_train_track_block(self, vertices, multiplicity=1):
-		self.train_track_blocks.append(flipper.application.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity))
+	def create_train_track_block(self, vertices, multiplicity=1, smooth=False):
+		self.train_track_blocks.append(flipper.application.TrainTrackBlock(self.canvas, vertices, self.options, multiplicity, smooth))
 		return self.train_track_blocks[-1]
 	
 	def destroy_train_track_block(self, curve_component):
@@ -1180,9 +1182,10 @@ class FlipperApplication(object):
 						
 						S1, P1, Q1, E1 = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
 						S2, P2, Q2, E2 = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a2, scale_b2)
-						
-						vertices = [S1, S1, P1, Q1, E1, E1, E2, E2, Q2, P2, S2, S2, S1, S1]
-						self.create_train_track_block(vertices)
+						if self.options.straight_laminations:
+							self.create_train_track_block([S1, E1, E2, S2])
+						else:
+							self.create_train_track_block([S1, S1, P1, Q1, E1, E1, E2, E2, Q2, P2, S2, S2, S1, S1], smooth=True)
 				elif render == flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
@@ -1192,15 +1195,19 @@ class FlipperApplication(object):
 						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * ((weights[i-2] - 1) * (master - weights[i-2]) + 2 * weights[i-2] * j) / (2 * (weights[i-2] - 1) * master)
 						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * ((weights[i-1] - 1) * (master - weights[i-1]) + 2 * weights[i-1] * j) / (2 * (weights[i-1] - 1) * master)
 						
-						start_point, P, Q, end_point = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
-						vertices = [start_point, P, Q, end_point]
-						self.create_curve_component(vertices, smooth=True)
+						S, P, Q, E = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
+						if self.options.straight_laminations:
+							self.create_curve_component([S, E])
+						else:
+							self.create_curve_component([S, P, Q, E], smooth=True)
 				elif render == flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						scale = float(1) / 2
 						S, P, Q, E = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale, scale)
-						vertices = [S, P, Q, E]
-						self.create_curve_component(vertices, smooth=True)
+						if self.options.straight_laminations:
+							self.create_curve_component([S, E])
+						else:
+							self.create_curve_component([S, P, Q, E], smooth=True)
 		
 		self.current_lamination = lamination
 		self.create_edge_labels()

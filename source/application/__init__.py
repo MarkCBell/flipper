@@ -25,6 +25,7 @@ Meter = widgets.Meter
 AnimatedCanvas = widgets.AnimatedCanvas
 
 lines_intersect = pieces.lines_intersect
+interpolate = pieces.interpolate
 
 apply_progression = progress.apply_progression
 get_input = inputbox.get_input

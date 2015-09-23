@@ -990,8 +990,8 @@ class FlipperApplication(object):
 			self.unsaved_work = True
 		self.build_equipped_triangulation()
 	
-	def create_curve_component(self, vertices, multiplicity=1):
-		self.curve_components.append(flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity))
+	def create_curve_component(self, vertices, multiplicity=1, smooth=False):
+		self.curve_components.append(flipper.application.CurveComponent(self.canvas, vertices, self.options, multiplicity, smooth))
 		return self.curve_components[-1]
 	
 	def destory_curve_component(self, curve_component):
@@ -1154,9 +1154,8 @@ class FlipperApplication(object):
 		# We'll do everything with floats now because these are accurate enough for drawing to the screen with.
 		vb = self.options.vertex_buffer  # We are going to use this a lot.
 		a_weights = [float(x) for x in lamination]
-		if render == flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
-			master_scale = max(a_weights)
-			if master_scale == 0: master_scale = float(1)
+		master = float(max(a_weights))
+		if master == 0: master = float(1)
 		
 		for triangle in self.triangles:
 			a_tri_weights = [a_weights[edge.index] for edge in triangle.edges]
@@ -1169,22 +1168,20 @@ class FlipperApplication(object):
 					if a_dual_weights[i] > 0.00001:  # Should be 0 but we have a floating point approximation.
 						# We first do the edge to the left of the vertex.
 						# Correction factor to take into account the weight on this edge.
-						s_a = a_weights[triangle.edges[i-2].index] / master_scale
+						s_a = a_weights[triangle.edges[i-2].index] / master
 						# The fractions of the distance of the two points on this edge.
 						scale_a = vb * s_a + (1 - s_a) / 2
 						scale_a2 = scale_a + (1 - 2*vb) * s_a * a_dual_weights[i] / (a_dual_weights[i] + a_dual_weights[i-1])
-						# The actual points of intersection.
-						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
-						start_point2 = triangle[i][0] + a[0] * scale_a2, triangle[i][1] + a[1] * scale_a2
 						
 						# Now repeat for the other edge of the triangle.
-						s_b = a_weights[triangle.edges[i-1].index] / master_scale
+						s_b = a_weights[triangle.edges[i-1].index] / master
 						scale_b = vb * s_b + (1 - s_b) / 2
 						scale_b2 = scale_b + (1 - 2*vb) * s_b * a_dual_weights[i] / (a_dual_weights[i] + a_dual_weights[i-2])
-						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
-						end_point2 = triangle[i][0] + b[0] * scale_b2, triangle[i][1] + b[1] * scale_b2
 						
-						vertices = [start_point, end_point, end_point2, start_point2]
+						S1, P1, Q1, E1 = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
+						S2, P2, Q2, E2 = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a2, scale_b2)
+						
+						vertices = [S1, S1, P1, Q1, E1, E1, E2, E2, Q2, P2, S2, S2, S1, S1]
 						self.create_train_track_block(vertices)
 				elif render == flipper.application.options.RENDER_LAMINATION_FULL:  # We can ONLY use this method when the lamination is a multicurve.
 					# Also it is VERY slow (O(n) not O(log(n))).
@@ -1192,12 +1189,12 @@ class FlipperApplication(object):
 					weights = [lamination(edge.index) for edge in triangle.edges]
 					dual_weights = [(weights[(j+1)%3] + weights[(j+2)%3] - weights[(j+0)%3]) // 2 for j in range(3)]
 					for j in range(int(dual_weights[i])):
-						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * j / (weights[i-2] - 1)
-						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * j / (weights[i-1] - 1)
-						start_point = triangle[i][0] + a[0] * scale_a, triangle[i][1] + a[1] * scale_a
-						end_point = triangle[i][0] + b[0] * scale_b, triangle[i][1] + b[1] * scale_b
-						vertices = [start_point, end_point]
-						self.create_curve_component(vertices)
+						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * ((weights[i-2] - 1) * (master - weights[i-2]) + 2 * weights[i-2] * j) / (2 * (weights[i-2] - 1) * master)
+						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * ((weights[i-1] - 1) * (master - weights[i-1]) + 2 * weights[i-1] * j) / (2 * (weights[i-1] - 1) * master)
+						
+						start_point, P, Q, end_point = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
+						vertices = [start_point, P, Q, end_point]
+						self.create_curve_component(vertices, smooth=True)
 				elif render == flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
 						scale = float(1) / 2

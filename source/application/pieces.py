@@ -29,6 +29,27 @@ def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	
 	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
+def interpolate(a, b, c, R, S):
+	# Given points a, b, c and parameters R, S
+	# Let A be the point R% from b to a and
+	# B be the point S% from b to c.
+	# Return A, B and P, the point where the perpendicular line through A and B intersect.
+	dx, dy = a[0] - b[0], a[1] - b[1]
+	dx2, dy2 = c[0] - b[0], c[1] - b[1]
+	
+	A = (b[0] + R*dx, b[1] + R*dy)
+	B = (b[0] + S*dx2, b[1] + S*dy2)
+	
+	d = dy * dx2 - dy2 *dx
+	t  = (dx2 * (R*dx - S*dx2) + dy2 * (R*dy - S*dy2)) / d
+	t2 = (dx * (R*dx - S*dx2) + dy * (R*dy - S*dy2)) / d
+	
+	t, t2 = 0.1, -0.1
+	P = (A[0] - t/2 * dy, A[1] + t/2 * dx)
+	Q = (B[0] - t2/2 * dy2, B[1] + t2/2 * dx2)
+	
+	return A, P, Q, B
+
 class ColourPalette(object):
 	def __init__(self):
 		self.state = 0
@@ -88,6 +109,9 @@ class CanvasVertex(DrawableObject):
 			[p + scale*self.options.dot_size for scale in [-1, 1] for p in self],
 			outline=self.default_colour, fill=self.default_colour, tag='oval'
 			)
+	
+	def __repr__(self):
+		return str(self.vertex)
 	
 	def __sub__(self, other):
 		return (self[0] - other[0], self[1] - other[1])
@@ -196,14 +220,15 @@ class CanvasTriangle(DrawableObject):
 		return (u >= 0) and (v >= 0) and (u + v <= 1)
 
 class CurveComponent(DrawableObject):
-	def __init__(self, canvas, vertices, options, multiplicity=1):
+	def __init__(self, canvas, vertices, options, multiplicity=1, smooth=False):
 		super(CurveComponent, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_CURVE_COLOUR
 		self.drawn = self.canvas.create_line(
 			[c for v in self.vertices for c in v],
 			width=self.options.line_size,
 			fill=self.colour,
-			tag='curve'
+			tag='curve',
+			smooth=smooth
 			)
 		self.multiplicity = multiplicity
 	
@@ -225,6 +250,12 @@ class TrainTrackBlock(DrawableObject):
 	def __init__(self, canvas, vertices, options, multiplicity=1):
 		super(TrainTrackBlock, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_TRAIN_TRACK_BLOCK_COLOUR
-		self.drawn = self.canvas.create_polygon([v[j] for v in self.vertices for j in range(2)], fill=self.default_colour, tag='train_track', outline=self.default_colour)
+		self.drawn = self.canvas.create_polygon(
+			[v[j] for v in self.vertices for j in range(2)],
+			fill=self.default_colour,
+			tag='train_track',
+			outline=self.default_colour,
+			smooth=True
+			)
 		self.multiplicity = multiplicity
 

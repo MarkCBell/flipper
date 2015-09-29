@@ -29,26 +29,28 @@ def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	
 	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
-def interpolate(a, b, c, R, S):
+def interpolate(A, B, C, r, s):
 	# Given points a, b, c and parameters R, S
-	# Let A be the point R% from b to a and
-	# B be the point S% from b to c.
-	# Return A, B and P, the point where the perpendicular line through A and B intersect.
-	dx, dy = a[0] - b[0], a[1] - b[1]
-	dx2, dy2 = c[0] - b[0], c[1] - b[1]
+	# Let X := rB + (1-r)A and
+	# Y := sB + (1-s)C
+	dx, dy = A[0] - B[0], A[1] - B[1]
+	dx2, dy2 = C[0] - B[0], C[1] - B[1]
 	
-	A = (b[0] + R*dx, b[1] + R*dy)
-	B = (b[0] + S*dx2, b[1] + S*dy2)
+	X = (B[0] + r*dx, B[1] + r*dy)
+	Y = (B[0] + s*dx2, B[1] + s*dy2)
 	
 	d = dy * dx2 - dy2 *dx
-	t  = (dx2 * (R*dx - S*dx2) + dy2 * (R*dy - S*dy2)) / d
-	t2 = (dx * (R*dx - S*dx2) + dy * (R*dy - S*dy2)) / d
+	t  = (dx2 * (r*dx - s*dx2) + dy2 * (r*dy - s*dy2)) / d
+	t2 = (dx * (r*dx - s*dx2) + dy * (r*dy - s*dy2)) / d
 	
+	# Hmmm, this is a hack. !?!
+	d = sqrt(dx*dx + dy*dy)
+	d2 = sqrt(dx2*dx2 + dy2*dy2)
 	t, t2 = 0.1, -0.1
-	P = (A[0] - t/2 * dy, A[1] + t/2 * dx)
-	Q = (B[0] - t2/2 * dy2, B[1] + t2/2 * dx2)
+	P = (X[0] - t/2 * dy, X[1] + t/2 * dx)
+	Q = (Y[0] - t2/2 * dy2, Y[1] + t2/2 * dx2)
 	
-	return A, P, Q, B
+	return X, P, Q, Y
 
 class ColourPalette(object):
 	def __init__(self):

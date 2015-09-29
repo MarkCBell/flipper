@@ -443,7 +443,7 @@ class FlipperApplication(object):
 					if file_path == '':  # Cancelled the dialog.
 						return
 					try:
-						string_contents = open(load_from, 'rb').read()
+						string_contents = open(file_path, 'rb').read()
 					except IOError:
 						raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
 				elif isinstance(load_from, file):
@@ -455,7 +455,7 @@ class FlipperApplication(object):
 						string_contents = load_from
 				
 				try:
-					spec, version, data = pickle.load(string_contents)
+					spec, version, data = pickle.loads(string_contents)
 				except (EOFError, AttributeError, KeyError):
 					raise flipper.AssumptionError('Error 103: Cannot depickle information provided.')
 				except ValueError:
@@ -1190,10 +1190,11 @@ class FlipperApplication(object):
 					# Also it is VERY slow (O(n) not O(log(n))).
 					# Here we need the exact dual weights so we had better work them out.
 					weights = [lamination(edge.index) for edge in triangle.edges]
-					dual_weights = [(weights[(j+1)%3] + weights[(j+2)%3] - weights[(j+0)%3]) // 2 for j in range(3)]
+					wa, wb = weights[i-2], weights[i-1]
+					dual_weights = [(weights[j-2] + weights[j-1] - weights[j]) // 2 for j in range(3)]
 					for j in range(int(dual_weights[i])):
-						scale_a = float(1) / 2 if weights[i-2] == 1 else vb + (1 - 2*vb) * ((weights[i-2] - 1) * (master - weights[i-2]) + 2 * weights[i-2] * j) / (2 * (weights[i-2] - 1) * master)
-						scale_b = float(1) / 2 if weights[i-1] == 1 else vb + (1 - 2*vb) * ((weights[i-1] - 1) * (master - weights[i-1]) + 2 * weights[i-1] * j) / (2 * (weights[i-1] - 1) * master)
+						scale_a = 0.5 if wa == 1 else vb + (1 - 2*vb) * ((wa - 1) * (master - wa) + 2 * wa * j) / (2 * (wa - 1) * master)
+						scale_b = 0.5 if wb == 1 else vb + (1 - 2*vb) * ((wb - 1) * (master - wb) + 2 * wb * j) / (2 * (wb - 1) * master)
 						
 						S, P, Q, E = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale_a, scale_b)
 						if self.options.straight_laminations:
@@ -1202,7 +1203,7 @@ class FlipperApplication(object):
 							self.create_curve_component([S, P, Q, E], smooth=True)
 				elif render == flipper.application.options.RENDER_LAMINATION_C_TRAIN_TRACK:
 					if a_dual_weights[i] > 0:
-						scale = float(1) / 2
+						scale = 0.5
 						S, P, Q, E = flipper.application.interpolate(triangle[i-1], triangle[i], triangle[i-2], scale, scale)
 						if self.options.straight_laminations:
 							self.create_curve_component([S, E])

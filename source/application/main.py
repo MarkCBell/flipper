@@ -1470,7 +1470,7 @@ class FlipperApplication(object):
 				pass
 		elif 'mapping_class_conjugate' in tags:
 			other = flipper.application.get_choice('Conjugate.', 'Is this mapping class conjugate to...',
-				list(sorted(set(self.mapping_class_names.values()))))
+				sorted(set(self.mapping_class_names.values()), key=lambda x: (len(x), x)))
 			if other is not None:
 				try:
 					result = self.update_cache(

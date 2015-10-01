@@ -576,12 +576,12 @@ class Encoding(object):
 			raise flipper.AssumptionError('Mapping class is reducible.')
 		elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
 			# Two pseudo-Anosov mapping classes are conjugate if and only if
-			# there canonical forms are cyclically conjugate.
+			# there canonical forms are cyclically conjugate via an isometry.
 			f = self.canonical()
 			g = other.canonical()
-			# We could start by quickly checking some other invariants.
+			# We could start by quickly checking some invariants.
 			# For example they should have the same dilatation.
-			if len(f) != len(g):
+			if self.dilatation() != other.dilatation():
 				return False
 			
 			for i in range(len(f)):

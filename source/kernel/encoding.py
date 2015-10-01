@@ -68,8 +68,11 @@ class Encoding(object):
 		return iter(self.sequence)
 	def __len__(self):
 		return len(self.sequence)
+	def package(self):
+		''' Return a small amount of info that self.source_triangulation can use to reconstruct this triangulation. '''
+		return [item.package() for item in self]
 	def __reduce__(self):
-		return (create_encoding, (self.source_triangulation, [item.package() for item in self], self._cache))
+		return (create_encoding, (self.source_triangulation, self.package(), self._cache))
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
 		

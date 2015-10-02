@@ -306,7 +306,7 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
-	def iso_sig(self, skip=None):
+	def iso_sig(self, skip=None, preserve_orientation=False):
 		''' Return the isomorphism signature of this triangulation. '''
 		
 		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
@@ -324,6 +324,11 @@ class Triangulation(object):
 		
 		perm_3 = flipper.kernel.permutation.all_permutations(3)
 		perm_inverse = {perm: perm.inverse() for perm in perm_3}
+		# If we want to remember the orientation then we need to limit our staring points to the
+		# be labelled with an even permutation.
+		start_perms = perm3 if not preserve_orientation else [perm for perms in perm3 if perm.is_even()]
+		
+		if not start_perm.is_even(): continue
 		
 		best = ([INFTY], [INFTY], [INFTY])
 		
@@ -332,7 +337,7 @@ class Triangulation(object):
 		# We can start anywhere away from the skipped edges.
 		for start_triangle in self:
 			if all(label not in skip for label in start_triangle.labels):
-				for start_perm in perm_3:
+				for start_perm in start_perms:
 					good = True
 					type_sequence = []
 					target_sequence = []
@@ -370,7 +375,8 @@ class Triangulation(object):
 								triangle_index, triangle_perm = triangle_labels[triangle]
 								target_index, target_perm = triangle_labels[target_triangle]
 								k = target_perm(target_side)
-								if target_index > triangle_index or (target_index == triangle_index and k > j):  # We've not done this gluing yet.
+								if target_index > triangle_index or (target_index == triangle_index and k > j):
+									# We've not done this gluing yet.
 									transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
 									
 									type_sequence.append(2)

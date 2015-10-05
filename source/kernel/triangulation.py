@@ -307,7 +307,14 @@ class Triangulation(object):
 		return self.corner_of_edge(corner.labels[1])
 	
 	def iso_sig(self, skip=None, preserve_orientation=False):
-		''' Return the isomorphism signature of this triangulation. '''
+		''' Return the isomorphism signature of this triangulation as described by Ben Burton.
+		
+		This is a string such that two triangulations have the same signature
+		if and only if there is a homeomorphism taking one to the other.
+		
+		If skip is not None then it must be an iterable containing the labels
+		of edges to treat as boundary. If preserve_orientation is True then
+		this identifying homeomorphism must be orientation preserving. '''
 		
 		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
 		transition_perm_lookup = {
@@ -326,7 +333,7 @@ class Triangulation(object):
 		perm_inverse = {perm: perm.inverse() for perm in perm_3}
 		# If we want to remember the orientation then we need to limit our staring points to the
 		# be labelled with an even permutation.
-		start_perms = perm_3 if not preserve_orientation else [perm for perms in perm_3 if perm.is_even()]
+		start_perms = perm_3 if not preserve_orientation else [perm for perm in perm_3 if perm.is_even()]
 		
 		best = ([INFTY], [INFTY], [INFTY])
 		

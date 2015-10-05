@@ -326,7 +326,7 @@ class Triangulation(object):
 		perm_inverse = {perm: perm.inverse() for perm in perm_3}
 		# If we want to remember the orientation then we need to limit our staring points to the
 		# be labelled with an even permutation.
-		start_perms = perm3 if not preserve_orientation else [perm for perms in perm3 if perm.is_even()]
+		start_perms = perm_3 if not preserve_orientation else [perm for perms in perm_3 if perm.is_even()]
 		
 		best = ([INFTY], [INFTY], [INFTY])
 		

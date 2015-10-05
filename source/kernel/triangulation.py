@@ -328,8 +328,6 @@ class Triangulation(object):
 		# be labelled with an even permutation.
 		start_perms = perm3 if not preserve_orientation else [perm for perms in perm3 if perm.is_even()]
 		
-		if not start_perm.is_even(): continue
-		
 		best = ([INFTY], [INFTY], [INFTY])
 		
 		skip = set() if skip is None else set(skip)

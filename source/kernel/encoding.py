@@ -582,7 +582,7 @@ class Encoding(object):
 			# there canonical forms are cyclically conjugate via an isometry.
 			f = self.canonical()
 			g = other.canonical()
-			# We could start by quickly checking some invariants.
+			# We should start by quickly checking some invariants.
 			# For example they should have the same dilatation.
 			if self.dilatation() != other.dilatation():
 				return False

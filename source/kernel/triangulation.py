@@ -1189,7 +1189,10 @@ def triangulation_from_iso_sig(signature):
 		
 		return sum(digit * base**index for index, digit in enumerate(digits))
 	
-	values = [char_lookup[letter] for letter in signature]
+	try:
+		values = [char_lookup[letter] for letter in signature]
+	except KeyError:
+		raise ValueError('Signature must be a string matching [a-zA-Z0-9+-]*')
 	
 	if values[0] < 63:
 		num_chars = 1
@@ -1200,13 +1203,17 @@ def triangulation_from_iso_sig(signature):
 		num_tri = debase(values[1:num_chars])
 		start = 1 + num_chars
 	
-	assert(num_chars > 0)
-	assert(num_tri > 0)
+	if num_chars == 0:
+		raise ValueError('Signature must specify a character length > 0.')
+		
+	if num_tri == 0:
+		raise ValueError('Signature must specify at least one triangle.')
 	
 	start2 = start + num_tri // 2  # Type sequence is [start:start2].
 	start3 = start2 + num_chars * (1 + num_tri // 2)  # Destination sequence is [start2:start3].
 	start4 = start3 + (1 + num_tri // 2)  # Permutation sequence is [start3:start4].
-	assert(start4 == len(values))
+	if start4 != len(values):
+		raise ValueError('Signature must specify permutations for each triangle.')
 	
 	type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
 	destination_sequence = [debase(values[i:i+num_chars]) for i in range(start2, start3, num_chars)]
@@ -1222,8 +1229,10 @@ def triangulation_from_iso_sig(signature):
 		for j in range(3):
 			if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
 				try:
-					# We could also do type 0 in order to handle triangulations with boundary.
-					if type_sequence[type_index] == 1:
+					if type_sequence[type_index] == 0:
+						# We cannot yet handle triangulations with boundary.
+						raise ValueError('Triangulations must be closed and so gluing must not be type 0.')
+					elif type_sequence[type_index] == 1:
 						target, gluing = num_tri_used, perm_lookup[0]
 						triangle_reversed[target] = not triangle_reversed[i]
 						
@@ -1234,7 +1243,7 @@ def triangulation_from_iso_sig(signature):
 						destination_index += 1
 						permutation_index += 1
 					else:
-						raise TypeError('Each gluing must be type 1 or 2 to give a closed triangulation.')
+						raise ValueError('Each gluing must be type 0, 1 or 2.')
 				except IndexError:
 					raise ValueError('String does not correspond to a isomorphism signature.')
 				type_index += 1
@@ -1243,9 +1252,11 @@ def triangulation_from_iso_sig(signature):
 				edge_labels[target][gluing(j)] = ~zeta
 				zeta += 1
 	
-	assert(num_tri_used == num_tri)
+	if num_tri_used != num_tri
+		raise ValueError('Unused triangles. String does not correspond to a isomorphism signature.')
 	# Check there are no unglued edges.
-	assert(all(all(entry is not None for entry in row) for row in edge_labels))
+	if not all(all(entry is not None for entry in row) for row in edge_labels):
+		raise ValueError('Unused edges. String does not correspond to a isomorphism signature.')
 	
 	edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_tri)]
 	

@@ -29,8 +29,27 @@ def lines_intersect(s1, e1, s2, e2, float_error, equivalent_edge):
 	
 	return (t if 0-float_error <= s <= 1+float_error and 0-float_error <= t <= 1+float_error else -1, equivalent_edge and 0+float_error <= s <= 1-float_error and 0+float_error <= t <= 1-float_error)
 
+def intersection(A, d, B, d2):
+	# Find the intersection parameters of A + t d and B + t2 d2
+	# Want t & t2 such that:
+	#   A[0] + t d[0] = B[0] + t2 d2[0]
+	#   A[1] + t d[1] = B[1] + t2 d2[1]
+	# So:
+	#   (d[0] -d2[0]) (t ) = (B[0] - A[0])
+	#   (d[1] -d2[1]) (t2)   (B[1] - A[1])
+	# The inverse of this matrix is:
+	#   (-d2[1] d2[0])
+	#   ( -d[1]  d[0]) / det
+	# where:
+	det = d2[0] * d[1] - d[0] * d2[1]
+	# So:
+	t  = ((B[0] - A[0]) * -d2[1] + (B[1] - A[1]) * d2[0]) / det
+	t2 = ((B[0] - A[0]) *  -d[1] + (B[1] - A[1]) *  d[0]) / det
+	
+	return t, t2
+
 def interpolate(A, B, C, r, s):
-	# Given points a, b, c and parameters R, S
+	# Given points A, B, C and parameters r, s
 	# Let X := rB + (1-r)A and
 	# Y := sB + (1-s)C
 	dx, dy = A[0] - B[0], A[1] - B[1]
@@ -39,16 +58,16 @@ def interpolate(A, B, C, r, s):
 	X = (B[0] + r*dx, B[1] + r*dy)
 	Y = (B[0] + s*dx2, B[1] + s*dy2)
 	
-	d = dy * dx2 - dy2 *dx
-	t  = (dx2 * (r*dx - s*dx2) + dy2 * (r*dy - s*dy2)) / d
-	t2 = (dx * (r*dx - s*dx2) + dy * (r*dy - s*dy2)) / d
+	d1a = intersection(X, (-dy, dx), B, (dx+dx2, dy+dy2))[0]
+	d1b = intersection(X, (-dy, dx), A, (-2*A[0] + B[0] + C[0], -2*A[1] + B[1] + C[1]))[0]
+	t = min([x for x in [d1a, d1b] if x > 0]) / 2
 	
-	# Hmmm, this is a hack. !?!
-	d = sqrt(dx*dx + dy*dy)
-	d2 = sqrt(dx2*dx2 + dy2*dy2)
-	t, t2 = 0.1, -0.1
-	P = (X[0] - t/2 * dy, X[1] + t/2 * dx)
-	Q = (Y[0] - t2/2 * dy2, Y[1] + t2/2 * dx2)
+	d2a = intersection(Y, (dy2, -dx2), B, (dx+dx2, dy+dy2))[0]
+	d2b = intersection(Y, (dy2, -dx2), C, (-2*C[0] + A[0] + B[0], -2*C[1] + A[1] + B[1]))[0]
+	t2 = min([x for x in [d2a, d2b] if x > 0]) / 2
+	
+	P = (X[0] + t * -dy, X[1] + t * dx)
+	Q = (Y[0] + t2 * dy2, Y[1] + t2 * -dx2)
 	
 	return X, P, Q, Y
 

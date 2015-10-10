@@ -929,19 +929,30 @@ class Triangulation(object):
 		
 		assert(isinstance(sequence, (list, tuple)))
 		
-		h = self.id_encoding()
+		h = None
 		for item in reversed(sequence):
 			if isinstance(item, flipper.IntegerType):
-				h = h.target_triangulation.encode_flip(item) * h
+				if h is None:
+					h = self.encode_flip(item)
+				else:
+					h = h.target_triangulation.encode_flip(item) * h
 			elif isinstance(item, dict):
-				if all(i in item or ~i in item for i in self.indices):
+				if h is None:
+					h = self.encode_relabel_edges(item)
+				elif all(i in item or ~i in item for i in self.indices):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
 				else:  # If some edges are missing then we assume that we must be mapping back to this triangulation.
 					h = h.target_triangulation.find_isometry(self, item).encode() * h
 			elif item is None:
-				h = h.target_triangulation.id_encoding() * h
+				if h is None:
+					h = self.id_encoding()
+				else:
+					h = h.target_triangulation.id_encoding() * h
 			else:
-				h = item.encode() * h
+				if h is None:
+					h = item.encode()
+				else:
+					h = item.encode() * h
 		
 		# Install a cache if we were given one.
 		if _cache is not None: h._cache = _cache
@@ -1252,7 +1263,7 @@ def triangulation_from_iso_sig(signature):
 				edge_labels[target][gluing(j)] = ~zeta
 				zeta += 1
 	
-	if num_tri_used != num_tri
+	if num_tri_used != num_tri:
 		raise ValueError('Unused triangles. String does not correspond to a isomorphism signature.')
 	# Check there are no unglued edges.
 	if not all(all(entry is not None for entry in row) for row in edge_labels):

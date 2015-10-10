@@ -51,7 +51,12 @@ def main(verbose=False):
 	for surface, word, mapping_class_type in examples:
 		if verbose: print(word)
 		S = flipper.load(surface)
-		if S.mapping_class(word).nielsen_thurston_type() != mapping_class_type:
+		h = S.mapping_class(word)
+		# Check that these mapping classes have the correct Nielsen--Thurston type.
+		if h.nielsen_thurston_type() != mapping_class_type:
+			return False
+		# Check that packaging and unpackaging works.
+		if h.package() != h.source_triangulation.encode(h.package()).package():
 			return False
 	
 	return True

@@ -157,12 +157,22 @@ class CanvasEdge(DrawableObject):
 	def __init__(self, canvas, vertices, options):
 		super(CanvasEdge, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_EDGE_COLOUR
-		self.drawn = self.canvas.create_line(
-			[c for v in self for c in v],
-			width=self.options.line_size,
-			fill=self.default_colour,
-			tag='line'
+		m = ((self.vertices[0][0] + self.vertices[1][0]) / 2, (self.vertices[0][1] + self.vertices[1][1]) / 2)
+		self.drawn = [
+			self.canvas.create_line(
+				[c for v in [self.vertices[0], m] for c in v],
+				width=self.options.line_size,
+				fill=self.default_colour,
+				tags=['line', 'line_start']
+			),
+			self.canvas.create_line(
+				[c for v in [m, self.vertices[1]] for c in v],
+				width=self.options.line_size,
+				fill=self.default_colour,
+				tags=['line', 'line_end']
 			)
+			]
+		
 		self.equivalent_edge = None
 		self.in_triangles = []
 		self.index = -1
@@ -184,7 +194,8 @@ class CanvasEdge(DrawableObject):
 			return False
 	
 	def hide(self, hide=False):
-		self.canvas.itemconfig(self.drawn, state='hidden' if hide else 'normal')
+		for draw in self.drawn:
+			self.canvas.itemconfig(draw, state='hidden' if hide else 'normal')
 	
 	def free_sides(self):
 		return 2-len(self.in_triangles)-(1 if self.equivalent_edge is not None else 0)
@@ -195,6 +206,16 @@ class CanvasEdge(DrawableObject):
 	def flip_orientation(self):
 		self.vertices = self.vertices[::-1]
 		self.update()
+	
+	def update(self):
+		m = ((self.vertices[0][0] + self.vertices[1][0]) / 2, (self.vertices[0][1] + self.vertices[1][1]) / 2)
+		self.canvas.coords(self.drawn[0], *[c for v in [self.vertices[0], m] for c in v])
+		self.canvas.coords(self.drawn[1], *[c for v in [m, self.vertices[1]] for c in v])
+	
+	def set_current_colour(self, colour=None):
+		if colour is None: colour = self.colour
+		for draw in self.drawn:
+			self.canvas.itemconfig(draw, fill=colour)
 
 class CanvasTriangle(DrawableObject):
 	def __init__(self, canvas, edges, options):

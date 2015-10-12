@@ -894,7 +894,8 @@ class FlipperApplication(object):
 	def destroy_edge(self, edge=None):
 		if edge is None: edge = self.edges[-1]
 		if self.selected_object == edge: self.select_object(None)
-		self.canvas.delete(edge.drawn)
+		for drawn in edge.drawn:
+			self.canvas.delete(drawn)
 		for triangle in edge.in_triangles:
 			self.destroy_triangle(triangle)
 		self.destroy_edge_identification(edge)

@@ -194,8 +194,8 @@ class CanvasEdge(DrawableObject):
 			return False
 	
 	def hide(self, hide=False):
-		for draw in self.drawn:
-			self.canvas.itemconfig(draw, state='hidden' if hide else 'normal')
+		for drawn in self.drawn:
+			self.canvas.itemconfig(drawn, state='hidden' if hide else 'normal')
 	
 	def free_sides(self):
 		return 2-len(self.in_triangles)-(1 if self.equivalent_edge is not None else 0)
@@ -214,8 +214,8 @@ class CanvasEdge(DrawableObject):
 	
 	def set_current_colour(self, colour=None):
 		if colour is None: colour = self.colour
-		for draw in self.drawn:
-			self.canvas.itemconfig(draw, fill=colour)
+		for drawn in self.drawn:
+			self.canvas.itemconfig(drawn, fill=colour)
 
 class CanvasTriangle(DrawableObject):
 	def __init__(self, canvas, edges, options):

@@ -750,7 +750,8 @@ class FlipperApplication(object):
 			vertex.update()
 		self.canvas.itemconfig('line', width=self.options.line_size)
 		self.canvas.itemconfig('curve', width=self.options.line_size)
-		self.canvas.itemconfig('line', arrow='last' if self.options.show_orientations else '')
+		# Only put arrows on the start so arrow heads appear in the middle.
+		self.canvas.itemconfig('line_start', arrow='last' if self.options.show_orientations else '')
 		self.canvas.itemconfig('line', arrowshape=self.options.arrow_shape)
 		
 		for edge in self.edges:
@@ -984,8 +985,10 @@ class FlipperApplication(object):
 			other_edge = edge.equivalent_edge
 			other_edge.set_colour()
 			edge.set_colour()
-			self.canvas.itemconfig(other_edge.drawn, fill=other_edge.default_colour)
-			self.canvas.itemconfig(edge.drawn, fill=edge.default_colour)
+			
+			
+			other_edge.set_colour(other_edge.default_colour)
+			edge.set_colour(edge.default_colour)
 			
 			edge.equivalent_edge.equivalent_edge = None
 			edge.equivalent_edge = None

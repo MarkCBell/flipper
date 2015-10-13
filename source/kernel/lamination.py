@@ -589,6 +589,11 @@ class Lamination(object):
 		if all(isinstance(entry, flipper.IntegerType) for entry in self):
 			raise flipper.AssumptionError('Lamination is not filling.')
 		
+		# This assumes that no vertices are filled. We can probably get rid of this
+		# if we get the collapse_trivial_weights preprocessing below working.
+		if any(entry == 0 for entry in self):
+			raise flipper.AssumptionError('Lamination is not filling.')
+		
 		# We should call lamination.collapse_trivial_weight(flip_index) on each
 		# weight 0 edge and rely on it to either collapse the edge or raise the
 		# approprate error.

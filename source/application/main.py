@@ -434,7 +434,7 @@ class FlipperApplication(object):
 		asks for a flipper (kernel) file. Alternatively can be passed the contents of
 		a file, a file object or something that flipper.kernel.package can eat. '''
 		try:
-			if load_from is None or isinstance(load_from, (file, flipper.StringType)):
+			if load_from is None or isinstance(load_from, (flipper.kernel.FileType, flipper.StringType)):
 				if load_from is None:
 					file_path = tkFileDialog.askopenfilename(
 						defaultextension='.flp',
@@ -446,7 +446,7 @@ class FlipperApplication(object):
 						string_contents = open(file_path, 'rb').read()
 					except IOError:
 						raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
-				elif isinstance(load_from, file):
+				elif isinstance(load_from, flipper.kernel.FileType):
 					string_contents = load_from.read()
 				elif isinstance(load_from, flipper.StringType):
 					try:

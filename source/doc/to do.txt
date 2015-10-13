@@ -4,7 +4,6 @@ undo and redo
 autosave session
 fix keyboard shortcuts on mac
 have weighted brush for painting laminations (in a given field?)
-show arrows 2/3 of the way along edges
 switch lamination drawing method on update
 show warning when automatically adding peripheral components
 show vertices as filled / unfilled

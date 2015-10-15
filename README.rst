@@ -28,11 +28,6 @@ stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.h
 
 	> sage -f python
 
-If running under Sage, users must reinstall sage python by using the command::
-
-	> sage -f python
-
-
 Usage
 =====
 

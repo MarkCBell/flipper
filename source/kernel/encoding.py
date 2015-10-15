@@ -863,7 +863,7 @@ class Encoding(object):
 				B, perm_B = lower_map[source_triangle]
 				fibre_immersion[source_triangle] = lower_map[source_triangle]
 		
-		return flipper.kernel.Bundle(triangulation, triangulation3, fibre_immersion)
+		return flipper.kernel.Bundle(lower_triangulation, triangulation3, fibre_immersion)
 
 def create_encoding(source_triangulation, sequence, _cache=None):
 	''' Return the encoding defined by sequence starting at source_triangulation.

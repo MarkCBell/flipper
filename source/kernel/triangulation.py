@@ -41,6 +41,13 @@ class Vertex(object):
 		return str(self)
 	def __str__(self):
 		return str(self.label)
+	def __hash__(self):
+		return hash(self.label)
+	def __eq__(self, other):
+		if isinstance(other, Vertex):
+			return self.label == other.label
+		else:
+			return NotImplemented
 
 class Edge(object):
 	''' This represents an oriented edge, labelled with an integer.
@@ -64,6 +71,13 @@ class Edge(object):
 		return str(self)
 	def __str__(self):
 		return ('' if self.is_positive() else '~') + str(self.index)
+	def __hash__(self):
+		return hash(self.index)
+	def __eq__(self, other):
+		if isinstance(other, Edge):
+			return self.index == other.index
+		else:
+			return NotImplemented
 	
 	def __invert__(self):
 		return self.reverse()
@@ -106,6 +120,13 @@ class Triangle(object):
 		return str(self)
 	def __str__(self):
 		return str(tuple(self.edges))
+	def __hash__(self):
+		return hash(tuple(self.indices))
+	def __eq__(self, other):
+		if isinstance(other, Triangle):
+			return self.indices == other.indices
+		else:
+			return NotImplemented
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.

@@ -12,6 +12,8 @@ DEFAULT_TRIANGLE_COLOUR = 'gray80'
 DEFAULT_CURVE_COLOUR = 'grey40'
 DEFAULT_TRAIN_TRACK_BLOCK_COLOUR = 'grey40'
 
+ARROW_FRAC = 0.55
+
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
 
@@ -157,18 +159,18 @@ class CanvasEdge(DrawableObject):
 	def __init__(self, canvas, vertices, options):
 		super(CanvasEdge, self).__init__(canvas, vertices, options)
 		self.default_colour = self.colour = DEFAULT_EDGE_COLOUR
-		m = ((self.vertices[0][0] + self.vertices[1][0]) / 2, (self.vertices[0][1] + self.vertices[1][1]) / 2)
+		m = ((1-ARROW_FRAC)*self.vertices[0][0] + ARROW_FRAC*self.vertices[1][0], (1-ARROW_FRAC)*self.vertices[0][1] + ARROW_FRAC*self.vertices[1][1])
 		self.drawn = [
 			self.canvas.create_line(
 				[c for v in [self.vertices[0], m] for c in v],
 				width=self.options.line_size,
-				fill=self.default_colour,
+				fill='orange',
 				tags=['line', 'line_start']
 			),
 			self.canvas.create_line(
-				[c for v in [m, self.vertices[1]] for c in v],
+				[c for v in [self.vertices[0], self.vertices[1]] for c in v],
 				width=self.options.line_size,
-				fill=self.default_colour,
+				fill='orange',
 				tags=['line', 'line_end']
 			)
 			]
@@ -208,9 +210,9 @@ class CanvasEdge(DrawableObject):
 		self.update()
 	
 	def update(self):
-		m = ((self.vertices[0][0] + self.vertices[1][0]) / 2, (self.vertices[0][1] + self.vertices[1][1]) / 2)
+		m = ((1-ARROW_FRAC)*self.vertices[0][0] + ARROW_FRAC*self.vertices[1][0], (1-ARROW_FRAC)*self.vertices[0][1] + ARROW_FRAC*self.vertices[1][1])
 		self.canvas.coords(self.drawn[0], *[c for v in [self.vertices[0], m] for c in v])
-		self.canvas.coords(self.drawn[1], *[c for v in [m, self.vertices[1]] for c in v])
+		self.canvas.coords(self.drawn[1], *[c for v in [self.vertices[0], self.vertices[1]] for c in v])
 	
 	def set_current_colour(self, colour=None):
 		if colour is None: colour = self.colour

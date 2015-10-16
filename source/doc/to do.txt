@@ -1,0 +1,37 @@
+
+### Application ###
+undo and redo
+autosave session
+fix keyboard shortcuts on mac
+have weighted brush for painting laminations (in a given field?)
+switch lamination drawing method on update
+show warning when automatically adding peripheral components
+show vertices as filled / unfilled
+add ability to export a python script - exporting invariant laminations could be hard
+need to be able to handle loading disconnected surfaces
+
+### Documentation ###
+document bad cases for default symbolic libarary
+redo installation / testing instructions
+autogenerate docs / README
+upload version with:
+	python setup.py sdist register upload
+
+### Kernel ###
+check we can completely handle disconnected surfaces
+fix lamination.splitting_sequence by extending collapse
+rescale invariant lamination such that weight is in [1, lamination)
+extend symboliccomputation_dummy to work in all cases
+faster Matrix.kernel
+lamination should have an associated number field
+be able to (half) twist along all curves - construct chain - use H_1 code?
+recheck ALL number theory bounds
+Add function to convert Twister surface files to flipper.EquippedTriangulations
+
+### Tests ###
+add more tests
+tests for every module
+
+### Profiles ###
+add better profiling to see speedup progress
+

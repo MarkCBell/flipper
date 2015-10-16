@@ -429,10 +429,8 @@ class FlipperApplication(object):
 			- the path to a flipper file,
 			- the contents of flipper file, or
 			- something that flipper.kernel.package can eat.
-		If given nothing it asks the user to select a flipper (kernel) file.
+		If given nothing it asks the user to select a flipper (kernel) file.'''
 		
-		asks for a flipper (kernel) file. Alternatively can be passed the contents of
-		a file, a file object or something that flipper.kernel.package can eat. '''
 		try:
 			if load_from is None or isinstance(load_from, (flipper.kernel.FileType, flipper.StringType)):
 				if load_from is None:
@@ -1537,6 +1535,7 @@ def start(load_from=None):
 	flipper_application = FlipperApplication(root)
 	root.minsize(300, 300)
 	root.geometry('700x500')
+	root.wait_visibility(root)
 	if load_from is not None: flipper_application.load(load_from=load_from)
 	# Set the icon.
 	# Make sure to get the right path if we are in a cx_Freeze compiled executable.

@@ -178,7 +178,7 @@ class FlipperApplication(object):
 		self.exportmenu.add_command(label='Export kernel file...', command=self.export_kernel_file, font=app_font)
 		self.filemenu.add_cascade(label='Export', menu=self.exportmenu, font=app_font)
 		self.filemenu.add_separator()
-		self.filemenu.add_command(label='Exit', command=self.quit, accelerator=COMMAND['save'], font=app_font)
+		self.filemenu.add_command(label='Exit', command=self.quit, accelerator=COMMAND['close'], font=app_font)
 		self.menubar.add_cascade(label='File', menu=self.filemenu, font=app_font)
 		
 		self.editmenu = TK.Menu(self.menubar, tearoff=0)

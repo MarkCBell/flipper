@@ -72,10 +72,10 @@ class Edge(object):
 	def __str__(self):
 		return ('' if self.is_positive() else '~') + str(self.index)
 	def __hash__(self):
-		return hash(self.index)
+		return hash(self.label)
 	def __eq__(self, other):
 		if isinstance(other, Edge):
-			return self.index == other.index
+			return self.label == other.label
 		else:
 			return NotImplemented
 	
@@ -121,10 +121,10 @@ class Triangle(object):
 	def __str__(self):
 		return str(tuple(self.edges))
 	def __hash__(self):
-		return hash(tuple(self.indices))
+		return hash(tuple(self.labels))
 	def __eq__(self, other):
 		if isinstance(other, Triangle):
-			return self.indices == other.indices
+			return self.labels == other.labels
 		else:
 			return NotImplemented
 	

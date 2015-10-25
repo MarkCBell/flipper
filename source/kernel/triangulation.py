@@ -80,7 +80,9 @@ class Edge(object):
 			return NotImplemented
 	
 	def __invert__(self):
-		return self.reverse()
+		''' Return this edge but with reversed orientation. '''
+		
+		return self.reversed_edge
 	
 	def is_positive(self):
 		''' Return if this edge is the positively oriented one. '''
@@ -91,11 +93,6 @@ class Edge(object):
 		''' Return the sign (+/-1) of this edge. '''
 		
 		return +1 if self.is_positive() else -1
-	
-	def reverse(self):
-		''' Return this edge but with reversed orientation. '''
-		
-		return self.reversed_edge
 
 class Triangle(object):
 	''' This represents a triangle.
@@ -222,12 +219,13 @@ class Triangulation(object):
 			
 			corner_class = list(corner_class)
 			lookup = dict((corner.edges[2], corner) for corner in corner_class)
-			ordered_class = [corner_class[0]]  # Get one corner to start at.
+			ordered_class = [None] * len(corner_class)
+			ordered_class[0] = corner_class[0]  # Get one corner to start at.
 			# Perhaps this should be chosen in some canonical way. Smallest labelled one?
 			# This isn't totally safe: it doesn't check that there aren't multiple cycles.
 			for i in range(len(corner_class)-1):
 				try:
-					ordered_class.append(lookup[~ordered_class[i].edges[1]])
+					ordered_class[i+1] = lookup[~ordered_class[i].edges[1]]
 				except KeyError:
 					raise ValueError('Corners do not close up about vertex.')
 			
@@ -238,7 +236,6 @@ class Triangulation(object):
 		
 		vertexer = lambda corner: corner.vertex
 		self.corner_classes = [order_corner_class(g) for _, g in groupby(sorted(self.corners, key=vertexer), key=vertexer)]
-		
 		
 		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.
 		# NOTE: This assumes connected.

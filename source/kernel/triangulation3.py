@@ -314,8 +314,8 @@ class Triangulation3(object):
 			intersection_number = self.intersection_number(LONGITUDES, MERIDIANS, cusp)
 			assert(abs(intersection_number) == 1)
 			
-			# We might need to reverse the orientation of .
-			# If the it is -1 then we need to reverse the direction of one of them (we choose the meridian).
+			# We might need to reverse the orientation of one of these to get the right sign.
+			# If the intersection number is -1 then we need to reverse the direction of one of them (we choose the meridian).
 			if intersection_number < 0:
 				for tetrahedron, side in cusp:
 					for other in VERTICES_MEETING[side]:

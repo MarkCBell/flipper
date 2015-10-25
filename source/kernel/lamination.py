@@ -242,16 +242,19 @@ class Lamination(object):
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
+		possible_edges = set([i for i in lamination.triangulation.indices if lamination(i) > 0])
 		# If we ever fail to make progress more than once then the curve is as short as it's going to get.
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			edge_index = min([i for i in lamination.triangulation.flippable_edges() if lamination(i) > 0], key=lambda i: weight_change(lamination, i))
+			edge_index = min([i for i in possible_edges if lamination.triangulation.is_flippable(i)], key=lambda i: weight_change(lamination, i))
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			conjugation = forwards * conjugation
 			lamination = forwards(lamination)
 			new_weight = lamination.weight()
+			if lamination(edge_index) == 0:
+				possible_edges.remove(edge_index)
 			
 			if new_weight < old_weight:
 				time_since_last_weight_loss = 0

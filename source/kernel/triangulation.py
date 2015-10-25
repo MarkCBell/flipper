@@ -110,7 +110,9 @@ class Triangle(object):
 		# Edges are ordered anti-clockwise. We will cyclically permute
 		# these to a canonical ordering, the one where the edges are ordered
 		# minimally by label.
-		self.edges = min([edges[i:] + edges[:i] for i in range(3)], key=lambda t: [e.label for e in t])
+		best_index = min(range(3), key=lambda i: edges[i].label)
+		
+		self.edges = edges[best_index:] + edges[:best_index]
 		self.labels = [edge.label for edge in self]
 		self.indices = [edge.index for edge in self]
 		self.vertices = [self.edges[1].target_vertex, self.edges[2].target_vertex, self.edges[0].target_vertex]

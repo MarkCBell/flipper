@@ -16,7 +16,7 @@ try:
 except ImportError:
 	from queue import Queue
 from random import choice
-from itertools import product
+from itertools import product, groupby
 import string
 from math import log
 
@@ -233,7 +233,10 @@ class Triangulation(object):
 				raise ValueError('Corners do not close up about vertex.')
 			
 			return ordered_class
-		self.corner_classes = [order_corner_class([corner for corner in self.corners if corner.vertex == vertex]) for vertex in self.vertices]
+		
+		vertexer = lambda corner: corner.vertex
+		self.corner_classes = [order_corner_class(g) for _, g in groupby(sorted(self.corners, key=vertexer), key=vertexer)]
+		
 		
 		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.
 		# NOTE: This assumes connected.

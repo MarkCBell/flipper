@@ -852,15 +852,17 @@ class Lamination(object):
 		a, b, c, d = triangulation.square_about_edge(e1)
 		e = e1
 		
-		x = (short_lamination[a] + short_lamination[b] - short_lamination[e]) // 2
-		y = (short_lamination[b] + short_lamination[e] - short_lamination[a]) // 2
-		z = (short_lamination[e] + short_lamination[a] - short_lamination[b]) // 2
-		x2 = (short_lamination[c] + short_lamination[d] - short_lamination[e]) // 2
-		y2 = (short_lamination[d] + short_lamination[e] - short_lamination[c]) // 2
-		z2 = (short_lamination[e] + short_lamination[c] - short_lamination[d]) // 2
+		x = (short_lamination(a) + short_lamination(b) - short_lamination(e)) // 2
+		y = (short_lamination(b) + short_lamination(e) - short_lamination(a)) // 2
+		z = (short_lamination(e) + short_lamination(a) - short_lamination(b)) // 2
+		x2 = (short_lamination(c) + short_lamination(d) - short_lamination(e)) // 2
+		y2 = (short_lamination(d) + short_lamination(e) - short_lamination(c)) // 2
+		z2 = (short_lamination(e) + short_lamination(c) - short_lamination(d)) // 2
 		
-		intersection_number = short_lamination[a] - 2 * min(x, y2, z)
-		assert(intersection_number == short_lamination[c] - 2 * min(x2, y, z2))
+		intersection_number = short_lamination(a) - 2 * min(x, y2, z)
+		
+		# Check that the other formula gives the same answer.
+		assert(intersection_number == short_lamination(c) - 2 * min(x2, y, z2))
 		
 		return intersection_number
 	

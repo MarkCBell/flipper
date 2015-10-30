@@ -44,3 +44,7 @@ AssumptionError = flipper.kernel.AssumptionError
 ComputationError = flipper.kernel.ComputationError
 FatalError = flipper.kernel.FatalError
 
+# Finally load in the constants. These might require flipper to do the calculations
+# so we can't create them before this point.
+import flipper.kernel.constants
+

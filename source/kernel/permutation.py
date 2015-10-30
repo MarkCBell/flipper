@@ -13,7 +13,7 @@ class Permutation(object):
 	''' This represents a permutation in Sym(n). '''
 	def __init__(self, permutation):
 		assert(isinstance(permutation, (list, tuple)))
-		# assert(all(isinstance(entry, flipper.IntegerType) for entry in permutation))
+		assert(all(isinstance(entry, flipper.IntegerType) for entry in permutation))
 		assert(set(permutation) == set(range(len(permutation))))
 		
 		self.permutation = tuple(permutation)

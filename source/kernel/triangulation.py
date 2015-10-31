@@ -432,7 +432,7 @@ class Triangulation(object):
 		# Pad the type_sequence with 0's so that its length is a multiple of 3.
 		type_sequence = type_sequence + [0] * (-len(type_sequence) % 3)
 		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
-		char_perm = ''.join(char[p] for p in permutation_sequence)
+		char_perm = ''.join(char[perm] for perm in permutation_sequence)
 		
 		# Get the number of triangles that we encoutered.
 		num_tri = type_sequence.count(1) + 1

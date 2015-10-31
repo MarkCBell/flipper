@@ -359,7 +359,14 @@ class Triangulation(object):
 		
 		If skip is not None then it must be an iterable containing the labels
 		of edges to treat as boundary. If preserve_orientation is True then
-		this identifying homeomorphism must be orientation preserving. '''
+		this identifying homeomorphism must be orientation preserving.
+		
+		
+		If start_points is not None then it must be an iterable containing pairs:
+		(edge_lable, oriented) which specifies a corner to start with and whether
+		to orient this corner to match the orientation of the triangle. This can
+		be used to generate signatures relative to a fixed boundary by specify
+		an edge on that boundary (and True) as the only starting point. '''
 		
 		best = ([INFTY], [INFTY], [INFTY])
 		skip = set() if skip is None else set(skip)

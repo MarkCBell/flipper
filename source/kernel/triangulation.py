@@ -329,6 +329,84 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
+	def iso_sig_startpoint(self, start_edge, match_orientation, skip=None, best=None):
+		''' Return the isomorphism signature of this triangulation starting from start_edge.
+		
+		The starting triangle is chosen to be adjacent to start_edge and rotates such
+		that the first side is start_edge. The orientation of the starting triangle
+		matches the orientation of the triangulation if and only if match_orientation
+		is true.
+		
+		This can be used to generate triangulations in which a path in the 1--skeleton is
+		fixed pointwise. '''
+		
+		assert(isinstance(start_edge, flipper.IntegerType))
+		assert(isinstance(match_orientation, bool))
+		
+		skip = set() if skip is None else set(skip)
+		if best is None: best = ([INFTY], [INFTY], [INFTY])
+		
+		perm_3 = flipper.kernel.permutation.PERM3
+		perm_inverse = flipper.kernel.permutation.PERM3_INVERSE
+		perm_lookup = flipper.kernel.permutation.PERM3_LOOKUP
+		transition_perm_lookup = flipper.kernel.permutation.TRANSITION_PERM3_LOOKUP
+		
+		start_corner = self.corner_lookup[start_edge]
+		start_triangle = start_corner.triangle
+		start_perm = flipper.kernel.permutation.cyclic_permutation(start_corner.side, 3)
+		if not match_orientation:
+			start_perm = start_perm * flipper.kernel.Permutation([0, 2, 1])
+		
+		good = True
+		type_sequence = []
+		target_sequence = []
+		permutation_sequence = []
+		
+		queue = Queue()
+		queue.put(start_triangle)
+		triangle_labels = {start_triangle: (0, start_perm)}
+		num_triangles_seen = 1
+		
+		while not queue.empty() and good:
+			triangle = queue.get()
+			_, perm = triangle_labels[triangle]
+			perm_inv = perm_inverse[perm]
+			
+			for j in range(3):
+				side = perm_inv(j)
+				target_corner = self.corner_of_edge(~triangle.labels[side])
+				target_triangle = target_corner.triangle
+				target_side = target_corner.side
+				if ~triangle.labels[side] in skip:
+					# This edge was really a boundary edge.
+					type_sequence.append(0)
+				elif target_triangle not in triangle_labels:
+					target_perm = perm * transition_perm_lookup[(target_side, side)]
+					triangle_labels[target_triangle] = (num_triangles_seen, target_perm)
+					queue.put(target_triangle)
+					num_triangles_seen += 1
+					
+					type_sequence.append(1)
+					# We don't need to record the follow as they are implied.
+					# target_sequence.append(len(queue))
+					# permutation_sequence.append(perm_lookup[id_perm])
+				else:
+					triangle_index, triangle_perm = triangle_labels[triangle]
+					target_index, target_perm = triangle_labels[target_triangle]
+					k = target_perm(target_side)
+					if target_index > triangle_index or (target_index == triangle_index and k > j):
+						# We've not done this gluing yet.
+						transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
+						
+						type_sequence.append(2)
+						target_sequence.append(target_index)
+						permutation_sequence.append(perm_lookup[transition_perm])
+				# We can give up early if we've built something bigger than best.
+				if type_sequence > best[0]:
+					return best
+		
+		return min((type_sequence, target_sequence, permutation_sequence), best)
+	
 	def iso_sig(self, preserve_orientation=False, skip=None):
 		''' Return the isomorphism signature of this triangulation as described by Ben Burton.
 		
@@ -339,83 +417,15 @@ class Triangulation(object):
 		of edges to treat as boundary. If preserve_orientation is True then
 		this identifying homeomorphism must be orientation preserving. '''
 		
-		perm_lookup = dict((perm, index) for index, perm in enumerate(flipper.kernel.permutation.all_permutations(3)))
-		transition_perm_lookup = {
-			(0, 0): flipper.kernel.Permutation([0, 2, 1]),
-			(0, 1): flipper.kernel.Permutation([1, 0, 2]),
-			(0, 2): flipper.kernel.Permutation([2, 1, 0]),
-			(1, 0): flipper.kernel.Permutation([1, 0, 2]),
-			(1, 1): flipper.kernel.Permutation([2, 1, 0]),
-			(1, 2): flipper.kernel.Permutation([0, 2, 1]),
-			(2, 0): flipper.kernel.Permutation([2, 1, 0]),
-			(2, 1): flipper.kernel.Permutation([0, 2, 1]),
-			(2, 2): flipper.kernel.Permutation([1, 0, 2])
-			}
-		
-		perm_3 = flipper.kernel.permutation.all_permutations(3)
-		perm_inverse = {perm: perm.inverse() for perm in perm_3}
-		# If we want to remember the orientation then we need to limit our staring points to the
-		# be labelled with an even permutation.
-		start_perms = perm_3 if not preserve_orientation else [perm for perm in perm_3 if perm.is_even()]
-		
 		best = ([INFTY], [INFTY], [INFTY])
-		
 		skip = set() if skip is None else set(skip)
 		
 		# We can start anywhere away from the skipped edges.
-		for start_triangle in self:
-			if all(label not in skip for label in start_triangle.labels):
-				for start_perm in start_perms:
-					good = True
-					type_sequence = []
-					target_sequence = []
-					permutation_sequence = []
-					
-					queue = Queue()
-					queue.put(start_triangle)
-					triangle_labels = {start_triangle: (0, start_perm)}
-					num_triangles_seen = 1
-					
-					while not queue.empty() and good:
-						triangle = queue.get()
-						_, perm = triangle_labels[triangle]
-						perm_inv = perm_inverse[perm]
-						
-						for j in range(3):
-							side = perm_inv(j)
-							target_corner = self.corner_of_edge(~triangle.labels[side])
-							target_triangle = target_corner.triangle
-							target_side = target_corner.side
-							if ~triangle.labels[side] in skip:
-								# This edge was really a boundary edge.
-								type_sequence.append(0)
-							elif target_triangle not in triangle_labels:
-								target_perm = perm * transition_perm_lookup[(target_side, side)]
-								triangle_labels[target_triangle] = (num_triangles_seen, target_perm)
-								queue.put(target_triangle)
-								num_triangles_seen += 1
-								
-								type_sequence.append(1)
-								# We don't need to record the follow as they are implied.
-								# target_sequence.append(len(queue))
-								# permutation_sequence.append(perm_lookup[id_perm])
-							else:
-								triangle_index, triangle_perm = triangle_labels[triangle]
-								target_index, target_perm = triangle_labels[target_triangle]
-								k = target_perm(target_side)
-								if target_index > triangle_index or (target_index == triangle_index and k > j):
-									# We've not done this gluing yet.
-									transition_perm = target_perm * transition_perm_lookup[(side, target_side)] * perm_inv
-									
-									type_sequence.append(2)
-									target_sequence.append(target_index)
-									permutation_sequence.append(perm_lookup[transition_perm])
-							if type_sequence > best[0]:
-								good = False
-								break
-					
-					if good:
-						best = min((type_sequence, target_sequence, permutation_sequence), best)
+		for start_edge in self.labels:
+			if start_edge not in skip:
+				best = self.iso_sig_startpoint(start_edge, match_orientation=True, skip=skip, best=best)
+				if not preserve_orientation:
+					best = self.iso_sig_startpoint(start_edge, match_orientation=False, skip=skip, best=best)
 		
 		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 		

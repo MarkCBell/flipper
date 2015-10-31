@@ -357,7 +357,6 @@ class Triangulation(object):
 		if not match_orientation:
 			start_perm = start_perm * flipper.kernel.Permutation([0, 2, 1])
 		
-		good = True
 		type_sequence = []
 		target_sequence = []
 		permutation_sequence = []
@@ -367,7 +366,7 @@ class Triangulation(object):
 		triangle_labels = {start_triangle: (0, start_perm)}
 		num_triangles_seen = 1
 		
-		while not queue.empty() and good:
+		while not queue.empty():
 			triangle = queue.get()
 			_, perm = triangle_labels[triangle]
 			perm_inv = perm_inverse[perm]
@@ -435,8 +434,9 @@ class Triangulation(object):
 		char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
 		char_perm = ''.join(char[p] for p in permutation_sequence)
 		
-		# Only count the number of unskipped triangles.
-		num_tri = len([triangle for triangle in self if all(label not in skip for label in triangle.labels)])
+		# Get the number of triangles that we encoutered.
+		num_tri = type_sequence.count(1) + 1
+		
 		if num_tri < 63:
 			char_start = char[num_tri]
 			char_target = ''.join(char[target] for target in target_sequence)

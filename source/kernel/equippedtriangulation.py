@@ -281,6 +281,17 @@ class EquippedTriangulation(object):
 		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)
 		
+		# Remove any whitespace.
+		word = word.replace(' ', '')
+		
+		# Check for balanced parentheses.
+		counter = 0
+		for letter in word:
+			if letter == '(': counter += 1
+			if letter == ')': counter -= 1
+			if counter < 0: raise TypeError('Unbalanced parentheses.')
+		if counter != 0: raise TypeError('Unbalanced parentheses.')
+		
 		# Expand out parenthesis powers.
 		# This can fail with a KeyError.
 		old_word = None
@@ -294,6 +305,9 @@ class EquippedTriangulation(object):
 				else:
 					replacement = '.'.join(letter.swapcase() for letter in decompose[::-1]) * abs(int_power)
 				word = word.replace(subword + '^' + power, replacement)
+		
+		# Remove any remaining parenthesis, these do not have a power and are treated as ^1
+		word = word.replace('(', '').replace(')', '')
 		
 		# Expand out powers without parenthesis. Here we use a greedy algorithm and take the
 		# longest mapping class occuring before the power. Note that we only do one pass and so

@@ -64,8 +64,8 @@ the BibTeX entry::
 
 or the BibItem::
 
-	\bibitem{flipper} Mark bell: \emph{flipper (Computer Software)},
-		\url{https://bitbucket.org/Mark_Bell/flipper/}}, (2013--2015),
+	\bibitem{flipper} Mark Bell: \emph{flipper (Computer Software)},
+		\url{https://bitbucket.org/Mark_Bell/flipper/}, (2013--2015),
 		Version <<version number>>
 
 Development

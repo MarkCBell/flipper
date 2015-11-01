@@ -264,7 +264,7 @@ class EquippedTriangulation(object):
 						subword = subword[len(letter):]
 						break
 				else:
-					raise KeyError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
+					raise TypeError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
 		
 		return decomposition
 	
@@ -274,7 +274,7 @@ class EquippedTriangulation(object):
 		The given word is decomposed using self.decompose_word and the composition
 		of the mapping classes involved is returned.
 		
-		Raises a KeyError if the word does not correspond to a mapping class. '''
+		Raises a TypeError if the word does not correspond to a mapping class. '''
 		
 		assert(isinstance(word, flipper.StringType) or isinstance(word, flipper.IntegerType))
 		
@@ -293,7 +293,7 @@ class EquippedTriangulation(object):
 		if counter != 0: raise TypeError('Unbalanced parentheses.')
 		
 		# Expand out parenthesis powers.
-		# This can fail with a KeyError.
+		# This can fail with a TypeError.
 		old_word = None
 		while word != old_word:  # While a change was made.
 			old_word = word
@@ -318,7 +318,7 @@ class EquippedTriangulation(object):
 				int_power = int(power)
 				word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
 		
-		# This can fail with a KeyError.
+		# This can fail with a TypeError.
 		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
 		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding(), left=False)
 

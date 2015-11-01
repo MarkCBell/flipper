@@ -66,7 +66,7 @@ or the BibItem::
 
 	\bibitem{flipper} Mark Bell: \emph{flipper (Computer Software)},
 		\url{https://bitbucket.org/Mark_Bell/flipper/}, (2013--2015),
-		Version <<version number>>
+		Version <<version number>>.
 
 Development
 ===========

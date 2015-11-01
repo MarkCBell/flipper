@@ -306,7 +306,7 @@ class EquippedTriangulation(object):
 		
 		# This can fail with a KeyError.
 		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
-		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding())
+		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding(), left=False)
 
 
 def create_equipped_triangulation(objects):

@@ -316,7 +316,7 @@ class FlipperApplication(object):
 		# A composition is valid if it is a list of mapping class names and inverse names separated by periods.
 		try:
 			self.equipped_triangulation.mapping_class(strn)
-		except KeyError:
+		except TypeError:
 			tkMessageBox.showerror('Invalid composition', 'A valid composition must consist of mapping class names and inverse names, with periods to separate ambiguities.')
 			return False
 		

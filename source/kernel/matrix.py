@@ -44,12 +44,17 @@ class Matrix(object):
 		self.height = len(self.rows)
 		self.width = len(self.rows[0]) if self.height > 0 else 0
 		assert(all(len(row) == self.width for row in self))
+	def copy(self):
+		''' Return a copy of this Matrix. '''
+		return Matrix([list(row) for row in self])
 	def __getitem__(self, index):
 		return self.rows[index]
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
 		return '[\n' + ',\n'.join('[' + ', '.join(str(entry) for entry in row) + ']' for row in self) + '\n]'
+		# Suggestion: Make Matrices easier to read by omitting zeros.
+		#return '[\n' + ',\n'.join('[' + ', '.join(str(entry) if entry != 0 else ' ' for entry in row) + ']' for row in self) + '\n]'
 	def __hash__(self):
 		return hash(tuple([self.width, self.height] + [tuple(row) for row in self]))
 	def __len__(self):

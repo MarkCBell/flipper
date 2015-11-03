@@ -87,11 +87,21 @@ class Isometry(object):
 		# inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
 		return Isometry(self.target_triangulation, self.source_triangulation, self.inverse_label_map)
 	
-	def applied_geometric(self, lamination):
+	def applied_geometric(self, lamination, action=None):
 		''' Return the action and condition matrices describing the isometry
-		applied to the geometric coordinates of the given lamination. '''
+		applied to the geometric coordinates of the given lamination.
 		
-		return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. This can take advantage of sparseness and so be significantly
+		faster than the standard multiplication. '''
+		
+		assert(isinstance(lamination, flipper.kernel.Lamination))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+		
+		if action is None:
+			return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
+		else:
+			return flipper.kernel.Matrix([action[self.index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
 	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''
@@ -151,20 +161,34 @@ class EdgeFlip(object):
 		
 		return EdgeFlip(self.target_triangulation, self.source_triangulation, ~self.edge_label)
 	
-	def applied_geometric(self, lamination):
+	def applied_geometric(self, lamination, action=None):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination. '''
+		applied to the geometric coordinates of the given lamination.
+		
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. This can take advantage of sparseness and so be significantly
+		faster than the standard multiplication. '''
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
 		
-		I = flipper.kernel.id_matrix(self.zeta)
-		Z = flipper.kernel.zero_matrix(self.zeta, 1)
 		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
-		geometric = list(lamination.geometric)
-		if geometric[a] + geometric[c] >= geometric[b] + geometric[d]:
-			return I.tweak([(e, a), (e, c)], [(e, e), (e, e)]), Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
+		if action is None:
+			I = flipper.kernel.id_matrix(self.zeta)
+			Z = flipper.kernel.zero_matrix(self.zeta, 1)
+			if lamination(a) + lamination(c) >= lamination(b) + lamination(d):
+				return I.tweak([(e, a), (e, c)], [(e, e), (e, e)]), Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
+			else:
+				return I.tweak([(e, b), (e, d)], [(e, e), (e, e)]), Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
 		else:
-			return I.tweak([(e, b), (e, d)], [(e, e), (e, e)]), Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
+			rows = [list(row) for row in action]
+			if lamination(a) + lamination(c) >= lamination(b) + lamination(d):
+				rows[e] = [rows[a][i] + rows[c][i] - rows[e][i] for i in range(self.zeta)]
+				Cs = flipper.kernel.Matrix([[action[a][i] + action[c][i] - action[b][i] - action[d][i] for i in range(self.zeta)]])
+			else:
+				rows[e] = [rows[b][i] + rows[d][i] - rows[e][i] for i in range(self.zeta)]
+				Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
+			return flipper.kernel.Matrix(rows), Cs
 	
 	def encode(self):
 		''' Return the Encoding induced by this EdgeFlip. '''
@@ -217,13 +241,21 @@ class LinearTransformation(object):
 		
 		return NotImplemented
 	
-	def applied_geometric(self, lamination):
+	def applied_geometric(self, lamination, action=None):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination. '''
+		applied to the geometric coordinates of the given lamination.
+		
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. As a LinearTransformation may not be sparse this generally
+		does not result in a speedup, but these are rare. '''
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
 		
-		return self.geometric, flipper.kernel.zero_matrix(0)
+		if action is None:
+			return self.geometric, flipper.kernel.zero_matrix(0)
+		else:
+			return self.geometric * action, flipper.kernel.zero_matrix(0)
 	
 	def encode(self):
 		''' Return the Encoding induced by this linear map. '''

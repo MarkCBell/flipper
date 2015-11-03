@@ -265,9 +265,9 @@ class Encoding(object):
 		As = flipper.kernel.id_matrix(self.zeta)
 		Cs = flipper.kernel.zero_matrix(self.zeta, 1)
 		for item in reversed(self.sequence):
-			A, C = item.applied_geometric(lamination)
-			Cs = Cs.join(C * As)
-			As = A * As
+			# This now uses the improved sparse matrix representation.
+			As, C = item.applied_geometric(lamination, action=As)
+			Cs = Cs.join(C)
 			lamination = item(lamination)
 		
 		return As, Cs

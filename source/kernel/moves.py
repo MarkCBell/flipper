@@ -1,7 +1,10 @@
 
 ''' A module for representing basic ways of changing triangulations.
 
-Provides three classes: Isometry, EdgeFlip and LinearTransformation. '''
+Provides three classes: Isometry, EdgeFlip and LinearTransformation.
+
+Perhaps in the future we will add a Spiral move so that curves can be
+shortened in polynomial time. '''
 
 import flipper
 

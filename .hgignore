@@ -11,6 +11,7 @@ experiments/*
 *.orig
 lint.html
 .coverage
+.DS_Store
 htmlcov/*
 test.py
 

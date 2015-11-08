@@ -329,28 +329,6 @@ class Triangulation(object):
 		
 		return self.corner_of_edge(corner.labels[1])
 	
-	def iso_sig_sequences(self, start_edge, match_orientation, skip=None, best=None):
-		''' Return the isomorphism signature of this triangulation starting from start_edge.
-		
-		The starting triangle is chosen to be adjacent to start_edge and rotates such
-		that the first side is start_edge. The orientation of the starting triangle
-		matches the orientation of the triangulation if and only if match_orientation
-		is true.
-		
-		This can be used to generate triangulations in which a path in the 1--skeleton is
-		fixed pointwise. '''
-		
-		assert(isinstance(start_edge, flipper.IntegerType))
-		assert(isinstance(match_orientation, bool))
-		
-		skip = set() if skip is None else set(skip)
-		if best is None: best = ([INFTY], [INFTY], [INFTY])
-		
-		
-		
-		
-		return min((type_sequence, target_sequence, permutation_sequence), best)
-	
 	def iso_sig(self, preserve_orientation=False, skip=None, start_points=None):
 		''' Return the isomorphism signature of this triangulation as described by Ben Burton.
 		

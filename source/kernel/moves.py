@@ -104,7 +104,7 @@ class Isometry(object):
 		if action is None:
 			return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
 		else:
-			return flipper.kernel.Matrix([action[self.index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
+			return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
 	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''

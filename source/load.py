@@ -7,7 +7,7 @@ import re
 
 import flipper
 
-REGEX_IS_BRAID = re.compile(r'B_(?P<num_strands>\d+)$')
+REGEX_IS_SPHERE_BRAID = re.compile(r'SB_(?P<num_strands>\d+)$')
 
 def example_0_4():
 	T = flipper.create_triangulation([[0, 3, ~0], [1, 4, ~3], [~1, ~4, 5], [~2, ~5, 2]])
@@ -214,47 +214,50 @@ def example_36():
 		})
 
 def example_braid_sphere(n):
-	# A triangulation of S_{0,n+1}.
+	# A triangulation of S_{0,n}.
 	assert(isinstance(n, flipper.IntegerType))
 	assert(n >= 3)
 	
-	# We'll build the following triangulation of S_{0,n+1}:
+	# We'll build the following triangulation of S_{0,n}:
 	#
 	# |      |      |      |       |
-	# |0     |1     |2     |3      |n-2
+	# |0     |1     |2     |3      |n-3
 	# |      |      |      |       |
-	# | 2n-2 | 2n-1 |  2n  |       | 3n-4
+	# | 2n-4 | 2n-3 | 2n-2 |       | 3n-7
 	# X------X------X------X- ... -X------X
 	#        |      |      |       |      |
 	#        |      |      |       |      |
-	#        |n-1   |n     |n+1    |2n-4  |2n-3
+	#        |n-2   |n-1   |n      |2n-6  |2n-5
 	#        |      |      |       |      |
 	#
-	# Note that there is an additional puncture not seen here on the "boundary" of the disk.
+	# Note that there puncture 1 is not shown here and is on the "boundary" of the disk.
 	# There are two families of triangles on the top and the bottom and two exceptional cases:
-	#  1) Top triangles are given by [i, i+2n-2, ~(i+1)] for i in range(0, n-2)],
-	#  2) Bottom triangles are given by [i, ~(i+1), ~(i+n)] for i in range(n-1, 2n - 3),
-	#  3) Left triangle given by [~0, ~(n-1), ~(2n-2)], and
-	#  4) Right triangle given by [n - 2, 3n - 4, 2n - 3].
+	#  1) Top triangles are given by [i, i+2n-4, ~(i+1)] for i in range(0, n-3)],
+	#  2) Bottom triangles are given by [i, ~(i+1), ~(i+n-1)] for i in range(n-2, 2n-5),
+	#  3) Left triangle given by [~0, ~(n-2), ~(2n-4)], and
+	#  4) Right triangle given by [n-3, 3n-7, 2n-5].
 	T = flipper.create_triangulation(
-		[[i, i + 2 * n - 2, ~(i + 1)] for i in range(0, n - 2)] + \
-		[[i, ~(i + 1), ~(i + n)] for i in range(n-1, 2*n - 3)] + \
-		[[~0, ~(n - 1), ~(2 * n - 2)], [n - 2, 3 * n - 4, 2 * n - 3]]
+		[[i, i + 2 * n - 4, ~(i + 1)] for i in range(0, n - 3)] + \
+		[[i, ~(i + 1), ~(i + n - 1)] for i in range(n-2, 2*n - 5)] + \
+		[[~0, ~(n - 2), ~(2 * n - 4)], [n - 3, 3 * n - 7, 2 * n - 5]]
 		)
 	
 	# We'll then create a curve isolating the ith and (i+1)st punctures from the others.
-	# There are three special cases and a generic case:
-	#  0) A curve isolating punctures 0 & 1, meeting edges 1, 2, ..., n-2, n-1, n, ..., 2n-3, 2n-2,
-	#  1) A curve isolating punctures 1 & 2, meeting edges 0, 1, n-1 and 2n-1,
-	#  2) A curve isolating punctures i & i+1, meeting edges i, i+1, i+n-2, i+n-1, i+2n-3 and i+2n-1, and
-	#  3) A curve isolating punctures n-1 & n, meeting edges n-2, 2n-4, 2n-3 and 3n-5.
-	laminations = \
-		[T.lamination([1 if 1 <= j <= 2 * n - 2 else 0 for j in range(T.zeta)])] + \
-		[T.lamination([1 if j in [0, 1, n-1, 2*n - 1] else 0 for j in range(T.zeta)])] + \
-		[T.lamination([1 if j in [i, i+1, i+n-2, i+n-1, i+2*n-3, i+2*n-1] else 0 for j in range(T.zeta)]) for i in range(1, n-2)] + \
-		[T.lamination([1 if j in [n-2, 2*n - 4, 2*n - 3, 3*n - 5] else 0 for j in range(T.zeta)])]
+	# There are four special cases and a generic case:
+	#  0) A curve isolating punctures 1 & 2, meeting edges 1, 2, ..., n-3, n-2, n-1, ..., 2n-5, 2n-4,
+	#  1) A curve isolating punctures 2 & 3, meeting edges 0, 1, n-2 and 2n-3,
+	#  2) A curve isolating punctures i & i+1, meeting edges i, i+1, i+n-3, i+n-2, i+2n-5 and i+2n-3,
+	#  3) A curve isolating punctures n-1 & n, meeting edges n-3, 2n-6, 2n-5 and 3n-7, and
+	#  4) A curve isolating punctures n & 1, meeting edges 0, 1, ..., n-3, n-2, n-1, ..., 2n-6, 3n-7.
 	
-	# We take the half-twist about each of these curves as the generator \sigma_i of B_n.
+	laminations = \
+		[T.lamination([1 if 1 <= j <= 2 * n - 4 else 0 for j in range(T.zeta)])] + \
+		[T.lamination([1 if j in [0, 1, n-2, 2*n - 3] else 0 for j in range(T.zeta)])] + \
+		[T.lamination([1 if j in [i, i+1, i+n-3, i+n-2, i+2*n-5, i+2*n-3] else 0 for j in range(T.zeta)]) for i in range(1, n-3)] + \
+		[T.lamination([1 if j in [n-3, 2*n - 6, 2*n - 5, 3*n - 8] else 0 for j in range(T.zeta)])] + \
+		[T.lamination([1 if 0 <= j <= 2 * n - 6 or j == 3*n - 7 else 0 for j in range(T.zeta)])]
+	
+	# We take the half-twist about each of these curves as the generator \sigma_i of SB_n.
 	mapping_classes = dict(('s_%d' % index, lamination.encode_halftwist()) for index, lamination in enumerate(laminations))
 	
 	return flipper.kernel.EquippedTriangulation(T, laminations, mapping_classes)
@@ -266,7 +269,7 @@ def load(surface):
 		'S_0_4', 'S_1_1', 'S_1_1m', 'S_1_2',
 		'S_2_1', 'S_2_1b', 'S_3_1', 'S_3_1b',
 		'E_12', 'E_24', 'E_36', and
-		'B_n' where n is an integer >= 3. '''
+		'SB_n' where n is an integer >= 3. '''
 	assert(isinstance(surface, flipper.StringType))
 	
 	surfaces = {
@@ -287,8 +290,8 @@ def load(surface):
 	
 	if surface in surfaces:
 		return surfaces[surface]()
-	elif REGEX_IS_BRAID.match(surface):
-		return example_braid_sphere(int(REGEX_IS_BRAID.match(surface).groupdict()['num_strands']))
+	elif REGEX_IS_SPHERE_BRAID.match(surface):
+		return example_braid_sphere(int(REGEX_IS_SPHERE_BRAID.match(surface).groupdict()['num_strands']))
 	
 	raise KeyError('Unknown surface: %s' % surface)
 

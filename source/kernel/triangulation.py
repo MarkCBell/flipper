@@ -1111,6 +1111,7 @@ def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
 	assert(all(len(labels) == 3 for labels in edge_labels))
 	assert(vertex_labels is None or isinstance(vertex_labels, dict))
 	assert(vertex_states is None or isinstance(vertex_states, (list, tuple, dict)))
+	assert(len(edge_labels) > 0)
 	
 	zeta = len(edge_labels) * 3 // 2
 	

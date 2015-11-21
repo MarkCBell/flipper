@@ -450,7 +450,7 @@ class Encoding(object):
 		
 		dilatation, lamination = self.pml_fixedpoint()  # This could fail with a flipper.ComputationError.
 		try:
-			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation)
+			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation, maxlen=2*self.flip_length() + 2)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		

@@ -605,31 +605,15 @@ class Lamination(object):
 		
 		lamination = self
 		encodings = []
-		laminations = deque([(lamination, 0)], maxlen)
-		# Start by collapsing any edges of weight zero.
-		# !?! This is still wrong as collapse_trivial_weights has too many assumptions.
-		if False:
-			while True:
-				for flip_index in lamination.triangulation.indices:
-					if lamination(flip_index) == 0:
-						try:
-							# If this fails it's because the lamination isn't filling.
-							lamination, E = lamination.collapse_trivial_weight(flip_index)
-							encodings.append(E)
-							laminations.append((lamination, len(encodings)))
-							break
-						except flipper.AssumptionError:
-							raise flipper.AssumptionError('Lamination is not filling.')
-				else:
-					break
-		
 		E = lamination.puncture_tripods()
-		lamination = E(self)
+		lamination = E(lamination)
 		encodings.append(E)
-		laminations.append((lamination, len(encodings)))
 		
 		# Puncture all the triangles where the lamination is a tripod.
 		seen = {}
+		LAMINATIONS = [{}, {}]
+		SIDE = 0
+		
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
 		# This ensures that at least one maximal split will be done.
@@ -651,7 +635,6 @@ class Lamination(object):
 				lamination = E(lamination)
 				# Record information about the flip.
 				encodings.append(flip_index)
-				laminations.append((lamination, len(encodings)))
 				
 				# Check if we have created any edges of weight 0. Of course it is enough to just check flip_index.
 				if lamination(flip_index) == 0:
@@ -659,7 +642,6 @@ class Lamination(object):
 						# If this fails it's because the lamination isn't filling.
 						lamination, E = lamination.collapse_trivial_weight(flip_index)
 						encodings.append(E)
-						laminations.append((lamination, len(encodings)))
 						# Need to rebuild the heap as indices no longer correspond.
 						weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]
 						heapq.heapify(weights_heap)
@@ -672,39 +654,49 @@ class Lamination(object):
 				# Get the next largest edge.
 				flip_weight, flip_index = flip_first(heapq.heappop(weights_heap))
 			
+			if len(LAMINATIONS[SIDE]) == maxlen:
+				# Flip to the other side and reset it with just this lamination.
+				SIDE = 1 - SIDE
+				LAMINATIONS[SIDE] = {len(encodings): lamination}
+			else:
+				LAMINATIONS[SIDE][len(encodings)] = lamination
+			
 			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
-				print(len(seen), '!!!')
-				_, first_index = laminations[0]
 				for index in seen[target]:
-					if index >= first_index:
-						old_lamination, _ = laminations[index - first_index]
-						# old_lamination = laminations[index]
-						# In the next block we have a lot of tests to do. We'll do these in
-						# order of difficulty of computation. For example, computing
-						# projective_isometries is slow; so we'll leave that to last to give
-						# us the best chance that a faster test failing will allow us to
-						# skip it.
-						if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
-							isometries = lamination.all_projective_isometries(old_lamination)
-							if len(isometries) > 0:
-								assert(old_lamination.weight() == dilatation * lamination.weight())
-								return [flipper.kernel.SplittingSequence(self.triangulation.encode([isom.encode()] + list(reversed(encodings))), index, dilatation, old_lamination) for isom in isometries]
-										# encodings + [isom.encode()], index, dilatation, laminations[index]) for isom in isometries]
-						else:
-							# dilatation is not None and:
-							#   old_lamination.weight() < dilatation * lamination.weight():
-							# Note that the weight of laminations is strictly deacresing and the
-							# indices of seen[target] are increasing. Thus if we are in this case
-							# then the same inequality holds for every later index in seen[target].
-							# Hence we may break out.
-							break
-				seen[target].append(len(laminations)-1)
+					try:
+						old_lamination = LAMINATIONS[0][index]
+					except IndexError:
+						try:
+							old_lamination = LAMINATIONS[1][index]
+						except IndexError:
+							continue
+					
+					# In the next block we have a lot of tests to do. We'll do these in
+					# order of difficulty of computation. For example, computing
+					# projective_isometries is slow; so we'll leave that to last to give
+					# us the best chance that a faster test failing will allow us to
+					# skip it.
+					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
+						isometries = lamination.all_projective_isometries(old_lamination)
+						if len(isometries) > 0:
+							assert(old_lamination.weight() == dilatation * lamination.weight())
+							return [flipper.kernel.SplittingSequence(self.triangulation.encode([isom.encode()] + list(reversed(encodings))), index, dilatation, old_lamination) for isom in isometries]
+					else:
+						# dilatation is not None and:
+						#   old_lamination.weight() < dilatation * lamination.weight():
+						# Note that the weight of laminations is strictly decreasing and the
+						# indices of seen[target] are increasing. Thus if we are in this case
+						# then the same inequality holds for every later index in seen[target].
+						# Hence we may break out.
+						break
+				seen[target].append(len(encodings))
 			else:
 				# Start a new class containing this lamination.
-				seen[target] = [len(laminations)-1]
-				print(len(seen), len(cPickle.dumps(laminations)))
+				seen[target] = [len(encodings)]
+			
+			print(len(seen), len(cPickle.dumps(LAMINATIONS)))
 	
 	def splitting_sequences(self, dilatation=None, maxlen=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''

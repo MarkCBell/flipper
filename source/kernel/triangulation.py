@@ -980,6 +980,16 @@ class Triangulation(object):
 					h = self.id_encoding()
 				else:
 					h = h.target_triangulation.id_encoding() * h
+			elif isinstance(item, flipper.kernel.Encoding):
+				if h is None:
+					h = item
+				else:
+					h = item * h
+			elif isinstance(item, flipper.kernel.Move):
+				if h is None:
+					h = item.encode()
+				else:
+					h = item.encode() * h
 			else:
 				if h is None:
 					h = item.encode()

@@ -668,7 +668,7 @@ class FlipperApplication(object):
 			# Apparantly there are some problems with comboboxes, see:
 			#  http://stackoverflow.com/questions/15448914/python-tkinter-ttk-combobox-throws-exception-on-quit
 			self.parent.eval('::ttk::CancelRepeat')
-			self.parent.quit()
+			self.parent.destroy()
 	
 	def show_help(self):
 		flipper.doc.open_documentation()
@@ -1545,7 +1545,6 @@ def start(load_from=None):
 	img = TK.PhotoImage(file=icon_path)
 	root.tk.call('wm', 'iconphoto', root._w, img)
 	root.mainloop()
-	root.destroy()
 	return flipper_application.output
 
 if __name__ == '__main__':

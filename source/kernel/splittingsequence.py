@@ -7,19 +7,14 @@ import flipper
 
 class SplittingSequence(object):
 	''' This represents a sequence of flips of an Triangulation. '''
-	def __init__(self, encodings, index, dilatation, lamination):
-		assert(isinstance(encodings, (list, tuple)))
-		assert(all(isinstance(encoding, flipper.kernel.Encoding) for encoding in encodings))
+	def __init__(self, encoding, index, dilatation, lamination):
+		assert(isinstance(encoding, flipper.kernel.Encoding))
 		assert(isinstance(index, flipper.IntegerType))
 		# assert(isinstance(dilatation, flipper.kernel.NumberFieldElement))
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		
-		# By taking the product of these encodings we can pickle them
-		# without having to record all of the triangulations involved. This
-		# saves a massive amount of memory. Additionally, we wont bother to
-		# save encoding as it can always be reconstructed by:
+		# We wont bother to save encoding as it can always be reconstructed by:
 		#  self.mapping_class.inverse() * self.preperiodic
-		encoding = flipper.kernel.product(encodings)
 		
 		self.index = index
 		self.dilatation = dilatation

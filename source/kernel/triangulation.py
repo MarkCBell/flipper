@@ -16,7 +16,7 @@ try:
 except ImportError:
 	from queue import Queue
 from random import choice
-from itertools import product, groupby
+from itertools import groupby
 import string
 from math import log
 
@@ -349,7 +349,6 @@ class Triangulation(object):
 		best = ([INFTY], [INFTY], [INFTY])
 		skip = set() if skip is None else set(skip)
 		
-		perm_3 = flipper.kernel.permutation.PERM3
 		perm_inverse = flipper.kernel.permutation.PERM3_INVERSE
 		perm_lookup = flipper.kernel.permutation.PERM3_LOOKUP
 		transition_perm_lookup = flipper.kernel.permutation.TRANSITION_PERM3_LOOKUP
@@ -407,7 +406,7 @@ class Triangulation(object):
 							# target_sequence.append(len(queue))
 							# permutation_sequence.append(perm_lookup[id_perm])
 						else:
-							triangle_index, triangle_perm = triangle_labels[triangle]
+							triangle_index, _ = triangle_labels[triangle]
 							target_index, target_perm = triangle_labels[target_triangle]
 							k = target_perm(target_side)
 							if target_index > triangle_index or (target_index == triangle_index and k > j):

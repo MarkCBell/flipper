@@ -5,8 +5,6 @@ Provides one class: Lamination. '''
 
 import flipper
 
-import cPickle
-from collections import deque
 import heapq
 try:
 	from Queue import Queue
@@ -669,7 +667,6 @@ class Lamination(object):
 			
 			if maxlen is not None and len(laminations[side]) > maxlen // (NUM_LAM_BLOCKS - 1):
 				# Flip to the other side and reset it with just this lamination.
-				print('SWITCHING!!!!!!!!!!!!!!!')
 				side = (side + 1) % NUM_LAM_BLOCKS
 				laminations[side] = {len(encodings): lamination}
 			else:
@@ -678,10 +675,6 @@ class Lamination(object):
 			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
-				print('MATCH')
-				print(seen[target])
-				print(laminations[0].keys())
-				print(laminations[1].keys())
 				for index in seen[target]:
 					for i in range(NUM_LAM_BLOCKS):
 						if index in laminations[i]:
@@ -697,12 +690,9 @@ class Lamination(object):
 					# projective_isometries is slow; so we'll leave that to last to give
 					# us the best chance that a faster test failing will allow us to
 					# skip it.
-					print(index)
 					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
-						print(index, 1)
 						isometries = lamination.all_projective_isometries(old_lamination)
 						if len(isometries) > 0:
-							print(index, 2)
 							assert(old_lamination.weight() == dilatation * lamination.weight())
 							
 							encoding = flipper.kernel.Encoding([move for item in reversed(encodings) for move in item])
@@ -719,9 +709,6 @@ class Lamination(object):
 			else:
 				# Start a new class containing this lamination.
 				seen[target] = [len(encodings)]
-			
-			print(len(encodings), len(cPickle.dumps(laminations)))
-			print(sorted([x for i in range(NUM_LAM_BLOCKS) for x in laminations[i].keys()]))
 	
 	def splitting_sequences(self, dilatation=None, maxlen=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''

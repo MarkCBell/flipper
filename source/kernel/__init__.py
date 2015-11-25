@@ -60,6 +60,7 @@ PolynomialRoot = polynomial.PolynomialRoot
 Permutation = permutation.Permutation
 Polynomial = polynomial.Polynomial
 SplittingSequence = splittingsequence.SplittingSequence
+SplittingSequences = splittingsequence.SplittingSequences
 Tetrahedron = triangulation3.Tetrahedron
 Triangulation3 = triangulation3.Triangulation3
 

@@ -450,7 +450,7 @@ class Encoding(object):
 		
 		dilatation, lamination = self.pml_fixedpoint()  # This could fail with a flipper.ComputationError.
 		try:
-			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation, maxlen=2*self.flip_length() + 2)
+			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation, maxlen=160)
 		except flipper.AssumptionError:  # Lamination is not filling.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
@@ -477,7 +477,7 @@ class Encoding(object):
 		# Note that we no longer use self.inverse() as periodic now goes in the
 		# same direction as self.
 		
-		homology_splittings = [splitting for splitting in self.splitting_sequences()
+		homology_splittings = [splitting for splitting in self.splitting_sequences().splittings()
 			if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
 		
 		if len(homology_splittings) == 0:

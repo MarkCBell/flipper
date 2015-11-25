@@ -605,14 +605,25 @@ class Lamination(object):
 		
 		lamination = self
 		encodings = []
+		# Puncture all the triangles where the lamination is a tripod.
 		E = lamination.puncture_tripods()
 		lamination = E(lamination)
 		encodings.append(E)
 		
-		# Puncture all the triangles where the lamination is a tripod.
+		# This is a dict taking the hash of each lamination to the index where we saw it.
 		seen = {}
-		LAMINATIONS = [{}, {}]
-		SIDE = 0
+		# We then want a second dictionary  taking indices where laminations occur back to
+		# the lamination. This can use a lot of memory however as Tao's K(S) can grow very
+		# large when the surface has high genus. To get around this we note that we will only
+		# ever lookup laminations that occur in the last maxlen steps, which is at least the
+		# periodic length of this sequence. So we create two dictionaries and then:
+		#  Fill one until it reaches maxlen, then
+		#  Blank the other one and start filling that.
+		# This way the union of these two dictionaries will always contain the last 2*maxlen
+		# indices to laminations map and additionally will contain at most 2*maxlen laminations.
+		NUM_LAM_BLOCKS = 5
+		laminations = [dict() for i in range(NUM_LAM_BLOCKS)]
+		side = 0  # This records which dictionary we are currently filling.
 		
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
@@ -634,7 +645,9 @@ class Lamination(object):
 				E = lamination.triangulation.encode_flip(flip_index)
 				lamination = E(lamination)
 				# Record information about the flip.
-				encodings.append(flip_index)
+				encodings.append(E)
+				encodings[-1].source_triangulation = None
+				encodings[-1].target_triangulation = None
 				
 				# Check if we have created any edges of weight 0. Of course it is enough to just check flip_index.
 				if lamination(flip_index) == 0:
@@ -654,35 +667,46 @@ class Lamination(object):
 				# Get the next largest edge.
 				flip_weight, flip_index = flip_first(heapq.heappop(weights_heap))
 			
-			if len(LAMINATIONS[SIDE]) == maxlen:
+			if maxlen is not None and len(laminations[side]) > maxlen // (NUM_LAM_BLOCKS - 1):
 				# Flip to the other side and reset it with just this lamination.
-				SIDE = 1 - SIDE
-				LAMINATIONS[SIDE] = {len(encodings): lamination}
+				print('SWITCHING!!!!!!!!!!!!!!!')
+				side = (side + 1) % NUM_LAM_BLOCKS
+				laminations[side] = {len(encodings): lamination}
 			else:
-				LAMINATIONS[SIDE][len(encodings)] = lamination
+				laminations[side][len(encodings)] = lamination
 			
 			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
+				print('MATCH')
+				print(seen[target])
+				print(laminations[0].keys())
+				print(laminations[1].keys())
 				for index in seen[target]:
-					try:
-						old_lamination = LAMINATIONS[0][index]
-					except IndexError:
-						try:
-							old_lamination = LAMINATIONS[1][index]
-						except IndexError:
-							continue
+					for i in range(NUM_LAM_BLOCKS):
+						if index in laminations[i]:
+							old_lamination = laminations[i][index]
+							break
+					else:
+						# This index has moved out of the lamination dictionaries and so is
+						# too old to be the start point of the periodic cycle.
+						continue
 					
 					# In the next block we have a lot of tests to do. We'll do these in
 					# order of difficulty of computation. For example, computing
 					# projective_isometries is slow; so we'll leave that to last to give
 					# us the best chance that a faster test failing will allow us to
 					# skip it.
+					print(index)
 					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
+						print(index, 1)
 						isometries = lamination.all_projective_isometries(old_lamination)
 						if len(isometries) > 0:
+							print(index, 2)
 							assert(old_lamination.weight() == dilatation * lamination.weight())
-							return [flipper.kernel.SplittingSequence(self.triangulation.encode([isom.encode()] + list(reversed(encodings))), index, dilatation, old_lamination) for isom in isometries]
+							
+							encoding = flipper.kernel.Encoding([move for item in reversed(encodings) for move in item])
+							return flipper.kernel.SplittingSequences(encoding, isometries, index, dilatation, old_lamination)
 					else:
 						# dilatation is not None and:
 						#   old_lamination.weight() < dilatation * lamination.weight():
@@ -696,7 +720,8 @@ class Lamination(object):
 				# Start a new class containing this lamination.
 				seen[target] = [len(encodings)]
 			
-			print(len(seen), len(cPickle.dumps(LAMINATIONS)))
+			print(len(encodings), len(cPickle.dumps(laminations)))
+			print(sorted([x for i in range(NUM_LAM_BLOCKS) for x in laminations[i].keys()]))
 	
 	def splitting_sequences(self, dilatation=None, maxlen=None):
 		''' A version of self.splitting_sequences_uncached with caching. '''

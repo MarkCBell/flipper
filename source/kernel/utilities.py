@@ -3,7 +3,6 @@
 
 import flipper
 
-import pickle
 import itertools
 from string import ascii_lowercase, digits, ascii_letters, punctuation
 from fractions import gcd as gcd2

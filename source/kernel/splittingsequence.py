@@ -49,8 +49,7 @@ class SplittingSequences(object):
 	
 	def splittings(self):
 		for isometry in self.isometries:
-			# We will reverse the direction of self.mapping_class so that self.lamination
-			# is the stable lamination.
+			# We will reverse the direction of self.mapping_class so that self.lamination is the stable lamination.
 			yield SplittingSequence(self.preperiodic, (isometry.encode() * self.open_periodic).inverse(), self.dilatation, self.lamination)
 		
 		return

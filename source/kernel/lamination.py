@@ -644,8 +644,6 @@ class Lamination(object):
 				lamination = E(lamination)
 				# Record information about the flip.
 				encodings.append(E)
-				encodings[-1].source_triangulation = None
-				encodings[-1].target_triangulation = None
 				
 				# Check if we have created any edges of weight 0. Of course it is enough to just check flip_index.
 				if lamination(flip_index) == 0:

@@ -477,7 +477,7 @@ class Encoding(object):
 		# Note that we no longer use self.inverse() as periodic now goes in the
 		# same direction as self.
 		
-		homology_splittings = [splitting for splitting in self.splitting_sequences().splittings()
+		homology_splittings = [splitting for splitting in self.splitting_sequences()
 			if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
 		
 		if len(homology_splittings) == 0:

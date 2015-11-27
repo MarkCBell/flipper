@@ -179,9 +179,9 @@ class Lamination(object):
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
 		w = self.weight()
-		wi = w.interval_approximation(2*precision)
+		wi = w.interval_approximation(2*precision).change_denominator(2*precision)
 		# Do we need to worry about division by zero?
-		L = [(entry.interval_approximation(2*precision) / wi).change_denominator(precision).lower for entry in self]
+		L = [(entry.interval_approximation(2*precision).change_denominator(2*precision) / wi).change_denominator(precision).lower for entry in self]
 		# Other (slow) ways of projectivising:
 		# L = [entry // w for entry in self]
 		# L = self.projectivise()
@@ -610,15 +610,13 @@ class Lamination(object):
 		
 		# This is a dict taking the hash of each lamination to the index where we saw it.
 		seen = {}
-		# We then want a second dictionary  taking indices where laminations occur back to
+		# We then want a second dictionary taking indices where laminations occur back to
 		# the lamination. This can use a lot of memory however as Tao's K(S) can grow very
 		# large when the surface has high genus. To get around this we note that we will only
 		# ever lookup laminations that occur in the last maxlen steps, which is at least the
-		# periodic length of this sequence. So we create two dictionaries and then:
-		#  Fill one until it reaches maxlen, then
-		#  Blank the other one and start filling that.
-		# This way the union of these two dictionaries will always contain the last 2*maxlen
-		# indices to laminations map and additionally will contain at most 2*maxlen laminations.
+		# periodic length of this sequence. So we create a bunch of dictionaries that we
+		# cycle through. This way their union will always contain the last maxlen indices
+		# and will only contain at most maxlen * NUM_LAM_BLOCKS / (NUM_LAM_BLOCKS - 1) laminations.
 		NUM_LAM_BLOCKS = 5
 		laminations = [dict() for i in range(NUM_LAM_BLOCKS)]
 		side = 0  # This records which dictionary we are currently filling.

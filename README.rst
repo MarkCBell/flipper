@@ -30,7 +30,7 @@ stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.h
 
 .. warning:: As of Sage 6.9, Sage no longer appears to load packages from the user directory.
 	Therefore users may need to either install flipper directly into Sage (which may require
-	superuser privileges) or add the path to flipper to their PYTHONPATH environment variable.
+	superuser privileges) or add the path to flipper to their SAGE_PYTHON environment variable.
 
 Usage
 =====

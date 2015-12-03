@@ -31,6 +31,9 @@ def norm(value):
 
 class Vertex(object):
 	''' This represents a vertex, labelled with an integer. '''
+	
+	__slots__ = ['label', 'filled']
+	
 	def __init__(self, label, filled=False):
 		assert(isinstance(label, flipper.IntegerType))
 		assert(isinstance(filled, bool))
@@ -54,6 +57,9 @@ class Edge(object):
 	
 	It is specified by the vertices that it connects from / to.
 	Its inverse edge is created automatically and is labelled with ~its label. '''
+	
+	__slots__ = ['source_vertex', 'target_vertex', 'label', 'index', 'reversed_edge']
+	
 	def __init__(self, source_vertex, target_vertex, label, reversed_edge=None):
 		assert(isinstance(source_vertex, Vertex))
 		assert(isinstance(target_vertex, Vertex))
@@ -99,6 +105,9 @@ class Triangle(object):
 	
 	It is specified by a list of three edges, ordered anticlockwise.
 	It builds its corners automatically. '''
+	
+	__slots__ = ['edges', 'labels', 'indices', 'vertices', 'corners']
+	
 	def __init__(self, edges):
 		assert(isinstance(edges, (list, tuple)))
 		assert(all(isinstance(edge, Edge) for edge in edges))
@@ -151,6 +160,9 @@ class Corner(object):
 	''' This represents a corner of a triangulation
 	
 	It is a triangle along with a side number (the side opposite this corner). '''
+	
+	__slots__ = ['triangle', 'side', 'edges', 'labels', 'indices', 'vertices', 'label', 'index', 'vertex', 'edge']
+	
 	def __init__(self, triangle, side):
 		assert(isinstance(triangle, Triangle))
 		assert(isinstance(side, flipper.IntegerType))

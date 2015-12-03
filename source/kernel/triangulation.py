@@ -32,6 +32,7 @@ def norm(value):
 class Vertex(object):
 	''' This represents a vertex, labelled with an integer. '''
 	
+	# Warning: This needs to be updated if the interals of this class ever change.
 	__slots__ = ['label', 'filled']
 	
 	def __init__(self, label, filled=False):
@@ -58,6 +59,7 @@ class Edge(object):
 	It is specified by the vertices that it connects from / to.
 	Its inverse edge is created automatically and is labelled with ~its label. '''
 	
+	# Warning: This needs to be updated if the interals of this class ever change.
 	__slots__ = ['source_vertex', 'target_vertex', 'label', 'index', 'reversed_edge']
 	
 	def __init__(self, source_vertex, target_vertex, label, reversed_edge=None):
@@ -106,6 +108,7 @@ class Triangle(object):
 	It is specified by a list of three edges, ordered anticlockwise.
 	It builds its corners automatically. '''
 	
+	# Warning: This needs to be updated if the interals of this class ever change.
 	__slots__ = ['edges', 'labels', 'indices', 'vertices', 'corners']
 	
 	def __init__(self, edges):
@@ -161,6 +164,7 @@ class Corner(object):
 	
 	It is a triangle along with a side number (the side opposite this corner). '''
 	
+	# Warning: This needs to be updated if the interals of this class ever change.
 	__slots__ = ['triangle', 'side', 'edges', 'labels', 'indices', 'vertices', 'label', 'index', 'vertex', 'edge']
 	
 	def __init__(self, triangle, side):

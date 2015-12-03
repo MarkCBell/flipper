@@ -24,6 +24,7 @@ class SplittingSequence(object):
 		self.triangulation = self.lamination.triangulation
 		
 		# Write some things into the cache.
+		# Hmmm, this assumes we're not taking roots.
 		self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 
 class SplittingSequences(object):

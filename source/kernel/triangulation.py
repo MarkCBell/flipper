@@ -1068,7 +1068,7 @@ class Triangulation(object):
 		prefix = [] if prefix is None else list(prefix)
 		
 		for sequence in self.all_flips(depth, prefix):
-			yield self.encode(list(reversed(sequence) + reversed(prefix)))
+			yield self.encode(list(reversed(sequence)) + list(reversed(prefix)))
 	
 	def all_mapping_classes(self, depth, prefix=None):
 		''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''

@@ -661,6 +661,8 @@ class Lamination(object):
 				# Get the next largest edge.
 				flip_weight, flip_index = flip_first(heapq.heappop(weights_heap))
 			
+			# print(len(encodings))
+			
 			if maxlen is not None and len(laminations[side]) > maxlen // (NUM_LAM_BLOCKS - 1):
 				# Flip to the other side and reset it with just this lamination.
 				side = (side + 1) % NUM_LAM_BLOCKS
@@ -671,6 +673,7 @@ class Lamination(object):
 			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()
 			if target in seen:
+				# print(seen[target])
 				for index in seen[target]:
 					for i in range(NUM_LAM_BLOCKS):
 						if index in laminations[i]:
@@ -690,6 +693,7 @@ class Lamination(object):
 						isometries = lamination.all_projective_isometries(old_lamination)
 						if len(isometries) > 0:
 							assert(old_lamination.weight() == dilatation * lamination.weight())
+							# print('!!', index)
 							
 							encoding = flipper.kernel.Encoding([move for item in reversed(encodings) for move in item])
 							return flipper.kernel.SplittingSequences(encoding, isometries, index, dilatation, old_lamination)

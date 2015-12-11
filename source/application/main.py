@@ -438,7 +438,7 @@ class FlipperApplication(object):
 						defaultextension='.flp',
 						filetypes=[('flipper files', '.flp'), ('all files', '.*')],
 						title='Open flipper File')
-					if file_path == '':  # Cancelled the dialog.
+					if not file_path:  # Cancelled the dialog.
 						return
 					try:
 						string_contents = open(file_path, 'rb').read()
@@ -639,7 +639,7 @@ class FlipperApplication(object):
 	
 	def export_image(self):
 		path = tkFileDialog.asksaveasfilename(defaultextension='.ps', filetypes=[('postscript files', '.ps'), ('all files', '.*')], title='Export Image')
-		if path != '':
+		if path:
 			try:
 				self.canvas.postscript(file=path, colormode='color')
 			except IOError:
@@ -648,15 +648,13 @@ class FlipperApplication(object):
 	def export_kernel_file(self):
 		if self.is_complete():
 			path = tkFileDialog.asksaveasfilename(defaultextension='.flp', filetypes=[('flipper kernel file', '.flp'), ('all files', '.*')], title='Export Kernel File')
-			if path != '':
+			if path:
 				try:
 					example = flipper.kernel.package(self.equipped_triangulation)
 					with open(path, 'wb') as disk_file:
 						disk_file.write(example)
 				except IOError:
 					tkMessageBox.showwarning('Export Error', 'Could not open: %s' % path)
-				finally:
-					disk_file.close()
 		else:
 			tkMessageBox.showwarning('Export Error', 'Cannot export incomplete surface.')
 	

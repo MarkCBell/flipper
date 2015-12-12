@@ -787,11 +787,13 @@ class FlipperApplication(object):
 				self.create_vertex((w / 2, h / 2))
 				for i in range(n):
 					self.create_vertex((w / 2 + sin(2*pi*(i+0.5) / n) * r, h / 2 + cos(2*pi*(i+0.5) / n) * r))
+				
 				for i in range(1, n):
 					self.create_edge(self.vertices[i], self.vertices[i+1])
 				self.create_edge(self.vertices[n], self.vertices[1])
 				for i in range(n):
 					self.create_edge(self.vertices[0], self.vertices[i+1])
+				
 				for i, j in combinations(range(n), r=2):
 					if gluing[i] == gluing[j].swapcase():
 						self.create_edge_identification(self.edges[i], self.edges[j])

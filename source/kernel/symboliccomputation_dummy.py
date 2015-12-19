@@ -42,11 +42,7 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	# Getting the square free representative makes this faster.
 	eigenvalues = [eigenvalue for eigenvalue in action_matrix.characteristic_polynomial().square_free().real_roots() if eigenvalue > 1]
 	
-	k = max(flipper.kernel.height_int(entry) for row in action_matrix for entry in row)
-	n = action_matrix.width  # This bounds the degree of an eigenvalue.
-	height = n * k + n * log(n) + 2 * n  # This bounds the height of an eigenvalue.
-	precision = int(2 * n * height + 1)  # Note that we need the 2* here as sorted will compare by subtraction.
-	for eigenvalue in sorted(eigenvalues, reverse=True, key=lambda x: x.algebraic_approximation(precision)):
+	for eigenvalue in sorted(eigenvalues, reverse=True):
 		# We will calculate the eigenvector ourselves.
 		N = flipper.kernel.NumberField(eigenvalue)
 		kernel_basis = (action_matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.

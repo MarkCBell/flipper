@@ -106,6 +106,21 @@ class Isometry(object):
 		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
 
 		return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
+
+	def pl_action(self, index, action=None):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates by the cell of the specified index.
+		
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. '''
+
+		assert(isinstance(index, flipper.IntegerType))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+		
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+
+		return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
+
 	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''
@@ -191,6 +206,31 @@ class EdgeFlip(object):
 			Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
 		return flipper.kernel.Matrix(rows), Cs
 	
+	def pl_action(self, index, action=None):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates by the cell of the specified index.
+		
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. '''
+
+		assert(isinstance(index, flipper.IntegerType))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+		
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+
+		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
+
+		rows = [list(row) for row in action]
+		if index == 0:
+			rows[e] = [rows[a][i] + rows[c][i] - rows[e][i] for i in range(self.zeta)]
+			Cs = flipper.kernel.Matrix([[action[a][i] + action[c][i] - action[b][i] - action[d][i] for i in range(self.zeta)]])
+		elif index == 1:
+			rows[e] = [rows[b][i] + rows[d][i] - rows[e][i] for i in range(self.zeta)]
+			Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
+		else:
+			raise IndexError('foo!?!')
+		return flipper.kernel.Matrix(rows), Cs
+
 	def encode(self):
 		''' Return the Encoding induced by this EdgeFlip. '''
 		
@@ -258,6 +298,20 @@ class LinearTransformation(object):
 		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
 		
 		return self.geometric * action, flipper.kernel.zero_matrix(0)
+
+	def pl_action(self, index, action=None):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates by the cell of the specified index.
+		
+		If an action matrix is given then return these matrices after post-multiplying
+		by the action matrix. '''
+
+		assert(isinstance(index, flipper.IntegerType))
+		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+		
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+
+		return (self.geometric * action, flipper.kernel.zero_matrix(0))
 	
 	def encode(self):
 		''' Return the Encoding induced by this linear map. '''

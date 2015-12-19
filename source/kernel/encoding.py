@@ -299,14 +299,15 @@ class Encoding(object):
 		the map until it appear to be projectively similar to a previous iteration.
 		Finally it uses:
 			flipper.kernel.symboliccomputation.perron_frobenius_eigen()
-		to find the nearby projective fixed point. If it cannot find one then it
-		raises a ComputationError.
+		to find the nearby projective fixed point. If this fails after some number
+		of iterations then we fall back to computing the action inside of every
+		cell of the PL action. Generically this is exponentially slow.
 		
 		Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails
-		to converge after many iterations and a ComputationError is thrown then it
-		is extremely likely that the mapping class was not pseudo-Anosov. Note that
-		the total number of iterations done is dependent on the topology of the
-		underlying surface.
+		to converge after many iterations then it is extremely likely that the
+		mapping class was not pseudo-Anosov. Also note that the number of iterations
+		done before switching technique is (currently) only dependent on the topology
+		of the underlying surface.
 		
 		This encoding must be a mapping class. '''
 		

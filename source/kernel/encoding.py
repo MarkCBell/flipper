@@ -5,8 +5,10 @@ Provides one class: Encoding. '''
 
 import flipper
 
+from itertools import product
+
 NT_TYPE_PERIODIC = 'Periodic'
-NT_TYPE_REDUCIBLE = 'Reducible'
+NT_TYPE_REDUCIBLE = 'Reducible'  # Strictly this  means "reducible and not periodic".
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
 class Encoding(object):
@@ -264,13 +266,29 @@ class Encoding(object):
 		
 		As = flipper.kernel.id_matrix(self.zeta)
 		Cs = flipper.kernel.zero_matrix(self.zeta, 1)
-		for item in reversed(self.sequence):
+		for item in reversed(self.sequence):  # We can't just reverse self as reversed requires a list not an iterator.
 			# This now uses the improved sparse matrix representation.
 			As, C = item.applied_geometric(lamination, action=As)
 			Cs = Cs.join(C)
 			lamination = item(lamination)
 		
 		return As, Cs
+
+	def pl_action(self):
+		''' Yield each of the action, condition matrix pairs describing the action of this Encoding
+		on ML. '''
+
+		for sequence in product(*[range(len(item)) for item in self]):
+			As = flipper.kernel.id_matrix(self.zeta)
+			Cs = flipper.kernel.zero_matrix(self.zeta, 1)
+			for item, index in reversed(list(zip(self, sequence))):
+				# This now uses the improved sparse matrix representation.
+				As, C = item.pl_action(index, action=As)
+				Cs = Cs.join(C)
+		
+			yield (As, Cs)
+
+		return
 	
 	def pml_fixedpoint_uncached(self, starting_curve=None):
 		''' Return a rescaling constant and projectively invariant lamination.
@@ -360,20 +378,15 @@ class Encoding(object):
 						tested.add(condition_matrix)
 						try:
 							eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
-								action_matrix, condition_matrix, average_curve)
+								action_matrix, condition_matrix)
 						except flipper.ComputationError:
 							pass  # Could not find an eigenvector in the cone.
 						except flipper.AssumptionError:
 							raise flipper.AssumptionError('Mapping class is reducible.')
 						else:
-							# Test if the vector we found lies in the cone given by the condition matrix.
-							# We could also use: invariant_lamination.projectively_equal(self(invariant_lamination))
-							# but this is much faster.
-							if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-								# If it does then we have a projectively invariant lamination.
-								invariant_lamination = triangulation.lamination(eigenvector)
-								if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-									return eigenvalue, invariant_lamination
+							invariant_lamination = triangulation.lamination(eigenvector)
+							if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+								return eigenvalue, invariant_lamination
 				
 				seen[hsh].append(i+1)
 			else:
@@ -401,7 +414,23 @@ class Encoding(object):
 				# to have an expensive directed_eigenvector calculation done on them.
 				resolution = resolution * 10  # Crank up exponentially.
 		
-		raise flipper.ComputationError('Could not estimate invariant lamination.')
+		# If all else fails then just check every cell of the PL action. There can be exponentially many cells
+		# (and generically there are) so this process is extremely slow. However it is guranteed to be correct.
+		for action_matrix, condition_matrix in self.pl_action():
+			if condition_matrix not in tested:  # May as well skip cells we've already tested.
+				try:
+					eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
+						action_matrix, condition_matrix)
+				except flipper.ComputationError:
+					pass  # Could not find an eigenvector in the cone.
+				except flipper.AssumptionError:
+					raise flipper.AssumptionError('Mapping class is reducible.')
+				else:
+					invariant_lamination = triangulation.lamination(eigenvector)
+					if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+						return eigenvalue, invariant_lamination
+		
+		raise flipper.AssumptionError('Mapping class is reducible.')
 	
 	def pml_fixedpoint(self):
 		''' A version of self.invariant_lamination_uncached with caching. '''

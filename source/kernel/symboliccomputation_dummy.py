@@ -46,15 +46,18 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 		# We will calculate the eigenvector ourselves.
 		N = flipper.kernel.NumberField(eigenvalue)
 		kernel_basis = (action_matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
-		# Can't do division so can't do: eigenvector = project(vector, kernel_basis)
-		row_lengths = [dot(row, row) for row in kernel_basis]
-		product_lengths = [flipper.kernel.product([row_lengths[j] for j in range(len(kernel_basis)) if j != i]) for i in range(len(kernel_basis))]
-		linear_combination = [dot(vector, row) * product_length for row, product_length in zip(kernel_basis, product_lengths)]
-		
-		eigenvector = [sum(a * n[i] for a, n in zip(linear_combination, kernel_basis)) for i in range(action_matrix.width)]
-		
-		if condition_matrix.nonnegative_image(eigenvector):
-			return N.lmbda, eigenvector
+		if len(kernel_basis) == 1:  # If rank(kernel) == 1.
+			[eigenvector] = kernel_basis
+
+			# We might need to flip the eigenvector if we have the inverse basis.
+			if sum(eigenvector) < 0: eigenvector = [-x for x in eigenvector]
+
+			if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+				return N.lmbda, eigenvector
+		else:
+			# We cannot handle the case where the rank(kernel) > 1 (yet). This requires solving some linear programming
+			# problem over a number field which is likely to be very slow anyway.
+			pass
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

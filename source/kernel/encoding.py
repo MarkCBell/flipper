@@ -26,10 +26,10 @@ class Encoding(object):
 	>>> i = S.mapping_class('')
 	>>> a = S.mapping_class('a')
 	>>> a
-	[Isometry [0, 1, 2], Isometry [~2, 1, 0], Flip 2, Isometry [0, 1, 2], Isometry [0, 1, 2]]
+	[Isometry [0, 1, 2], Isometry [~2, 1, 0], Flip 2, Isometry [0, 1, 2]]
 	>>> x = S.triangulation.encode([1])
 	>>> x
-	[Flip 1, Isometry [0, 1, 2]]
+	[Flip 1]
 	'''
 	def __init__(self, sequence, _cache=None):
 		assert(isinstance(sequence, (list, tuple)))

@@ -24,7 +24,7 @@ def project(vector, basis):
 	linear_combination = [dot(vector, row) / dot(row, row) for row in orthogonal_basis]
 	return [sum(a * b[i] for a, b in zip(linear_combination, orthogonal_basis)) for i in range(len(vector))]
 
-def directed_eigenvector(action_matrix, condition_matrix, vector):
+def directed_eigenvector(action_matrix, condition_matrix):
 	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.
 	
 	This version is imperfect and is NOT as good as the sage version. Examples are
@@ -33,8 +33,6 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	
 	An eigenvector is interesting if its corresponding eigenvalue is: real, >= 1 and irrational.
 	Raises a ComputationError if it cannot find an interesting vectors in C.
-	
-	vector is guranteed to live inside of C.
 	
 	Assumes that C contains at most one interesting eigenvector. '''
 	

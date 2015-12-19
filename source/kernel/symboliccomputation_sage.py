@@ -40,7 +40,7 @@ def approximate(number, accuracy):
 	else:
 		return '0.' + '0' * (-exponent-1) + decimal[:accuracy]
 
-def directed_eigenvector(action_matrix, condition_matrix, vector):
+def directed_eigenvector(action_matrix, condition_matrix):
 	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.
 	
 	This version is perfect, that is a ComputationError is raised if and only if
@@ -48,8 +48,6 @@ def directed_eigenvector(action_matrix, condition_matrix, vector):
 	
 	An eigenvector is interesting if its corresponding eigenvalue is: real, > 1 and irrational.
 	Raises a ComputationError if it cannot find an interesting vectors in C.
-	
-	vector is guranteed to live inside of C.
 	
 	Assumes that C contains at most one interesting eigenvector. '''
 	

@@ -35,8 +35,8 @@ def load_library():
 	
 	raise ImportError('No symbolic computation library available.')
 
-def directed_eigenvector(action_matrix, condition_matrix, curve):
+def directed_eigenvector(action_matrix, condition_matrix):
 	''' Apply the directed_eigenvector function from the correct library. '''
 	
-	return load_library().directed_eigenvector(action_matrix, condition_matrix, curve)
+	return load_library().directed_eigenvector(action_matrix, condition_matrix)
 

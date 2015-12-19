@@ -431,6 +431,8 @@ class Encoding(object):
 					if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
 						return eigenvalue, invariant_lamination
 		
+		# If none of the cells contained a projective fixed-point with eigenvalue > 1 then this mapping class
+		# must be reducible.
 		raise flipper.AssumptionError('Mapping class is reducible.')
 	
 	def pml_fixedpoint(self):

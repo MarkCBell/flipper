@@ -50,6 +50,8 @@ class Isometry(object):
 		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in self.source_triangulation.indices])
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.label_map))
+	def __len__(self):
+		return 1  # The number of pieces of this move.
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
@@ -101,10 +103,9 @@ class Isometry(object):
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(action is None or isinstance(action, flipper.kernel.Matrix))
 		
-		if action is None:
-			return flipper.kernel.Permutation([self.index_map[i] for i in range(self.zeta)]).matrix(), flipper.kernel.zero_matrix(0)
-		else:
-			return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+
+		return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
 	
 	def encode(self):
 		''' Return the Encoding induced by this isometry. '''
@@ -138,6 +139,8 @@ class EdgeFlip(object):
 		return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label))
+	def __len__(self):
+		return 2  # The number of pieces of this move.
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
@@ -174,24 +177,19 @@ class EdgeFlip(object):
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
 		
 		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
-		if action is None:
-			I = flipper.kernel.id_matrix(self.zeta)
-			Z = flipper.kernel.zero_matrix(self.zeta, 1)
-			if lamination(a) + lamination(c) >= lamination(b) + lamination(d):
-				return I.tweak([(e, a), (e, c)], [(e, e), (e, e)]), Z.tweak([(0, a), (0, c)], [(0, b), (0, d)])
-			else:
-				return I.tweak([(e, b), (e, d)], [(e, e), (e, e)]), Z.tweak([(0, b), (0, d)], [(0, a), (0, c)])
+
+		rows = [list(row) for row in action]
+		if lamination(a) + lamination(c) >= lamination(b) + lamination(d):
+			rows[e] = [rows[a][i] + rows[c][i] - rows[e][i] for i in range(self.zeta)]
+			Cs = flipper.kernel.Matrix([[action[a][i] + action[c][i] - action[b][i] - action[d][i] for i in range(self.zeta)]])
 		else:
-			rows = [list(row) for row in action]
-			if lamination(a) + lamination(c) >= lamination(b) + lamination(d):
-				rows[e] = [rows[a][i] + rows[c][i] - rows[e][i] for i in range(self.zeta)]
-				Cs = flipper.kernel.Matrix([[action[a][i] + action[c][i] - action[b][i] - action[d][i] for i in range(self.zeta)]])
-			else:
-				rows[e] = [rows[b][i] + rows[d][i] - rows[e][i] for i in range(self.zeta)]
-				Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
-			return flipper.kernel.Matrix(rows), Cs
+			rows[e] = [rows[b][i] + rows[d][i] - rows[e][i] for i in range(self.zeta)]
+			Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
+		return flipper.kernel.Matrix(rows), Cs
 	
 	def encode(self):
 		''' Return the Encoding induced by this EdgeFlip. '''
@@ -220,6 +218,8 @@ class LinearTransformation(object):
 		return str(self)
 	def __str__(self):
 		return str(self.geometric) + str(self.algebraic)
+	def __len__(self):
+		return 1  # The number of pieces of this move.
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
@@ -254,11 +254,10 @@ class LinearTransformation(object):
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(action is None or isinstance(action, flipper.kernel.Matrix))
+
+		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
 		
-		if action is None:
-			return self.geometric, flipper.kernel.zero_matrix(0)
-		else:
-			return self.geometric * action, flipper.kernel.zero_matrix(0)
+		return self.geometric * action, flipper.kernel.zero_matrix(0)
 	
 	def encode(self):
 		''' Return the Encoding induced by this linear map. '''

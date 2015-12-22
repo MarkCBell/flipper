@@ -5,9 +5,7 @@ import flipper
 
 from time import time
 
-# The purpose of this example is to demonstrate that:
-#   even for atypical mapping classes, Encoding.invariant_lamination() does
-#   not raise flipper.ComputationErrors.
+# This example shows that even for atypical mapping classes Encoding.invariant_lamination() is still fast.
 
 def main():
 	times = {}
@@ -53,9 +51,6 @@ def main():
 			mapping_class.invariant_lamination_uncached()
 		except flipper.AssumptionError:
 			print(', Claim: not pA', end='')
-		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-		# fails to find an invariant lamination. This is very bad so we wont try and catch
-		# this exception.
 		times[word] = time() - start_time
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / len(examples)))

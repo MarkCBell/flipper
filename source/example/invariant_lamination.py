@@ -4,8 +4,7 @@ from time import time
 
 import flipper
 
-# The purpose of this example is to demonstrate that:
-#   generically Encoding.invariant_lamination() does not raise flipper.ComputationErrors.
+# This example shows that even for generic mapping classes Encoding.invariant_lamination() is fast.
 
 def main(n=100):
 	times = {}
@@ -20,8 +19,6 @@ def main(n=100):
 			mapping_class.invariant_lamination()
 		except flipper.AssumptionError:
 			print(', Claim: not pA', end='')
-		# This can also fail with a flipper.ComputationError if self.invariant_lamination()
-		# fails to find an invariant lamination.
 		times[word] = time() - t
 		print(', Time: %0.3f' % times[word])
 	print('Average time: %0.3f' % (sum(times.values()) / n))

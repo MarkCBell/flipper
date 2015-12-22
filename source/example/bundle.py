@@ -10,7 +10,7 @@ except ImportError:
 def main():
 	surface, word = 'S_1_2', 'abC'
 	# Get an example mapping class - this one we know is pseudo-Anosov.
-	# This process will fail (with an AssumptionError or ComputationError) if our map is not pseudo-Anosov.
+	# This process will fail with an AssumptionError if our map is not pseudo-Anosov.
 	h = flipper.load(surface).mapping_class(word)
 	print('Built the mapping class h := \'%s\' on %s.' % (word, surface))
 	# Get the bundle of h.

@@ -416,9 +416,10 @@ class Encoding(object):
 				resolution = resolution * 10  # Crank up exponentially.
 		
 		# If all else fails then just check every cell of the PL action. There can be exponentially many cells
-		# (and generically there are) so this process is extremely slow. However it is guranteed to be correct.
+		# (and generically there are) so this process is extremely slow. However it is guaranteed to terminate
+		# with an invariant lamination or prove that the mapping class is reducible.
 		for action_matrix, condition_matrix in self.pl_action():
-			if condition_matrix not in tested:  # May as well skip cells we've already tested.
+			if condition_matrix not in tested:  # We may as well skip cells that we've already tested.
 				try:
 					eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
 						action_matrix, condition_matrix)
@@ -441,7 +442,7 @@ class Encoding(object):
 		if 'invariant_lamination' not in self._cache:
 			try:
 				self._cache['invariant_lamination'] = self.pml_fixedpoint_uncached()
-			except (flipper.AssumptionError, flipper.ComputationError) as error:
+			except flipper.AssumptionError as error:
 				self._cache['invariant_lamination'] = error
 		
 		if isinstance(self._cache['invariant_lamination'], Exception):
@@ -480,7 +481,7 @@ class Encoding(object):
 		if self.is_periodic():  # Actually this test is redundant but it is faster to test it now.
 			raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
 		
-		dilatation, lamination = self.pml_fixedpoint()  # This could fail with a flipper.ComputationError.
+		dilatation, lamination = self.pml_fixedpoint()
 		try:
 			splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation)
 		except flipper.AssumptionError:  # Lamination is not filling.
@@ -537,8 +538,6 @@ class Encoding(object):
 			return NT_TYPE_PERIODIC
 		
 		try:
-			# This can also fail with a flipper.ComputationError if
-			# self.invariant_lamination() fails to find an invariant lamination.
 			# We could do any of self.splitting_sequence(), self.canonical(), ...
 			# but this involves the least calculation and so is fastest.
 			self.splitting_sequences()

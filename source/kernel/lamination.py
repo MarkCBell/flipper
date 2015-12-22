@@ -619,7 +619,7 @@ class Lamination(object):
 		# and will only contain at most maxlen * NUM_LAM_BLOCKS / (NUM_LAM_BLOCKS - 1) laminations.
 		NUM_LAM_BLOCKS = 5
 		laminations = [dict() for i in range(NUM_LAM_BLOCKS)]
-		side = 0  # This records which dictionary we are currently filling.
+		current_block = 0  # This records which dictionary we are currently filling.
 		
 		# We don't include self or lamination in seen just incase they are already
 		# on the axis and the puncture_tripods does nothing, misaligning the indices.
@@ -663,12 +663,15 @@ class Lamination(object):
 			
 			# print(len(encodings))
 			
-			if maxlen is not None and len(laminations[side]) > maxlen // (NUM_LAM_BLOCKS - 1):
-				# Flip to the other side and reset it with just this lamination.
-				side = (side + 1) % NUM_LAM_BLOCKS
-				laminations[side] = {len(encodings): lamination}
+			# Record this lamination in the dictionary of seen laminations.
+			# To cut down on memory usage we will only retain the last maxlen laminations
+			# at any given point.
+			if maxlen is not None and len(laminations[current_block]) > maxlen // (NUM_LAM_BLOCKS - 1):
+				# Move to the (cyclically) next block and reset it with just this lamination.
+				current_block = (current_block + 1) % NUM_LAM_BLOCKS
+				laminations[current_block] = {len(encodings): lamination}
 			else:
-				laminations[side][len(encodings)] = lamination
+				laminations[current_block][len(encodings)] = lamination
 			
 			# Check if lamination now (projectively) matches a lamination we've already seen.
 			target = lamination.projective_hash()

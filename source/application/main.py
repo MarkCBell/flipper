@@ -1453,8 +1453,6 @@ class FlipperApplication(object):
 				
 				self.treeview_objects.item(iid, text='Type: %s' % result)
 				self.unsaved_work = True
-			except flipper.ComputationError:
-				tkMessageBox.showerror('Mapping class', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
 		elif 'mapping_class_invariant_lamination' in tags:
@@ -1466,8 +1464,6 @@ class FlipperApplication(object):
 			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
 				self.unsaved_work = True
-			except flipper.ComputationError:
-				tkMessageBox.showerror('Lamination', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 			except flipper.AbortError:
 				pass
 		elif 'mapping_class_conjugate' in tags:
@@ -1489,8 +1485,6 @@ class FlipperApplication(object):
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Conjugate', 'Could not determine conjugacy, mapping class is not pseudo-Anosov.')
 					self.unsaved_work = True
-				except flipper.ComputationError:
-					tkMessageBox.showerror('Conjugate', 'Could not find any projectively invariant laminations. Mapping class is probably reducible.')
 				except flipper.AbortError:
 					pass
 		elif 'mapping_class_bundle' in tags:
@@ -1502,8 +1496,6 @@ class FlipperApplication(object):
 						disk_file.write(bundle.snappy_string())
 				except flipper.AssumptionError:
 					tkMessageBox.showwarning('Bundle', 'Cannot build bundle, mapping class is not pseudo-Anosov.')
-				except flipper.ComputationError:
-					tkMessageBox.showwarning('Bundle', 'Could not build bundle, mapping class is probably reducible.')
 				except flipper.AbortError:
 					pass
 				except IOError:

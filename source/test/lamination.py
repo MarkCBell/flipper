@@ -26,11 +26,9 @@ def main(verbose=False):
 			if verbose: print(word)
 			S = flipper.load(surface)
 			mapping_class = S.mapping_class(word)
-			mapping_class.invariant_lamination()  # This could fail with a ComputationError.
+			mapping_class.invariant_lamination()
 	except flipper.AssumptionError:
 		pass  # mapping_class is not pseudo-Anosov.
-	except flipper.ComputationError:
-		return False
 	
 	return True
 

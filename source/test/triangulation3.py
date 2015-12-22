@@ -47,17 +47,14 @@ def main(verbose=False):
 		('S_1_1', 'aB')
 		]
 	
-	try:
-		for surface, word, target_manifold in tests:
-			if verbose: print(word)
-			if not test(surface, word, snappy.Manifold(target_manifold)):
-				return False
-		for surface, word in twister_tests:
-			if verbose: print(word)
-			if not test(surface, word, snappy.twister.Surface(surface).bundle(word)):
-				return False
-	except flipper.ComputationError:
-		return False  # Mapping class is probably reducible.
+	for surface, word, target_manifold in tests:
+		if verbose: print(word)
+		if not test(surface, word, snappy.Manifold(target_manifold)):
+			return False
+	for surface, word in twister_tests:
+		if verbose: print(word)
+		if not test(surface, word, snappy.twister.Surface(surface).bundle(word)):
+			return False
 	
 	return True
 

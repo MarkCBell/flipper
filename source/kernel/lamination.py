@@ -722,7 +722,7 @@ class Lamination(object):
 		if dilatation not in self._cache['splitting_sequences']:
 			try:
 				self._cache['splitting_sequences'][dilatation] = self.splitting_sequences_uncached(dilatation, maxlen)
-			except (flipper.AssumptionError) as error:
+			except flipper.AssumptionError as error:
 				self._cache['splitting_sequences'][dilatation] = error
 		
 		if isinstance(self._cache['splitting_sequences'][dilatation], Exception):

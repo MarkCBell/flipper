@@ -250,7 +250,10 @@ class Triangulation(object):
 			
 			return ordered_class
 		
-		vertexer = lambda corner: corner.vertex
+		# We want to sort by the vertices so groupby will gather them but this would require adding
+		# orderings to the Vertex class so we'll just sort / group by the vertex label. This should
+		# uniquely determine the vertex.
+		vertexer = lambda corner: corner.vertex.label
 		self.corner_classes = [order_corner_class(g) for _, g in groupby(sorted(self.corners, key=vertexer), key=vertexer)]
 		
 		self.euler_characteristic = self.num_filled_vertices - self.zeta + self.num_triangles  # V - E + F.

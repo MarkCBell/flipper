@@ -205,7 +205,7 @@ class Matrix(object):
 		
 		Based off of the Faddeev-Leverrier method. See:
 			http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html
-		This avoids have to compute an expesive determinant.
+		This avoids have to compute an expensive determinant.
 		
 		This matrix must be square. '''
 		

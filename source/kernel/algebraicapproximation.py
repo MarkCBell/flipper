@@ -78,6 +78,12 @@ class AlgebraicApproximation(object):
 	
 	def __float__(self):
 		return float(self.interval)
+	def __int__(self):
+		# This should return the largest integer less than or equal to self.
+		x = int(self.interval)  # This gets pretty close.
+		# However self.interval.lower is slightly smaller than self. Hence if self is an integer
+		# it's possible that x == int(self) - 1 so we will just check if x+1 also works.
+		return x+1 if x+1 <= self else x
 	
 	def change_denominator(self, new_denominator):
 		''' Return a new approximation of this algebraic number with the given denominator. '''
@@ -148,14 +154,14 @@ class AlgebraicApproximation(object):
 			else:
 				return square
 	def __div__(self, other):
+		return self.__truediv__(other)
+	def __truediv__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval / other.interval, self.log_degree + other.log_degree, self.height + other.height)
 		elif isinstance(other, flipper.IntegerType):
 			return AlgebraicApproximation(self.interval / other, self.log_degree, self.height + flipper.kernel.height_int(other))
 		else:
 			return NotImplemented
-	def __truediv__(self, other):
-		return self.__div__(other)
 	def __rdiv__(self, other):
 		if isinstance(other, flipper.IntegerType):
 			return AlgebraicApproximation(other / self.interval, self.log_degree, self.height + flipper.kernel.height_int(other))

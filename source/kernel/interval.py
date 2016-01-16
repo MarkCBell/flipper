@@ -60,8 +60,7 @@ class Interval(object):
 	def __float__(self):
 		return float(self.approximate_string(30)[:-1])
 	def __int__(self):
-		# Return an integer approximating this. We really return the floor
-		# but we avoid __floor__ and __ceil__ as these expect floats.
+		# Return the largest integer less than or equal to all values in self.
 		return self.lower // 10**self.precision
 	def __hash__(self):
 		return hash(self.tuple())
@@ -191,6 +190,8 @@ class Interval(object):
 			else:
 				return square
 	def __div__(self, other):
+		return self.__truediv__(other)
+	def __truediv__(self, other):
 		if isinstance(other, Interval):
 			if 0 in other:
 				raise ZeroDivisionError  # Denominator contains 0.
@@ -213,8 +214,6 @@ class Interval(object):
 			return Interval(min(values), max(values), self.precision)
 		else:
 			return NotImplemented
-	def __truediv__(self, other):
-		return self.__div__(other)
 	
 	def midpoint(self, magnitude=10):
 		''' Return a smaller interval containing the midpoint of this interval. '''

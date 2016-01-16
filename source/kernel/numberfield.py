@@ -143,6 +143,8 @@ class NumberFieldElement(object):
 		return self.number_field.degree
 	def __float__(self):
 		return float(self.algebraic_approximation())
+	def __int__(self):
+		return int(self.algebraic_approximation())
 	def __bool__(self):
 		return self != 0
 	def __nonzero__(self):  # For Python2.
@@ -207,6 +209,9 @@ class NumberFieldElement(object):
 				return square
 	
 	def __div__(self, other):
+		return self.__truediv__(other)
+	def __truediv__(self, other):
+		assert(False)
 		if other == 0:
 			raise ZeroDivisionError
 		
@@ -238,10 +243,18 @@ class NumberFieldElement(object):
 			return self.number_field.element([coeff // other for coeff in self])
 		else:
 			return NotImplemented
-	def __truediv__(self, other):
-		return self.__div__(other)
 	def __floordiv__(self, other):
-		return self.__div__(other)
+		if other == 0:
+			raise ZeroDivisionError
+		
+		if isinstance(other, flipper.IntegerType):
+			return int(self) // other
+		else:
+			try:
+				accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
+				return int(self.algebraic_approximation(accuracy_needed) / other.algebraic_approximation(accuracy_needed))
+			except AttributeError:
+				return NotImplemented
 	def __mod__(self, other):
 		if isinstance(other, flipper.IntegerType):
 			return self.number_field.element([coeff % other for coeff in self])

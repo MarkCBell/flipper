@@ -165,15 +165,11 @@ class Polynomial(object):
 	def __mod__(self, other):
 		_, remainder = divmod(self, other)
 		return remainder
-	def __div__(self, other):
+	def __floordiv__(self, other):
 		quotient, remainder = divmod(self, other)
 		if not remainder.is_zero():  # Division isn't perfect.
 			raise ValueError('Polynomials do not divide.')
 		return quotient
-	def __truediv__(self, other):
-		return self.__div__(other)
-	def __floordiv__(self, other):
-		return self.__div__(other)
 	def divides(self, other):
 		''' Return if self divides other. '''
 		

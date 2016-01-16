@@ -136,11 +136,14 @@ class Encoding(object):
 			if self.source_triangulation != other.triangulation:
 				raise ValueError('Cannot apply an Encoding to a Lamination on a triangulation other than source_triangulation.')
 			
-			lamination = other
-			for item in reversed(self.sequence):
-				lamination = item(lamination)
+			geometric = other.geometric
+			algebraic = other.algebraic
 			
-			return lamination
+			for item in reversed(self.sequence):
+				geometric = item.apply_geometric(geometric)
+				algebraic = item.apply_algebraic(algebraic)
+			
+			return self.target_triangulation.lamination(geometric, algebraic, remove_peripheral=False)
 		else:
 			return NotImplemented
 	def __mul__(self, other):

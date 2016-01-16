@@ -122,9 +122,9 @@ class Interval(object):
 	
 	def __contains__(self, other):
 		if isinstance(other, Interval):
-			return self.lower < other.lower and other.upper < self.upper
+			return self.lower <= other.lower and other.upper <= self.upper
 		elif isinstance(other, flipper.IntegerType):
-			return self.lower < other * 10**self.precision < self.upper
+			return self.lower <= other * 10**self.precision <= self.upper
 		else:
 			return NotImplemented
 	def __neg__(self):

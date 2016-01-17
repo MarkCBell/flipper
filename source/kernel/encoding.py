@@ -78,7 +78,7 @@ class Encoding(object):
 	def flip_length(self):
 		''' Return the number of flips needed to realise this sequence. '''
 		
-		return sum(item.flip_length() for item in self)
+		return sum(item.flip_length for item in self)
 	def __getitem__(self, value):
 		if isinstance(value, slice):
 			# It turns out that handling all slices correctly is really hard.

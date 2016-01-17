@@ -8,7 +8,28 @@ shortened in polynomial time. '''
 
 import flipper
 
-class Isometry(object):
+class Move(object):
+	def __repr__(self):
+		return str(self)
+	
+	def __call__(self, other):
+		if isinstance(other, flipper.kernel.Lamination):
+			if other.triangulation != self.source_triangulation:
+				raise TypeError('Cannot apply Isometry to a lamination not on the source triangulation.')
+			
+			return self.target_triangulation.lamination(
+				self.apply_geometric(other.geometric),
+				self.apply_algebraic(other.algebraic),
+				remove_peripheral=False)
+		else:
+			return NotImplemented
+	
+	def encode(self):
+		''' Return the Encoding induced by this isometry. '''
+		
+		return flipper.kernel.Encoding([self])
+
+class Isometry(Move, object):
 	''' This represents an isometry from one Triangulation to another.
 	
 	Triangulations can create the isometries between themselves and this
@@ -17,7 +38,6 @@ class Isometry(object):
 		''' This represents an isometry from source_triangulation to target_triangulation.
 		
 		It is given by a map taking each edge label of source_triangulation to a label of target_triangulation.
-		The entire map does not need to be given and will be automatically extended to any missing labels.
 		
 		Assumes (and checks) that there is a unique extension of label_map to an Isometry. '''
 		
@@ -25,6 +45,7 @@ class Isometry(object):
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(label_map, dict))
 		
+		self.flip_length = 0  # The number of flips needed to realise this move.
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.zeta = self.source_triangulation.zeta
@@ -37,15 +58,12 @@ class Isometry(object):
 			if i not in self.label_map:
 				raise flipper.AssumptionError('This label_map not defined on edge %d.' % i)
 		
-		
 		self.index_map = dict((i, flipper.kernel.norm(self.label_map[i])) for i in self.source_triangulation.indices)
 		# Store the inverses too while we're at it.
-		self.inverse_label_map = dict((self(i), i) for i in self.source_triangulation.labels)
+		self.inverse_label_map = dict((self.label_map[i], i) for i in self.source_triangulation.labels)
 		self.inverse_index_map = dict((i, flipper.kernel.norm(self.inverse_label_map[i])) for i in self.source_triangulation.indices)
 		self.inverse_signs = dict((i, +1 if self.inverse_index_map[i] == self.inverse_label_map[i] else -1) for i in self.source_triangulation.indices)
 	
-	def __repr__(self):
-		return str(self)
 	def __str__(self):
 		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in self.source_triangulation.indices])
 	def __reduce__(self):
@@ -55,7 +73,7 @@ class Isometry(object):
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
-		if not all(self(i) == i for i in self.source_triangulation.indices):  # If self is not the identity isometry.
+		if not all(self.label_map[i] == i for i in self.source_triangulation.indices):  # If self is not the identity isometry.
 			return {i: self.label_map[i] for i in self.source_triangulation.labels}
 		else:
 			return None
@@ -65,85 +83,40 @@ class Isometry(object):
 	def apply_algebraic(self, vector):
 		return [vector[self.inverse_index_map[i]] * self.inverse_signs[i] for i in range(self.zeta)]
 	
-	def __call__(self, other):
-		if isinstance(other, flipper.kernel.Lamination):
-			if other.triangulation != self.source_triangulation:
-				raise TypeError('Cannot apply Isometry to a lamination not on the source triangulation.')
-			
-			return self.target_triangulation.lamination(
-				self.apply_geometric(other.geometric),
-				self.apply_algebraic(other.algebraic),
-				remove_peripheral=False)
-		elif isinstance(other, flipper.kernel.Vertex):
-			pass
-		elif isinstance(other, flipper.kernel.Edge):
-			if other not in self.source_triangulation:
-				raise ValueError('Edge not in source triangulation.')
-			return self.target_triangulation.edge_lookup[self(other.label)]
-		elif isinstance(other, flipper.kernel.Triangle):
-			if other not in self.source_triangulation:
-				raise ValueError('Triangle not in source triangulation.')
-			return self.target_triangulation.triangle_lookup[self(other.labels[0])]
-		elif isinstance(other, flipper.kernel.Corner):
-			if other not in self.source_triangulation:
-				raise ValueError('Corner not in source triangulation.')
-			return self.target_triangulation.corner_lookup[self(other.label)]
-		elif isinstance(other, flipper.IntegerType):  # Integers are assumed to be labels.
-			return self.label_map[other]
-		else:
-			return NotImplemented
 	def inverse(self):
 		''' Return the inverse of this isometry. '''
 		
 		# inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
 		return Isometry(self.target_triangulation, self.source_triangulation, self.inverse_label_map)
 	
-	def applied_geometric(self, lamination, action=None):
-		''' Return the action and condition matrices describing the isometry
-		applied to the geometric coordinates of the given lamination.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. This can take advantage of sparseness and so be significantly
-		faster than the standard multiplication. '''
+	def applied_geometric(self, lamination, action):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates of the given lamination after
+		post-multiplying by the action matrix. '''
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
 	
-	def pl_action(self, index, action=None):
+	def pl_action(self, index, action):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates by the cell of the specified index.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. '''
+		applied to the geometric coordinates by the cell of the specified index
+		after post-multiplying by the action matrix. '''
 		
 		assert(isinstance(index, flipper.IntegerType))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
-	
-	def encode(self):
-		''' Return the Encoding induced by this isometry. '''
-		
-		return flipper.kernel.Encoding([self])
-	
-	def flip_length(self):
-		''' Return the number of flips needed to realise this move. '''
-		
-		return 0
 
-class EdgeFlip(object):
+class EdgeFlip(Move, object):
 	''' Represents the change to a lamination caused by flipping an edge. '''
 	def __init__(self, source_triangulation, target_triangulation, edge_label):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(edge_label, flipper.IntegerType))
 		
+		self.flip_length = 1  # The number of flips needed to realise this move.
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.edge_label = edge_label
@@ -175,35 +148,18 @@ class EdgeFlip(object):
 		m = b.sign() * vector[b.index] + c.sign() * vector[c.index]
 		return [vector[i] if i != self.edge_index else m for i in range(self.zeta)]
 	
-	def __call__(self, other):
-		if isinstance(other, flipper.kernel.Lamination):
-			if other.triangulation != self.source_triangulation:
-				raise TypeError('Cannot apply EdgeFlip to a lamination not on the source triangulation.')
-			
-			return self.target_triangulation.lamination(
-				self.apply_geometric(other.geometric),
-				self.apply_algebraic(other.algebraic),
-				remove_peripheral=False)
-		else:
-			return NotImplemented
-	
 	def inverse(self):
 		''' Return the inverse of this map. '''
 		
 		return EdgeFlip(self.target_triangulation, self.source_triangulation, ~self.edge_label)
 	
-	def applied_geometric(self, lamination, action=None):
+	def applied_geometric(self, lamination, action):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. This can take advantage of sparseness and so be significantly
-		faster than the standard multiplication. '''
+		applied to the geometric coordinates of the given lamination after
+		post-multiplying by the action matrix. '''
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
 		
@@ -216,17 +172,13 @@ class EdgeFlip(object):
 			Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
 		return flipper.kernel.Matrix(rows), Cs
 	
-	def pl_action(self, index, action=None):
+	def pl_action(self, index, action):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates by the cell of the specified index.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. '''
+		applied to the geometric coordinates by the cell of the specified index
+		after post-multiplying by the action matrix. '''
 		
 		assert(isinstance(index, flipper.IntegerType))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
 		
@@ -240,18 +192,8 @@ class EdgeFlip(object):
 		else:
 			raise IndexError('foo!?!')
 		return flipper.kernel.Matrix(rows), Cs
-	
-	def encode(self):
-		''' Return the Encoding induced by this EdgeFlip. '''
-		
-		return flipper.kernel.Encoding([self])
-	
-	def flip_length(self):
-		''' Return the number of flips needed to realise this move. '''
-		
-		return 1
 
-class LinearTransformation(object):
+class LinearTransformation(Move, object):
 	''' Represents the change to a lamination caused by a linear map. '''
 	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
@@ -259,13 +201,12 @@ class LinearTransformation(object):
 		assert(isinstance(geometric, flipper.kernel.Matrix))
 		assert(isinstance(algebraic, flipper.kernel.Matrix))
 		
+		self.flip_length = 0  # The number of flips needed to realise this move.
 		self.source_triangulation = source_triangulation
 		self.target_triangulation = target_triangulation
 		self.geometric = geometric
 		self.algebraic = algebraic
 	
-	def __repr__(self):
-		return str(self)
 	def __str__(self):
 		return str(self.geometric) + str(self.algebraic)
 	def __len__(self):
@@ -280,18 +221,6 @@ class LinearTransformation(object):
 	def apply_algebraic(self, vector):
 		return self.algebraic(vector)
 	
-	def __call__(self, other):
-		if isinstance(other, flipper.kernel.Lamination):
-			if other.triangulation != self.source_triangulation:
-				raise TypeError('Cannot apply EdgeFlip to a lamination not on the source triangulation.')
-			
-			return self.target_triangulation.lamination(
-				self.apply_geometric(other.geometric),
-				self.apply_algebraic(other.algebraic),
-				remove_peripheral=False)
-		else:
-			return NotImplemented
-	
 	def inverse(self):
 		''' Return the inverse of this map.
 		
@@ -299,42 +228,23 @@ class LinearTransformation(object):
 		
 		return NotImplemented
 	
-	def applied_geometric(self, lamination, action=None):
+	def applied_geometric(self, lamination, action):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates of the given lamination.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. As a LinearTransformation may not be sparse this generally
-		does not result in a speedup, but these are rare. '''
+		applied to the geometric coordinates of the given lamination after
+		post-multiplying by the action matrix. '''
 		
 		assert(isinstance(lamination, flipper.kernel.Lamination))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		return self.geometric * action, flipper.kernel.zero_matrix(0)
 	
-	def pl_action(self, index, action=None):
+	def pl_action(self, index, action):
 		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates by the cell of the specified index.
-		
-		If an action matrix is given then return these matrices after post-multiplying
-		by the action matrix. '''
+		applied to the geometric coordinates by the cell of the specified index
+		after post-multiplying by the action matrix. '''
 		
 		assert(isinstance(index, flipper.IntegerType))
-		assert(action is None or isinstance(action, flipper.kernel.Matrix))
-		
-		if action is None: action = flipper.kernel.Id_Matrix(self.zeta)
+		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		return (self.geometric * action, flipper.kernel.zero_matrix(0))
-	
-	def encode(self):
-		''' Return the Encoding induced by this linear map. '''
-		
-		return flipper.kernel.Encoding([self])
-	
-	def flip_length(self):
-		''' Return the number of flips needed to realise this move. '''
-		
-		return 0
 

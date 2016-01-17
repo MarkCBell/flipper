@@ -826,8 +826,9 @@ class Encoding(object):
 				
 			elif isinstance(item, flipper.kernel.Isometry):
 				for triangle in upper_triangulation:
-					new_triangle = item(triangle)
-					perm = flipper.kernel.permutation.cyclic_permutation(item(triangle.corners[0]).side - 0, 3)
+					new_triangle = item.target_triangulation.triangle_lookup[item.label_map[triangle.labels[0]]]
+					new_corner = item.target_triangulation.corner_lookup[item.label_map[triangle.corners[0].label]]
+					perm = flipper.kernel.permutation.cyclic_permutation(new_corner.side - 0, 3)
 					old_target, old_perm = upper_map[triangle]
 					
 					if maps_to_triangle(upper_map[triangle]):

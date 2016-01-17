@@ -271,16 +271,16 @@ class Encoding(object):
 		Cs = flipper.kernel.zero_matrix(self.zeta, 1)
 		for item in reversed(self.sequence):  # We can't just reverse self as reversed requires a list not an iterator.
 			# This now uses the improved sparse matrix representation.
-			As, C = item.applied_geometric(lamination, action=As)
+			As, C = item.applied_geometric(lamination, As)
 			Cs = Cs.join(C)
 			lamination = item(lamination)
 		
 		return As, Cs
-
+	
 	def pl_action(self):
 		''' Yield each of the action, condition matrix pairs describing the action of this Encoding
 		on ML. '''
-
+		
 		for sequence in product(*[range(len(item)) for item in self]):
 			As = flipper.kernel.id_matrix(self.zeta)
 			Cs = flipper.kernel.zero_matrix(self.zeta, 1)
@@ -290,7 +290,7 @@ class Encoding(object):
 				Cs = Cs.join(C)
 		
 			yield (As, Cs)
-
+		
 		return
 	
 	def pml_fixedpoint_uncached(self, starting_curve=None):

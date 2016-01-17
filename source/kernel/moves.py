@@ -126,8 +126,6 @@ class EdgeFlip(Move, object):
 		
 		self.square = self.source_triangulation.square_about_edge(self.edge_label)
 	
-	def __repr__(self):
-		return str(self)
 	def __str__(self):
 		return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
 	def __reduce__(self):

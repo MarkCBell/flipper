@@ -189,6 +189,73 @@ class EdgeFlip(Move):
 			raise IndexError('foo!?!')
 		return flipper.kernel.Matrix(rows), Cs
 
+class Spiral(Move):
+	''' This represents a spiral around a short curve. '''
+	def __init__(self, source_triangulation, target_triangulation, edge_label, power):
+		''' This represents spiralling around a short curve passing through edge_label.
+		
+		The number of spirals is determined by power and the compact form of this move
+		means that the amount of work to compute the image of a lamination under this move
+		is logorithmic in the power.
+		
+		Because this is a mapping class, source_triangulation and target_triangulation should be equal. '''
+		
+		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
+		assert(source_triangulation == target_triangulation)
+		
+		self.flip_length = abs(power)  # The number of flips needed to realise this move.
+		self.source_triangulation = source_triangulation
+		self.target_triangulation = target_triangulation
+		self.zeta = self.source_triangulation.zeta
+		
+		self.edge_label = edge_label
+		# Find a, b, c & e automatically.
+		# Assert that b == d.
+		self.power = power
+	
+	def __str__(self):
+		return 'Spiral ' + str((self.b, self.e))
+	def __reduce__(self):
+		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label, self.power))
+	def __len__(self):
+		pass  # The number of pieces of this move.
+	def package(self):
+		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
+		
+		return (self.edge_label, self.power)
+	
+	def apply_geometric(self, vector):
+		pass
+	def apply_algebraic(self, vector):
+		pass
+	
+	def inverse(self):
+		''' Return the inverse of this isometry. '''
+		
+		# inverse_corner_map = dict((self(corner), corner) for corner in self.corner_map)
+		return Spiral(self.target_triangulation, self.source_triangulation, self.edge_label, -self.power)
+	
+	def applied_geometric(self, lamination, action):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates of the given lamination after
+		post-multiplying by the action matrix. '''
+		
+		assert(isinstance(lamination, flipper.kernel.Lamination))
+		assert(isinstance(action, flipper.kernel.Matrix))
+		
+		pass
+	
+	def pl_action(self, index, action):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates by the cell of the specified index
+		after post-multiplying by the action matrix. '''
+		
+		assert(isinstance(index, flipper.IntegerType))
+		assert(isinstance(action, flipper.kernel.Matrix))
+		
+		pass
+
 class LinearTransformation(Move):
 	''' Represents the change to a lamination caused by a linear map. '''
 	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):

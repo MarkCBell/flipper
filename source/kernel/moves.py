@@ -29,7 +29,7 @@ class Move(object):
 		
 		return flipper.kernel.Encoding([self])
 
-class Isometry(Move, object):
+class Isometry(Move):
 	''' This represents an isometry from one Triangulation to another.
 	
 	Triangulations can create the isometries between themselves and this
@@ -37,9 +37,7 @@ class Isometry(Move, object):
 	def __init__(self, source_triangulation, target_triangulation, label_map):
 		''' This represents an isometry from source_triangulation to target_triangulation.
 		
-		It is given by a map taking each edge label of source_triangulation to a label of target_triangulation.
-		
-		Assumes (and checks) that there is a unique extension of label_map to an Isometry. '''
+		It is given by a map taking each edge label of source_triangulation to a label of target_triangulation. '''
 		
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 		assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
@@ -109,7 +107,7 @@ class Isometry(Move, object):
 		
 		return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
 
-class EdgeFlip(Move, object):
+class EdgeFlip(Move):
 	''' Represents the change to a lamination caused by flipping an edge. '''
 	def __init__(self, source_triangulation, target_triangulation, edge_label):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
@@ -191,7 +189,7 @@ class EdgeFlip(Move, object):
 			raise IndexError('foo!?!')
 		return flipper.kernel.Matrix(rows), Cs
 
-class LinearTransformation(Move, object):
+class LinearTransformation(Move):
 	''' Represents the change to a lamination caused by a linear map. '''
 	def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
 		assert(isinstance(source_triangulation, flipper.kernel.Triangulation))

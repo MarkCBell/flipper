@@ -46,10 +46,10 @@ def directed_eigenvector(action_matrix, condition_matrix):
 		kernel_basis = (action_matrix - N.lmbda).kernel()  # Sage is much better at this than us for large matrices.
 		if len(kernel_basis) == 1:  # If rank(kernel) == 1.
 			[eigenvector] = kernel_basis
-
+			
 			# We might need to flip the eigenvector if we have the inverse basis.
 			if sum(eigenvector) < 0: eigenvector = [-x for x in eigenvector]
-
+			
 			if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 				return N.lmbda, eigenvector
 		else:

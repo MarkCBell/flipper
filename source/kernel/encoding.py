@@ -582,7 +582,7 @@ class Encoding(object):
 		
 		splitting = self.splitting_sequences(take_roots=True)[0]
 		
-		return len(self.canonical()) == len(splitting.mapping_class)
+		return self.canonical().flip_length() == splitting.mapping_class.flip_length()
 	
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.

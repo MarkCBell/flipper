@@ -63,7 +63,7 @@ class Isometry(Move):
 		self.inverse_signs = dict((i, +1 if self.inverse_index_map[i] == self.inverse_label_map[i] else -1) for i in self.source_triangulation.indices)
 	
 	def __str__(self):
-		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self(i)] for i in self.source_triangulation.indices])
+		return 'Isometry ' + str([self.target_triangulation.edge_lookup[self.label_map[i]] for i in self.source_triangulation.indices])
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.label_map))
 	def __len__(self):

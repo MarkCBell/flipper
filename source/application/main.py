@@ -215,6 +215,8 @@ class FlipperApplication(object):
 		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_INDEX, var=self.options.label_edges_var, font=app_font)
 		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_GEOMETRIC, var=self.options.label_edges_var, font=app_font)
 		self.edgelabelmenu.add_radiobutton(label=flipper.application.options.LABEL_EDGES_ALGEBRAIC, var=self.options.label_edges_var, font=app_font)
+		self.edgelabelmenu.add_separator()
+		self.edgelabelmenu.add_checkbutton(label='Projectivise', var=self.options.projectivise_var, font=app_font)
 		
 		self.laminationdrawmenu = TK.Menu(self.menubar, tearoff=0)
 		self.laminationdrawmenu.add_radiobutton(label=flipper.application.options.RENDER_LAMINATION_FULL, var=self.options.render_lamination_var, font=app_font)
@@ -1050,11 +1052,19 @@ class FlipperApplication(object):
 		
 		# How to label the edge with given index.
 		if self.options.label_edges == 'Index':
-			labels = dict((index, str(index)) for index in range(self.zeta))
+			labels = dict((index, index) for index in range(self.zeta))
 		elif self.options.label_edges == 'Geometric':
-			labels = dict((index, self.current_lamination.geometric[index]) for index in range(self.zeta))
+			labels = dict((index, self.current_lamination(index)) for index in range(self.zeta))
+			if self.options.projectivise:
+				total = sum(float(labels[index]) for index in range(self.zeta))
+				if total != 0:
+					labels = dict((index, float(labels[index]) / total) for index in range(self.zeta))
 		elif self.options.label_edges == 'Algebraic':
-			labels = dict((index, self.current_lamination.algebraic[index]) for index in range(self.zeta))
+			labels = dict((index, self.current_lamination[index]) for index in range(self.zeta))
+			if self.options.projectivise:
+				total = sum(float(labels[index]) for index in range(self.zeta))
+				if total != 0:
+					labels = dict((index, float(labels[index]) / total) for index in range(self.zeta))
 		elif self.options.label_edges == 'None':
 			labels = dict((index, '') for index in range(self.zeta))
 		else:

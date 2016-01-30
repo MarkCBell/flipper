@@ -214,7 +214,9 @@ class EquippedTriangulation(object):
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- For the equivalence used bundle ==> conjugacy ==> group. '''
+			- For the equivalence used bundle ==> conjugacy ==> group.
+			- Using multiple cores means all words must be store in memory simultaneously. This
+			    can require a LOT of memory. '''
 		
 		# Put the prefix into standard form.
 		if prefix is None:
@@ -272,6 +274,7 @@ class EquippedTriangulation(object):
 			temp_options['conjugacy'] = False
 			temp_options['bundle'] = False
 			temp_options['exact'] = True
+			temp_options['filter'] = None
 			if options['prefix_length'] <= length:
 				prefixes = [(self, length, leaf, node_options) for leaf in self.all_words_unjoined(options['prefix_length'], prefix, **temp_options)]
 			else:

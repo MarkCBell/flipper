@@ -3,9 +3,11 @@
 
 Provides one class: EquippedTriangulation. '''
 
+import cPickle
 from random import choice
 from itertools import product
 import re
+import multiprocessing
 
 import flipper
 
@@ -23,6 +25,13 @@ def generate_ordering(letters):
 	return lambda v, w: all(x in positions for x in v) and \
 		all(y in positions for y in v) and \
 		[len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
+
+# We need a helper function that can be pickled for multiprocessing.
+def helper(data):
+	surface, length, prefix, options = data
+	# We need to rebuild the ordering as this couldn't be passed through the pickle.
+	options['order'] = generate_ordering(options['letters'])
+	return list(surface.all_words_unjoined(length, prefix, **options))
 
 class EquippedTriangulation(object):
 	''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
@@ -111,14 +120,15 @@ class EquippedTriangulation(object):
 		# Commuting and braiding.
 		for a, b in product(letters, repeat=2):
 			A, B = a.swapcase(), b.swapcase()
-			for relator in [(a, b, A, B), (a, b, a, B, A, B)]:
-				if self.mapping_class('.'.join(relator)).is_identity():
-					j = len(relator) // 2
-					for k in range(len(relator)):  # Cycling.
-						ww = relator[k:] + relator[:k]
-						if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
-							if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
-								skip[ww[:j]] = inverse(ww[j:])
+			if A in letters and B in letters:
+				for relator in [(a, b, A, B), (a, b, a, B, A, B)]:
+					if self.mapping_class('.'.join(relator)).is_identity():
+						j = len(relator) // 2
+						for k in range(len(relator)):  # Cycling.
+							ww = relator[k:] + relator[:k]
+							if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
+								if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
+									skip[ww[:j]] = inverse(ww[j:])
 		
 		# Then do the actual search to the given relator_len.
 		temp_options = {
@@ -133,7 +143,7 @@ class EquippedTriangulation(object):
 			'filter': None
 			}
 		for i in range(1, length+1):
-			relators = [word for word in self.all_words_unjoined(i, **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
+			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
 			for j in range(i // 2, i+1):  # Slice length.
 				for relator in relators:
 					for k in range(i):  # Cycling.
@@ -144,20 +154,19 @@ class EquippedTriangulation(object):
 		
 		return skip
 	
-	def all_words_unjoined(self, length, prefix=None, **options):
+	def all_words_unjoined(self, length, prefix, **options):
 		''' Yield all words of given length.
 		
 		Users should not call directly but should use self.all_words(...) instead.
 		Assumes that various options have been set. '''
 		
-		if prefix is None: prefix = tuple()
 		order = options['order']
 		letters = options['letters']
 		skip = options['skip']
 		lp = len(prefix)
 		lp2 = lp + 1
 		
-		if not options['exact'] or length == 0:
+		if not options['exact'] or len(prefix) == length:
 			prefix_inv = inverse(prefix)
 			
 			good = True
@@ -169,7 +178,7 @@ class EquippedTriangulation(object):
 			if good:
 				yield prefix
 		
-		if length > 0:
+		if len(prefix) < length:
 			for letter in letters:
 				prefix2 = prefix + (letter,)
 				
@@ -178,7 +187,7 @@ class EquippedTriangulation(object):
 				if good and options['conjugacy'] and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
 				if good and options['prefilter'] is not None and not options['prefilter'](prefix): good = False
 				if good:
-					for word in self.all_words_unjoined(length-1, prefix2, **options):
+					for word in self.all_words_unjoined(length, prefix2, **options):
 						yield word
 		
 		return
@@ -193,57 +202,89 @@ class EquippedTriangulation(object):
 			- fibre class (~?).
 		
 		Valid options and their defaults:
-			group=True -- yield few words representing the same group element.
-			conjugacy=True -- yield few words representing the same conjugacy class.
-			bundle=True -- yield few words representing the same mapping torus.
+			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group','none'
 			exact=False -- skip words that do not have exactly the required length.
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
 			skip=None -- an iterable containing substrings that cannot appear.
 			relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
-			prefilter=None -- fliter the prefixes of words by this function.
-			filter=None -- fliter the words by this function.
+			prefilter=None -- filter the prefixes of words by this function.
+			filter=None -- filter the words by this function.
+			cores=None -- how many cores to use.
+			prefix_depth=3 -- depth to search for prefixes for other cores.
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- bundle ==> conjugacy ==> group. '''
+			- For the equivalence used bundle ==> conjugacy ==> group. '''
 		
-		prefix = tuple() if prefix is None else tuple(self.decompose_word(prefix))
+		# Put the prefix into standard form.
+		if prefix is None:
+			prefix = tuple()
+		if isinstance(prefix, flipper.StringType):
+			prefix = tuple(self.decompose_word(prefix))
+		else:
+			prefix = tuple(prefix)
 		
+		# Setup options:
 		default_options = {
-			'group': True,
-			'conjugacy': True,
-			'bundle': True,
+			'equivalence': 'bundle',
 			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
 			'exact': False,
 			'skip': None,
-			'relator_len': 2,  # 6 is also a good default as it gets all commutators and braids.
+			'relator_len': 2,  # 2 get equal generators, 4 gets commutators and 6 gets braids.
 			'prefilter': None,
-			'filter': None
+			'filter': None,
+			'cores': None,
+			'prefix_length': 3
 			}
 		
 		# Install any missing options with defaults.
 		for option in default_options:
 			if option not in options: options[option] = default_options[option]
 		
-		# Set implications. We use the contrapositive as these flags are set to True by default.
-		if not options['group']: options['conjugacy'] = False
-		if not options['conjugacy']: options['bundle'] = False
-		
-		# Build the ordering based on the letters given.
-		letters = options['letters']
-		options['order'] = generate_ordering(letters)
+		# Set implications. Possible values for options['equivalence'] are:
+		#  None, group, conjugacy, bundle
+		options['bundle'] = options['equivalence'] == 'bundle'
+		options['conjugacy'] = options['equivalence'] == 'conjugacy' or options['bundle']
+		options['group'] = options['equivalence'] == 'group' or options['conjugacy']
 		
 		# Build the list of substrings that must be avoided.
 		if options['skip'] is not None:
-			skip = set(options['skip'])
+			options['skip'] = set(options['skip'])
 		elif options['group']:
-			skip = self.generate_skip(options['relator_len'], letters)
+			options['skip'] = self.generate_skip(options['relator_len'], options['letters'])
 		else:
-			skip = set()
-		options['skip'] = skip
+			options['skip'] = set()
 		
-		for word in self.all_words_unjoined(length - len(prefix), prefix, **options):
-			yield '.'.join(word)
+		# We need to save a copy of the options at this point to pass to the nodes (if we
+		# are multiprocessing) as the order function we are about to build is anonymous
+		# and so it can't be Pickled.
+		node_options = dict(options)
+		
+		# Build the ordering based on the letters given.
+		options['order'] = generate_ordering(options['letters'])
+		
+		if options['cores'] is None:
+			# Just use the single core algorithm:
+			for word in self.all_words_unjoined(length, prefix, **options):
+				yield '.'.join(word)
+		else:
+			temp_options = dict(options)
+			temp_options['conjugacy'] = False
+			temp_options['bundle'] = False
+			temp_options['exact'] = True
+			if options['prefix_length'] <= length:
+				prefixes = [(self, length, leaf, node_options) for leaf in self.all_words_unjoined(options['prefix_length'], prefix, **temp_options)]
+			else:
+				prefixes = []
+			
+			P = multiprocessing.Pool(processes=options['cores'])
+			results = P.map(helper, prefixes)
+			P.close()
+			for word in self.all_words_unjoined(min(options['prefix_length']-1, length), prefix, **options):
+				yield '.'.join(word)
+			for result in results:
+				for word in result:
+					yield '.'.join(word)
 	
 	def decompose_word(self, word):
 		''' Return a list of mapping_classes keys whose concatenation is word and the keys are chosen greedly.

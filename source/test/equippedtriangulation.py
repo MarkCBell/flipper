@@ -7,7 +7,7 @@ def main(verbose=False):
 	
 	S = flipper.load('S_1_2')
 	
-	all_words = set(S.all_words(5, group=False))
+	all_words = set(S.all_words(5, equivalence='None'))
 	# There should be 8^5 + 8^4 + ... + 8^0 = 37449 words.
 	if verbose: print('Constructed %d words.' % len(all_words))
 	for _ in range(10):

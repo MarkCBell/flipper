@@ -360,14 +360,6 @@ class PolynomialRoot(object):
 	def __ge__(self, other):
 		return not (self < other)
 	
-	def square_free(self):
-		''' Return this PolynomialRoot but with a square free polynomial.
-		
-		This can be useful as Newton-Raphson works much better (and so
-		convergence happens much faster) for square-free polynomials. '''
-		
-		return PolynomialRoot(self.polynomial.square_free(), self.interval)
-	
 	def subdivide_iterate(self):
 		''' Return a subinterval of self.interval which contains a root of self.polynomial.
 		
@@ -442,6 +434,36 @@ class PolynomialRoot(object):
 		request_accuracy = target_accuracy
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
+	
+	def square_free_representation(self):
+		''' Return this PolynomialRoot but with a square free polynomial.
+		
+		This can be useful as Newton-Raphson works much better (and so
+		convergence happens much faster) for square-free polynomials. '''
+		
+		return PolynomialRoot(self.polynomial.square_free(), self.interval)
+	
+	def irreducible_representation(self):
+		''' Return this PolynomialRoot but with an irreducible polynomial.
+		
+		You can make this faster by ensuring that the polynomial is square
+		free first.'''
+		
+		Id = flipper.kernel.id_matrix(self.degree)
+		precision = int(self.height + 2*self.degree) + 1
+		while True:
+			k = 10**precision
+			I = self.interval_approximation(precision)
+			M = Id.join(flipper.kernel.Matrix([[int(k * I**i) for i in range(self.degree)]])).transpose()
+			N = M.LLL()  # This is really slow :(.
+			f = flipper.kernel.Polynomial(N[0][:-1])
+			if self in f.real_roots():
+				return PolynomialRoot(f, I)
+			else:
+				# This should never happen if we chose precision correctly.
+				# However Cohen described this choice as `subtle' so let's be
+				# careful and repeat the calculation if we got the wrong answer.
+				precision = 2 * precision
 
 def create_polynomial_root(coefficients, strn):
 	''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''

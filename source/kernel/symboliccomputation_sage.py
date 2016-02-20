@@ -54,6 +54,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
 	M = Matrix(action_matrix.rows)
 	# Only bother checking the real, stable eigenspaces.
 	eigenvalues = [eigenvalue for eigenvalue in M.eigenvalues() if eigenvalue.imag() == 0 and eigenvalue > 1]
+	
 	# We have to check ALL eigenspaces. So we do it in order of decreasing real part.
 	for eigenvalue in sorted(eigenvalues, reverse=True, key=lambda z: complex(z).real):
 		[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()

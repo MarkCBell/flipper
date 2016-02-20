@@ -99,10 +99,14 @@ BIT_SHIFT = 0x001
 # BIT_MB_2 = 0x200
 # BIT_MB_3 = 0x400
 
+# Vectors to offset a label by to produce backing.
+OFFSETS = [(1.5*cos(2 * pi * i / 12), 1.5*sin(2 * pi * i / 12)) for i in range(12)]
+
+# Colours of things.
 DEFAULT_EDGE_LABEL_COLOUR = 'black'
+DEFAULT_EDGE_LABEL_BG_COLOUR = 'white'
 DEFAULT_SELECTED_COLOUR = 'red'
 MAX_DRAWABLE = 1000  # Maximum weight of a multicurve to draw fully.
-
 
 def dot(a, b):
 	return a[0] * b[0] + a[1] * b[1]
@@ -1071,6 +1075,19 @@ class FlipperApplication(object):
 			raise ValueError()
 		
 		for edge in self.edges:
+			# We start by creating a nice background for the label. This ensures
+			# that it is always readable, even when on top of a lamination.
+			# To do this we first draw this label in a different colour with
+			# slightly different offsets. This creates a nice 'bubble' effect
+			# rather than having to draw a large bounding box.
+			for offset in OFFSETS:
+				self.canvas.create_text(
+					[a+x for a, x in zip(edge.centre(), offset)],
+					text=labels[edge.index],
+					tag='edge_label',
+					font=self.options.canvas_font,
+					fill=DEFAULT_EDGE_LABEL_BG_COLOUR)
+			
 			self.canvas.create_text(edge.centre(),
 				text=labels[edge.index],
 				tag='edge_label',

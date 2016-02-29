@@ -75,6 +75,79 @@ class EquippedTriangulation(object):
 		
 		self.zeta = self.triangulation.zeta
 	
+	@classmethod
+	def from_tuple(cls, objects):
+		
+		''' Create an EquippedTriangulation from a list of triangulations, laminations and mapping classes.
+		
+		Objects must be a non-empty list where each item is:
+			1) an triangulation (at most one may be given),
+			2) a Lamination,
+			3) an Encoding,
+			4) a pair (String, Lamination),
+			5) a pair (String, Encoding).
+		
+		All laminations / mapping classes must be defined on the same triangulation
+		We will automatically name items of type 2) and 3) sequentially:
+			a, b, ..., z, aa, ab, ... . '''
+		
+		triangulation = None
+		laminations, mapping_classes = {}, {}
+		unnamed_laminations, unnamed_mapping_classes = [], []
+		for item in objects:
+			if isinstance(item, flipper.kernel.Triangulation):
+				if triangulation is None:
+					triangulation = item
+				else:
+					if item != triangulation:
+						raise ValueError('Only one triangulation may be given.')
+			elif isinstance(item, flipper.kernel.Lamination):
+				unnamed_laminations.append(item)
+			elif isinstance(item, flipper.kernel.Encoding):
+				unnamed_mapping_classes.append(item)
+			elif isinstance(item, (list, tuple)) and len(item) == 2:
+				name, item2 = item
+				if isinstance(name, flipper.StringType):
+					if isinstance(item2, flipper.kernel.Lamination):
+						if name not in laminations:
+							laminations[name] = item2
+						else:
+							raise ValueError('Laminations with identical names.')
+					elif isinstance(item2, flipper.kernel.Encoding):
+						if name not in mapping_classes:
+							mapping_classes[name] = item2
+						else:
+							raise ValueError('Encodings with identical names.')
+					else:
+						raise ValueError('Each item given must be a Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+				else:
+					raise ValueError('Item must be named by a string.')
+			else:
+				raise ValueError('Each item given must be: Triangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
+		
+		for name, lamination in flipper.kernel.utilities.name_objects(unnamed_laminations, laminations):
+			laminations[name] = lamination
+		
+		for name, encoding in flipper.kernel.utilities.name_objects(unnamed_mapping_classes, mapping_classes):
+			mapping_classes[name] = encoding
+		
+		if triangulation is None:
+			if len(laminations) > 0:
+				triangulation = list(laminations.values())[0].triangulation
+			elif len(mapping_classes) > 0:
+				triangulation = list(mapping_classes.values())[0].source_triangulation
+			else:
+				raise ValueError('A triangulation, Lamination or Encoding must be given.')
+		
+		if any(laminations[name].triangulation != triangulation for name in laminations):
+			raise ValueError('All laminations must be on the same triangulation.')
+		if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
+			raise ValueError('All mapping classes must go from the same triangulation.')
+		if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
+			raise ValueError('All mapping classes must go to the same triangulation.')
+		
+		return cls(triangulation, laminations, mapping_classes)
+	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
@@ -365,77 +438,4 @@ class EquippedTriangulation(object):
 		# This can fail with a TypeError.
 		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
 		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding(), left=False)
-
-
-def create_equipped_triangulation(objects):
-	
-	''' Create an EquippedTriangulation from a list of triangulations, laminations and mapping classes.
-	
-	Objects must be a non-empty list where each item is:
-		1) an triangulation (at most one may be given),
-		2) a Lamination,
-		3) an Encoding,
-		4) a pair (String, Lamination),
-		5) a pair (String, Encoding).
-	
-	All laminations / mapping classes must be defined on the same triangulation
-	We will automatically name items of type 2) and 3) sequentially:
-		a, b, ..., z, aa, ab, ... . '''
-	
-	triangulation = None
-	laminations, mapping_classes = {}, {}
-	unnamed_laminations, unnamed_mapping_classes = [], []
-	for item in objects:
-		if isinstance(item, flipper.kernel.Triangulation):
-			if triangulation is None:
-				triangulation = item
-			else:
-				if item != triangulation:
-					raise ValueError('Only one triangulation may be given.')
-		elif isinstance(item, flipper.kernel.Lamination):
-			unnamed_laminations.append(item)
-		elif isinstance(item, flipper.kernel.Encoding):
-			unnamed_mapping_classes.append(item)
-		elif isinstance(item, (list, tuple)) and len(item) == 2:
-			name, item2 = item
-			if isinstance(name, flipper.StringType):
-				if isinstance(item2, flipper.kernel.Lamination):
-					if name not in laminations:
-						laminations[name] = item2
-					else:
-						raise ValueError('Laminations with identical names.')
-				elif isinstance(item2, flipper.kernel.Encoding):
-					if name not in mapping_classes:
-						mapping_classes[name] = item2
-					else:
-						raise ValueError('Encodings with identical names.')
-				else:
-					raise ValueError('Each item given must be a Lamination, Encoding, (String, Lamination) or (String, Encoding).')
-			else:
-				raise ValueError('Item must be named by a string.')
-		else:
-			raise ValueError('Each item given must be: Triangulation, Lamination, Encoding, (String, Lamination) or (String, Encoding).')
-	
-	for name, lamination in flipper.kernel.utilities.name_objects(unnamed_laminations, laminations):
-		laminations[name] = lamination
-	
-	for name, encoding in flipper.kernel.utilities.name_objects(unnamed_mapping_classes, mapping_classes):
-		mapping_classes[name] = encoding
-	
-	if triangulation is None:
-		if len(laminations) > 0:
-			triangulation = list(laminations.values())[0].triangulation
-		elif len(mapping_classes) > 0:
-			triangulation = list(mapping_classes.values())[0].source_triangulation
-		else:
-			raise ValueError('A triangulation, Lamination or Encoding must be given.')
-	
-	if any(laminations[name].triangulation != triangulation for name in laminations):
-		raise ValueError('All laminations must be on the same triangulation.')
-	if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
-		raise ValueError('All mapping classes must go from the same triangulation.')
-	if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
-		raise ValueError('All mapping classes must go to the same triangulation.')
-	
-	return flipper.kernel.EquippedTriangulation(triangulation, laminations, mapping_classes)
 

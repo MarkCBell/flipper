@@ -1,9 +1,7 @@
 
 ''' A module for representing and manipulating intervals.
 
-Provides one class: Interval.
-
-There is also a helper function: create_interval. '''
+Provides one class: Interval. '''
 
 import flipper
 
@@ -30,12 +28,12 @@ INFTY = float('inf')
 class Interval(object):
 	''' This represents a closed interval [lower / 10**precision, upper / 10**precision].
 	
-	>>> w = create_interval('0.10')
-	>>> x = create_interval('10000.0')
-	>>> y = create_interval('1.14571')
-	>>> z = create_interval('1.00000')
-	>>> a = create_interval('-1.200000')
-	>>> b = create_interval('1.4142135623')
+	>>> w = Interval.from_string('0.10')
+	>>> x = Interval.from_string('10000.0')
+	>>> y = Interval.from_string('1.14571')
+	>>> z = Interval.from_string('1.00000')
+	>>> a = Interval.from_string('-1.200000')
+	>>> b = Interval.from_string('1.4142135623')
 	>>> a
 	-1.2001?
 	'''
@@ -51,7 +49,14 @@ class Interval(object):
 		# The width of this interval is at most 10^-self.accuracy.
 		# That is, this interval defines a number correct to self.accuracy decimal places.
 		self.accuracy = INFTY if self.upper == self.lower else self.precision - int(ceil(log(self.upper - self.lower)))
+	
+	@classmethod
+	def from_string(cls, string):
+		''' A short way of constructing Intervals from a string. '''
 		
+		i, r = string.split('.') if '.' in string else (string, '')
+		x = int(i + r)
+		return cls(x-1, x+1, len(r))
 	
 	def __repr__(self):
 		return str(self)
@@ -254,24 +259,15 @@ class Interval(object):
 		
 		return flipper.kernel.Polynomial(M.LLL()[0][:-1])
 
-#### Some special Intervals we know how to build.
-
-def create_interval(string):
-	''' A short way of constructing Intervals from a string. '''
-	
-	i, r = string.split('.') if '.' in string else (string, '')
-	x = int(i + r)
-	return Interval(x-1, x+1, len(r))
-
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''
 	
-	w = create_interval('0.10')
-	x = create_interval('10000.0')
-	y = create_interval('1.14571')
-	z = create_interval('1.00000')
-	a = create_interval('-1.200000')
-	b = create_interval('1.4142135623')
+	w = Interval.from_string('0.10')
+	x = Interval.from_string('10000.0')
+	y = Interval.from_string('1.14571')
+	z = Interval.from_string('1.00000')
+	a = Interval.from_string('-1.200000')
+	b = Interval.from_string('1.4142135623')
 	
 	return {'w': w, 'x': x, 'y': y, 'z': z, 'a': a, 'b': b}
 

@@ -1,9 +1,7 @@
 
 ''' A module for representing and manipulating elements of number fields.
 
-Provides two classes: NumberField and NumberFieldElement.
-
-There is also a helper function: create_number_field. '''
+Provides two classes: NumberField and NumberFieldElement. '''
 
 # This provides us with a way of storing and manipulating elements of QQ(lambda),
 # where lambda is an algebraic integer (however technically this can currently only actually
@@ -36,7 +34,7 @@ class NumberField(object):
 	The given PolynomialRoot must be a monic polynomial. '''
 	def __init__(self, polynomial_root=None):
 		assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
-		if polynomial_root is None: polynomial_root = flipper.kernel.create_polynomial_root([-1, 1], '1.00')
+		if polynomial_root is None: polynomial_root = flipper.kernel.PolynomialRoot.from_tuple([-1, 1], '1.00')
 		assert(polynomial_root.polynomial.is_monic())
 		
 		self.polynomial_root = polynomial_root
@@ -55,6 +53,12 @@ class NumberField(object):
 		
 		self.one = self.element([1])
 		self.lmbda = self.element([1]) if self.is_rationals() else self.element([0, 1])  # lambda is a Python keyword.
+	
+	@classmethod
+	def from_tuple(cls, coefficients, string):
+		''' A short way of constructing a NumberField from a list of coefficients and a string. '''
+		
+		return cls(flipper.kernel.PolynomialRoot.from_tuple(coefficients, string))
 	
 	def lmbda_approximations(self, accuracy):
 		''' Return intervals approximating lmbda^0, ..., lmbda^(degree-1) to the given accuracy.
@@ -351,9 +355,4 @@ class NumberFieldElement(object):
 		request_accuracy = target_accuracy
 		
 		return flipper.kernel.AlgebraicApproximation(self.interval_approximation(request_accuracy), self.log_degree, self.height)
-
-def create_number_field(coefficients, strn):
-	''' A short way of constructing a NumberField from a list of coefficients and a string. '''
-	
-	return flipper.kernel.NumberField(flipper.kernel.create_polynomial_root(coefficients, strn))
 

@@ -1,9 +1,7 @@
 
 ''' A module for representing and manipulating polynomials and their roots.
 
-Provides two classes: Polynomial and PolynomialRoot.
-
-There is also a helper function: create_polynomial_root. '''
+Provides two classes: Polynomial and PolynomialRoot. '''
 
 import flipper
 
@@ -318,6 +316,12 @@ class PolynomialRoot(object):
 		if self.polynomial.num_roots(self.interval) != 1:
 			raise flipper.ApproximationError('Interval contains %d roots, not one.' % self.polynomial.num_roots(self.interval))
 	
+	@classmethod
+	def from_tuple(cls, coefficients, string):
+		''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''
+		
+		return cls(Polynomial(coefficients), flipper.kernel.Interval.from_string(string))
+	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
@@ -464,9 +468,4 @@ class PolynomialRoot(object):
 				# However Cohen described this choice as `subtle' so let's be
 				# careful and repeat the calculation if we got the wrong answer.
 				precision = 2 * precision
-
-def create_polynomial_root(coefficients, strn):
-	''' A short way of constructing PolynomialRoots from a list of coefficients and a string. '''
-	
-	return flipper.kernel.PolynomialRoot(flipper.kernel.Polynomial(coefficients), flipper.kernel.create_interval(strn))
 

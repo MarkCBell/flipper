@@ -68,7 +68,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
 			
 			eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
 			d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1
-			N = flipper.kernel.create_number_field(eigenvalue_coefficients, approximate(eigenvalue, 2*d + 1))
+			N = flipper.kernel.NumberField.from_tuple(eigenvalue_coefficients, approximate(eigenvalue, 2*d + 1))
 			flipper_ev, flipper_eigenvector = N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
 			
 			# We can't rely on Sage to check this lies in the cone as for elements of NumberFields:

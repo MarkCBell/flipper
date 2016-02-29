@@ -5,9 +5,7 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
 	An Edge is an ordered pair of Vertices.
 	An Triangle is an ordered triple of Edges.
 	A Corner is a Triangle with a chosen side.
-	An Triangulation is a collection of Triangles.
-
-There is also a helper function: create_triangulation. '''
+	An Triangulation is a collection of Triangles. '''
 
 import flipper
 
@@ -274,6 +272,234 @@ class Triangulation(object):
 		
 		# Two triangualtions are the same if and only if they have the same signature.
 		self.signature = [e.label for t in self for e in t]
+	
+	@classmethod
+	def from_tuple(cls, edge_labels, vertex_labels=None, vertex_states=None):
+		''' Return an Triangulation from a list of triples of edge labels.
+		
+		Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient
+		and edge e of T and assign an index i(e) in 0, ..., zeta-1. Now to each
+		triangle t of T associate the triple j)t) := (j(e_1), j(e_2), j(e_3)) where:
+			- e_1, e_2, e_3 are the edges of t, ordered acording to the orientation of t, and
+			- j(e) = {  i(e) if the orientation of e agrees with that of t, and
+					 { ~i(e) otherwise.
+				Here ~x := -1 - x, the two's complement of x.
+		
+		We may describe T by the list [j(t) for t in T]. This function reconstructs
+		T from such a list.
+		
+		edge_labels must be a list of triples of integers and each of
+		0, ..., zeta-1, ~0, ..., ~(zeta-1) must occur exactly once.
+		
+		Two optional arguments allow the states of vertices to be specified. These
+		are intended to only really be used by pickling methods.
+		
+		Firstly, if given, vertex_labels is a dictionary taking x to the label of the
+		vertex opposite edge x. Vertices can be labelled by anything but using something
+		like 0, ..., num_vertices-1 is sensible.
+		
+		Secondly, if given, vertex_states is a dict, list or tuple of Boolean flags such that
+		the vertex labelled i is filled iff vertex_states[i] == True. '''
+		
+		assert(isinstance(edge_labels, (list, tuple)))
+		assert(all(isinstance(labels, (list, tuple)) for labels in edge_labels))
+		assert(all(len(labels) == 3 for labels in edge_labels))
+		assert(vertex_labels is None or isinstance(vertex_labels, dict))
+		assert(vertex_states is None or isinstance(vertex_states, (list, tuple, dict)))
+		assert(len(edge_labels) > 0)
+		
+		zeta = len(edge_labels) * 3 // 2
+		
+		# Check that each of 0, ..., zeta-1, ~0, ..., ~(zeta-1) occurs exactly once.
+		flattened = [label for labels in edge_labels for label in labels]
+		for i in range(zeta):
+			if i not in flattened:
+				raise TypeError('Missing label %d' % i)
+			if ~i not in flattened:
+				raise TypeError('Missing label ~%d' % i)
+		
+		def finder(edge_label):
+			''' Return the label and position of the given edge_label. '''
+			
+			for labels in edge_labels:
+				for i in range(3):
+					if labels[i] == edge_label:
+						return (labels, i)
+			raise flipper.FatalError('Label now missing.')
+		
+		def rotate(edge_label):
+			''' Return the edge label one click round from edge_label. '''
+			
+			label, i = finder(edge_label)
+			return label[(i+1) % 3]
+		
+		# Group the edges into vertex classes. Here two edges are in the same
+		# class iff they have the same tail.
+		unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
+		vertex_classes = []
+		while unused:
+			new_vertex = [unused.pop()]
+			while True:
+				label, i = finder(new_vertex[-1])
+				neighbour = ~label[(i+2) % 3]
+				if neighbour in unused:
+					new_vertex.append(neighbour)
+					unused.remove(neighbour)
+				else:
+					break
+			
+			vertex_classes.append(new_vertex)
+		
+		num_vertices = len(vertex_classes)
+		
+		# Build the vertex_labels if not given.
+		if vertex_labels is None:
+			vertex_labels = dict()
+			# We will label the vertices 0, ..., num_vertices-1 in some order.
+			for index, vertex_class in enumerate(vertex_classes):
+				for edge_label in vertex_class:
+					vertex_labels[rotate(edge_label)] = index
+		
+		# Sanity check vertex_labels now.
+		# All edges should have a label.
+		# Edges should have the same label iff they are opposite the same vertex.
+		
+		for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:
+			if edge_label not in vertex_labels:
+				raise TypeError('Missing vertex label for edge %d.' % edge_label)
+		
+		for vertex_class in vertex_classes:
+			for edge_label in vertex_class:
+				if vertex_labels[rotate(edge_label)] != vertex_labels[rotate(vertex_class[0])]:
+					raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate(edge_label), rotate(vertex_class[0])))
+		
+		X = set(vertex_labels.values())
+		# Check we have the right number of labels. This also checks that distinct vertex_classes have distinct labels.
+		if len(X) != num_vertices:
+			raise TypeError('There are %d vertices but %d vertex labels were given.' % (num_vertices, len(X)))
+		
+		# Build the vertex_states if not given.
+		if vertex_states is None:
+			vertex_states = {label: False for label in X}
+		
+		# Check we have a state for each vertex.
+		for label in X:
+			if label not in vertex_states:
+				raise TypeError('No state given for vertex %s.' % label)
+		
+		# Build the vertices.
+		vertices = [Vertex(label, filled=vertex_states[label]) for label in X]
+		
+		def vertexer(edge_label):
+			''' Return the vertex at the tail of the given edge label. '''
+			
+			return vertices[vertex_labels[rotate(edge_label)]]
+		
+		# Build the Edges.
+		edges_map = dict((i, Edge(vertexer(i), vertexer(~i), i)) for i in range(zeta))
+		for i in range(zeta):
+			edges_map[~i] = ~edges_map[i]
+		
+		triangles = [Triangle([edges_map[label] for label in labels]) for labels in edge_labels]
+		
+		return cls(triangles)
+	
+	@classmethod
+	def from_string(cls, signature):
+		''' Return the triangulation described by the given isomorphism signature.
+		
+		See the appendix of:
+			Simplification paths in the Pachner graphs of closed orientable
+			3-manifold triangulations
+		for a more detailed description of this construction. '''
+		
+		# We will specialise this function for loading isomorphism signatures
+		# of closed 2--manifolds only. This will enable us to remove a lot of
+		# variables and simplify proceedings.
+		
+		assert(isinstance(signature, flipper.StringType))
+		
+		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
+		char_lookup = dict((letter, index) for index, letter in enumerate(char))
+		perm_lookup = flipper.kernel.permutation.all_permutations(3)
+		
+		def debase(digits, base=64):
+			''' Return the decimal corresponding to a base64 sequence of digits. '''
+			
+			return sum(digit * base**index for index, digit in enumerate(digits))
+		
+		try:
+			values = [char_lookup[letter] for letter in signature]
+		except KeyError:
+			raise ValueError('Signature must be a string matching [a-zA-Z0-9+-]*')
+		
+		if values[0] < 63:
+			num_chars = 1
+			num_tri = values[0]
+			start = 1
+		else:
+			num_chars = values[1]  # This must be > 1.
+			num_tri = debase(values[1:num_chars])
+			start = 1 + num_chars
+		
+		if num_chars == 0:
+			raise ValueError('Signature must specify a character length > 0.')
+			
+		if num_tri == 0:
+			raise ValueError('Signature must specify at least one triangle.')
+		
+		start2 = start + num_tri // 2  # Type sequence is [start:start2].
+		start3 = start2 + num_chars * (1 + num_tri // 2)  # Destination sequence is [start2:start3].
+		start4 = start3 + (1 + num_tri // 2)  # Permutation sequence is [start3:start4].
+		if start4 != len(values):
+			raise ValueError('Signature must specify permutations for each triangle.')
+		
+		type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
+		destination_sequence = [debase(values[i:i+num_chars]) for i in range(start2, start3, num_chars)]
+		permutation_sequence = [perm_lookup[value] for value in values[start3:start4]]
+		
+		zeta = 0
+		num_tri_used = 1
+		type_index, destination_index, permutation_index = 0, 0, 0
+		edge_labels = [[None, None, None] for _ in range(num_tri)]
+		triangle_reversed = [None] * num_tri
+		triangle_reversed[0] = False
+		for i in range(num_tri):
+			for j in range(3):
+				if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
+					try:
+						if type_sequence[type_index] == 0:
+							# We cannot yet handle triangulations with boundary.
+							raise ValueError('Triangulations must be closed and so gluing must not be type 0.')
+						elif type_sequence[type_index] == 1:
+							target, gluing = num_tri_used, perm_lookup[0]
+							triangle_reversed[target] = not triangle_reversed[i]
+							
+							num_tri_used += 1
+						elif type_sequence[type_index] == 2:
+							target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
+							
+							destination_index += 1
+							permutation_index += 1
+						else:
+							raise ValueError('Each gluing must be type 0, 1 or 2.')
+					except IndexError:
+						raise ValueError('String does not correspond to a isomorphism signature.')
+					type_index += 1
+					
+					edge_labels[i][j] = zeta
+					edge_labels[target][gluing(j)] = ~zeta
+					zeta += 1
+		
+		if num_tri_used != num_tri:
+			raise ValueError('Unused triangles. String does not correspond to a isomorphism signature.')
+		# Check there are no unglued edges.
+		if not all(all(entry is not None for entry in row) for row in edge_labels):
+			raise ValueError('Unused edges. String does not correspond to a isomorphism signature.')
+		
+		edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_tri)]
+		
+		return cls.from_tuple(edge_labels)
 	
 	def __repr__(self):
 		return str(self)
@@ -1102,235 +1328,4 @@ class Triangulation(object):
 			components.append(list(component))
 		
 		return components
-
-
-#######################################################
-#### Some helper functions for building triangulations.
-
-def create_triangulation(edge_labels, vertex_labels=None, vertex_states=None):
-	''' Return an Triangulation from a list of triples of edge labels.
-	
-	Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient
-	and edge e of T and assign an index i(e) in 0, ..., zeta-1. Now to each
-	triangle t of T associate the triple j)t) := (j(e_1), j(e_2), j(e_3)) where:
-		- e_1, e_2, e_3 are the edges of t, ordered acording to the orientation of t, and
-		- j(e) = {  i(e) if the orientation of e agrees with that of t, and
-		         { ~i(e) otherwise.
-		    Here ~x := -1 - x, the two's complement of x.
-	
-	We may describe T by the list [j(t) for t in T]. This function reconstructs
-	T from such a list.
-	
-	edge_labels must be a list of triples of integers and each of
-	0, ..., zeta-1, ~0, ..., ~(zeta-1) must occur exactly once.
-	
-	Two optional arguments allow the states of vertices to be specified. These
-	are intended to only really be used by pickling methods.
-	
-	Firstly, if given, vertex_labels is a dictionary taking x to the label of the
-	vertex opposite edge x. Vertices can be labelled by anything but using something
-	like 0, ..., num_vertices-1 is sensible.
-	
-	Secondly, if given, vertex_states is a dict, list or tuple of Boolean flags such that
-	the vertex labelled i is filled iff vertex_states[i] == True. '''
-	
-	assert(isinstance(edge_labels, (list, tuple)))
-	assert(all(isinstance(labels, (list, tuple)) for labels in edge_labels))
-	assert(all(len(labels) == 3 for labels in edge_labels))
-	assert(vertex_labels is None or isinstance(vertex_labels, dict))
-	assert(vertex_states is None or isinstance(vertex_states, (list, tuple, dict)))
-	assert(len(edge_labels) > 0)
-	
-	zeta = len(edge_labels) * 3 // 2
-	
-	# Check that each of 0, ..., zeta-1, ~0, ..., ~(zeta-1) occurs exactly once.
-	flattened = [label for labels in edge_labels for label in labels]
-	for i in range(zeta):
-		if i not in flattened:
-			raise TypeError('Missing label %d' % i)
-		if ~i not in flattened:
-			raise TypeError('Missing label ~%d' % i)
-	
-	def finder(edge_label):
-		''' Return the label and position of the given edge_label. '''
-		
-		for labels in edge_labels:
-			for i in range(3):
-				if labels[i] == edge_label:
-					return (labels, i)
-		raise flipper.FatalError('Label now missing.')
-	
-	def rotate(edge_label):
-		''' Return the edge label one click round from edge_label. '''
-		
-		label, i = finder(edge_label)
-		return label[(i+1) % 3]
-	
-	# Group the edges into vertex classes. Here two edges are in the same
-	# class iff they have the same tail.
-	unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
-	vertex_classes = []
-	while unused:
-		new_vertex = [unused.pop()]
-		while True:
-			label, i = finder(new_vertex[-1])
-			neighbour = ~label[(i+2) % 3]
-			if neighbour in unused:
-				new_vertex.append(neighbour)
-				unused.remove(neighbour)
-			else:
-				break
-		
-		vertex_classes.append(new_vertex)
-	
-	num_vertices = len(vertex_classes)
-	
-	# Build the vertex_labels if not given.
-	if vertex_labels is None:
-		vertex_labels = dict()
-		# We will label the vertices 0, ..., num_vertices-1 in some order.
-		for index, vertex_class in enumerate(vertex_classes):
-			for edge_label in vertex_class:
-				vertex_labels[rotate(edge_label)] = index
-	
-	# Sanity check vertex_labels now.
-	# All edges should have a label.
-	# Edges should have the same label iff they are opposite the same vertex.
-	
-	for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:
-		if edge_label not in vertex_labels:
-			raise TypeError('Missing vertex label for edge %d.' % edge_label)
-	
-	for vertex_class in vertex_classes:
-		for edge_label in vertex_class:
-			if vertex_labels[rotate(edge_label)] != vertex_labels[rotate(vertex_class[0])]:
-				raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate(edge_label), rotate(vertex_class[0])))
-	
-	X = set(vertex_labels.values())
-	# Check we have the right number of labels. This also checks that distinct vertex_classes have distinct labels.
-	if len(X) != num_vertices:
-		raise TypeError('There are %d vertices but %d vertex labels were given.' % (num_vertices, len(X)))
-	
-	# Build the vertex_states if not given.
-	if vertex_states is None:
-		vertex_states = {label: False for label in X}
-	
-	# Check we have a state for each vertex.
-	for label in X:
-		if label not in vertex_states:
-			raise TypeError('No state given for vertex %s.' % label)
-	
-	# Build the vertices.
-	vertices = [Vertex(label, filled=vertex_states[label]) for label in X]
-	
-	def vertexer(edge_label):
-		''' Return the vertex at the tail of the given edge label. '''
-		
-		return vertices[vertex_labels[rotate(edge_label)]]
-	
-	# Build the Edges.
-	edges_map = dict((i, Edge(vertexer(i), vertexer(~i), i)) for i in range(zeta))
-	for i in range(zeta):
-		edges_map[~i] = ~edges_map[i]
-	
-	triangles = [Triangle([edges_map[label] for label in labels]) for labels in edge_labels]
-	
-	return Triangulation(triangles)
-
-
-def triangulation_from_iso_sig(signature):
-	''' Return the triangulation described by the given isomorphism signature.
-	
-	See the appendix of:
-		Simplification paths in the Pachner graphs of closed orientable
-		3-manifold triangulations
-	for a more detailed description of this construction. '''
-	
-	# We will specialise this function for loading isomorphism signatures
-	# of closed 2--manifolds only. This will enable us to remove a lot of
-	# variables and simplify proceedings.
-	
-	assert(isinstance(signature, flipper.StringType))
-	
-	char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
-	char_lookup = dict((letter, index) for index, letter in enumerate(char))
-	perm_lookup = flipper.kernel.permutation.all_permutations(3)
-	
-	def debase(digits, base=64):
-		''' Return the decimal corresponding to a base64 sequence of digits. '''
-		
-		return sum(digit * base**index for index, digit in enumerate(digits))
-	
-	try:
-		values = [char_lookup[letter] for letter in signature]
-	except KeyError:
-		raise ValueError('Signature must be a string matching [a-zA-Z0-9+-]*')
-	
-	if values[0] < 63:
-		num_chars = 1
-		num_tri = values[0]
-		start = 1
-	else:
-		num_chars = values[1]  # This must be > 1.
-		num_tri = debase(values[1:num_chars])
-		start = 1 + num_chars
-	
-	if num_chars == 0:
-		raise ValueError('Signature must specify a character length > 0.')
-		
-	if num_tri == 0:
-		raise ValueError('Signature must specify at least one triangle.')
-	
-	start2 = start + num_tri // 2  # Type sequence is [start:start2].
-	start3 = start2 + num_chars * (1 + num_tri // 2)  # Destination sequence is [start2:start3].
-	start4 = start3 + (1 + num_tri // 2)  # Permutation sequence is [start3:start4].
-	if start4 != len(values):
-		raise ValueError('Signature must specify permutations for each triangle.')
-	
-	type_sequence = [t for value in values[start:start2] for t in [value % 4, (value // 4) % 4, (value // 16) % 4]]
-	destination_sequence = [debase(values[i:i+num_chars]) for i in range(start2, start3, num_chars)]
-	permutation_sequence = [perm_lookup[value] for value in values[start3:start4]]
-	
-	zeta = 0
-	num_tri_used = 1
-	type_index, destination_index, permutation_index = 0, 0, 0
-	edge_labels = [[None, None, None] for _ in range(num_tri)]
-	triangle_reversed = [None] * num_tri
-	triangle_reversed[0] = False
-	for i in range(num_tri):
-		for j in range(3):
-			if edge_labels[i][j] is None:  # Otherwise we have filled in this entry from the other side.
-				try:
-					if type_sequence[type_index] == 0:
-						# We cannot yet handle triangulations with boundary.
-						raise ValueError('Triangulations must be closed and so gluing must not be type 0.')
-					elif type_sequence[type_index] == 1:
-						target, gluing = num_tri_used, perm_lookup[0]
-						triangle_reversed[target] = not triangle_reversed[i]
-						
-						num_tri_used += 1
-					elif type_sequence[type_index] == 2:
-						target, gluing = destination_sequence[destination_index], permutation_sequence[permutation_index]
-						
-						destination_index += 1
-						permutation_index += 1
-					else:
-						raise ValueError('Each gluing must be type 0, 1 or 2.')
-				except IndexError:
-					raise ValueError('String does not correspond to a isomorphism signature.')
-				type_index += 1
-				
-				edge_labels[i][j] = zeta
-				edge_labels[target][gluing(j)] = ~zeta
-				zeta += 1
-	
-	if num_tri_used != num_tri:
-		raise ValueError('Unused triangles. String does not correspond to a isomorphism signature.')
-	# Check there are no unglued edges.
-	if not all(all(entry is not None for entry in row) for row in edge_labels):
-		raise ValueError('Unused edges. String does not correspond to a isomorphism signature.')
-	
-	edge_labels = [edge_labels[i] if triangle_reversed[i] else edge_labels[i][::-1] for i in range(num_tri)]
-	
-	return create_triangulation(edge_labels)
 

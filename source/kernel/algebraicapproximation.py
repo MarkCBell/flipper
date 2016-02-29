@@ -1,9 +1,7 @@
 
 ''' A module for representing approximations of real algebraic numbers.
 
-Provides two classes: AlgebraicApproximation.
-
-There is also a helper function: create_algebraic_approximation. '''
+Provides one class: AlgebraicApproximation. '''
 
 # Suppose that f(x) = a_n x^n + ... + a_0 \in ZZ[x] is a (not necessarily irreducible) polynomial with a_n != 0. We define
 # h(f) := log(max(|a_n|)) to be its height and deg(f) := n to be its degree.
@@ -42,14 +40,13 @@ class AlgebraicApproximation(object):
 	and height bounds, to uniquely determine the algebraic number then
 	an ApproximationError will be raised.
 	
-	>>> import flipper
-	>>> I = flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
+	>>> I = AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
 	>>> I
 	1.414213?
-	>>> J = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
-	>>> J
-	1.414213?
-	>>> flipper.kernel.create_algebraic_approximation('1.41', 2, 2)  # doctest: +ELLIPSIS
+	>>> J = AlgebraicApproximation.from_tuple('1.41421356', 2, 2)
+	>>> I == J
+	True
+	>>> AlgebraicApproximation.from_tuple('1.41', 2, 2)  # doctest: +ELLIPSIS
 	Traceback (most recent call last):
 	    ...
 	ApproximationError: ...
@@ -66,6 +63,12 @@ class AlgebraicApproximation(object):
 		# than its accuracy needed. That is if self.interval.accuracy >= self.accuracy_needed.
 		if self.accuracy < self.accuracy_needed:
 			raise flipper.kernel.ApproximationError('An algebraic number with log(degree) at most %0.3f and height at most %0.3f requires an interval with accuracy at least %0.3f, not %d.' % (self.log_degree, self.height, self.accuracy_needed, self.accuracy))
+	
+	@classmethod
+	def from_tuple(cls, string, degree, height):
+		''' A short way of constructing AlgebraicApproximations from a string and degree and height bounds. '''
+		
+		return cls(flipper.kernel.Interval.from_string(string), log(max(degree, 1)), height)
 	
 	def __repr__(self):
 		return str(self)
@@ -197,19 +200,11 @@ class AlgebraicApproximation(object):
 	def __ge__(self, other):
 		return not (self < other)
 
-#### Some special Algebraic approximations we know how to build.
-# These are useful for creating tests.
-
-def create_algebraic_approximation(string, degree, height):
-	''' A short way of constructing AlgebraicApproximations from a string and degree and height bounds. '''
-	
-	return AlgebraicApproximation(flipper.kernel.create_interval(string), log(max(degree, 1)), height)
-
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''
 	
 	I = flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
-	J = flipper.kernel.create_algebraic_approximation('1.41421356', 2, 2)
+	J = flipper.kernel.AlgebraicApproximation.from_tuple('1.41421356', 2, 2)
 	
 	return {'I': I, 'J': J}
 

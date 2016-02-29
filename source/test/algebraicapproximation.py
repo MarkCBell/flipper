@@ -3,7 +3,7 @@ from __future__ import print_function
 
 import flipper
 
-algebraic_approximation = flipper.kernel.create_algebraic_approximation
+algebraic_approximation = flipper.kernel.AlgebraicApproximation.from_tuple
 
 def main(verbose=False):
 	if verbose: print('Running algebraic approximation tests.')

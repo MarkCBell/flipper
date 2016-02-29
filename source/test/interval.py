@@ -5,7 +5,7 @@ from itertools import product
 
 import flipper
 
-interval = flipper.kernel.create_interval
+interval = flipper.kernel.Interval.from_string
 
 def main(verbose=False):
 	if verbose: print('Running interval tests.')

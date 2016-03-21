@@ -54,7 +54,7 @@ If you find flipper useful in your research, please consider citing it. A sugges
 reference is::
 
 	Mark Bell. flipper (Computer Software).
-	pypi.python.org/pypi/flipper, 2013--2015. Version <<version number>>
+	pypi.python.org/pypi/flipper, 2013--2016. Version <<version number>>
 
 the BibTeX entry::
 
@@ -62,14 +62,14 @@ the BibTeX entry::
 		author = {Bell, Mark},
 		title = {flipper (Computer Software)},
 		howpublished = {\url{pypi.python.org/pypi/flipper}},
-		year = {2013--2015},
+		year = {2013--2016},
 		note = {Version <<version number>>}
 	}
 
 or the BibItem::
 
 	\bibitem{flipper} Mark Bell: \emph{flipper (Computer Software)},
-		\url{pypi.python.org/pypi/flipper}, (2013--2015),
+		\url{pypi.python.org/pypi/flipper}, (2013--2016),
 		Version <<version number>>.
 
 Development

@@ -6,18 +6,13 @@ import flipper
 from sage.all import Matrix, Polyhedron, lcm, NumberField
 from sage.version import version
 from math import log10 as log
-from distutils.version import StrictVersion
 
-if StrictVersion(version) >= StrictVersion('6.5'):
-	def coefficients(polynomial):
-		''' Return the coefficients of this polynomial. '''
-		
-		return polynomial.coefficients(sparse=False)
-else:
-	def coefficients(polynomial):
-		''' Return the coefficients of this polynomial. '''
-		
-		return polynomial.coeffs()
+def coefficients(polynomial):
+	''' Return the coefficients of this polynomial.
+	
+	This assumes we are using at least Sage 6.5. '''
+	
+	return polynomial.coefficients(sparse=False)
 
 def minpoly_coefficients(number):
 	''' Return the list of coefficients of the minimal polynomial of the given number. '''

@@ -26,7 +26,7 @@ faster Matrix.kernel
 lamination should have an associated number field
 be able to (half) twist along all curves - construct chain - use H_1 code?
 recheck ALL number theory bounds
-Add function to convert Twister surface files to flipper.EquippedTriangulations
+add function to convert Twister surface files to flipper.EquippedTriangulations
 
 ### Tests ###
 add more tests

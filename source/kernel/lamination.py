@@ -695,7 +695,7 @@ class Lamination(object):
 					if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
 						isometries = lamination.all_projective_isometries(old_lamination)
 						if len(isometries) > 0:
-							assert(old_lamination.weight() == dilatation * lamination.weight())
+							assert(dilatation is None or old_lamination.weight() == dilatation * lamination.weight())
 							# print('!!', index)
 							
 							encoding = flipper.kernel.Encoding([move for item in reversed(encodings) for move in item])

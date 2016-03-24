@@ -580,9 +580,7 @@ class Encoding(object):
 		
 		Assumes (and checks) that this mapping class is pseudo-Anosov. '''
 		
-		splitting = self.splitting_sequences(take_roots=True)
-		
-		return self.canonical().flip_length() == splitting.open_periodic.flip_length()
+		return self.splitting_sequences(take_roots=True).open_periodic.flip_length() == self.canonical().flip_length()
 	
 	def is_conjugate_to(self, other):
 		''' Return if this mapping class is conjugate to other.

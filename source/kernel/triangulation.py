@@ -1332,5 +1332,5 @@ class Triangulation(object):
 def create_triangulation(cls, edge_labels, vertex_labels=None, vertex_states=None):
 	''' A helper function for pickling. '''
 	
-	return cls.from_tuple(edge_labels, vertex_labels, vertex_stats)
+	return cls.from_tuple(edge_labels, vertex_labels, vertex_states)
 

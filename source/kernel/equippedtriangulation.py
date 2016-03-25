@@ -3,7 +3,6 @@
 
 Provides one class: EquippedTriangulation. '''
 
-import cPickle
 from random import choice
 from itertools import product
 import re

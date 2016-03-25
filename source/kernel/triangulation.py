@@ -529,7 +529,7 @@ class Triangulation(object):
 			)
 	def __reduce__(self):
 		# Triangulations are already pickleable but this results in a much smaller pickle.
-		return (create_triangulation, (self.__class__, self.package()))
+		return (create_triangulation, (self.__class__,) + self.package())
 	def __eq__(self, other):
 		return self.signature == other.signature
 	def __ne__(self, other):

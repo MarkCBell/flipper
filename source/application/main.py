@@ -673,6 +673,7 @@ class FlipperApplication(object):
 			#  http://stackoverflow.com/questions/15448914/python-tkinter-ttk-combobox-throws-exception-on-quit
 			self.parent.eval('::ttk::CancelRepeat')
 			self.parent.destroy()
+			self.parent.quit()
 	
 	def show_help(self):
 		flipper.doc.open_documentation()
@@ -1562,7 +1563,12 @@ def start(load_from=None):
 	datadir = os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__)
 	icon_path = os.path.join(datadir, 'icon', 'icon.gif')
 	img = TK.PhotoImage(file=icon_path)
-	root.tk.call('wm', 'iconphoto', root._w, img)
+	try:
+		root.tk.call('wm', 'iconphoto', root._w, img)
+	except TK.TclError:
+		# Give up if we can't set the icon for some reason.
+		# This seems to be a problem if you start flipper within SnapPy.
+		pass
 	root.mainloop()
 	return flipper_application.output
 

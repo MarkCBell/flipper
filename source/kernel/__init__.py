@@ -53,6 +53,7 @@ Matrix = matrix.Matrix
 Move = moves.Move
 Isometry = moves.Isometry
 EdgeFlip = moves.EdgeFlip
+Spiral = moves.Spiral
 LinearTransformation = moves.LinearTransformation
 NumberField = numberfield.NumberField
 NumberFieldElement = numberfield.NumberFieldElement

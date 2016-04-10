@@ -186,7 +186,7 @@ class EdgeFlip(Move):
 			rows[e] = [rows[b][i] + rows[d][i] - rows[e][i] for i in range(self.zeta)]
 			Cs = flipper.kernel.Matrix([[action[b][i] + action[d][i] - action[a][i] - action[c][i] for i in range(self.zeta)]])
 		else:
-			raise IndexError('foo!?!')
+			raise IndexError('Index out of range.')
 		return flipper.kernel.Matrix(rows), Cs
 
 class Spiral(Move):
@@ -223,16 +223,47 @@ class Spiral(Move):
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label, self.power))
 	def __len__(self):
-		pass  # The number of pieces of this move.
+		return abs(self.power) + 3  # The number of pieces of this move.
 	def package(self):
 		''' Return a small amount of data such that self.source_triangulation.encode([data]) == self.encode(). '''
 		
 		return (self.edge_label, self.power)
 	
-	def apply_geometric(self, vector):
+	def mat(self, config, k, t):
+		if k == 0: return flipper.kernel.id_matrix(4)
 		
+		def F(n):  # Note F(0) == Id.
+			return flipper.kernel.Matrix([
+				[1,0,  0,  0],
+				[0,1,  0,  0],
+				[0,0,n+1, -n],
+				[0,0,  n,1-n]
+				])  # (Un)Stable transitions.
+		G = flipper.kernel.Matrix([
+			[1,0,0, 0],
+			[0,1,0, 0],
+			[1,1,0,-1],
+			[0,0,1, 0]])  # Temp transitions.
+		
+		# Take k steps in the graph. Leave unstable after t steps.
+		if config == 1:  # Stable.
+			M = F(k)
+		elif config == 2:  # Transition.
+			M = F(k-1) * G
+		elif config == 3:  # Unstable.
+			if k <= t:  # k steps in unstable
+				M = F(k)
+			elif k == t+1:  # t steps in unstable, then into transition.
+				M = G * F(t)
+			elif k == t+2:  # t steps in unstable, into transition, then out of transition.
+				M = G * G * F(t)
+			else:  # t+2 < k:  # t steps in unstable, into transition, out of transition, then the remaining steps in stable.
+				M = F(k - (t + 2)) * G * G * F(t)
+		
+		return M
+	
+	def apply_geometric(self, vector):
 		# We will begin with an easy case so we can later assume self.power != 0.
-		if self.power == 0: return vector
 		
 		ai, bi, ci, di = [edge.index for edge in self.square]
 		ei = self.edge_index
@@ -241,55 +272,31 @@ class Spiral(Move):
 		
 		# Determine the number of strands passing through the annulus.
 		x = max(b - e, a + c - b - e, e - b)
-		config = 1 if x == b-e else 2 if x == a+c-b-e else 3
+		# Use that to determine the configuration we're in.
+		# There are three possible stats:
+		#  1: Stable
+		#  2: Transitioning
+		#  3: Unstable
+		state = 1 if x == b-e else 2 if x == a+c-b-e else 3
+		# Reverse the configuration if we are taking a negative power.
+		config = state if self.power > 0 else 4 - state
 		
 		k = abs(self.power)
-		t = max((2*b - a - c) // (2*(e - b)), 0) if e != b else k
-		r = max((2*e - a - c) // (2*(b - e)), 0) if e != b else k
 		
-		def F(n):  # Note F(0) == Id.
-			return flipper.kernel.Matrix([
-				[1,0,  0,  0],
-				[0,1,  0,  0],
-				[0,0,n+1, -n],
-				[0,0,  n,1-n]
-				])
-		G = flipper.kernel.Matrix([
-			[1,0,0, 0],
-			[0,1,0, 0],
-			[1,1,0,-1],
-			[0,0,1, 0]])
+		# Compute action on a, b, c, e.
+		# Note that if self.power > 0 then we use the ordering a, c, b, e
+		# and otherwise we use a, c, e, d. This allows us to do two calculations
+		# with only one matrix.
+		# Additionally d == b so we dont need to compute new_d.
 		
-		# Compute action on a, c, b, e. Note the unusual order and that d == b so we dont need to compute it.
+		# The maximum number of times you can perform the unstable state.
+		# WLOG 0 <= t <= k.
+		t = min(max((2*(b if self.power > 0 else e) - a - c) // (2*abs(e - b)), 0), k) if e != b else k
+		M = self.mat(config, k, t)  # t only matters if in the unstable, that is, if config == 3.
+		
 		if self.power > 0:
-			if config == 1:
-				M = F(k)
-			elif config == 2:
-				M = F(k-1) * G
-			elif config == 3:
-				if k <= t:
-					M = F(k)
-				elif k == t+1:
-					M = G * F(t)
-				elif k == t+2:
-					M = G * G * F(t)
-				else:  # t+2 < k:
-					M = F(k - (t + 2)) * G * G * F(t)
 			_, _, new_b, new_e = M([a, c, b, e])
 		else:
-			if config == 3:
-				M = F(k)
-			elif config == 2:
-				M = F(k-1) * G
-			elif config == 1:
-				if k <= r:
-					M = F(k)
-				elif k == r+1:
-					M = G * F(r)
-				elif k == r+2:
-					M = G * G * F(r)
-				else:  # r+2 < k:
-					M = F(k - (r + 2)) * G * G * F(r)
 			_, _, new_e, new_b = M([a, c, e, b])
 		
 		return [new_b if i == bi else new_e if i == ei else vector[i] for i in range(self.zeta)]
@@ -314,7 +321,61 @@ class Spiral(Move):
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(isinstance(action, flipper.kernel.Matrix))
 		
-		pass
+		ai, bi, ci, di = [edge.index for edge in self.square]
+		ei = self.edge_index
+		a, b, c, d = [lamination(edge) for edge in self.square]
+		e = lamination(self.edge_index)
+		x = max(b - e, a + c - b - e, e - b)
+		state = 1 if x == b-e else 2 if x == a+c-b-e else 3
+		config = state if self.power > 0 else 4 - state
+		
+		k = abs(self.power)
+		t = min(max((2*(b if self.power > 0 else e) - a - c) // (2*abs(e - b)), 0), k) if e != b else k
+		M = self.mat(config, k, t)
+		
+		A = action.copy()
+		if self.power >= 0:
+			new_b_row = [M[2][0]*action[ai][i] + M[2][1]*action[ci][i] + M[2][2]*action[bi][i] + M[2][3]*action[ei][i] for i in range(self.zeta)]
+			new_e_row = [M[3][0]*action[ai][i] + M[3][1]*action[ci][i] + M[3][2]*action[bi][i] + M[3][3]*action[ei][i] for i in range(self.zeta)]
+		else:
+			new_e_row = [M[2][0]*action[ai][i] + M[2][1]*action[ci][i] + M[2][2]*action[ei][i] + M[2][3]*action[bi][i] for i in range(self.zeta)]
+			new_b_row = [M[3][0]*action[ai][i] + M[3][1]*action[ci][i] + M[3][2]*action[ei][i] + M[3][3]*action[bi][i] for i in range(self.zeta)]
+		A = flipper.kernel.Matrix([new_b_row if i == bi else new_e_row if i == ei else action[i] for i in range(self.zeta)])
+		
+		if config == 1:
+			if state == 1:
+				Cs = flipper.kernel.Matrix([
+					[2*action[bi][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
+					[action[bi][i] - action[ei][i] for i in range(self.zeta)]
+					])
+			else:  # state == 3.
+				Cs = flipper.kernel.Matrix([
+					[2*action[ei][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
+					[action[ei][i] - action[bi][i] for i in range(self.zeta)]
+					])
+		elif config == 2:
+			Cs = flipper.kernel.Matrix([
+				[-2*action[bi][i] + action[ai][i] + action[ci][i] for i in range(self.zeta)],
+				[-2*action[ei][i] + action[ai][i] + action[ci][i] for i in range(self.zeta)],
+				])
+		else:  # config == 3.
+			# Construct Cs so t has the correct value.
+			if state == 1:
+				Cs = flipper.kernel.Matrix([
+					[2*action[bi][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
+					[action[bi][i] - action[ei][i] for i in range(self.zeta)],
+					[2*(1-t)*action[bi][i] - action[ai][i] - action[ci][i] + 2*t*action[ei][i] for i in range(self.zeta)],
+					[2*t*action[bi][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[ei][i] for i in range(self.zeta)],
+					])
+			else:  # state == 3.
+				Cs = flipper.kernel.Matrix([
+					[2*action[ei][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
+					[action[ei][i] - action[bi][i] for i in range(self.zeta)],
+					[2*(1-t)*action[ei][i] - action[ai][i] - action[ci][i] + 2*t*action[bi][i] for i in range(self.zeta)],
+					[2*t*action[ei][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[bi][i] for i in range(self.zeta)],
+					])
+		
+		return A, Cs
 	
 	def pl_action(self, index, action):
 		''' Return the action and condition matrices describing the PL map
@@ -323,6 +384,18 @@ class Spiral(Move):
 		
 		assert(isinstance(index, flipper.IntegerType))
 		assert(isinstance(action, flipper.kernel.Matrix))
+		
+		pass
+		k = abs(self.power)
+		Ms = [self.mat(1, k, 0), self.mat(2, k, 0)] + [self.mat(3, k, t) for t in range(0, k+1)]
+		if self.power > 0:
+			for M in Ms:
+				pass
+			
+			_, _, new_b, new_e = M([a, c, b, e])
+			
+		else:
+			pass
 		
 		pass
 

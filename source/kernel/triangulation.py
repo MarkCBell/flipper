@@ -1207,34 +1207,40 @@ class Triangulation(object):
 		
 		h = None
 		for item in reversed(sequence):
-			if isinstance(item, flipper.IntegerType):
+			if isinstance(item, flipper.IntegerType):  # Flip.
 				if h is None:
 					h = self.encode_flip(item)
 				else:
 					h = h.target_triangulation.encode_flip(item) * h
-			elif isinstance(item, dict):
+			elif isinstance(item, dict):  # Isometry.
 				if h is None:
 					h = self.encode_relabel_edges(item)
 				elif all(i in item or ~i in item for i in self.indices):
 					h = h.target_triangulation.encode_relabel_edges(item) * h
 				else:  # If some edges are missing then we assume that we must be mapping back to this triangulation.
 					h = h.target_triangulation.find_isometry(self, item).encode() * h
-			elif item is None:
+			elif item is None:  # Identity isometry.
 				if h is None:
 					h = self.id_encoding()
 				else:
 					h = h.target_triangulation.id_encoding() * h
-			elif isinstance(item, flipper.kernel.Encoding):
+			elif isinstance(item, tuple) and len(item) == 2:  # Spiral
+				if h is None:
+					h = flipper.kernel.Spiral(self, self, item[0], item[1]).encode()
+				else:
+					T = h.target_triangulation
+					h = flipper.kernel.Spiral(T, T, item[0], item[1]).encode() * h
+			elif isinstance(item, flipper.kernel.Encoding):  # Encoding.
 				if h is None:
 					h = item
 				else:
 					h = item * h
-			elif isinstance(item, flipper.kernel.Move):
+			elif isinstance(item, flipper.kernel.Move):  # Move.
 				if h is None:
 					h = item.encode()
 				else:
 					h = item.encode() * h
-			else:
+			else:  # Other.
 				if h is None:
 					h = item.encode()
 				else:

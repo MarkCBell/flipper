@@ -1164,6 +1164,13 @@ class Triangulation(object):
 		
 		return flipper.kernel.EdgeFlip(self, new_triangulation, edge_label).encode()
 	
+	def encode_spiral(self, edge_label, power):
+		''' Return an encoding of the effect of spiraling about the given edge.
+		
+		The given edge must be spiralable. '''
+		
+		return flipper.kernel.Spiral(self, self, edge_label, power).encode()
+	
 	def encode_relabel_edges(self, label_map):
 		''' Return an encoding of the effect of flipping the given edge. '''
 		
@@ -1226,10 +1233,9 @@ class Triangulation(object):
 					h = h.target_triangulation.id_encoding() * h
 			elif isinstance(item, tuple) and len(item) == 2:  # Spiral
 				if h is None:
-					h = flipper.kernel.Spiral(self, self, item[0], item[1]).encode()
+					h = self.encode_spiral(item[0], item[1])
 				else:
-					T = h.target_triangulation
-					h = flipper.kernel.Spiral(T, T, item[0], item[1]).encode() * h
+					h = h.target_triangulation.encode_spiral(item[0], item[1]) * h
 			elif isinstance(item, flipper.kernel.Encoding):  # Encoding.
 				if h is None:
 					h = item

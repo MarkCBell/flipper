@@ -210,7 +210,11 @@ class Spiral(Move):
 		self.zeta = self.source_triangulation.zeta
 		
 		self.edge_label = edge_label
+		self.edge_index = flipper.kernel.norm(self.edge_label)
 		# Find a, b, c & e automatically.
+		self.square = self.source_triangulation.square_about_edge(self.edge_label)
+		a, b, c, d = self.square
+		assert(b == ~d)
 		# Assert that b == d.
 		self.power = power
 	
@@ -226,9 +230,75 @@ class Spiral(Move):
 		return (self.edge_label, self.power)
 	
 	def apply_geometric(self, vector):
-		pass
+		
+		# We will begin with an easy case so we can later assume self.power != 0.
+		if self.power == 0: return vector
+		
+		ai, bi, ci, di = [edge.index for edge in self.square]
+		ei = self.edge_index
+		a, b, c, d = [vector[edge.index] for edge in self.square]
+		e = vector[self.edge_index]
+		
+		# Determine the number of strands passing through the annulus.
+		x = max(b - e, a + c - b - e, e - b)
+		config = 1 if x == b-e else 2 if x == a+c-b-e else 3
+		
+		k = abs(self.power)
+		t = max((2*b - a - c) // (2*(e - b)), 0) if e != b else k
+		r = max((2*e - a - c) // (2*(b - e)), 0) if e != b else k
+		
+		def F(n):  # Note F(0) == Id.
+			return flipper.kernel.Matrix([
+				[1,0,  0,  0],
+				[0,1,  0,  0],
+				[0,0,n+1, -n],
+				[0,0,  n,1-n]
+				])
+		G = flipper.kernel.Matrix([
+			[1,0,0, 0],
+			[0,1,0, 0],
+			[1,1,0,-1],
+			[0,0,1, 0]])
+		
+		# Compute action on a, c, b, e. Note the unusual order and that d == b so we dont need to compute it.
+		if self.power > 0:
+			if config == 1:
+				M = F(k)
+			elif config == 2:
+				M = F(k-1) * G
+			elif config == 3:
+				if k <= t:
+					M = F(k)
+				elif k == t+1:
+					M = G * F(t)
+				elif k == t+2:
+					M = G * G * F(t)
+				else:  # t+2 < k:
+					M = F(k - (t + 2)) * G * G * F(t)
+			_, _, new_b, new_e = M([a, c, b, e])
+		else:
+			if config == 3:
+				M = F(k)
+			elif config == 2:
+				M = F(k-1) * G
+			elif config == 1:
+				if k <= r:
+					M = F(k)
+				elif k == r+1:
+					M = G * F(r)
+				elif k == r+2:
+					M = G * G * F(r)
+				else:  # r+2 < k:
+					M = F(k - (r + 2)) * G * G * F(r)
+			_, _, new_e, new_b = M([a, c, e, b])
+		
+		return [new_b if i == bi else new_e if i == ei else vector[i] for i in range(self.zeta)]
 	def apply_algebraic(self, vector):
-		pass
+		a, b, c, d = self.square
+		e = self.source_triangulation.edge_lookup[self.edge_label]
+		new_b = vector[b.index] + b.sign() * c.sign() * vector[c.index] * self.power
+		new_e = vector[e.index] - e.sign() * c.sign() * vector[c.index] * self.power
+		return [new_b if i == b.index else new_e if i == self.edge_index else vector[i] for i in range(self.zeta)]
 	
 	def inverse(self):
 		''' Return the inverse of this isometry. '''

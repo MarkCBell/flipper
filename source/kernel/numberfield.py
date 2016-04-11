@@ -215,7 +215,6 @@ class NumberFieldElement(object):
 	def __div__(self, other):
 		return self.__truediv__(other)
 	def __truediv__(self, other):
-		assert(False)
 		if other == 0:
 			raise ZeroDivisionError
 		

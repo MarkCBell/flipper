@@ -229,7 +229,8 @@ class Spiral(Move):
 		
 		return (self.edge_label, self.power)
 	
-	def mat(self, config, k, t):
+	def mat(self, config, t):
+		k = abs(self.power)
 		if k == 0: return flipper.kernel.id_matrix(4)
 		
 		def F(n):  # Note F(0) == Id.
@@ -277,9 +278,9 @@ class Spiral(Move):
 		#  1: Stable
 		#  2: Transitioning
 		#  3: Unstable
-		state = 1 if x == b-e else 2 if x == a+c-b-e else 3
-		# Reverse the configuration if we are taking a negative power.
-		config = state if self.power > 0 else 4 - state
+		# We use this slightly unusual ordering to ensure this gives the
+		# same preference (a + c >= b + d) as EdgeFlip.
+		state = 2 if x == a+c-b-e else 1 if x == b-e else 3
 		
 		k = abs(self.power)
 		
@@ -291,15 +292,21 @@ class Spiral(Move):
 		
 		# The maximum number of times you can perform the unstable state.
 		# WLOG 0 <= t <= k.
-		t = min(max((2*(b if self.power > 0 else e) - a - c) // (2*abs(e - b)), 0), k) if e != b else k
-		M = self.mat(config, k, t)  # t only matters if in the unstable, that is, if config == 3.
 		
 		if self.power > 0:
+			config = state
+			t = min(max((2*b - a - c) // (2*(e - b)) + 1, 0), k) if e != b else k
+			M = self.mat(config, t)  # t only matters if in the unstable, that is, if config == 3.
 			_, _, new_b, new_e = M([a, c, b, e])
 		else:
+			# Reverse the configuration if we are taking a negative power.
+			config = 4 - state
+			t = min(max((2*e - a - c) // (2*(b - e)) + 1, 0), k) if e != b else k
+			M = self.mat(config, t)  # t only matters if in the unstable, that is, if config == 3.
 			_, _, new_e, new_b = M([a, c, e, b])
 		
 		return [new_b if i == bi else new_e if i == ei else vector[i] for i in range(self.zeta)]
+	
 	def apply_algebraic(self, vector):
 		a, b, c, d = self.square
 		e = self.source_triangulation.edge_lookup[self.edge_label]
@@ -321,23 +328,48 @@ class Spiral(Move):
 		assert(isinstance(lamination, flipper.kernel.Lamination))
 		assert(isinstance(action, flipper.kernel.Matrix))
 		
+		a, b, c, d, e = [lamination(edge) for edge in self.square] + [lamination(self.edge_index)]
+		x = max(b - e, a + c - b - e, e - b)
+		state = 2 if x == a+c-b-e else 1 if x == b-e else 3
+		config = state if self.power >= 0 else 4 - state
+		k = abs(self.power)
+		
+		if self.power > 0:
+			t = min(max((2*b - a - c) // (2*(e - b)) + 1, 0), k) if e != b else k
+		else:
+			t = min(max((2*e - a - c) // (2*(b - e)) + 1, 0), k) if e != b else k
+		
+		index = 0 if config == 1 else 1 if config == 2 else t + 2
+		
+		return self.pl_action(index, action)
+	
+	def pl_action(self, index, action):
+		''' Return the action and condition matrices describing the PL map
+		applied to the geometric coordinates by the cell of the specified index
+		after post-multiplying by the action matrix. '''
+		
+		assert(isinstance(index, flipper.IntegerType))
+		assert(isinstance(action, flipper.kernel.Matrix))
+		
+		if index == 0:
+			config, t = 1, 0
+		elif index == 1:
+			config, t = 2, 0
+		else:  # index >= 2.
+			config, t = 3, index - 2
+		
+		state = config if self.power > 0 else 4 - config
+		
 		ai, bi, ci, di = [edge.index for edge in self.square]
 		ei = self.edge_index
-		a, b, c, d = [lamination(edge) for edge in self.square]
-		e = lamination(self.edge_index)
-		x = max(b - e, a + c - b - e, e - b)
-		state = 1 if x == b-e else 2 if x == a+c-b-e else 3
-		config = state if self.power > 0 else 4 - state
-		
 		k = abs(self.power)
-		t = min(max((2*(b if self.power > 0 else e) - a - c) // (2*abs(e - b)), 0), k) if e != b else k
-		M = self.mat(config, k, t)
 		
-		A = action.copy()
 		if self.power >= 0:
+			M = self.mat(config, t)  # t only matters if in the unstable, that is, if config == 3.
 			new_b_row = [M[2][0]*action[ai][i] + M[2][1]*action[ci][i] + M[2][2]*action[bi][i] + M[2][3]*action[ei][i] for i in range(self.zeta)]
 			new_e_row = [M[3][0]*action[ai][i] + M[3][1]*action[ci][i] + M[3][2]*action[bi][i] + M[3][3]*action[ei][i] for i in range(self.zeta)]
 		else:
+			M = self.mat(config, t)  # t only matters if in the unstable, that is, if config == 3.
 			new_e_row = [M[2][0]*action[ai][i] + M[2][1]*action[ci][i] + M[2][2]*action[ei][i] + M[2][3]*action[bi][i] for i in range(self.zeta)]
 			new_b_row = [M[3][0]*action[ai][i] + M[3][1]*action[ci][i] + M[3][2]*action[ei][i] + M[3][3]*action[bi][i] for i in range(self.zeta)]
 		A = flipper.kernel.Matrix([new_b_row if i == bi else new_e_row if i == ei else action[i] for i in range(self.zeta)])
@@ -363,41 +395,31 @@ class Spiral(Move):
 			if state == 1:
 				Cs = flipper.kernel.Matrix([
 					[2*action[bi][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
-					[action[bi][i] - action[ei][i] for i in range(self.zeta)],
-					[2*(1-t)*action[bi][i] - action[ai][i] - action[ci][i] + 2*t*action[ei][i] for i in range(self.zeta)],
-					[2*t*action[bi][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[ei][i] for i in range(self.zeta)],
+					[action[bi][i] - action[ei][i] for i in range(self.zeta)]
 					])
+				if t != 0:
+					Cs = Cs.join(flipper.kernel.Matrix([
+						[-2*(t-1)*action[bi][i] - action[ai][i] - action[ci][i] + 2*t*action[ei][i] for i in range(self.zeta)]
+						]))
+				if t != k:
+					Cs = Cs.join(flipper.kernel.Matrix([
+						[2*t*action[bi][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[ei][i] for i in range(self.zeta)]
+						]))
 			else:  # state == 3.
 				Cs = flipper.kernel.Matrix([
 					[2*action[ei][i] - action[ai][i] - action[ci][i] for i in range(self.zeta)],
-					[action[ei][i] - action[bi][i] for i in range(self.zeta)],
-					[2*(1-t)*action[ei][i] - action[ai][i] - action[ci][i] + 2*t*action[bi][i] for i in range(self.zeta)],
-					[2*t*action[ei][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[bi][i] for i in range(self.zeta)],
+					[action[ei][i] - action[bi][i] for i in range(self.zeta)]
 					])
+				if t != 0:
+					Cs = Cs.join(flipper.kernel.Matrix([
+						[-2*(t-1)*action[ei][i] - action[ai][i] - action[ci][i] + 2*t*action[bi][i] for i in range(self.zeta)]
+						]))
+				if t != k:
+					Cs = Cs.join(flipper.kernel.Matrix([
+						[2*t*action[ei][i] + action[ai][i] + action[ci][i] - 2*(t+1)*action[bi][i] for i in range(self.zeta)]
+						]))
 		
 		return A, Cs
-	
-	def pl_action(self, index, action):
-		''' Return the action and condition matrices describing the PL map
-		applied to the geometric coordinates by the cell of the specified index
-		after post-multiplying by the action matrix. '''
-		
-		assert(isinstance(index, flipper.IntegerType))
-		assert(isinstance(action, flipper.kernel.Matrix))
-		
-		pass
-		k = abs(self.power)
-		Ms = [self.mat(1, k, 0), self.mat(2, k, 0)] + [self.mat(3, k, t) for t in range(0, k+1)]
-		if self.power > 0:
-			for M in Ms:
-				pass
-			
-			_, _, new_b, new_e = M([a, c, b, e])
-			
-		else:
-			pass
-		
-		pass
 
 class LinearTransformation(Move):
 	''' Represents the change to a lamination caused by a linear map. '''

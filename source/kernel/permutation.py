@@ -97,3 +97,20 @@ def all_permutations(n, odd=True, even=True):
 	all_perms = [Permutation(perm) for perm in permutations(range(n), n)]
 	return [perm for perm in all_perms if (odd and not perm.is_even()) or (even and perm.is_even())]
 
+def permutation_from_pair(a, to_a, b, to_b):
+	''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
+	
+	try:
+		c, d = set(range(4)) - set([a, b])
+		to_c, to_d = set(range(4)) - set([to_a, to_b])
+		
+		p = {a: to_a, b: to_b, c: to_c, d: to_d}
+		P = Permutation([p[i] for i in range(4)])
+		if not P.is_even(): return P
+		
+		p = {a: to_a, b: to_b, c: to_d, d: to_c}
+		P = Permutation([p[i] for i in range(4)])
+		return P
+	except IndexError:
+		raise ValueError('Does not represent a gluing.')
+

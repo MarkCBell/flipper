@@ -771,8 +771,10 @@ class Lamination(object):
 		# #---------->#
 		# And e.index = e1 and b.index = d.index = e2.
 		
-		twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2]}, e1])
+		# twist_k = flipper.kernel.Spiral(triangulation, triangulation, e1, k).encode()
+		# return conjugation.inverse() * twist_k * conjugation
 		
+		twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2]}, e1])
 		return conjugation.inverse() * twist**k * conjugation
 	
 	def encode_halftwist(self, k=1):

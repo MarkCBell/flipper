@@ -732,15 +732,6 @@ class Encoding(object):
 		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
 		id_perm3 = flipper.kernel.Permutation((0, 1, 2))
 		
-		all_odd_permutations = flipper.kernel.permutation.all_permutations(4, odd=True, even=False)
-		def permutation_from_pair(a, to_a, b, to_b):
-			''' Return the odd permutation in Sym(4) which sends a to to_a and b to to_b. '''
-			
-			for perm in all_odd_permutations:
-				if perm(a) == to_a and perm(b) == to_b:
-					return perm
-			
-			raise ValueError('Does not represent a gluing.')
 		
 		lower_triangulation, upper_triangulation = triangulation, triangulation
 		
@@ -758,98 +749,15 @@ class Encoding(object):
 		
 		tetra_count = 0
 		for item in reversed(self.sequence):
-			assert(str(item.source_triangulation) == str(upper_triangulation))
-			new_upper_triangulation = item.target_triangulation
-			new_upper_map = dict()
-			new_lower_map = dict()  # We are allowed to leave blanks in new_lower_map.
-			# These will be filled in at the end using lower_map.
+			assert(item.source_triangulation == upper_triangulation)
 			
-			if isinstance(item, flipper.kernel.EdgeFlip):
-				# Get the next tetrahedra to add.
-				tetrahedron = triangulation3.tetrahedra[tetra_count]
-				tetra_count += 1
-				edge_label = item.edge_label  # The edge to flip.
-				
-				# Setup the next tetrahedron.
-				tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
-				tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
-				tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
-				tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
-				
-				
-				# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_label.
-				# WARNINNG: This is reliant on knowing how flipper.kernel.Triangulation.flip_edge() relabels things!
-				cornerA = upper_triangulation.corner_of_edge(edge_label)
-				cornerB = upper_triangulation.corner_of_edge(~edge_label)
-				
-				# We'll need to swap sides on an inverse edge so our convertions below work.
-				if edge_label != item.edge_index: cornerA, cornerB = cornerB, cornerA
-				
-				(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
-				if maps_to_tetrahedron(upper_map[A]):
-					tetra, perm = upper_map[A]
-					tetrahedron.glue(2, tetra, permutation_from_pair(0, perm(side_A), 2, perm(3)))
-				else:
-					tri, perm = upper_map[A]
-					new_lower_map[tri] = (tetrahedron, permutation_from_pair(perm(side_A), 0, 3, 2))
-				
-				if maps_to_tetrahedron(upper_map[B]):
-					tetra, perm = upper_map[B]
-					# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
-					tetrahedron.glue(0, tetra, permutation_from_pair(2, perm(side_B), 0, perm(3)))
-				else:
-					tri, perm = upper_map[B]
-					new_lower_map[tri] = (tetrahedron, permutation_from_pair(perm(side_B), 2, 3, 0))
-				
-				# Rebuild the upper_map.
-				new_cornerA = new_upper_triangulation.corner_of_edge(edge_label)
-				new_cornerB = new_upper_triangulation.corner_of_edge(~edge_label)
-				new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
-				# Most of the triangles have stayed the same.
-				# This relies on knowing how the upper_triangulation.flip_edge() function works.
-				old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle != A and triangle != B]
-				new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
-				for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
-					new_upper_map[new_triangle] = upper_map[old_triangle]
-					if maps_to_triangle(upper_map[old_triangle]):  # Don't forget to update the lower_map too.
-						target_triangle, perm = upper_map[old_triangle]
-						new_lower_map[target_triangle] = (new_triangle, perm.inverse())
-				
-				# This relies on knowing how the upper_triangulation.flip_edge() function works.
-				perm_A = flipper.kernel.permutation.cyclic_permutation(new_upper_triangulation.corner_of_edge(edge_label).side, 3)
-				perm_B = flipper.kernel.permutation.cyclic_permutation(new_upper_triangulation.corner_of_edge(~edge_label).side, 3)
-				new_upper_map[new_A] = (tetrahedron, flipper.kernel.Permutation((3, 0, 2, 1)) * perm_A.embed(4).inverse())
-				new_upper_map[new_B] = (tetrahedron, flipper.kernel.Permutation((1, 2, 0, 3)) * perm_B.embed(4).inverse())
-				
-				
-			elif isinstance(item, flipper.kernel.Isometry):
-				for triangle in upper_triangulation:
-					new_triangle = item.target_triangulation.triangle_lookup[item.label_map[triangle.labels[0]]]
-					new_corner = item.target_triangulation.corner_lookup[item.label_map[triangle.corners[0].label]]
-					perm = flipper.kernel.permutation.cyclic_permutation(new_corner.side - 0, 3)
-					old_target, old_perm = upper_map[triangle]
-					
-					if maps_to_triangle(upper_map[triangle]):
-						new_upper_map[new_triangle] = (old_target, old_perm * perm.inverse())
-						# Don't forget to update the lower_map too.
-						new_lower_map[old_target] = (new_triangle, perm * old_perm.inverse())
-					else:
-						new_upper_map[new_triangle] = (old_target, old_perm * perm.inverse().embed(4))
-				
-			else:
-				# We have no way to handle any other type that appears. But this would
-				# mean that this is not a mapping class.
-				assert(False)
-			
-			# Remember to rebuild the rest of lower_map, which hasn't changed.
-			for triangle in lower_triangulation:
-				if triangle not in new_lower_map:
-					new_lower_map[triangle] = lower_map[triangle]
-			
-			# Before switching to the new objects we've just built.
-			upper_triangulation = new_upper_triangulation
-			upper_map = new_upper_map
-			lower_map = new_lower_map
+			try:
+				tetra_count, upper_triangulation, upper_map, lower_map = \
+					item.extend_bundle(triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map)
+			except AttributeError:
+				# We have no way to handle any other type that appears.
+				# Currently this means there was a LinearTransform and so this is not a mapping class.
+				raise flipper.FatalError('Unknown move %s encountered while building bundle.' % item)
 		
 		# We're now back to the starting triangulation.
 		assert(lower_triangulation == upper_triangulation)

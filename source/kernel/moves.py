@@ -106,6 +106,36 @@ class Isometry(Move):
 		assert(isinstance(action, flipper.kernel.Matrix))
 		
 		return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
+	
+	def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):
+		''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
+		
+		maps_to_triangle = lambda X: isinstance(X[0], flipper.kernel.Triangle)
+		maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
+		
+		# These are the new maps onto the upper and lower boundary that we will build.
+		new_upper_map = dict()
+		new_lower_map = dict()  # We are allowed to leave blanks in new_lower_map.
+		
+		for triangle in upper_triangulation:
+			new_triangle = self.target_triangulation.triangle_lookup[self.label_map[triangle.labels[0]]]
+			new_corner = self.target_triangulation.corner_lookup[self.label_map[triangle.corners[0].label]]
+			perm = flipper.kernel.permutation.cyclic_permutation(new_corner.side - 0, 3)
+			old_target, old_perm = upper_map[triangle]
+			
+			if maps_to_triangle(upper_map[triangle]):
+				new_upper_map[new_triangle] = (old_target, old_perm * perm.inverse())
+				# Don't forget to update the lower_map too.
+				new_lower_map[old_target] = (new_triangle, perm * old_perm.inverse())
+			else:
+				new_upper_map[new_triangle] = (old_target, old_perm * perm.inverse().embed(4))
+		
+		# Remember to rebuild the rest of lower_map, which hasn't changed.
+		for triangle in lower_triangulation:
+			if triangle not in new_lower_map:
+				new_lower_map[triangle] = lower_map[triangle]
+		
+		return tetra_count, self.target_triangulation, new_upper_map, new_lower_map
 
 class EdgeFlip(Move):
 	''' Represents the change to a lamination caused by flipping an edge. '''
@@ -188,6 +218,86 @@ class EdgeFlip(Move):
 		else:
 			raise IndexError('Index out of range.')
 		return flipper.kernel.Matrix(rows), Cs
+	
+	def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):
+		
+		''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
+		
+		assert(upper_triangulation == self.source_triangulation)
+		
+		# We use these two functions to quickly tell what a triangle maps to.
+		maps_to_triangle = lambda X: isinstance(X[0], flipper.kernel.Triangle)
+		maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
+		
+		# These are the new maps onto the upper and lower boundary that we will build.
+		new_upper_map = dict()
+		new_lower_map = dict()
+		# We are allowed to leave blanks in new_lower_map.
+		# These will be filled in at the end using lower_map.
+		new_upper_triangulation = self.target_triangulation
+		VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
+		
+		# Get the next tetrahedra to add.
+		tetrahedron = triangulation3.tetrahedra[tetra_count]
+		
+		# Setup the next tetrahedron.
+		tetrahedron.edge_labels[(0, 1)] = VEERING_RIGHT
+		tetrahedron.edge_labels[(1, 2)] = VEERING_LEFT
+		tetrahedron.edge_labels[(2, 3)] = VEERING_RIGHT
+		tetrahedron.edge_labels[(0, 3)] = VEERING_LEFT
+		
+		edge_label = self.edge_label  # The edge to flip.
+		
+		# We'll glue it into the core_triangulation so that it's 1--3 edge lies over edge_label.
+		# WARNINNG: This is reliant on knowing how flipper.kernel.Triangulation.flip_edge() relabels things!
+		cornerA = upper_triangulation.corner_of_edge(edge_label)
+		cornerB = upper_triangulation.corner_of_edge(~edge_label)
+		
+		# We'll need to swap sides on an inverse edge so our convertions below work.
+		if edge_label != self.edge_index: cornerA, cornerB = cornerB, cornerA
+		
+		(A, side_A), (B, side_B) = (cornerA.triangle, cornerA.side), (cornerB.triangle, cornerB.side)
+		if maps_to_tetrahedron(upper_map[A]):
+			tetra, perm = upper_map[A]
+			tetrahedron.glue(2, tetra, flipper.kernel.permutation.permutation_from_pair(0, perm(side_A), 2, perm(3)))
+		else:
+			tri, perm = upper_map[A]
+			new_lower_map[tri] = (tetrahedron, flipper.kernel.permutation.permutation_from_pair(perm(side_A), 0, 3, 2))
+		
+		if maps_to_tetrahedron(upper_map[B]):
+			tetra, perm = upper_map[B]
+			# The permutation needs to: 2 |--> perm(3), 0 |--> perm(side_A), and be odd.
+			tetrahedron.glue(0, tetra, flipper.kernel.permutation.permutation_from_pair(2, perm(side_B), 0, perm(3)))
+		else:
+			tri, perm = upper_map[B]
+			new_lower_map[tri] = (tetrahedron, flipper.kernel.permutation.permutation_from_pair(perm(side_B), 2, 3, 0))
+		
+		# Rebuild the upper_map.
+		new_cornerA = new_upper_triangulation.corner_of_edge(edge_label)
+		new_cornerB = new_upper_triangulation.corner_of_edge(~edge_label)
+		new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
+		# Most of the triangles have stayed the same.
+		# This relies on knowing how the upper_triangulation.flip_edge() function works.
+		old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle != A and triangle != B]
+		new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
+		for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
+			new_upper_map[new_triangle] = upper_map[old_triangle]
+			if maps_to_triangle(upper_map[old_triangle]):  # Don't forget to update the lower_map too.
+				target_triangle, perm = upper_map[old_triangle]
+				new_lower_map[target_triangle] = (new_triangle, perm.inverse())
+		
+		# This relies on knowing how the upper_triangulation.flip_edge() function works.
+		perm_A = flipper.kernel.permutation.cyclic_permutation(new_upper_triangulation.corner_of_edge(edge_label).side, 3)
+		perm_B = flipper.kernel.permutation.cyclic_permutation(new_upper_triangulation.corner_of_edge(~edge_label).side, 3)
+		new_upper_map[new_A] = (tetrahedron, flipper.kernel.Permutation((3, 0, 2, 1)) * perm_A.embed(4).inverse())
+		new_upper_map[new_B] = (tetrahedron, flipper.kernel.Permutation((1, 2, 0, 3)) * perm_B.embed(4).inverse())
+		
+		# Remember to rebuild the rest of lower_map, which hasn't changed.
+		for triangle in lower_triangulation:
+			if triangle not in new_lower_map:
+				new_lower_map[triangle] = lower_map[triangle]
+		
+		return tetra_count+1, self.target_triangulation, new_upper_map, new_lower_map
 
 class Spiral(Move):
 	''' This represents a spiral around a short curve. '''
@@ -219,7 +329,7 @@ class Spiral(Move):
 		self.power = power
 	
 	def __str__(self):
-		return 'Spiral ' + str((self.b, self.e))
+		return 'Spiral^%d %s' % (self.power, self.edge_label)
 	def __reduce__(self):
 		return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label, self.power))
 	def __len__(self):
@@ -420,6 +530,31 @@ class Spiral(Move):
 						]))
 		
 		return A, Cs
+	
+	def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):
+		''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
+		
+		# These are the new maps onto the upper and lower boundary that we will build.
+		
+		if self.power == 0:
+			return tetra_count, upper_triangulation, upper_map, lower_map
+		
+		bi, ei = self.square[1].index, self.edge_index
+		k = abs(self.power)
+		
+		if self.power > 0:
+			sequence = ([bi, ei] * k)[-k:]
+		else:  # self.power < 0:
+			sequence = ([ei, bi] * k)[-k:]
+		
+		twist = upper_triangulation.encode([{i: i for i in upper_triangulation.indices if i not in [ei, bi]}] + sequence)
+		for item in reversed(twist.sequence):
+			tetra_count, upper_triangulation, upper_map, lower_map = \
+				item.extend_bundle(triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map)
+		
+		assert(upper_triangulation == self.target_triangulation)
+		
+		return tetra_count, self.target_triangulation, upper_map, lower_map
 
 class LinearTransformation(Move):
 	''' Represents the change to a lamination caused by a linear map. '''

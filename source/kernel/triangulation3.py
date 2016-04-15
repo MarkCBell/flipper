@@ -219,16 +219,6 @@ class Triangulation3(object):
 		if cusp is None: cusp = list(product(self.tetrahedra, range(4)))
 		
 		intersection_number = 0
-		#for tetrahedron, side in cusp:
-		#	periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
-		#	periph_b = tetrahedron.peripheral_curves[peripheral_type_b]
-		#	
-		#	for other in VERTICES_MEETING[side]:
-		#		if periph_a[side][other] > 0:
-		#			intersection_number -= periph_a[side][other] * periph_b[side][other]
-		
-		# intersection_number = intersection_number // 2
-		
 		for tetrahedron, side in cusp:
 			periph_a = tetrahedron.peripheral_curves[peripheral_type_a]
 			periph_b = tetrahedron.peripheral_curves[peripheral_type_b]

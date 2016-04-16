@@ -841,9 +841,16 @@ class Lamination(object):
 		# Where e.index = e1 and b.index = d.index = e2,
 		# and additionally x.index = y.index.
 		
-		twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
+		half_twist = triangulation.encode([{i: i for i in triangulation.indices if i not in [e1, e2, c.index, x.index]}, e2, e1, c.index])
 		
-		return conjugation.inverse() * twist**k * conjugation
+		# We accelerate large powers by replacting (T^1/2_self)^2 with T_self which includes acceleration.
+		if abs(k) == 1:
+			return conjugation.inverse() * half_twist**k * conjugation
+		elif k % 2 == 0:  # k is even so use a Dehn twist
+			return conjugation.inverse() * short_lamination.encode_twist(k // 2) * conjugation
+		else:  # k is odd so we need to add in an additional half twist.
+			# Note: k // 2 always rounds down, so even if k < 0 the additional half twist we need to do is positive.
+			return conjugation.inverse() * short_lamination.encode_twist(k // 2) * half_twist * conjugation
 	
 	def geometric_intersection(self, lamination):
 		''' Return the geometric intersection number between this lamination and the given one.

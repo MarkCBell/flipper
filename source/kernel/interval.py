@@ -213,7 +213,8 @@ class Interval(object):
 				P.lower * 10**common_precision // Q.upper,
 				P.upper * 10**common_precision // Q.upper
 				]
-			return Interval(min(values), max(values), common_precision)
+			# Note: Division always rounds down so we will add +1 to the upper bound to be safe.
+			return Interval(min(values), max(values) + 1, common_precision)
 		elif isinstance(other, flipper.IntegerType):
 			values = [self.lower // other, self.upper // other]
 			return Interval(min(values), max(values), self.precision)

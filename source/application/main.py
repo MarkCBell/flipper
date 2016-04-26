@@ -1087,9 +1087,10 @@ class FlipperApplication(object):
 			labels = dict((index, get_accurate(labels[index], accuracy_required)) for index in labels)
 			total = sum(labels[index] for index in range(self.zeta))
 			if total != 0:  # There should probably be an else to this statement.
-				labels = dict((index, float(labels[index] / total)) for index in range(self.zeta))
+				# Note the "+ 0" to ensure that -0.0 appears as 0.0.
+				labels = dict((index, round(float(labels[index] / total), 12) + 0) for index in range(self.zeta))
 			else:
-				labels = dict((index, float(labels[index])) for index in range(self.zeta))
+				labels = dict((index, round(float(labels[index]), 12) + 0) for index in range(self.zeta))
 		
 		for edge in self.edges:
 			# We start by creating a nice background for the label. This ensures

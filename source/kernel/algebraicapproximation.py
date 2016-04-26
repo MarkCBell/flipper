@@ -70,6 +70,12 @@ class AlgebraicApproximation(object):
 		
 		return cls(flipper.kernel.Interval.from_string(string), log(max(degree, 1)), height)
 	
+	@classmethod
+	def from_int(cls, integer, accuracy=None):
+		''' A short way of constructing AlgebraicApproximations from a string and degree and height bounds. '''
+		
+		return cls(flipper.kernel.Interval.from_int(integer, accuracy), 1, flipper.kernel.height_int(integer))
+	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):

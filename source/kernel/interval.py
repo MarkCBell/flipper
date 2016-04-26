@@ -58,6 +58,16 @@ class Interval(object):
 		x = int(i + r)
 		return cls(x-1, x+1, len(r))
 	
+	@classmethod
+	def from_int(cls, integer, accuracy=None):
+		''' A short way of constructing Intervals from an integer. '''
+		
+		if accuracy is None:
+			return cls(integer, integer, 0)
+		else:
+			accuracy = int(accuracy) + 1
+			return cls(integer*10**accuracy - 1, integer*10**accuracy+1, accuracy)
+	
 	def __repr__(self):
 		return str(self)
 	def __str__(self):

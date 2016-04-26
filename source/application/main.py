@@ -1055,25 +1055,38 @@ class FlipperApplication(object):
 	def create_edge_labels(self):
 		self.destroy_edge_labels()  # Remove existing labels.
 		
+		def accuracy_required(x):
+			if isinstance(x, flipper.IntegerType):
+				return flipper.kernel.height_int(x) + 1
+			else:
+				return x.height + x.log_degree
+		def get_accurate(x, acc):
+			if isinstance(x, flipper.IntegerType):
+				return flipper.kernel.AlgebraicApproximation.from_int(x, acc)
+			else:
+				return x.algebraic_approximation(acc)
+			
+		
 		# How to label the edge with given index.
 		if self.options.label_edges == 'Index':
 			labels = dict((index, index) for index in range(self.zeta))
 		elif self.options.label_edges == 'Geometric':
 			labels = dict((index, self.current_lamination(index)) for index in range(self.zeta))
-			if self.options.projectivise:
-				total = sum(float(labels[index]) for index in range(self.zeta))
-				if total != 0:
-					labels = dict((index, float(labels[index]) / total) for index in range(self.zeta))
 		elif self.options.label_edges == 'Algebraic':
 			labels = dict((index, self.current_lamination[index]) for index in range(self.zeta))
-			if self.options.projectivise:
-				total = sum(float(labels[index]) for index in range(self.zeta))
-				if total != 0:
-					labels = dict((index, float(labels[index]) / total) for index in range(self.zeta))
 		elif self.options.label_edges == 'None':
 			labels = dict((index, '') for index in range(self.zeta))
 		else:
 			raise ValueError()
+		
+		if self.options.projectivise and self.options.label_edges in ['Geometric', 'Algebraic']:
+			accuracy_required = 2 * len(labels) * (max(accuracy_required(value) for value in labels.values()) + 1)
+			labels = dict((index, get_accurate(labels[index], accuracy_required)) for index in labels)
+			total = sum(labels[index] for index in range(self.zeta))
+			if total != 0:  # There should probably be an else to this statement.
+				labels = dict((index, float(labels[index] / total)) for index in range(self.zeta))
+			else:
+				labels = dict((index, float(labels[index])) for index in range(self.zeta))
 		
 		for edge in self.edges:
 			# We start by creating a nice background for the label. This ensures

@@ -10,6 +10,7 @@ import sys
 import pickle
 from math import sin, cos, pi, ceil, sqrt
 from itertools import combinations
+from decimal import Decimal
 
 try:
 	import Tkinter as TK
@@ -192,7 +193,9 @@ class FlipperApplication(object):
 		#self.editmenu.add_separator()
 		self.editmenu.add_command(label='Tighten lamination', command=self.tighten_lamination, font=app_font)
 		self.editmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator=COMMAND['erase'], font=app_font)
-		self.menubar.add_cascade(label='Edit', menu=self.editmenu, font=app_font)
+		self.menubar.add_cascade(label='Edit ', menu=self.editmenu, font=app_font)
+		# The additional " " here prevents Apple from treating this like a standard edit menu and automatically adding a
+		# "Start Dictation..." and "Emoji & Symbols" entries.
 		
 		self.createmenu = TK.Menu(self.menubar, tearoff=0)
 		self.createmenu.add_command(label='Lamination', command=self.store_lamination, accelerator=COMMAND['lamination'], font=app_font)

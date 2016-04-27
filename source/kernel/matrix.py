@@ -363,8 +363,72 @@ class Matrix(object):
 				N += 1
 		
 		return M
+	
+	def discard_column(self, column):
+		''' Return the matrix obtained by discarding the given column. '''
+		
+		return Matrix([[row[i] for i in range(self.width) if i != column] for row in self])
+	
+	def find_vector_with_nonnegative_image(self):
+		''' Return a vector v != 0 such that self * v >= 0.
+		
+		Assumes that such a vector exists. '''
+		
+		# We repeatedly use Fourier--Motzkin elimination to eliminate variables and so
+		# reduce the size of the matrix involved. We then reverse this process to construct
+		# the required vector.
+		# Currently we only use the standard algorithm and so this can result in doubly
+		# exponential complexity. See:
+		#   http://en.wikipedia.org/wiki/Fourier%E2%80%93Motzkin_elimination
+		# for more information.
+		
+		M = self
+		B = []  # Instructions for how to rebuild the vector.
+		
+		while M.width > 1:
+			# Find a good index to reduce by.
+			bias = [0] * M.width
+			for row in M:
+				for index, entry in enumerate(row):
+					bias[index] += 1 if entry > 0 else -1 if entry < 0 else 0
+			index = max(range(M.width), key=lambda i: abs(bias[i]))
+			
+			# Perform Fourier--Motzkin elimination with respect to this index.
+			pos_rows = [row for row in M if row[index] > 0]
+			neg_rows = [row for row in M if row[index] < 0]
+			non_rows = [row for row in M if row[index] == 0]
+			if len(pos_rows) == 0:  # Problem is independent of x_index.
+				M = M.discard_column(index)
+				B.append((index, -1))
+			elif len(neg_rows) == 0:  # Problem is independent of x_index.
+				M = M.discard_column(index)
+				B.append((index, 1))
+			else:
+				new_rows = [[r1[index] * y - r2[index] * x for x, y in zip(r1, r2)] for r1, r2 in itertools.product(pos_rows, neg_rows)]
+				M = Matrix(new_rows + non_rows).discard_column(index)
+				B.append((index, Matrix(pos_rows).discard_column(index)))
+		
+		# Reverse the process to rebuild the vector.
+		if all(entry >= 0 for row in M for entry in row):
+			v = [1]
+		elif all(entry <= 0 for row in M for entry in row):
+			v = [-1]
+		else:
+			v = [0]
+		
+		for index, BB in reversed(B):
+			v = v[:index] + [min(BB(v)) if isinstance(BB, Matrix) else BB] + v[index:]
+		
+		# Check that the vector we've built is nontrivial.
+		if all(entry == 0 for entry in v):
+			raise flipper.AssumptionError('Polytope is trivial.')
+		
+		assert(self.nonnegative_image(v))
+		
+		return v
 
-#################################################
+
+################################################_
 #### Some helper functions for building matrices.
 
 def id_matrix(dim):

@@ -27,10 +27,6 @@ def project(vector, basis):
 def directed_eigenvector(action_matrix, condition_matrix):
 	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.
 	
-	This version is imperfect and is NOT as good as the sage version. Examples are
-	known where this function raises a ComputationError while Sage correctly finds
-	a rational eigenvector and so raises an AssumptionError.
-	
 	An eigenvector is interesting if its corresponding eigenvalue is: real, >= 1 and irrational.
 	Raises a ComputationError if it cannot find an interesting vectors in C.
 	
@@ -53,9 +49,12 @@ def directed_eigenvector(action_matrix, condition_matrix):
 			if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 				return N.lmbda, eigenvector
 		else:
-			# We cannot handle the case where the rank(kernel) > 1 (yet). This requires solving some linear programming
-			# problem over a number field which is likely to be very slow anyway.
-			pass
+			M = flipper.kernel.id_matrix(condition_matrix.width).join(condition_matrix * kernel_basis)
+			try:
+				eigenvector = M.find_vector_with_nonnegative_image()
+				return N.lmbda, eigenvector
+			except flipper.AssumptionError:  # Eigenspace is disjoint from the cone.
+				pass
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

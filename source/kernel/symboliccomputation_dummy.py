@@ -49,10 +49,10 @@ def directed_eigenvector(action_matrix, condition_matrix):
 			if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
 				return N.lmbda, eigenvector
 		else:
-			M = flipper.kernel.id_matrix(condition_matrix.width).join(condition_matrix * kernel_basis.transpose())
+			M = (flipper.kernel.id_matrix(condition_matrix.width).join(condition_matrix)) * kernel_basis.transpose()
 			try:
 				linear_combination = M.find_vector_with_nonnegative_image()
-				return N.lmbda, kernel_basis.transpose() * linear_combination
+				return N.lmbda, kernel_basis.transpose()(linear_combination)
 			except flipper.AssumptionError:  # Eigenspace is disjoint from the cone.
 				pass
 	

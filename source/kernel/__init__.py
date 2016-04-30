@@ -13,6 +13,7 @@ in a functions docstring:
 		If the assumptions are met then this function is guaranteed to terminate correctly.
 		If not then this a flipper.AssumptionError will be raised. '''
 
+import flipper.kernel.interface
 from . import algebraicapproximation
 from . import bundle
 from . import encoding

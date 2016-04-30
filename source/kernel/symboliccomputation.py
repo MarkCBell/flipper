@@ -20,7 +20,8 @@ More interfaces can be added here. '''
 from importlib import import_module
 
 # Add new libraries here in order.
-LIBRARIES = ['symboliccomputation_sage', 'symboliccomputation_dummy']
+LIBRARIES = ['sage', 'dummy']
+# LIBRARIES = ['sage', 'cypari', 'dummy']
 
 def load_library():
 	''' Return the first available library.
@@ -28,10 +29,10 @@ def load_library():
 	If none are available then an ImportError will be raised. '''
 	
 	for library in LIBRARIES:
-		try:
-			return import_module('flipper.kernel.' + library)
-		except ImportError:
-			pass
+		#try:
+		return import_module('flipper.kernel.interface.' + library)
+		#except ImportError:
+		#	pass
 	
 	raise ImportError('No symbolic computation library available.')
 

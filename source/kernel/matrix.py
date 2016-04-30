@@ -386,11 +386,13 @@ class Matrix(object):
 		B = []  # Instructions for how to rebuild the vector.
 		
 		while M.width > 1:
-			# Find a good index to reduce by.
+			# Find a good index to reduce by. Ideally, we want one where (almost) all
+			# entries of that column have the same sign.
 			bias = [0] * M.width
 			for row in M:
 				for index, entry in enumerate(row):
 					bias[index] += 1 if entry > 0 else -1 if entry < 0 else 0
+			# The column we will reduce:
 			index = max(range(M.width), key=lambda i: abs(bias[i]))
 			
 			# Perform Fourier--Motzkin elimination with respect to this index.
@@ -406,9 +408,9 @@ class Matrix(object):
 			else:
 				new_rows = [[r1[index] * y - r2[index] * x for x, y in zip(r1, r2)] for r1, r2 in itertools.product(pos_rows, neg_rows)]
 				M = Matrix(new_rows + non_rows).discard_column(index)
-				B.append((index, Matrix(pos_rows).discard_column(index)))
+				B.append((index, Matrix(pos_rows)))
 		
-		# Reverse the process to rebuild the vector.
+		# Now that M.width == 1 it is easy to solve.
 		if all(entry >= 0 for row in M for entry in row):
 			v = [1]
 		elif all(entry <= 0 for row in M for entry in row):
@@ -416,8 +418,21 @@ class Matrix(object):
 		else:
 			v = [0]
 		
+		# Reverse the process to rebuild the vector.
 		for index, BB in reversed(B):
-			v = v[:index] + [min(BB(v)) if isinstance(BB, Matrix) else BB] + v[index:]
+			if isinstance(BB, Matrix):
+				ratios = zip((-BB).discard_column(index)(v), BB.transpose()[index])
+				# In this list of ratios all denominators are positive.
+				# Get the pair (a, b) with the biggest ratio:
+				a, b = ratios[0]
+				for p, q in ratios:
+					if p * b > a * q:  # If p/q > a/b:
+						a, b = p, q
+				
+				x, scale = a, b
+			else:
+				x, scale = BB, 1
+			v = [entry * scale for entry in v[:index]] + [x] + [entry * scale for entry in v[index:]]
 		
 		# Check that the vector we've built is nontrivial.
 		if all(entry == 0 for entry in v):

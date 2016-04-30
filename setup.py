@@ -26,6 +26,7 @@ setup(
 		'flipper.doc',
 		'flipper.example',
 		'flipper.kernel',
+		'flipper.kernel.interface',
 		'flipper.test',
 		'flipper.profile'
 		],

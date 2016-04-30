@@ -145,6 +145,9 @@ class Matrix(object):
 		# 1/-P[0] == -P[0] and so we can use a cheaper multiplication.
 		return -P[0] * P.shift(-1)(self)
 	
+	def flatten(self):
+		''' Return the entries of this matrix as a single flattened list. '''
+		return [entry for row in self for entry in row]
 	def transpose(self):
 		''' Return the transpose of this matrix. '''
 		

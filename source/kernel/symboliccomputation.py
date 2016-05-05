@@ -20,8 +20,7 @@ More interfaces can be added here. '''
 from importlib import import_module
 
 # Add new libraries here in order.
-LIBRARIES = ['sage', 'dummy']
-# LIBRARIES = ['sage', 'cypari', 'dummy']
+LIBRARIES = ['sage_interface', 'cypari_interface', 'dummy_interface']
 
 def load_library():
 	''' Return the first available library.
@@ -29,15 +28,20 @@ def load_library():
 	If none are available then an ImportError will be raised. '''
 	
 	for library in LIBRARIES:
-		#try:
-		return import_module('flipper.kernel.interface.' + library)
-		#except ImportError:
-		#	pass
+		try:
+			return import_module('flipper.kernel.interface.' + library)
+		except ImportError:
+			pass
 	
 	raise ImportError('No symbolic computation library available.')
 
 def directed_eigenvector(action_matrix, condition_matrix):
-	''' Apply the directed_eigenvector function from the correct library. '''
+	''' Return an interesting eigenvector of action_matrix which lives inside of the cone C, defined by condition_matrix.
+	
+	An eigenvector is interesting if its corresponding eigenvalue is: real, > 1 and irrational.
+	
+	Raises a ComputationError if it cannot find an interesting vectors in C.
+	Assumes that C contains at most one interesting eigenvector. '''
 	
 	return load_library().directed_eigenvector(action_matrix, condition_matrix)
 

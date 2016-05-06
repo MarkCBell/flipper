@@ -1,4 +1,8 @@
 
+''' A module for interfacing with CyPari. '''
+
+from __future__ import absolute_import
+
 import flipper
 
 import cypari
@@ -31,9 +35,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
 			kernel_basis = (M - a).matker()
 			
 			basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
-			
 			scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
-			
 			scaled_basis = [[[(int(coeff.numerator()) * scale) / int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
 			
 			for flipper_polynomial_root in sorted(flipper_poly.real_roots(), reverse=True):

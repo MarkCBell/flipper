@@ -20,7 +20,7 @@ More interfaces can be added here. '''
 from importlib import import_module
 
 # Add new libraries here in order.
-LIBRARIES = ['sage_interface', 'cypari_interface', 'dummy_interface']
+LIBRARIES = ['sage', 'cypari', 'dummy']
 
 def load_library():
 	''' Return the first available library.
@@ -29,7 +29,9 @@ def load_library():
 	
 	for library in LIBRARIES:
 		try:
-			return import_module('flipper.kernel.interface.' + library)
+			module = import_module('flipper.kernel.interface.' + library)
+			print(library)
+			return module
 		except ImportError:
 			pass
 	

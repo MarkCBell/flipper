@@ -5,36 +5,7 @@ from __future__ import absolute_import
 
 import flipper
 
-from sage.all import Matrix, Polyhedron, lcm, NumberField
-from math import log10 as log
-
-def coefficients(polynomial):
-	''' Return the coefficients of this polynomial.
-	
-	This assumes we are using at least Sage 6.5. '''
-	
-	return polynomial.coefficients(sparse=False)
-
-def minpoly_coefficients(number):
-	''' Return the list of coefficients of the minimal polynomial of the given number. '''
-	
-	polynomial = number.minpoly()
-	scale = abs(lcm([x.denominator() for x in coefficients(polynomial)]))
-	return [int(scale * x) for x in coefficients(polynomial)]
-
-def approximate(number, accuracy):
-	''' Return a string approximating the given number to the given accuracy. '''
-	
-	s = str(number.n(digits=1))
-	mantissa, exponent = s.split('e') if 'e' in s else (s, '0')
-	(integer, decimal), exponent = (mantissa.split('.') if '.' in mantissa else (mantissa, '')), int(exponent)
-	s = str(number.n(digits=len(integer)+int(exponent)+accuracy))
-	mantissa, exponent = s.split('e') if 'e' in s else (s, '0')
-	(integer, decimal), exponent = (mantissa.split('.') if '.' in mantissa else (mantissa, '')), int(exponent)
-	if exponent >= 0:
-		return integer + decimal[:exponent] + '.' + decimal[exponent:exponent+accuracy]
-	else:
-		return '0.' + '0' * (-exponent-1) + decimal[:accuracy]
+from sage.all import Matrix, NumberField, lcm
 
 def directed_eigenvector(action_matrix, condition_matrix):
 	''' An implementation of flipper.kernel.symboliccomputation.directed_eigenvector() using Sage.
@@ -42,41 +13,43 @@ def directed_eigenvector(action_matrix, condition_matrix):
 	See the docstring of the above function for further details. '''
 	
 	M = Matrix(action_matrix.rows)
-	# Only bother checking the real, stable eigenspaces.
-	eigenvalues = [eigenvalue for eigenvalue in M.eigenvalues() if eigenvalue.imag() == 0 and eigenvalue > 1]
 	
-	# We have to check ALL eigenspaces. So we do it in order of decreasing real part.
-	for eigenvalue in sorted(eigenvalues, reverse=True, key=lambda z: complex(z).real):
-		[lam] = NumberField(eigenvalue.minpoly(), 'L', embedding=eigenvalue.n()).gens()
-		right_kernel = (M-lam).right_kernel().basis()
+	for polynomial, _ in M.characteristic_polynomial().factor():
+		degree = int(polynomial.degree())
 		
-		if len(right_kernel) == 1:  # If rank(kernel) == 1.
-			[eigenvector] = right_kernel
+		if degree > 1:
+			flipper_polynomial_roots = flipper.kernel.Polynomial([int(x) for x in polynomial.coefficients(sparse=False)]).real_roots()
 			
-			scale = abs(lcm([x.denominator() for entry in eigenvector for x in coefficients(entry.polynomial())]))
-			eigenvector_rescaled_coefficients = [[int(scale * x) for x in coefficients(entry.polynomial())] for entry in eigenvector]
-			
-			eigenvalue_coefficients = minpoly_coefficients(eigenvalue)
-			d = int(log(sum(abs(x) for x in eigenvalue_coefficients))) + 1
-			N = flipper.kernel.NumberField.from_tuple(eigenvalue_coefficients, approximate(eigenvalue, 2*d + 1))
-			flipper_ev, flipper_eigenvector = N.lmbda, [N.element(entry) for entry in eigenvector_rescaled_coefficients]
-			
-			# We can't rely on Sage to check this lies in the cone as for elements of NumberFields:
-			#  x > y returns True
-			# See: https://groups.google.com/forum/#!topic/sage-devel/9eAZnOBvBHM
-			if flipper.kernel.matrix.nonnegative(flipper_eigenvector) and condition_matrix.nonnegative_image(flipper_eigenvector):
-				return flipper_ev, flipper_eigenvector
-		else:
-			eqns = [[0] + list(row) for row in (M - eigenvalue)]
-			ieqs = [[0] + list(row) for row in condition_matrix]
-			
-			# This is really slow.
-			P = Polyhedron(eqns=eqns, ieqs=ieqs)
-			# If dim(P) == 1 then an extremal ray of the cone is an eigenvector.
-			# As this is a rational vector it must correspond to a fixed curve.
-			# If dim(P)  > 1 then there is a high dimensional invariant subspace.
-			if eigenvalue > 1 and P.dim() > 0:
-				raise flipper.AssumptionError('Subspace is reducible.')
+			if len(flipper_polynomial_roots) > 0:
+				# We need only consider the largest root as it has to be >=1 and bigger than all of its Galois conjugates.
+				flipper_polynomial_root = max(flipper_polynomial_roots)
+				
+				if flipper_polynomial_root >= 1:
+					# Compute the kernel:
+					K = NumberField(polynomial, 'L')
+					a = K.gen()
+					
+					kernel_basis = (M - a).right_kernel().basis()
+					
+					basis = [[entry.polynomial().coefficients(sparse=False) for entry in v] for v in kernel_basis]
+					scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
+					scaled_basis = [[[int(int(coeff.numerator()) * scale) / int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
+					
+					N = flipper.kernel.NumberField(flipper_polynomial_root)
+					flipper_basis_matrix = flipper.kernel.Matrix([[N.element(entry) for entry in v] for v in scaled_basis])
+					
+					if len(flipper_basis_matrix) == 1:  # If rank(kernel) == 1.
+						[flipper_eigenvector] = flipper_basis_matrix
+						if flipper.kernel.matrix.nonnegative(flipper_eigenvector) and condition_matrix.nonnegative_image(flipper_eigenvector):
+							return N.lmbda, flipper_eigenvector
+					else:
+						# We could use sage.Polyhedron here.
+						T = (flipper.kernel.id_matrix(condition_matrix.width).join(condition_matrix)) * flipper_basis_matrix.transpose()
+						try:
+							linear_combination = T.find_vector_with_nonnegative_image()
+							return N.lmbda, flipper_basis_matrix.transpose()(linear_combination)
+						except flipper.AssumptionError:  # Eigenspace is disjoint from the cone.
+							pass
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

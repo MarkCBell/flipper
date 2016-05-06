@@ -24,28 +24,30 @@ def directed_eigenvector(action_matrix, condition_matrix):
 	x = cypari.gen.pari('x')
 	
 	M = cypari.gen.pari.matrix(action_matrix.width, action_matrix.height, action_matrix.flatten())
-	f = M.charpoly()
 	
-	for poly in f.factor()[0]:
-		degree = int(poly.poldegree())
+	for polynomial in M.charpoly().factor()[0]:
+		degree = int(polynomial.poldegree())
 		if degree > 1:
-			flipper_poly = flipper.kernel.Polynomial([int(poly.polcoeff(i)) for i in range(degree+1)])
+			flipper_polynomial_roots = flipper.kernel.Polynomial([int(polynomial.polcoeff(i)) for i in range(degree+1)]).real_roots()
 			
-			a = x.Mod(poly)
-			kernel_basis = (M - a).matker()
-			
-			basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
-			scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
-			scaled_basis = [[[(int(coeff.numerator()) * scale) / int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
-			
-			for flipper_polynomial_root in sorted(flipper_poly.real_roots(), reverse=True):
+			if len(flipper_polynomial_roots) > 0:
+				# We need only consider the largest root as it has to be >=1 and bigger than all of its Galois conjugates.
+				flipper_polynomial_root = max(flipper_polynomial_roots)
+				
 				if flipper_polynomial_root >= 1:
-					N = flipper.kernel.NumberField(flipper_polynomial_root)
+					# Compute the kernel:
+					a = x.Mod(polynomial)
+					kernel_basis = (M - a).matker()
 					
+					basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
+					scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
+					scaled_basis = [[[int(int(coeff.numerator()) * scale) / int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
+					
+					N = flipper.kernel.NumberField(flipper_polynomial_root)
 					flipper_basis_matrix = flipper.kernel.Matrix([[N.element(entry) for entry in v] for v in scaled_basis])
 					
 					if len(flipper_basis_matrix) == 1:  # If rank(kernel) == 1.
-						flipper_eigenvector = flipper_basis_matrix[0]
+						[flipper_eigenvector] = flipper_basis_matrix
 						if flipper.kernel.matrix.nonnegative(flipper_eigenvector) and condition_matrix.nonnegative_image(flipper_eigenvector):
 							return N.lmbda, flipper_eigenvector
 					else:
@@ -55,7 +57,6 @@ def directed_eigenvector(action_matrix, condition_matrix):
 							return N.lmbda, flipper_basis_matrix.transpose()(linear_combination)
 						except flipper.AssumptionError:  # Eigenspace is disjoint from the cone.
 							pass
-		
 	
 	raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

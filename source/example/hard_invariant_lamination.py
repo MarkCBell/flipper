@@ -48,7 +48,7 @@ def main():
 		mapping_class = S.mapping_class(word)
 		start_time = time()
 		try:
-			mapping_class.invariant_lamination_uncached()
+			mapping_class.invariant_lamination()
 		except flipper.AssumptionError:
 			print(', Claim: not pA', end='')
 		times[word] = time() - start_time

@@ -1,5 +1,5 @@
 
-''' A module for performing symbolic calculations using Python. '''
+''' A module for a dummy interface. '''
 
 import flipper
 from math import log10 as log

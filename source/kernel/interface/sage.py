@@ -1,5 +1,7 @@
 
-''' A module for performing symbolic calculations using sage. '''
+''' A module for interfacing with Sage. '''
+
+from __future__ import absolute_import
 
 import flipper
 

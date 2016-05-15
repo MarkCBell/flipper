@@ -848,10 +848,8 @@ class Encoding(object):
 				#     /          \
 				#     ------>-----
 				#         e_1
-				triangle = periodic_triangulation.triangle_lookup[edge_1.label]
-				# corner = periodic_triangulation.corner_lookup[edge_1.label]
-				edge_2 = triangle.edges[triangle.edges.index(edge_1) - 2]
-				edge_3 = triangle.edges[triangle.edges.index(edge_1) - 1]
+				corner = periodic_triangulation.corner_lookup[edge_1.label]
+				edge_2, edge_3 = corner.edges[1], corner.edges[2]
 				
 				# There is nothing to do if all edges are known.
 				if edge_2 in edge_vectors and edge_3 not in edge_vectors:  # If two of the edges are known we can calculate the third using the formula: edge_1  + edge_2  + edge_3 == 0.

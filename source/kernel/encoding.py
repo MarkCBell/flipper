@@ -5,6 +5,10 @@ Provides one class: Encoding. '''
 
 import flipper
 
+try:
+	from Queue import Queue
+except ImportError:
+	from queue import Queue
 from itertools import product
 
 NT_TYPE_PERIODIC = 'Periodic'

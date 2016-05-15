@@ -125,6 +125,8 @@ class AlgebraicApproximation(object):
 	
 	def __neg__(self):
 		return AlgebraicApproximation(-self.interval, self.log_degree, self.height)
+	def __abs__(self):
+		return self if self >= 0 else -self
 	def __add__(self, other):
 		if isinstance(other, AlgebraicApproximation):
 			return AlgebraicApproximation(self.interval + other.interval, self.log_degree + other.log_degree, self.height + other.height + LOG_2)

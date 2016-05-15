@@ -1,11 +1,11 @@
 ''' A module for representing a triangulation of a punctured surface.
 
 Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
-	An Vertex is a singleton.
+	A Vertex is a singleton.
 	An Edge is an ordered pair of Vertices.
-	An Triangle is an ordered triple of Edges.
+	A Triangle is an ordered triple of Edges.
 	A Corner is a Triangle with a chosen side.
-	An Triangulation is a collection of Triangles. '''
+	A Triangulation is a collection of Triangles. '''
 
 import flipper
 

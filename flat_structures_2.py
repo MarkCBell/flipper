@@ -7,8 +7,7 @@ try:
 except ImportError:
 	from queue import Queue
 
-
-def create_flat_structure(self):
+def flat_structure(self):
 	''' Return a dictionary taking each edge of self.canonical().source_triangulation to a vector in RR^2.
 	
 	These vectors describe the flat structure of self.canonical() and can be used to build a flat surface for self.canonical().
@@ -93,9 +92,6 @@ def create_flat_structure(self):
 				queue.put(~edge_3)
 	
 	# Check that we do indeed have triangles:
-	for current_triangle in periodic_triangulation:
-		assert(sum(edge_vectors[edge].x for edge in current_triangle) == 0)
-		assert(sum(edge_vectors[edge].y for edge in current_triangle) == 0)
 	
-	return edge_vectors
+	return flipper.kernel.FlatStructure(periodic_triangulation, edge_vectors)
 

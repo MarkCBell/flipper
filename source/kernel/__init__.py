@@ -19,6 +19,7 @@ from . import bundle
 from . import encoding
 from . import error
 from . import equippedtriangulation
+from . import flatstructure
 from . import interval
 from . import lamination
 from . import matrix
@@ -48,6 +49,8 @@ AssumptionError = error.AssumptionError
 ComputationError = error.ComputationError
 FatalError = error.FatalError
 EquippedTriangulation = equippedtriangulation.EquippedTriangulation
+Vector2 = flatstructure.Vector2
+FlatStructure = flatstructure.FlatStructure
 Interval = interval.Interval
 Lamination = lamination.Lamination
 Matrix = matrix.Matrix

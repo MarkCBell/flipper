@@ -59,3 +59,4 @@ class FlatStructure(object):
 		return '\n'.join('%s --> %s' % (edge, self.edge_vectors[edge]) for edge in sorted(self.triangulation.positive_edges, key=lambda e: e.index))
 	def __repr__(self):
 		return str(self)
+

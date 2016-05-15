@@ -851,7 +851,6 @@ class Encoding(object):
 				corner = periodic_triangulation.corner_lookup[edge_1.label]
 				edge_2, edge_3 = corner.edges[1], corner.edges[2]
 				
-				# There is nothing to do if all edges are known.
 				if edge_2 in edge_vectors and edge_3 not in edge_vectors:  # If two of the edges are known we can calculate the third using the formula: edge_1  + edge_2  + edge_3 == 0.
 					edge_vectors[edge_3] = -(edge_vectors[edge_1] + edge_vectors[edge_2])
 					edge_vectors[~edge_3] = -edge_vectors[edge_3]
@@ -889,6 +888,7 @@ class Encoding(object):
 					edge_vectors[~edge_3] = -edge_vectors[edge_3]
 					queue.put(~edge_2)
 					queue.put(~edge_3)
+				# The final case is: edge_2 in edge_vectors and edge_3 in edge_vectors. However here there is nothing to do as all of the edges are known.
 		
 		return flipper.kernel.FlatStructure(periodic_triangulation, edge_vectors)
 

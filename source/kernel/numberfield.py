@@ -159,6 +159,8 @@ class NumberFieldElement(object):
 	
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])
+	def __abs__(self):
+		return self if self >= 0 else -self
 	def __add__(self, other):
 		if isinstance(other, NumberFieldElement):
 			if self.number_field != other.number_field:

@@ -144,6 +144,8 @@ class Interval(object):
 	def __neg__(self):
 		return Interval(-self.upper, -self.lower, self.precision)
 	def __abs__(self):
+		return self if self >= 0 else -self
+	def __abs__(self):
 		if self.lower > 0:  # Interval is entirely positive.
 			return self
 		elif self.upper < 0:  # Interval is entirely negative.

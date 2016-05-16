@@ -73,6 +73,9 @@ class Bundle(object):
 		fillings = [slope if filled_cusp else (0, 0) for filled_cusp, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
 		return self.triangulation3.snappy_string(name, fillings)
 	
+	def __snappy__(self):
+		return self.snappy_string()
+	
 	def cusp_types(self):
 		''' Return the list of the type of each cusp.
 		

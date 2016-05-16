@@ -299,6 +299,7 @@ class EquippedTriangulation(object):
 			relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
 			prefilter=None -- filter the prefixes of words by this function.
 			filter=None -- filter the words by this function.
+			apply=None -- apply the given function to the words.
 			cores=None -- how many cores to use.
 			prefix_depth=3 -- depth to search for prefixes for other cores.
 		

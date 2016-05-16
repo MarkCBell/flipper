@@ -103,6 +103,9 @@ class Tetrahedron(object):
 		strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
 		strn += '  0.000000000000 0.000000000000\n'
 		return strn
+	
+	def __snappy__(self):
+		return self.snappy_string()
 
 class Triangulation3(object):
 	''' This represents triangulation, that is a collection of tetrahedra. '''

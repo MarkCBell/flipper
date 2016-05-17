@@ -157,7 +157,7 @@ class Encoding(object):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
 			
-			return Encoding(self.sequence + other.sequence, self.name + '.' + other.name if self.name is not None and other.name is not None else None)
+			return Encoding(self.sequence + other.sequence, name=None if self.name is None or other.name is None else self.name + '.' + other.name)
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -166,7 +166,7 @@ class Encoding(object):
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
-			return Encoding(self.sequence * k)
+			return Encoding(self.sequence * k, name=None if self.name is None else '(%s)^%d' % (self.name, k))
 		else:
 			return self.inverse()**abs(k)
 	
@@ -177,7 +177,7 @@ class Encoding(object):
 		(True, False, True)
 		'''
 		
-		return Encoding([item.inverse() for item in reversed(self.sequence)])
+		return Encoding([item.inverse() for item in reversed(self.sequence)], name=None if self.name is None else '(%s)^-1' % self.name)
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.

@@ -1151,7 +1151,7 @@ class Triangulation(object):
 	def id_encoding(self):
 		''' Return an encoding of the identity map on this triangulation. '''
 		
-		return self.id_isometry().encode()
+		return flipper.kernel.Encoding([self.id_isometry()], name='')  # We don't use self.id_isometry().encode() so we can set name=''.
 	
 	def encode_flip(self, edge_label):
 		''' Return an encoding of the effect of flipping the given edge.

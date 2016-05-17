@@ -27,7 +27,7 @@ def generate_ordering(letters):
 
 ##########################################################################
 ### A helper function  that can be pickled for multiprocessing.
-def _worker_thread(Q, A):
+def _worker_thread_word(Q, A):
 	while True:
 		data = Q.get()
 		if data is None: break
@@ -35,7 +35,7 @@ def _worker_thread(Q, A):
 		surface, length, prefix, options = data
 		# We need to rebuild the ordering as this couldn't be passed through the pickle.
 		options['order'] = generate_ordering(options['letters'])
-		for output in surface.all_words_joined(length, prefix, **options):
+		for output in surface._all_words_joined(length, prefix, **options):
 			A.put(output)
 	A.put(None)
 
@@ -223,7 +223,7 @@ class EquippedTriangulation(object):
 			'filter': None
 			}
 		for i in range(1, length+1):
-			relators = [word for word in self.all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
+			relators = [word for word in self._all_words_unjoined(i, tuple(), **temp_options) if self.mapping_class('.'.join(word)).is_identity()]
 			for j in range(i // 2, i+1):  # Slice length.
 				for relator in relators:
 					for k in range(i):  # Cycling.
@@ -234,7 +234,7 @@ class EquippedTriangulation(object):
 		
 		return skip
 	
-	def all_words_unjoined(self, length, prefix, **options):
+	def _all_words_unjoined(self, length, prefix, **options):
 		''' Yield all words of given length.
 		
 		Users should not call directly but should use self.all_words(...) instead.
@@ -267,13 +267,13 @@ class EquippedTriangulation(object):
 				if good and options['conjugacy'] and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
 				if good and options['prefilter'] is not None and not options['prefilter'](prefix): good = False
 				if good:
-					for word in self.all_words_unjoined(length, prefix2, **options):
+					for word in self._all_words_unjoined(length, prefix2, **options):
 						yield word
 		
 		return
 	
-	def all_words_joined(self, length, prefix, **options):
-		for word in self.all_words_unjoined(length, prefix, **options):
+	def _all_words_joined(self, length, prefix, **options):
+		for word in self._all_words_unjoined(length, prefix, **options):
 			joined = '.'.join(word)
 			if options['apply'] is None:
 				yield joined
@@ -359,7 +359,7 @@ class EquippedTriangulation(object):
 		
 		if options['cores'] is None:
 			# Just use the single core algorithm:
-			for word in self.all_words_joined(length, prefix, **options):
+			for word in self._all_words_joined(length, prefix, **options):
 				yield word
 		else:
 			temp_options = dict(options)
@@ -368,7 +368,7 @@ class EquippedTriangulation(object):
 			temp_options['exact'] = True
 			temp_options['filter'] = None
 			if options['prefix_length'] <= length:
-				prefixes = [(self, length, leaf, node_options) for leaf in self.all_words_unjoined(options['prefix_length'], prefix, **temp_options)]
+				prefixes = [(self, length, leaf, node_options) for leaf in self._all_words_unjoined(options['prefix_length'], prefix, **temp_options)]
 			else:
 				prefixes = []
 			
@@ -378,7 +378,7 @@ class EquippedTriangulation(object):
 			
 			Q = multiprocessing.Queue()
 			A = multiprocessing.Queue()
-			P = [multiprocessing.Process(target=_worker_thread, args=(Q, A)) for i in range(options['cores'])]
+			P = [multiprocessing.Process(target=_worker_thread_word, args=(Q, A)) for i in range(options['cores'])]
 			for p in P: p.daemon = True
 			for p in P: p.start()
 			
@@ -423,7 +423,7 @@ class EquippedTriangulation(object):
 		return decomposition
 	
 	def mapping_class(self, word):
-		''' Return the mapping class corresponding to the given word of a random one of given length if given an integer.
+		''' Return the mapping class corresponding to the given word or a random one of given length if given an integer.
 		
 		The given word is decomposed using self.decompose_word and the composition
 		of the mapping classes involved is returned.

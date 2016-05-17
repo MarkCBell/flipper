@@ -435,6 +435,8 @@ class EquippedTriangulation(object):
 		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)
 		
+		name = word  # Record the current word so we can use it later to name the mapping class.
+		
 		# Remove any whitespace.
 		word = word.replace(' ', '')
 		
@@ -473,8 +475,6 @@ class EquippedTriangulation(object):
 				word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
 		
 		# This can fail with a TypeError.
-		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
-		sequence = [item for term in decomposition for item in term]
-		assert(sequence == [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]])
-		return flipper.kernel.Encoding(sequence, name=word) if len(sequence) > 0 else self.triangulation.id_encoding()
+		sequence = [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]])
+		return flipper.kernel.Encoding(sequence, name=name) if len(sequence) > 0 else self.triangulation.id_encoding()
 

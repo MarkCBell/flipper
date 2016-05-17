@@ -475,6 +475,6 @@ class EquippedTriangulation(object):
 				word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
 		
 		# This can fail with a TypeError.
-		sequence = [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]])
+		sequence = [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]]
 		return flipper.kernel.Encoding(sequence, name=name) if len(sequence) > 0 else self.triangulation.id_encoding()
 

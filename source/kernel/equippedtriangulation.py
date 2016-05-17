@@ -39,6 +39,18 @@ def _worker_thread_word(Q, A):
 			A.put(output)
 	A.put(None)
 
+def _worker_thread_mapping_class(Q, A):
+	while True:
+		data = Q.get()
+		if data is None: break
+		
+		surface, length, prefix, options = data
+		# We need to rebuild the ordering as this couldn't be passed through the pickle.
+		options['order'] = generate_ordering(options['letters'])
+		for output in surface._all_mapping_classes(length, prefix, **options):
+			A.put(output)
+	A.put(None)
+
 
 class EquippedTriangulation(object):
 	''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
@@ -282,6 +294,16 @@ class EquippedTriangulation(object):
 		
 		return
 	
+	def _all_mapping_classes(self, length, prefix, **options):
+		for word in self._all_words_unjoined(length, prefix, **options):
+			mapping_class = self.mapping_class('.'.join(word))
+			if options['apply'] is None:
+				yield mapping_class
+			else:
+				yield options['apply'](mapping_class)
+		
+		return
+	
 	def all_words(self, length, prefix=None, **options):
 		''' Yield all words of at most the specified length.
 		
@@ -305,9 +327,7 @@ class EquippedTriangulation(object):
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- For the equivalence used bundle ==> conjugacy ==> group.
-			- Using multiple cores means all words must be store in memory simultaneously. This
-			    can require a LOT of memory. '''
+			- For the equivalence used bundle ==> conjugacy ==> group. '''
 		
 		# Put the prefix into standard form.
 		if prefix is None:
@@ -359,7 +379,7 @@ class EquippedTriangulation(object):
 		
 		if options['cores'] is None:
 			# Just use the single core algorithm:
-			for word in self._all_words_joined(length, prefix, **options):
+			for word in self._all_mapping_classes(length, prefix, **options):
 				yield word
 		else:
 			temp_options = dict(options)
@@ -372,13 +392,120 @@ class EquippedTriangulation(object):
 			else:
 				prefixes = []
 			
-			#P = multiprocessing.Pool(processes=options['cores'])
-			#results = P.map(helper, prefixes)
-			#P.close()
-			
 			Q = multiprocessing.Queue()
 			A = multiprocessing.Queue()
 			P = [multiprocessing.Process(target=_worker_thread_word, args=(Q, A)) for i in range(options['cores'])]
+			for p in P: p.daemon = True
+			for p in P: p.start()
+			
+			Q.put((self, min(options['prefix_length']-1, length), prefix, node_options))
+			for data in prefixes:
+				Q.put(data)
+			
+			for i in range(options['cores']):
+				Q.put(None)
+			
+			num_completed_cores = 0
+			while num_completed_cores < options['cores']:
+				result = A.get()
+				if result is None:
+					num_completed_cores += 1
+				else:
+					yield result
+			
+			for p in P: p.terminate()
+	
+	def all_mapping_classes(self, length, prefix=None, **options):
+		''' Yield all mapping classes of at most the specified length.
+		
+		There are several equivalence relations defined on these mapping classes.
+		We may try to only one of each:
+			- mapping class group element (==),
+			- conjugacy class (~~), or
+			- fibre class (~?).
+		
+		Valid options and their defaults:
+			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group','none'
+			exact=False -- skip words that do not have exactly the required length.
+			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
+			skip=None -- an iterable containing substrings that cannot appear.
+			relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
+			prefilter=None -- filter the prefixes of words by this function.
+			filter=None -- filter the words by this function.
+			apply=None -- apply the given function to the words.
+			cores=None -- how many cores to use.
+			prefix_depth=3 -- depth to search for prefixes for other cores.
+		
+		Notes:
+			- By default letters are sorted by (length, lower case, swapcase).
+			- For the equivalence used bundle ==> conjugacy ==> group. '''
+		
+		# Put the prefix into standard form.
+		if prefix is None:
+			prefix = tuple()
+		if isinstance(prefix, flipper.StringType):
+			prefix = tuple(self.decompose_word(prefix))
+		else:
+			prefix = tuple(prefix)
+		
+		# Setup options:
+		default_options = {
+			'equivalence': 'bundle',
+			'letters': sorted(self.mapping_classes, key=lambda x: (len(x), x.lower(), x.swapcase())),
+			'exact': False,
+			'skip': None,
+			'relator_len': 2,  # 2 get equal generators, 4 gets commutators and 6 gets braids.
+			'prefilter': None,
+			'filter': None,
+			'apply': None,
+			'cores': None,
+			'prefix_length': 3
+			}
+		
+		# Install any missing options with defaults.
+		for option in default_options:
+			if option not in options: options[option] = default_options[option]
+		
+		# Set implications. Possible values for options['equivalence'] are:
+		#  None, group, conjugacy, bundle
+		options['bundle'] = options['equivalence'] == 'bundle'
+		options['conjugacy'] = options['equivalence'] == 'conjugacy' or options['bundle']
+		options['group'] = options['equivalence'] == 'group' or options['conjugacy']
+		
+		# Build the list of substrings that must be avoided.
+		if options['skip'] is not None:
+			options['skip'] = set(options['skip'])
+		elif options['group']:
+			options['skip'] = self.generate_skip(options['relator_len'], options['letters'])
+		else:
+			options['skip'] = set()
+		
+		# We need to save a copy of the options at this point to pass to the nodes (if we
+		# are multiprocessing) as the order function we are about to build is anonymous
+		# and so it can't be Pickled.
+		node_options = dict(options)
+		
+		# Build the ordering based on the letters given.
+		options['order'] = generate_ordering(options['letters'])
+		
+		if options['cores'] is None:
+			# Just use the single core algorithm:
+			for word in self._all_mapping_classes(length, prefix, **options):
+				yield word
+		else:
+			temp_options = dict(options)
+			temp_options['conjugacy'] = False
+			temp_options['bundle'] = False
+			temp_options['exact'] = True
+			temp_options['filter'] = None
+			if options['prefix_length'] <= length:
+				prefixes = [(self, length, leaf, node_options) for leaf in self._all_words_unjoined(options['prefix_length'], prefix, **temp_options)]
+			else:
+				prefixes = []
+			
+			Q = multiprocessing.Queue()
+			A = multiprocessing.Queue()
+			P = [multiprocessing.Process(target=_worker_thread_mapping_class, args=(Q, A)) for i in range(options['cores'])]
 			for p in P: p.daemon = True
 			for p in P: p.start()
 			
@@ -476,5 +603,5 @@ class EquippedTriangulation(object):
 		
 		# This can fail with a TypeError.
 		sequence = [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]]
-		return flipper.kernel.Encoding(sequence, name=name) if len(sequence) > 0 else self.triangulation.id_encoding()
+		return flipper.kernel.Encoding(sequence, _cache={'name': name}) if len(sequence) > 0 else self.triangulation.id_encoding()
 

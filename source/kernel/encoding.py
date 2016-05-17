@@ -37,17 +37,15 @@ class Encoding(object):
 	>>> x
 	[Flip 1]
 	'''
-	def __init__(self, sequence, name=None, _cache=None):
+	def __init__(self, sequence, _cache=None):
 		assert(isinstance(sequence, (list, tuple)))
 		assert(len(sequence) > 0)
 		assert(all(isinstance(item, flipper.kernel.Move) for item in sequence))
 		# We used to also test:
 		#  assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
 		# However this makes composing Encodings a quadratic time algorithm!
-		assert(name is None or isinstance(name, flipper.StringType))
 		
 		self.sequence = sequence
-		self.name = name
 		
 		self.source_triangulation = self.sequence[-1].source_triangulation
 		self.target_triangulation = self.sequence[0].target_triangulation
@@ -71,7 +69,7 @@ class Encoding(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return self.name if self.name is not None else str(self.sequence)  # A backup name.
+		return self._cache['name'] if 'name' in self._cache else str(self.sequence)  # A backup name.
 	def __iter__(self):
 		return iter(self.sequence)
 	def __len__(self):
@@ -157,7 +155,7 @@ class Encoding(object):
 			if self.source_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compose Encodings over different triangulations.')
 			
-			return Encoding(self.sequence + other.sequence, name=None if self.name is None or other.name is None else self.name + '.' + other.name)
+			return Encoding(self.sequence + other.sequence, _cache=dict() if 'name' not in self._cache or 'name' not in other._cache else {'name': self._cache['name'] + '.' + other._cache['name']})
 		else:
 			return NotImplemented
 	def __pow__(self, k):
@@ -166,7 +164,7 @@ class Encoding(object):
 		if k == 0:
 			return self.source_triangulation.id_encoding()
 		elif k > 0:
-			return Encoding(self.sequence * k, name=None if self.name is None else '(%s)^%d' % (self.name, k))
+			return Encoding(self.sequence * k, _cache=dict() if 'name' not in self._cache else {'name': '(%s)^%d' % (self._cache['name'], k)})
 		else:
 			return self.inverse()**abs(k)
 	
@@ -177,7 +175,7 @@ class Encoding(object):
 		(True, False, True)
 		'''
 		
-		return Encoding([item.inverse() for item in reversed(self.sequence)], name=None if self.name is None else '(%s)^-1' % self.name)
+		return Encoding([item.inverse() for item in reversed(self.sequence)], _cache=dict() if 'name' not in self._cache else {'name': '(%s)^-1' % self._cache['name']})
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.
@@ -903,7 +901,7 @@ def create_encoding(source_triangulation, sequence, _cache=None):
 	
 	assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
 	
-	return source_triangulation.encode(sequence, _cache)
+	return source_triangulation.encode(sequence, _cache=_cache)
 
 def doctest_globs():
 	''' Return the globals needed to run doctest on this module. '''

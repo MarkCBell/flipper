@@ -269,7 +269,7 @@ class NumberFieldElement(object):
 	def polynomial(self):
 		''' Return a polynomial that this algebraic number is a root of.
 		
-		Note that this is NOT guranteed to return the minimal polynomial
+		Note that this is NOT guaranteed to return the minimal polynomial
 		of self. However it will whenever:
 			deg(self) == def(self.number_field). '''
 		

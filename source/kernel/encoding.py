@@ -32,7 +32,7 @@ class Encoding(object):
 	>>> i = S.mapping_class('')
 	>>> a = S.mapping_class('a')
 	>>> a
-	[Isometry [0, 1, 2], Isometry [~2, 1, 0], Flip 2, Isometry [0, 1, 2]]
+	a
 	>>> x = S.triangulation.encode([1])
 	>>> x
 	[Flip 1]

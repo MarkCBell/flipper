@@ -474,5 +474,7 @@ class EquippedTriangulation(object):
 		
 		# This can fail with a TypeError.
 		decomposition = [self.mapping_classes[letter] for letter in self.decompose_word(word)]
-		return flipper.kernel.product(decomposition, start=self.triangulation.id_encoding(), left=False)
+		sequence = [item for term in decomposition for item in term]
+		assert(sequence == [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]])
+		return flipper.kernel.Encoding(sequence, name=word) if len(sequence) > 0 else self.triangulation.id_encoding()
 

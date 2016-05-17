@@ -287,20 +287,14 @@ class EquippedTriangulation(object):
 	def _all_words_joined(self, length, prefix, **options):
 		for word in self._all_words_unjoined(length, prefix, **options):
 			joined = '.'.join(word)
-			if options['apply'] is None:
-				yield joined
-			else:
-				yield options['apply'](joined)
+			yield joined if options['apply'] is None else options['apply'](joined)
 		
 		return
 	
 	def _all_mapping_classes(self, length, prefix, **options):
 		for word in self._all_words_unjoined(length, prefix, **options):
 			mapping_class = self.mapping_class('.'.join(word))
-			if options['apply'] is None:
-				yield mapping_class
-			else:
-				yield options['apply'](mapping_class)
+			yield mapping_class if options['apply'] is None else options['apply'](mapping_class)
 		
 		return
 	
@@ -327,7 +321,8 @@ class EquippedTriangulation(object):
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- For the equivalence used bundle ==> conjugacy ==> group. '''
+			- For the equivalence used bundle ==> conjugacy ==> group.
+			- The function given toapply must be a pickleable if using multiple cores. '''
 		
 		# Put the prefix into standard form.
 		if prefix is None:
@@ -438,7 +433,8 @@ class EquippedTriangulation(object):
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
-			- For the equivalence used bundle ==> conjugacy ==> group. '''
+			- For the equivalence used bundle ==> conjugacy ==> group.
+			- The function given toapply must be a pickleable if using multiple cores. '''
 		
 		# Put the prefix into standard form.
 		if prefix is None:

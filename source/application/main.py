@@ -85,7 +85,7 @@ else:
 		}
 
 # Regexs for validating names of things.
-VALID_NAME_REGEX = r'[a-zA-Z][a-zA-z0-9_]*$'  # Valid names consist of letters, numbers, underscores and start with a letter.
+VALID_NAME_REGEX = r'[a-zA-Z][a-zA-z0-9_^-]*$'  # Valid names consist of letters, numbers, underscores and start with a letter.
 VALID_SPECIFICATION_REGEX = r'[a-zA-Z]+$'  # Valid specifications are non-empty and consists of letters.
 VALID_ISOMETRY_REGEX = r'([0-9]+:[0-9]+( |$))+'  # Valid isometries match 'num:num num:num ...'.
 
@@ -313,6 +313,14 @@ class FlipperApplication(object):
 			return False
 		
 		return True
+	
+	def valid_braid_specification(self, strn):
+		try:
+			n = int(strn)
+			return n >= 3
+		except ValueError:
+			tkMessageBox.showerror('Invalid specification', 'A valid specification must be an integer at least three.')
+			return False
 	
 	def valid_isometry(self, strn):
 		if re.match(VALID_ISOMETRY_REGEX, strn) is None:
@@ -613,6 +621,7 @@ class FlipperApplication(object):
 			'Circular n-gon',
 			'Radial n-gon',
 			'From isomorphism signature',
+			'Sperical braid',
 			'S_{0,4}',
 			'S_{1,1}',
 			'S_{1,2}',
@@ -624,6 +633,10 @@ class FlipperApplication(object):
 			self.initialise_circular_n_gon()
 		elif example == 'Radial n-gon':
 			self.initialise_radial_n_gon()
+		elif example == 'Sperical braid':
+			strands = flipper.application.get_input('Spherical braid specification', 'Number of strands for spherical braid', validate=self.valid_braid_specification)
+			if strands is not None:
+				self.load(flipper.load('SB_%s' % strands))
 		elif example == 'From isomorphism signature':
 			signature = flipper.application.get_input('Triangulation specification', 'Isomorphism signature:')
 			if signature is not None:

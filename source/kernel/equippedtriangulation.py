@@ -317,7 +317,7 @@ class EquippedTriangulation(object):
 			filter=None -- filter the words by this function.
 			apply=None -- apply the given function to the words.
 			cores=None -- how many cores to use.
-			prefix_depth=3 -- depth to search for prefixes for other cores.
+			prefix_depth=4 -- depth to search for prefixes for other cores.
 		
 		Notes:
 			- By default letters are sorted by (length, lower case, swapcase).
@@ -343,7 +343,7 @@ class EquippedTriangulation(object):
 			'filter': None,
 			'apply': None,
 			'cores': None,
-			'prefix_length': 3
+			'prefix_length': 4
 			}
 		
 		# Install any missing options with defaults.

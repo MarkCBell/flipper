@@ -76,7 +76,7 @@ Development
 ===========
 
 The latest development version of flipper is available from
-`BitBucket <https://bitbucket.org/Mark_Bell/flipper`_.
+`BitBucket <https://bitbucket.org/Mark_Bell/flipper>`_.
 Alternatively, you can clone the mercurial repository directly using
 the command::
 

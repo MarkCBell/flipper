@@ -54,6 +54,20 @@ def example_1_2():
 		'x': T.encode([{0: ~2}, 4, 5, 2, 3, 0, 4, 2])
 		})
 
+def example_1_2b():
+	# S_1_2 without the half twist
+	T = flipper.create_triangulation([[1, 3, 2], [~2, 0, 4], [~1, 5, ~0], [~5, ~4, ~3]])
+	
+	a = T.lamination([0, 0, 1, 1, 1, 0])
+	b = T.lamination([1, 0, 0, 0, 1, 1])
+	c = T.lamination([0, 1, 0, 1, 0, 1])
+	
+	return flipper.kernel.EquippedTriangulation(T, {
+		'a': a, 'b': b, 'c': c
+		}, {
+		'a': a.encode_twist(), 'b': b.encode_twist(), 'c': c.encode_twist(),
+		})
+
 def example_2_1():
 	# S_2_1 and its standard (Twister) curves:
 	T = flipper.create_triangulation([[0, 4, 1], [5, ~4, ~3], [2, ~5, 6], [7, ~6, ~2], [3, ~7, 8], [~0, ~8, ~1]])
@@ -277,6 +291,7 @@ def load(surface):
 		'S_1_1': example_1_1,
 		'S_1_1m': example_1_1m,
 		'S_1_2': example_1_2,
+		'S_1_2b': example_1_2b,
 		'S_2_1': example_2_1,
 		'S_2_1b': example_2_1b,
 		'S_3_1': example_3_1,

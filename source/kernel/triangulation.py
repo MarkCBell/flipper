@@ -42,7 +42,7 @@ class Vertex(object):
 	def __repr__(self):
 		return str(self)
 	def __str__(self):
-		return str(self.label)
+		return ('Singularity ' if self.filled else 'Puncture ') + str(self.label)
 	def __hash__(self):
 		return hash(self.label)
 	def __eq__(self, other):

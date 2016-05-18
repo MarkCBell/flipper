@@ -308,7 +308,7 @@ class EquippedTriangulation(object):
 			- fibre class (~?).
 		
 		Valid options and their defaults:
-			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group','none'
+			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
 			exact=False -- skip words that do not have exactly the required length.
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
 			skip=None -- an iterable containing substrings that cannot appear.
@@ -374,7 +374,7 @@ class EquippedTriangulation(object):
 		
 		if options['cores'] is None:
 			# Just use the single core algorithm:
-			for word in self._all_mapping_classes(length, prefix, **options):
+			for word in self._all_words_joined(length, prefix, **options):
 				yield word
 		else:
 			temp_options = dict(options)

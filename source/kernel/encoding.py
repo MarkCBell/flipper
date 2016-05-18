@@ -51,7 +51,10 @@ class Encoding(object):
 		self.target_triangulation = self.sequence[0].target_triangulation
 		self.zeta = self.source_triangulation.zeta
 		
-		self._cache = {} if _cache is None else _cache  # For caching hard to compute results.
+		self._cache = {'name': ''} if _cache is None else _cache  # For caching hard to compute results.
+	
+	def without_cache(self):
+		return Encoding(self.sequence, _cache={'name': self._cache['name']})
 	
 	def is_mapping_class(self):
 		''' Return if this encoding is a mapping class.

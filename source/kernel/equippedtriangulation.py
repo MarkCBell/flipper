@@ -388,7 +388,7 @@ class EquippedTriangulation(object):
 				prefixes = []
 			
 			Q = multiprocessing.Queue()
-			A = multiprocessing.Queue(maxlen=1000)
+			A = multiprocessing.Queue()
 			P = [multiprocessing.Process(target=_worker_thread_word, args=(Q, A)) for i in range(options['cores'])]
 			for p in P: p.daemon = True
 			for p in P: p.start()

@@ -695,7 +695,7 @@ class FlipperApplication(object):
 		flipper.doc.open_documentation()
 	
 	def show_about(self):
-		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013 - 2016.' % flipper.__version__)
+		tkMessageBox.showinfo('About', 'flipper (Version %s).\nCopyright (c) Mark Bell 2013.' % flipper.__version__)
 	
 	def translate(self, dx, dy):
 		for vertex in self.vertices:

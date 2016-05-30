@@ -41,8 +41,6 @@ class FlatStructure(object):
 	These should satisfy some standard relations like:
 		vector[~edge] = -vector[edge], and
 		sum(vector[edge] for edge in triangle) == 0.
-	These vectors describe the flat structure of self.canonical() and can be used to build a flat surface for self.canonical().
-	This is based off of code supplied by Shannon Horrigan.
 	'''
 	def __init__(self, triangulation, edge_vectors):
 		assert(isinstance(triangulation, flipper.kernel.Triangulation))

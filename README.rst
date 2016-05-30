@@ -23,7 +23,7 @@ stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.h
 .. warning:: In order to use the flipper GUI on OS X, users must first update
 	their copy of Tk/Tcl as described `here <https://www.python.org/download/mac/tcltk/>`_.
 	Flipper has been tested with `ActiveTcl 8.5.18 <http://www.activestate.com/activetcl/downloads>`_.
-	Additionally, if running under flipper Sage, users must then reinstall sage python
+	Additionally, if running flipper under Sage, users must then reinstall sage python
 	by using the command::
 
 	> sage -f python

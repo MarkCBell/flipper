@@ -817,6 +817,8 @@ class Encoding(object):
 	def flat_structure(self):
 		''' Return the flat structure associated to self.canonical().
 		
+		This is based off of code supplied by Shannon Horrigan.
+		
 		Assumes that this mapping class is pseudo-Anosov.
 		
 		This encoding must be a mapping class. '''

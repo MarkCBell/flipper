@@ -157,6 +157,8 @@ class NumberFieldElement(object):
 		# Warning: This is only really a hash when self.number_field.polynomial is irreducible.
 		return hash((self.number_field, tuple(self.linear_combination)))
 	
+	def __pos__(self):
+		return self
 	def __neg__(self):
 		return NumberFieldElement(self.number_field, [-a for a in self])
 	def __abs__(self):

@@ -39,7 +39,6 @@ class FlatStructure(object):
 	
 	It is specified by a triangulation together with a map taking each edge to a Vector2.
 	These should satisfy some standard relations like:
-		vector[~edge] = -vector[edge], and
 		sum(vector[edge] for edge in triangle) == 0.
 	'''
 	def __init__(self, triangulation, edge_vectors):
@@ -48,7 +47,6 @@ class FlatStructure(object):
 		assert(all(edge in edge_vectors for edge in triangulation.edges))
 		assert(all(isinstance(edge_vectors[edge], Vector2) for edge in triangulation.edges))
 		
-		assert(all(edge_vectors[~edge] == -edge_vectors[edge] for edge in triangulation.edges))
 		assert(all(sum([edge_vectors[edge] for edge in triangle], Vector2(0, 0)) == Vector2(0, 0) for triangle in triangulation))
 		
 		self.triangulation = triangulation

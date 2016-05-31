@@ -230,7 +230,7 @@ def example_36():
 def example_braid_sphere(n):
 	# A triangulation of S_{0,n}.
 	assert(isinstance(n, flipper.IntegerType))
-	assert(n >= 3)
+	assert(n >= 4)
 	
 	# We'll build the following triangulation of S_{0,n}:
 	#

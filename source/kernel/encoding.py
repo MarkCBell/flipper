@@ -825,76 +825,29 @@ class Encoding(object):
 		
 		assert(self.is_mapping_class())
 		
-		stable_lamination = self.splitting_sequence().lamination
-		unstable_lamination = self.splitting_sequence().mapping_class.inverse().invariant_lamination()
-		periodic_triangulation = self.splitting_sequence().triangulation
+		splitting_sequence = self.splitting_sequence()
+		periodic_triangulation = splitting_sequence.triangulation  # This is the triangulation we will build the flat structure on.
+		stable_lamination = splitting_sequence.lamination  # These give us x coordinates.
+		unstable_lamination = splitting_sequence.mapping_class.inverse().invariant_lamination()  # These give us y coordinates.
 		
-		queue = Queue()  # The edges whose vectors are decided but whose triangles have not been inspected.
-		edge_vectors = dict()  # A dictionary mapping edges to their corresponding vectors. 
-		
-		while len(edge_vectors) < self.zeta:
-			# We fix an edge to start the procedure.
-			e = [edge for edge in periodic_triangulation.edges if edge not in edge_vectors][0]
+		edge_vectors = dict()
+		for triangle in periodic_triangulation:
+			# Find the sides with largest stable and unstable lengths.
+			index_s = max(range(3), key=lambda i: stable_lamination(triangle.edges[i]))
+			index_u = max(range(3), key=lambda i: unstable_lamination(triangle.edges[i]))
 			
-			# Fill in the basic information for this edge (and its inverse).
-			edge_vectors[e] = flipper.kernel.Vector2(stable_lamination(e), unstable_lamination(e))
-			edge_vectors[~e] = flipper.kernel.Vector2(-stable_lamination(e), -unstable_lamination(e))
+			# Get the edges of triangle relative to the index_s.
+			edges = [triangle[(index_s + i) % 3] for i in range(3)]
+			if (index_s + 1) % 3 == index_u:  # If the longest stable side is followed by the longest unstable side.
+				edge_vectors[edges[0]] = flipper.kernel.Vector2(+stable_lamination(edges[0]), +unstable_lamination(edges[0]))
+				edge_vectors[edges[1]] = flipper.kernel.Vector2(-stable_lamination(edges[1]), -unstable_lamination(edges[1]))
+				edge_vectors[edges[2]] = flipper.kernel.Vector2(-stable_lamination(edges[2]), +unstable_lamination(edges[2]))
+			else:
+				edge_vectors[edges[0]] = flipper.kernel.Vector2(-stable_lamination(edges[0]), +unstable_lamination(edges[0]))
+				edge_vectors[edges[1]] = flipper.kernel.Vector2(+stable_lamination(edges[1]), +unstable_lamination(edges[1]))
+				edge_vectors[edges[2]] = flipper.kernel.Vector2(+stable_lamination(edges[2]), -unstable_lamination(edges[2]))
 			
-			queue.put(e)
-			queue.put(~e)
-			
-			while not queue.empty():
-				edge_1 = queue.get()  # Get an unchecked edge.
-				# Moving anticlockwise around the triangle from edge_1 brings you to edge_2 then edge_3
-				#          /\
-				#         /  \
-				#        /    \
-				#  e_3  v      ^  e_2
-				#      /        \
-				#     /          \
-				#     ------>-----
-				#         e_1
-				corner = periodic_triangulation.corner_lookup[edge_1.label]
-				edge_2, edge_3 = corner.edges[1], corner.edges[2]
-				
-				if edge_2 in edge_vectors and edge_3 not in edge_vectors:  # If two of the edges are known we can calculate the third using the formula: edge_1  + edge_2  + edge_3 == 0.
-					edge_vectors[edge_3] = -(edge_vectors[edge_1] + edge_vectors[edge_2])
-					edge_vectors[~edge_3] = -edge_vectors[edge_3]
-					queue.put(~edge_3)
-				elif edge_2 not in edge_vectors and edge_3 in edge_vectors:  # The other possibility if two edges are known.
-					edge_vectors[edge_2] = -(edge_vectors[edge_1] + edge_vectors[edge_3])
-					edge_vectors[~edge_2] = -edge_vectors[edge_2]
-					queue.put(~edge_2)
-				elif edge_2 not in edge_vectors and edge_3 not in edge_vectors:  # If edge_2 and edge_3 are both unknown:
-					# Here we just choose positive signs in anticipation of changing them later if need be.
-					s_1, u_1 = stable_lamination(edge_1), unstable_lamination(edge_1)
-					s_2, u_2 = stable_lamination(edge_2), unstable_lamination(edge_2)
-					s_3, u_3 = stable_lamination(edge_3), unstable_lamination(edge_3)
-					
-					edge_vectors[edge_2] = flipper.kernel.Vector2(
-						-s_2 if (s_1 == s_2 + s_3 and edge_vectors[edge_1].x >= 0) or \
-							(s_2 == s_1 + s_3 and edge_vectors[edge_1].x >= 0) or \
-							(s_3 == s_1 + s_2 and edge_vectors[edge_1].x < 0) else s_2,
-						-u_2 if (u_1 == u_2 + u_3 and edge_vectors[edge_1].y >= 0) or \
-							(u_2 == u_1 + u_3 and edge_vectors[edge_1].y >= 0) or \
-							(u_3 == u_1 + u_2 and edge_vectors[edge_1].y < 0) else u_2
-						)
-					
-					edge_vectors[edge_3] = flipper.kernel.Vector2(
-						-s_3 if (s_1 == s_2 + s_3 and edge_vectors[edge_1].x >= 0) or \
-							(s_2 == s_1 + s_3 and edge_vectors[edge_1].x < 0) or \
-							(s_3 == s_1 + s_2 and edge_vectors[edge_1].x >= 0) else s_3,
-						-u_3 if (u_1 == u_2 + u_3 and edge_vectors[edge_1].y >= 0) or \
-							(u_2 == u_1 + u_3 and edge_vectors[edge_1].y < 0) or \
-							(u_3 == u_1 + u_2 and edge_vectors[edge_1].y >= 0) else u_3
-						)
-					
-					# Put the inverses in too.
-					edge_vectors[~edge_2] = -edge_vectors[edge_2]
-					edge_vectors[~edge_3] = -edge_vectors[edge_3]
-					queue.put(~edge_2)
-					queue.put(~edge_3)
-				# The final case is: edge_2 in edge_vectors and edge_3 in edge_vectors. However here there is nothing to do as all of the edges are known.
+			assert(sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0,0)) == flipper.kernel.Vector2(0, 0))
 		
 		return flipper.kernel.FlatStructure(periodic_triangulation, edge_vectors)
 

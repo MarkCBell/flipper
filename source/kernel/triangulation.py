@@ -136,6 +136,8 @@ class Triangle(object):
 			return self.labels == other.labels
 		else:
 			return NotImplemented
+	def __len__(self):
+		return 3  # This is needed for revered(triangle) to work.
 	
 	# Note that this is NOT the same convention as used in pieces.
 	# There iterating and index accesses return vertices.

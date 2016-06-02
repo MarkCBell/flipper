@@ -179,6 +179,8 @@ class Encoding(object):
 		'''
 		
 		return Encoding([item.inverse() for item in reversed(self.sequence)], _cache=dict() if 'name' not in self._cache else {'name': '(%s)^-1' % self._cache['name']})
+	def __invert__(self):
+		return self.inverse()
 	
 	def closing_isometries(self):
 		''' Return all the possible isometries from self.target_triangulation to self.source_triangulation.

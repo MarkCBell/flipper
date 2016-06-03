@@ -76,7 +76,6 @@ height_int = numberfield.height_int
 norm = triangulation.norm
 StringType = types.StringType
 IntegerType = types.IntegerType
-FileType = types.FileType
 
 # Functions that help with construction.
 create_triangulation = Triangulation.from_tuple

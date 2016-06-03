@@ -6,11 +6,13 @@ import flipper.application
 
 import re
 import os
+import io
 import sys
 import pickle
 from math import sin, cos, pi, ceil, sqrt
 from itertools import combinations
-from decimal import Decimal
+
+FileType = io.TextIOWrapper if sys.version_info >= (3, 0) else file
 
 try:
 	import Tkinter as TK
@@ -449,7 +451,7 @@ class FlipperApplication(object):
 		If given nothing it asks the user to select a flipper (kernel) file.'''
 		
 		try:
-			if load_from is None or isinstance(load_from, (flipper.kernel.FileType, flipper.StringType)):
+			if load_from is None or isinstance(load_from, (FileType, flipper.StringType)):
 				if load_from is None:
 					file_path = tkFileDialog.askopenfilename(
 						defaultextension='.flp',
@@ -461,7 +463,7 @@ class FlipperApplication(object):
 						string_contents = open(file_path, 'rb').read()
 					except IOError:
 						raise flipper.AssumptionError('Error 101: Cannot read contents of %s.' % load_from)
-				elif isinstance(load_from, flipper.kernel.FileType):
+				elif isinstance(load_from, FileType):
 					string_contents = load_from.read()
 				elif isinstance(load_from, flipper.StringType):
 					try:

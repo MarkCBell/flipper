@@ -335,7 +335,6 @@ class Triangulation3(object):
 		
 		This triangulation must be closed. '''
 		
-		assert(isinstance(name, flipper.StringType))
 		assert(fillings is None or isinstance(fillings, (list, tuple)))
 		
 		assert(self.is_closed())

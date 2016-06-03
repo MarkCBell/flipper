@@ -419,7 +419,7 @@ class Triangulation(object):
 		# of closed 2--manifolds only. This will enable us to remove a lot of
 		# variables and simplify proceedings.
 		
-		assert(isinstance(signature, flipper.StringType))
+		assert(isinstance(signature, str))
 		
 		char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
 		char_lookup = dict((letter, index) for index, letter in enumerate(char))

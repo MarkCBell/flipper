@@ -74,7 +74,6 @@ zero_matrix = matrix.zero_matrix
 dot = matrix.dot
 height_int = numberfield.height_int
 norm = triangulation.norm
-StringType = types.StringType
 IntegerType = types.IntegerType
 
 # Functions that help with construction.

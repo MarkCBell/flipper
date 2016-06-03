@@ -64,7 +64,7 @@ class EquippedTriangulation(object):
 		
 		self.triangulation = triangulation
 		if isinstance(laminations, dict):
-			assert(all(isinstance(key, flipper.StringType) for key in laminations))
+			assert(all(isinstance(key, str) for key in laminations))
 			assert(all(isinstance(laminations[key], flipper.kernel.Lamination) for key in laminations))
 			assert(all(laminations[key].triangulation == self.triangulation for key in laminations))
 			self.laminations = laminations
@@ -74,7 +74,7 @@ class EquippedTriangulation(object):
 			self.laminations = dict(list(flipper.kernel.utilities.name_objects(laminations)))
 		
 		if isinstance(mapping_classes, dict):
-			assert(all(isinstance(key, flipper.StringType) for key in mapping_classes))
+			assert(all(isinstance(key, str) for key in mapping_classes))
 			assert(all(isinstance(mapping_classes[key], flipper.kernel.Encoding) for key in mapping_classes))
 			assert(all(mapping_classes[key].source_triangulation == self.triangulation for key in mapping_classes))
 			assert(all(mapping_classes[key].is_mapping_class() for key in mapping_classes))
@@ -126,7 +126,7 @@ class EquippedTriangulation(object):
 				unnamed_mapping_classes.append(item)
 			elif isinstance(item, (list, tuple)) and len(item) == 2:
 				name, item2 = item
-				if isinstance(name, flipper.StringType):
+				if isinstance(name, str):
 					if isinstance(item2, flipper.kernel.Lamination):
 						if name not in laminations:
 							laminations[name] = item2
@@ -327,7 +327,7 @@ class EquippedTriangulation(object):
 		# Put the prefix into standard form.
 		if prefix is None:
 			prefix = tuple()
-		if isinstance(prefix, flipper.StringType):
+		if isinstance(prefix, str):
 			prefix = tuple(self.decompose_word(prefix))
 		else:
 			prefix = tuple(prefix)
@@ -420,7 +420,7 @@ class EquippedTriangulation(object):
 			- fibre class (~?).
 		
 		Valid options and their defaults:
-			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group','none'
+			equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
 			exact=False -- skip words that do not have exactly the required length.
 			letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
 			skip=None -- an iterable containing substrings that cannot appear.
@@ -439,7 +439,7 @@ class EquippedTriangulation(object):
 		# Put the prefix into standard form.
 		if prefix is None:
 			prefix = tuple()
-		if isinstance(prefix, flipper.StringType):
+		if isinstance(prefix, str):
 			prefix = tuple(self.decompose_word(prefix))
 		else:
 			prefix = tuple(prefix)
@@ -527,7 +527,7 @@ class EquippedTriangulation(object):
 		
 		Raises a KeyError if the greedy decomposition fails. '''
 		
-		assert(isinstance(word, flipper.StringType))
+		assert(isinstance(word, str))
 		
 		# By sorting the available keys, longest first, we ensure that any time we
 		# get a match it is as long as possible.
@@ -553,7 +553,7 @@ class EquippedTriangulation(object):
 		
 		Raises a TypeError if the word does not correspond to a mapping class. '''
 		
-		assert(isinstance(word, flipper.StringType) or isinstance(word, flipper.IntegerType))
+		assert(isinstance(word, str) or isinstance(word, flipper.IntegerType))
 		
 		if isinstance(word, flipper.IntegerType):
 			word = self.random_word(word)

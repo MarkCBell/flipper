@@ -35,7 +35,7 @@ create_triangulation = flipper.kernel.create_triangulation
 triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 norm = flipper.kernel.norm
 
-IntegerType = flipper.kernel.IntegerType
+from numbers import Integral as IntegerType
 
 AbortError = flipper.kernel.AbortError
 ApproximationError = flipper.kernel.ApproximationError

@@ -31,7 +31,6 @@ from . import splittingsequence
 from . import symboliccomputation
 from . import triangulation
 from . import triangulation3
-from . import types
 from . import utilities
 
 # Set up shorter names for all of the different classes.
@@ -74,7 +73,6 @@ zero_matrix = matrix.zero_matrix
 dot = matrix.dot
 height_int = numberfield.height_int
 norm = triangulation.norm
-IntegerType = types.IntegerType
 
 # Functions that help with construction.
 create_triangulation = Triangulation.from_tuple

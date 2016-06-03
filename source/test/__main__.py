@@ -8,6 +8,9 @@ import importlib
 def main(verbose=False):
 	''' Runs all of the tests in the tests directory. '''
 	
+	print('Testing flipper %s' % flipper.__version__)
+	print('Located in: %s' % flipper.__file__)
+	
 	failed_tests = []
 	for test_name in dir(flipper.test):
 		if not test_name.startswith('_'):

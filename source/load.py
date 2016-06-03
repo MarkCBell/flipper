@@ -284,7 +284,6 @@ def load(surface):
 		'S_2_1', 'S_2_1b', 'S_3_1', 'S_3_1b',
 		'E_12', 'E_24', 'E_36', and
 		'SB_n' where n is an integer >= 3. '''
-	assert(isinstance(surface, flipper.StringType))
 	
 	surfaces = {
 		'S_0_4': example_0_4,
@@ -302,6 +301,8 @@ def load(surface):
 		'E_24': example_24,
 		'E_36': example_36
 		}
+	
+	surface = str(surface)
 	
 	if surface in surfaces:
 		return surfaces[surface]()

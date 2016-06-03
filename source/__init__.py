@@ -35,7 +35,6 @@ create_triangulation = flipper.kernel.create_triangulation
 triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 norm = flipper.kernel.norm
 
-StringType = flipper.kernel.StringType
 IntegerType = flipper.kernel.IntegerType
 
 AbortError = flipper.kernel.AbortError

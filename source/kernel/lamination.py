@@ -92,7 +92,7 @@ class Lamination(object):
 	
 	def __hash__(self):
 		# This should be done better.
-		return hash(tuple(self.geometric))
+		return hash(tuple(self.geometric) + tuple(self.algebraic))
 	
 	def __add__(self, other):
 		if isinstance(other, Lamination):

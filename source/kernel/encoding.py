@@ -124,7 +124,9 @@ class Encoding(object):
 	def __ne__(self, other):
 		return not (self == other)
 	def __hash__(self):
-		return hash(tuple(self.key_curve_images()))
+		if '__hash__' not in self._cache:
+			self._cache['__hash__'] = hash(tuple(self.key_curve_images()))
+		return self._cache['__hash__']
 	def is_homologous_to(self, other):
 		''' Return if this encoding is homologous to other.
 		

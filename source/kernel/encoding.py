@@ -108,17 +108,23 @@ class Encoding(object):
 		else:
 			return NotImplemented
 	
+	def key_curve_images(self):
+		for curve in self.source_triangulation.key_curves():
+			yield self(curve)
+	
 	def __eq__(self, other):
 		if isinstance(other, Encoding):
 			if self.source_triangulation != other.source_triangulation or \
 				self.target_triangulation != other.target_triangulation:
 				raise ValueError('Cannot compare Encodings between different triangulations.')
 			
-			return all(self(curve) == other(curve) for curve in self.source_triangulation.key_curves())
+			return all(self_image == other_image for self_image, other_image in zip(self.key_curve_images(), other.key_curve_images()))
 		else:
 			return NotImplemented
 	def __ne__(self, other):
 		return not (self == other)
+	def __hash__(self):
+		return hash(tuple(self.key_curve_images()))
 	def is_homologous_to(self, other):
 		''' Return if this encoding is homologous to other.
 		

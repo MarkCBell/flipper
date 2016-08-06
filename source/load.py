@@ -54,7 +54,7 @@ def example_1_2():
 		'x': T.encode([{0: ~2}, 4, 5, 2, 3, 0, 4, 2])
 		})
 
-def example_1_2b():
+def example_1_2p():
 	# S_1_2 without the half twist
 	T = flipper.create_triangulation([[1, 3, 2], [~2, 0, 4], [~1, 5, ~0], [~5, ~4, ~3]])
 	
@@ -280,7 +280,7 @@ def load(surface):
 	''' Return the requested example EquippedTriangulation.
 	
 	Available surfaces:
-		'S_0_4', 'S_1_1', 'S_1_1m', 'S_1_2',
+		'S_0_4', 'S_1_1', 'S_1_1m', 'S_1_2', 'S_1_2p',
 		'S_2_1', 'S_2_1b', 'S_3_1', 'S_3_1b',
 		'E_12', 'E_24', 'E_36', and
 		'SB_n' where n is an integer >= 3. '''
@@ -290,7 +290,7 @@ def load(surface):
 		'S_1_1': example_1_1,
 		'S_1_1m': example_1_1m,
 		'S_1_2': example_1_2,
-		'S_1_2b': example_1_2b,
+		'S_1_2p': example_1_2p,
 		'S_2_1': example_2_1,
 		'S_2_1b': example_2_1b,
 		'S_3_1': example_3_1,

@@ -19,6 +19,9 @@ class Vector2(object):
 		return "(%s, %s)" % (self.x, self.y)
 	def __repr__(self):
 		return str(self)
+	def __reduce__(self):
+		# Having __slots__ means we need to pickle manually.
+		return (self.__class__, (self.x, self.y))
 	def __iter__(self):
 		return iter([self.x, self.y])
 	def __eq__(self, other):

@@ -43,6 +43,9 @@ class Vertex(object):
 		return str(self)
 	def __str__(self):
 		return ('Singularity ' if self.filled else 'Puncture ') + str(self.label)
+	def __reduce__(self):
+		# Having __slots__ means we need to pickle manually.
+		return (self.__class__, (self.label, self.filled))
 	def __hash__(self):
 		return hash(self.label)
 	def __eq__(self, other):
@@ -77,6 +80,9 @@ class Edge(object):
 		return str(self)
 	def __str__(self):
 		return ('' if self.is_positive() else '~') + str(self.index)
+	def __reduce__(self):
+		# Having __slots__ means we need to pickle manually.
+		return (self.__class__, (self.source_vertex, self.target_vertex, self.label, None))
 	def __hash__(self):
 		return hash(self.label)
 	def __eq__(self, other):
@@ -129,6 +135,9 @@ class Triangle(object):
 		return str(self)
 	def __str__(self):
 		return str(tuple(self.edges))
+	def __reduce__(self):
+		# Having __slots__ means we need to pickle manually.
+		return (self.__class__, (self.edges,))
 	def __hash__(self):
 		return hash(tuple(self.labels))
 	def __eq__(self, other):
@@ -188,6 +197,9 @@ class Corner(object):
 		return str(self)
 	def __str__(self):
 		return str((self.triangle, self.side))
+	def __reduce__(self):
+		# Having __slots__ means we need to pickle manually.
+		return (self.__class__, (self.triangle, self.side))
 
 # Remark: In other places in the code you will often see L(triangulation). This is the space
 # of laminations on triangulation with the coordinate system induced by the triangulation.

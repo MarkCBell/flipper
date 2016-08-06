@@ -179,9 +179,13 @@ class Lamination(object):
 		# Normalise so that it is invaiant under rescaling and sort to make it invariant under isometries.
 		# We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
 		w = self.weight()
-		wi = w.interval_approximation(2*precision).change_denominator(2*precision)
-		# Do we need to worry about division by zero?
-		L = [(entry.interval_approximation(2*precision).change_denominator(2*precision) / wi).change_denominator(precision).lower for entry in self]
+		h = max(entry.height for entry in self)
+		# How precise we need w and entries to ensure division works:
+		p = int(2*precision + 2*w.degree + 2*w.height + 2*h) + 2
+		wi = w.interval_approximation(p).change_denominator(p)
+		Li = [entry.interval_approximation(p).change_denominator(p) for entry in self]
+		L = [(x / wi).change_denominator(precision).lower for x in Li]
+		
 		# Other (slow) ways of projectivising:
 		# L = [entry // w for entry in self]
 		# L = self.projectivise()

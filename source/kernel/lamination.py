@@ -5,12 +5,13 @@ Provides one class: Lamination. '''
 
 import flipper
 
-import heapq
+from bisect import bisect_left
 try:
 	from Queue import Queue
 except ImportError:
 	from queue import Queue
 
+INFTY = float('inf')
 HASH_DENOMINATOR = 30
 
 class Lamination(object):
@@ -241,24 +242,31 @@ class Lamination(object):
 		def weight_change(lamination, edge_index):
 			''' Return how much the weight would change by if this flip was done. '''
 			
+			if lamination(edge_index) == 0: return INFTY
 			a, b, c, d = lamination.triangulation.square_about_edge(edge_index)
 			return max(lamination(a) + lamination(c), lamination(b) + lamination(d)) - 2 * lamination(edge_index)
 		
 		time_since_last_weight_loss = 0
 		old_weight = lamination.weight()
-		possible_edges = set([i for i in lamination.triangulation.indices if lamination(i) > 0])
+		possible_edges = lamination.triangulation.indices
+		drops = sorted([(weight_change(lamination, i), i) for i in possible_edges])
 		# If we ever fail to make progress more than once then the curve is as short as it's going to get.
 		while time_since_last_weight_loss < 2 and old_weight > 2:
 			# Find the edge which decreases our weight the most.
 			# If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
-			edge_index = min([i for i in possible_edges if lamination.triangulation.is_flippable(i)], key=lambda i: weight_change(lamination, i))
+			_, edge_index = drops[0]
 			
 			forwards = lamination.triangulation.encode_flip(edge_index)
 			conjugation = forwards * conjugation
-			lamination = forwards(lamination)
+			old_lamination, lamination = lamination, forwards(lamination)
 			new_weight = lamination.weight()
-			if lamination(edge_index) == 0:
-				possible_edges.remove(edge_index)
+			
+			# Update new neighbours.
+			for i in [e.index for e in old_lamination.triangulation.square_about_edge(edge_index)] + [edge_index]:
+				drop = weight_change(old_lamination, i)
+				index = bisect_left(drops, (drop, i))
+				drops[index] = (weight_change(lamination, i), i)
+			drops.sort()
 			
 			if new_weight < old_weight:
 				time_since_last_weight_loss = 0

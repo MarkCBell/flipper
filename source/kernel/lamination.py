@@ -5,6 +5,7 @@ Provides one class: Lamination. '''
 
 import flipper
 
+import heapq
 from bisect import bisect_left
 try:
 	from Queue import Queue

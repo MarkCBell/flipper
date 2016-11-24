@@ -258,8 +258,10 @@ class NumberFieldElement(object):
 			return int(self) // other
 		else:
 			try:
-				accuracy_needed = int(self.height + self.log_degree + other.height + other.log_degree) + 5
-				return int(self.algebraic_approximation(accuracy_needed) / other.algebraic_approximation(accuracy_needed))
+				I = self.algebraic_approximation().interval
+				J = other.algebraic_approximation().interval
+				common_precision = max(I.precision, J.precision)
+				return I.lower * 10**(common_precision - I.precision) // (J.upper * 10**(common_precision - J.precision))
 			except AttributeError:
 				return NotImplemented
 	def __mod__(self, other):

@@ -6,7 +6,6 @@ Provides one class: Lamination. '''
 import flipper
 
 import heapq
-from bisect import bisect_left
 try:
 	from Queue import Queue
 except ImportError:
@@ -249,7 +248,7 @@ class Lamination(object):
 		def weight_change(lamination, edge_index):
 			''' Return how much the weight would change by if this flip was done. '''
 			
-			if lamination(edge_index) == 0: return INFTY
+			if lamination(edge_index) == 0 or not lamination.triangulation.is_flippable(edge_index): return INFTY
 			a, b, c, d = lamination.triangulation.square_about_edge(edge_index)
 			return max(lamination(a) + lamination(c), lamination(b) + lamination(d)) - 2 * lamination(edge_index)
 		
@@ -269,11 +268,9 @@ class Lamination(object):
 			new_weight = lamination.weight()
 			
 			# Update new neighbours.
-			for i in [e.index for e in old_lamination.triangulation.square_about_edge(edge_index)] + [edge_index]:
-				drop = weight_change(old_lamination, i)
-				index = bisect_left(drops, (drop, i))
-				drops[index] = (weight_change(lamination, i), i)
-			drops.sort()
+			I = sorted(set([e.index for e in old_lamination.triangulation.square_about_edge(edge_index)] + [edge_index]))
+			drops = sorted([(d, i) if i not in I else (weight_change(lamination, i), i) for (d, i) in drops])  # This should be lightning fast since the list was basically sorted already.
+			# If performance really becomes an issue then we could look at using heapq.
 			
 			if new_weight < old_weight:
 				time_since_last_weight_loss = 0

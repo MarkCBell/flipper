@@ -859,10 +859,12 @@ class Encoding(object):
 				edge_vectors[edges[0]] = flipper.kernel.Vector2(+stable_lamination(edges[0]), +unstable_lamination(edges[0]))
 				edge_vectors[edges[1]] = flipper.kernel.Vector2(-stable_lamination(edges[1]), -unstable_lamination(edges[1]))
 				edge_vectors[edges[2]] = flipper.kernel.Vector2(-stable_lamination(edges[2]), +unstable_lamination(edges[2]))
-			else:
+			elif (index_s - 1) % 3 == index_u:  # If the longest unstable side is followed by the longest stable side.
 				edge_vectors[edges[0]] = flipper.kernel.Vector2(-stable_lamination(edges[0]), +unstable_lamination(edges[0]))
 				edge_vectors[edges[1]] = flipper.kernel.Vector2(+stable_lamination(edges[1]), +unstable_lamination(edges[1]))
 				edge_vectors[edges[2]] = flipper.kernel.Vector2(+stable_lamination(edges[2]), -unstable_lamination(edges[2]))
+			else:  # Longest stable and unstable sides are the same.
+				raise flipper.FatalError('Longest stable and unstable edges are the same.')
 			
 			assert(sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0,0)) == flipper.kernel.Vector2(0, 0))
 		

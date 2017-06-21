@@ -2,6 +2,7 @@
 ''' A module for interfacing with CyPari. '''
 
 from __future__ import absolute_import
+import fractions
 
 import flipper
 
@@ -10,9 +11,9 @@ import cypari
 def lcm(numbers):
 	''' Return the lcm of a list of numbers. '''
 	
-	x = cypari.gen.pari(1)
+	x = cypari.pari.one()
 	for number in numbers:
-		x = cypari.all.pari_gen.lcm(x, cypari.gen.pari(number))
+		x = x.lcm(number)
 	
 	return int(x)
 
@@ -21,9 +22,9 @@ def directed_eigenvector(action_matrix, condition_matrix):
 	
 	See the docstring of the above function for further details. '''
 	
-	x = cypari.gen.pari('x')
+	x = cypari.pari('x')
 	
-	M = cypari.gen.pari.matrix(action_matrix.width, action_matrix.height, action_matrix.flatten())
+	M = cypari.pari.matrix(action_matrix.width, action_matrix.height, action_matrix.flatten())
 	
 	for polynomial in M.charpoly().factor()[0]:
 		degree = int(polynomial.poldegree())

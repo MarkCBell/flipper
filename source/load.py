@@ -283,7 +283,7 @@ def load(surface):
 		'S_0_4', 'S_1_1', 'S_1_1m', 'S_1_2', 'S_1_2p',
 		'S_2_1', 'S_2_1b', 'S_3_1', 'S_3_1b',
 		'E_12', 'E_24', 'E_36', and
-		'SB_n' where n is an integer >= 3. '''
+		'SB_n' where n is an integer >= 4. '''
 	
 	surfaces = {
 		'S_0_4': example_0_4,

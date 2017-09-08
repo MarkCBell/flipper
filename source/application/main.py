@@ -377,6 +377,7 @@ class FlipperApplication(object):
 			order = mapping_class.order()
 			order_string = 'Infinite' if order == 0 else str(order)
 			type_string = '?' if order == 0 else 'Periodic'
+			dilatation_string = '?' if order == 0 else '1.0'
 			
 			# Set up all the properties to appear under this label.
 			# We will also set up self.mapping_class_names to point each item under this to <name> too.
@@ -392,6 +393,7 @@ class FlipperApplication(object):
 				('Order: %s' % order_string, 'mapping_class_order'),
 				('Type: %s' % type_string, 'mapping_class_type'),
 				('Invariant lamination...', 'mapping_class_invariant_lamination'),
+				('Dilatation: %s' % dilatation_string, 'mapping_class_dilatation'),
 				('Conjugate to...', 'mapping_class_conjugate'),
 				('Bundle...', 'mapping_class_bundle')
 				]
@@ -1520,6 +1522,17 @@ class FlipperApplication(object):
 				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].invariant_lamination)
 				
 				self.lamination_to_canvas(result)
+				self.unsaved_work = True
+			except flipper.AssumptionError:
+				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')
+				self.unsaved_work = True
+			except flipper.AbortError:
+				pass
+		elif 'mapping_class_dilatation' in tags:
+			try:
+				result = self.update_cache(self.equipped_triangulation.mapping_classes[name].dilatation)
+				
+				self.treeview_objects.item(iid, text='Dilatation: %s' % result)
 				self.unsaved_work = True
 			except flipper.AssumptionError:
 				tkMessageBox.showwarning('Lamination', 'Cannot find any projectively invariant laminations, mapping class is not pseudo-Anosov.')

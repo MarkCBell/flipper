@@ -35,6 +35,9 @@ setup(
 		'flipper': ['censuses/*.dat'],
 		'flipper.doc': ['flipper.pdf'],
 		'flipper.application': ['icon/*', 'frames/*'],
-		}
+		},
+	install_requires=[
+		'cypari',
+		]
 	)
 

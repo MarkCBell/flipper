@@ -1,0 +1,17 @@
+\documentclass[tikz,convert={outfile=\jobname.svg}]{standalone}
+%\usetikzlibrary{...}% tikz package already loaded by 'tikz' option
+\tikzset{dot/.style={draw,shape=circle,fill=black,scale=0.5}}
+\usetikzlibrary{calc}
+\begin{document}
+\begin{tikzpicture}[scale=1, very thick]
+	\draw (0,0) -- (0,1) -- (1,1) -- (1,0) -- cycle;
+	\draw [red] (0,0) -- (1,1);
+	\node [dot] at (0,0) {};
+	\node [dot] at (0,1) {};
+	\node [dot] at (1,1) {};
+	\node [dot] at (1,0) {};
+	
+	\node at (-0.1,-0.1) {};
+	\node at (1.1,1.1) {};
+\end{tikzpicture}
+\end{document}

@@ -336,7 +336,7 @@ Extensions and projects
 
 .. admonition:: Exercise
 
-	Investigate when a mapping classes is conjugate to its inverse.
+	Investigate when a mapping class is conjugate to its inverse.
 
 .. admonition:: Exercise
 

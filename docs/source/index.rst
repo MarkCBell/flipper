@@ -14,6 +14,8 @@ Welcome to flipper's documentation!
    :caption: Contents:
 
    start.rst
+   walkthrough.rst
+   commands.rst
    citing.rst
    license.rst
 

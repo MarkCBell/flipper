@@ -1,5 +1,5 @@
 
-# Based on code by Will Worden.
+# Based on code by William Worden.
 
 import flipper
 from itertools import combinations

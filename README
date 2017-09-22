@@ -5,5 +5,5 @@ Nielsen-Thurston type of a given mapping class and, for pseudo-Anosov mapping
 classes, construct a layered, veering triangulation of their mapping torus, as
 described by Agol.
 
-See docs/source/index.html for the full README, LICENCE and documentation.
+See http://flipper.readthedocs.io for the full README, LICENCE and documentation.
 

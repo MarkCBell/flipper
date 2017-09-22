@@ -2,7 +2,6 @@
 Walkthrough
 ===========
 
-
 .. note::
 	This guide is written for UNIX / OS X users and so refers to running commands in a terminal.
 	Windows users will need to use the command prompt instead.

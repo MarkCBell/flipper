@@ -3,7 +3,7 @@ Getting Started
 ===============
 
 Installation
-~~~~~~~~~~~~
+------------
 
 `flipper <https://pypi.python.org/flipper>`_ is available on the `Python Package Index <https://pypi.python.org>`_.
 The preferred method for installing the latest stable release is to use `pip <http://pip.readthedocs.org/en/latest/installing.html>`_ (included in Python 2.7.9 and Python 3.4 by default)::
@@ -34,7 +34,7 @@ The preferred method for installing the latest stable release is to use `pip <ht
 	superuser privileges) or add the path to flipper to their ``SAGE_PATH`` environment variable.
 
 Usage
-~~~~~
+-----
 
 Once installed, start the flipper GUI by using::
 
@@ -43,7 +43,7 @@ Once installed, start the flipper GUI by using::
 To see some of the things you can now do in flipper, try the :doc:`walkthrough <walkthrough>`.
 
 Development
-~~~~~~~~~~~
+-----------
 
 The latest development version of flipper is available from `BitBucket <https://bitbucket.org/Mark_Bell/flipper>`_.
 Alternatively, you can clone the `mercurial <https://www.mercurial-scm.org/>`_ repository directly using the command::

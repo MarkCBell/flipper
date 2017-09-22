@@ -16,7 +16,12 @@ or from an isomorphism signature:
 or by loading one of the provided EquippedTriangulations using:
 	> flipper.load(...) '''
 
-from flipper.version import __version__
+import warnings
+
+with warnings.catch_warnings():
+	warnings.simplefilter("ignore")
+	import pkg_resources  # Suppress 'UserWarning: Module flipper was already imported from ...'
+	__version__ = pkg_resources.require('flipper')[0].version
 
 # We'll only import the bare minimum. This way people missing packages
 # can still use the flipper kernel at least.

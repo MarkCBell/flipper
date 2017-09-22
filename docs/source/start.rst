@@ -10,7 +10,8 @@ The preferred method for installing the latest stable release is to use `pip <ht
 
 	> python -m pip install flipper --user --upgrade
 
-.. warning:: In order to use the flipper GUI on OS X, users must first update
+.. warning::
+	In order to use the flipper GUI on OS X, users must first update
 	their copy of Tk/Tcl as described `here <https://www.python.org/download/mac/tcltk/>`_.
 	Flipper has been tested with `ActiveTcl 8.5.18 <http://www.activestate.com/activetcl/downloads>`_.
 	Additionally, if running flipper under Sage, users must then reinstall sage python
@@ -18,9 +19,18 @@ The preferred method for installing the latest stable release is to use `pip <ht
 
 	> sage -f python
 
-.. warning:: As of Sage 6.9, Sage no longer appears to load packages from the user directory.
+.. warning::
+	As of Sage 6.9, Sage no longer appears to load packages from the user directory.
 	Therefore users may need to either install flipper directly into Sage (which may require
-	superuser privileges) or add the path to flipper to their SAGE_PATH environment variable.
+	superuser privileges) or add the path to flipper to their ``SAGE_PATH`` environment variable.
+
+ 
+.. warning:: The packages used by flipper require an updated version of the `six <https://pypi.org/project/six/>`_ package.
+	Since this is included as an Extra package in the included system Python on OS X, Mac users may need to:
+		- install Python manually,
+		- modify their ``PYTHONPATH`` environment variable, or
+		- install flipper within virtualenv
+	as described `here <http://stackoverflow.com/questions/29485741/>`_.
 
 Usage
 ~~~~~

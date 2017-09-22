@@ -16,7 +16,6 @@ setup(
 	packages=[
 		'flipper',
 		'flipper.application',
-		'flipper.doc',
 		'flipper.example',
 		'flipper.kernel',
 		'flipper.kernel.interface',
@@ -25,7 +24,6 @@ setup(
 		],
 	package_data={
 		'flipper': ['censuses/*.dat'],
-		'flipper.doc': ['flipper.pdf'],
 		'flipper.application': ['icon/*', 'frames/*'],
 		},
 	install_requires=[

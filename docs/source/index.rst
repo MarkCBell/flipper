@@ -6,7 +6,6 @@
 Welcome to flipper's documentation!
 ===================================
 
-
 .. include:: summary.rst
 
 .. toctree::
@@ -18,7 +17,6 @@ Welcome to flipper's documentation!
    commands.rst
    citing.rst
    license.rst
-
 
 Indices and tables
 ==================

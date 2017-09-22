@@ -351,9 +351,7 @@ Extensions and projects
 
 .. admonition:: Exercise
 
-	Write down all of the typos in this exercise sheet and email them to::
-
-		mcbell@illinois.edu
+	Write down all of the typos in this walkthrough and email them to mcbell@illinois.edu
 
 .. [*] Internally these are actually right Dehn twists but the GUI reverses things vertically.
 

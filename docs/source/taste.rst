@@ -10,7 +10,7 @@ flipper includes many pre-made examples under the ``File > Open example...`` men
 For example the twice-punctured torus is show below.
 Here we can apply mapping classes directly to curves drawn on the surface.
 
-.. image:: Ex1.png
+.. image:: ex1.png
 	:scale: 100 %
 	:alt: Long curve on S_{1,2}
 	:align: center
@@ -18,7 +18,7 @@ Here we can apply mapping classes directly to curves drawn on the surface.
 flipper can also create new mapping classes by composing together old ones.
 Additionally, several of their properties, including their Nielsen--Thurston type and dilatation, can be computed.
  
-.. image:: Ex2.png
+.. image:: ex2.png
 	:scale: 100 %
 	:alt: Invariant lamination of abC on S_{1,2}
 	:align: center

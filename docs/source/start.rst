@@ -40,7 +40,7 @@ Once installed, start the flipper GUI by using::
 
 	> python -m flipper.app
 
-To see some of the things you can now do in flipper, try the :doc:`walkthrough <walkthrough>`.
+You could now see a :doc:`taste of flipper <taste>` or try the full :doc:`walkthrough <walkthrough>`.
 
 Development
 -----------

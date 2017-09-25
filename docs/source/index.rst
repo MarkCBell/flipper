@@ -13,6 +13,7 @@ Welcome to flipper's documentation!
    :caption: Contents:
 
    start.rst
+   taste.rst
    walkthrough.rst
    commands.rst
    citing.rst

@@ -7,7 +7,7 @@ except ImportError:
 
 setup(
 	name='flipper',
-	version='0.12.1',
+	version='0.12.2',
 	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
 	author='Mark Bell',
 	author_email='mcbell@illinois.edu',

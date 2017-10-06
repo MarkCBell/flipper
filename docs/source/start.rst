@@ -52,5 +52,5 @@ Alternatively, you can clone the `mercurial <https://www.mercurial-scm.org/>`_ r
 
 And then install using the command::
 
-	> python setup.py develop --user
+	> python -m pip install --editable .
 

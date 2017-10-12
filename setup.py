@@ -16,7 +16,6 @@ setup(
 	packages=[
 		'flipper',
 		'flipper.application',
-		'flipper.example',
 		'flipper.kernel',
 		'flipper.kernel.interface',
 		'flipper.test',

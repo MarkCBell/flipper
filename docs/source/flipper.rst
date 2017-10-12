@@ -7,8 +7,6 @@ Subpackages
 .. toctree::
 
     flipper.application
-    flipper.doc
-    flipper.example
     flipper.kernel
     flipper.profile
     flipper.test
@@ -32,6 +30,14 @@ flipper\.census module
     :undoc-members:
     :show-inheritance:
 
+flipper\.doc module
+-------------------
+
+.. automodule:: flipper.doc
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 flipper\.doctests module
 ------------------------
 
@@ -48,10 +54,10 @@ flipper\.load module
     :undoc-members:
     :show-inheritance:
 
-flipper\.version module
+flipper\.surface module
 -----------------------
 
-.. automodule:: flipper.version
+.. automodule:: flipper.surface
     :members:
     :undoc-members:
     :show-inheritance:

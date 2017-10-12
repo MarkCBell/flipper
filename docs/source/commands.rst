@@ -11,7 +11,6 @@ Command                      Action
 > python -m flipper.app      Start the flipper GUI application.
 > python -m flipper.doc      Open this documentation.
 > python -m flipper.test     Run the test suite.
-> python -m flipper.example  List included examples.
 > python -m flipper.profile  Run the profiling suite.
 ===========================  ==================================
 

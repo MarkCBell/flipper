@@ -9,15 +9,16 @@ Welcome to flipper's documentation!
 .. include:: summary.rst
 
 .. toctree::
-   :maxdepth: 2
-   :caption: Contents:
+    :maxdepth: 2
+    :caption: Contents:
 
-   start.rst
-   taste.rst
-   walkthrough.rst
-   commands.rst
-   citing.rst
-   license.rst
+    start.rst
+    taste.rst
+    walkthrough.rst
+    commands.rst
+    samples.rst
+    citing.rst
+    license.rst
 
 Indices and tables
 ==================

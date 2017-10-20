@@ -11,7 +11,7 @@ def read(fname):
 
 setup(
 	name='flipper',
-	version='0.12.2',
+	version='0.12.3',
 	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
 	long_description=read('README'),
 	author='Mark Bell',

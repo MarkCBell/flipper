@@ -27,9 +27,12 @@ setup(
 		'flipper.profile'
 		],
 	package_data={
-		'flipper': ['censuses/*.dat'],
+		'flipper': ['censuses/*.csv'],
 		'flipper.application': ['icon/*', 'frames/*'],
 		},
+	install_requires=[
+		'pandas',  # censuses.
+		],
 	classifiers=[
 		'Development Status :: 5 - Production/Stable',
 		'Intended Audience :: Education',

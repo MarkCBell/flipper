@@ -1,38 +1,21 @@
 
 ''' A module for loading flipper databases. '''
 
+import pandas as pd
 import flipper
 
 import os
 
 DATABASE_DIRECTORY = os.path.join(os.path.dirname(__file__), 'censuses')
+DATABASES = set(os.path.splitext(os.path.basename(path))[0] for path in os.listdir(DATABASE_DIRECTORY) if os.path.splitext(path)[1] == '.csv')
 
-def find_databases():
-	''' Return a list of all loadable databases. '''
+def census(census_name, reindex=True):
+	''' Return the requsted database.
 	
-	databases = []
-	for path in os.listdir(DATABASE_DIRECTORY):
-		_, tail = os.path.split(path)
-		name, extension = os.path.splitext(tail)
-		if extension == '.dat':
-			databases.append(name)
+	By default rows are indexed by the mapping torus name, this can be disabled by setting reindex=False. '''
 	
-	return databases
-
-def census(census_name, find=None):
-	''' Iterates through the requested database.
+	if census_name in DATABASES:
+		census_name = os.path.join(DATABASE_DIRECTORY, census_name + '.csv')
 	
-	If given, only results containing find are returned. '''
-	
-	if census_name in find_databases():
-		census_name = os.path.join(DATABASE_DIRECTORY, census_name + '.dat')
-	
-	with open(census_name) as f:
-		for line in f:
-			line = line.strip()
-			if '#' in line:
-				line = line[:line.find('#')]
-			if line:
-				if find is None or line.find(find) != -1:
-					yield line.strip().split('\t')
+	return pd.read_csv(census_name, index_col='manifold' if reindex else None)
 

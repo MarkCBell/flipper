@@ -8,9 +8,9 @@ Flipper includes large censuses of monodromies for fibred knots and manifolds::
     import snappy
     import flipper
 
-    def compare(surface, word, target):
-        M = snappy.Manifold(target)  # = snappy.twister.Surface(surface).bundle(word)
-        N = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle().snappy_string())
+    def compare(surface, monodromy, manifold):
+        M = snappy.Manifold(manifold)  # = snappy.twister.Surface(surface).bundle(monodromy)
+        N = snappy.Manifold(flipper.load(surface).mapping_class(monodromy).bundle())
         for _ in range(100):
             try:
                 if M.is_isometric_to(N):
@@ -22,14 +22,15 @@ Flipper includes large censuses of monodromies for fibred knots and manifolds::
 
         return False
 
-    database = 'census_monodromies'  # We could also load('knot_monodromies').
+    database = 'CHW'  # We could also load 'knots'.
+    df = flipper.census(database)  # A pandas DataFrame.
     print('Building mapping tori for each monodromy in:')
     print('\t%s' % database)
 
-    for surface, word, target in flipper.census(database):
-        print('Buiding: %s over %s (target %s).' % (word, surface, target))
+    for manifold, row in df.iterrows():
+        print('Buiding: %s over %s (target %s).' % (row.monodromy, row.surface, manifold))
         start_time = time()
-        if not compare(surface, word, target):
-            print('Could not match %s on %s' % (word, surface))
+        if not compare(row.surface, row.monodromy, manifold):
+            print('Could not match %s on %s' % (row.monodromy, row.surface))
         print('\tComputed in %0.3fs' % (time() - start_time))
 

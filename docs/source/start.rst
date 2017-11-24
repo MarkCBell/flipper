@@ -17,7 +17,7 @@ The preferred method for installing the latest stable release is to use `pip <ht
 	Additionally, if running flipper under Sage, users must then reinstall sage python
 	by using the command::
 
-	> sage -f python
+	> sage -f python2
 
 .. warning:: The packages used by flipper require an updated version of the `six <https://pypi.org/project/six/>`_ package.
 	Since this is included as an Extra package in the included system Python on OS X, Mac users may need to:

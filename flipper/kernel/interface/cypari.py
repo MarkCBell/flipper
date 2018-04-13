@@ -42,7 +42,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
 					
 					basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
 					scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
-					scaled_basis = [[[int(int(coeff.numerator()) * scale) / int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
+					scaled_basis = [[[int(int(coeff.numerator()) * scale) // int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
 					
 					N = flipper.kernel.NumberField(flipper_polynomial_root)
 					flipper_basis_matrix = flipper.kernel.Matrix([[N.element(entry) for entry in v] for v in scaled_basis])

@@ -39,6 +39,17 @@ class Permutation(object):
         assert(len(self) == len(other))
         
         return Permutation([self(other(i)) for i in range(len(self))])
+    def __pow__(self, n):
+        if n < 0: return (~self)**(-n)
+        
+        result = Permutation(list(range(len(self))))
+        while n:
+            if n % 2 == 1:
+                result = result * self
+                n = n - 1
+            self = self * self
+            n = n // 2
+        return result
     def __eq__(self, other):
         return self.permutation == other.permutation
     def __ne__(self, other):
@@ -47,6 +58,8 @@ class Permutation(object):
         ''' Return the inverse of this permutation. '''
         
         return Permutation([j for i in range(len(self)) for j in range(len(self)) if self(j) == i])
+    def __invert__(self):
+        return self.inverse()
     def is_even(self):
         ''' Return if this permutation is even. '''
         
@@ -81,7 +94,7 @@ class Permutation(object):
 def id_permutation(n):
     ''' Return the identity permutation in Sym(n). '''
     
-    return Permutation(range(n))
+    return Permutation(list(range(n)))
 
 def cyclic_permutation(cycle, n):
     ''' Return the cyclic permutation sending 1 |--> cycle in Sym(n). '''

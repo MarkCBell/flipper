@@ -1,24 +1,64 @@
 
-from __future__ import print_function
-from itertools import product
+from hypothesis import given
+import hypothesis.strategies as st
+import numpy as np
+import pickle
+import unittest
 
 import flipper
+import strategies
 
-def main(verbose=False, n=4):
-    if verbose: print('Running permutation tests.')
+class TestPermutation(unittest.TestCase):
+    def assertEqualArray(self, M, N):
+        self.assertTrue(np.array_equal(M, N), msg='AssertionError: %s != %s' % (M, N))
     
-    # Get some example permutations.
-    all_perms = flipper.kernel.permutation.all_permutations(n)
+    @given(strategies.permutations())
+    def test_pickle(self, perm):
+        self.assertEqual(perm, pickle.loads(pickle.dumps(perm)))
     
-    # Check that there are the same number of odd and even permutations.
-    if not (len([perm for perm in all_perms if perm.is_even()]) == len([perm for perm in all_perms if not perm.is_even()])): return False
-    # Check that composition respects parity.
-    if not (all((p1 * p2).is_even() == p1.is_even() ^ p2.is_even() ^ True for p1, p2 in product(all_perms, all_perms))): return False
-    # Check that every permutation acts transitively.
-    if not (all(set(perm * p1 for p1 in all_perms) == set(all_perms) for perm in all_perms)): return False
+    @given(st.data())
+    def test_hash(self, data):
+        perm1 = data.draw(strategies.permutations())
+        perm2 = data.draw(strategies.permutations(len(perm1)))
+        self.assertTrue(perm1 != perm2 or hash(perm1) == hash(perm2))
     
-    return True
-
-if __name__ == '__main__':
-    print(main(verbose=True))
+    @given(strategies.permutations())
+    def test_equal(self, perm):
+        self.assertEqual(perm, perm)
+    
+    @given(st.data())
+    def test_inverse(self, data):
+        perm1 = data.draw(strategies.permutations())
+        perm2 = data.draw(strategies.permutations(len(perm1)))
+        identity = flipper.kernel.permutation.id_permutation(len(perm1))
+        self.assertEqual(~(~perm1), perm1)
+        self.assertEqual(perm1 * ~perm1, identity)
+        self.assertEqual(~perm1 * perm1, identity)
+        self.assertEqual(~(perm1 * perm2), ~perm2 * ~perm1)
+    
+    @given(st.data())
+    def test_powers(self, data):
+        perm = data.draw(strategies.permutations())
+        power = data.draw(st.integers())
+        self.assertEqual(perm**power, (~perm)**(-power))
+        power = data.draw(st.integers(min_value=0))  # Numpy doesn't like inverting integer matrices.
+        self.assertEqualArray((perm.matrix())**power, (perm**power).matrix())
+    
+    @given(strategies.permutations())
+    def test_involution(self, perm):
+        self.assertTrue(perm.order() <= 2 or perm != perm.inverse())
+    
+    @given(st.data())
+    def test_even(self, data):
+        perm1 = data.draw(strategies.permutations())
+        perm2 = data.draw(strategies.permutations(len(perm1)))
+        self.assertEqual(perm1.is_even() == perm2.is_even(), (perm1 * perm2).is_even())
+        self.assertEqual(perm1.is_even() == perm2.is_even(), (perm2 * perm1).is_even())
+    
+    @given(strategies.permutations())
+    def test_order(self, perm):
+        identity = flipper.kernel.permutation.id_permutation(len(perm))
+        for i in range(1, perm.order()):
+            self.assertNotEqual(perm**i, identity)
+        self.assertEqual(perm**perm.order(), identity)
 

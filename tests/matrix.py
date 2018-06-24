@@ -1,35 +1,31 @@
 
-from __future__ import print_function
+import unittest
 
 import flipper
 
-def main(verbose=False):
-    if verbose: print('Running matrix tests.')
+class TestMatrix(unittest.TestCase):
+    def test_product(self):
+        M = flipper.kernel.Matrix([[2, 1], [1, 1]])
+        N = flipper.kernel.Matrix([[1, -1], [-1, 2]])
+        M_inv = flipper.kernel.Matrix([[1, -1], [-1, 2]])
+        
+        self.assertEqual(M * N, flipper.kernel.id_matrix(2))
     
-    M = flipper.kernel.Matrix([[2, 1], [1, 1]])
-    N = flipper.kernel.Matrix([[1, -1], [-1, 2]])
-    M_inv = flipper.kernel.Matrix([[1, -1], [-1, 2]])
-    # M + N = [[3, 0], [0, 3]]
-    # M - N = [[1, 2], [2, -1]]
+    def test_characteristic_polynomial(self):
+        M = flipper.kernel.Matrix([[2, 1], [1, 1]])
+        self.assertEqual(M.characteristic_polynomial(), flipper.kernel.Polynomial([1, -3, 1]))
+        self.assertEqual(M.characteristic_polynomial()(M), flipper.kernel.zero_matrix(2))  # Check Cayley--Hamilton theorem.
+        
+    def test_determinant(self):
+        M = flipper.kernel.Matrix([[2, 1], [1, 1]])
+        N = flipper.kernel.Matrix([[1, -1], [-1, 2]])
+        self.assertEqual(M.determinant(), 1)
+        self.assertEqual((M + N).determinant(), 9)
+        self.assertEqual((M - N).determinant(), -5)
     
-    tests = [
-        M * N == flipper.kernel.id_matrix(2),
-        M.characteristic_polynomial() == flipper.kernel.Polynomial([1, -3, 1]),
-        M.determinant() == 1,
-        M.kernel() == flipper.kernel.Matrix([]),
-        (M + N).determinant() == 9,
-        (M - N).determinant() == -5,
-        (M**2)**3 == (M**3)**2,  # Check that powers are associative.
-        M.inverse() == M_inv,
-        M.characteristic_polynomial()(M) == flipper.kernel.zero_matrix(2),  # Check Cayley--Hamilton theorem.
-        ]
-    
-    if not all(tests):
-        if verbose: print(tests)
-        return False
-    
-    return True
-
-if __name__ == '__main__':
-    print(main(verbose=True))
+    def test_powers(self):
+        M = flipper.kernel.Matrix([[2, 1], [1, 1]])
+        M_inv = flipper.kernel.Matrix([[1, -1], [-1, 2]])
+        self.assertEqual((M**2)**3, (M**3)**2)  # Check that powers are associative.
+        self.assertEqual(M.inverse(), M_inv)
 

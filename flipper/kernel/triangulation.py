@@ -354,8 +354,8 @@ class Triangulation(object):
         while unused:
             new_vertex = [unused.pop()]
             while True:
-                label, i = finder(new_vertex[-1])
-                neighbour = ~label[(i+2) % 3]
+                label, side = finder(new_vertex[-1])
+                neighbour = ~label[(side+2) % 3]
                 if neighbour in unused:
                     new_vertex.append(neighbour)
                     unused.remove(neighbour)

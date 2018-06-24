@@ -12,9 +12,9 @@ requirements = [
 ]
 
 setup(
-	name='flipper',
-	version='0.12.3',
-	description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
+    name='flipper',
+    version='0.12.3',
+    description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
     long_description='See http://flipper.readthedocs.io for the full README, LICENCE and documentation.',
     author='Mark Bell',
     author_email='mcbell@illinois.edu',
@@ -27,7 +27,7 @@ setup(
     install_requires=requirements,
     license='MIT License',
     zip_safe=False,
-    keywords='curver',
+    keywords='flipper',
     classifiers=[
         'Development Status :: 4 - Beta',
         'Intended Audience :: Education',

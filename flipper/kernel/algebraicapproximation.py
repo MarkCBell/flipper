@@ -40,7 +40,7 @@ class AlgebraicApproximation(object):
     and height bounds, to uniquely determine the algebraic number then
     an ApproximationError will be raised. '''
     def __init__(self, interval, log_degree, height):
-        assert(isinstance(interval, flipper.kernel.Interval))
+        assert isinstance(interval, flipper.kernel.Interval)
         
         self.interval = interval
         self.log_degree = log_degree
@@ -85,7 +85,7 @@ class AlgebraicApproximation(object):
     def change_denominator(self, new_denominator):
         ''' Return a new approximation of this algebraic number with the given denominator. '''
         
-        assert(isinstance(new_denominator, flipper.IntegerType))
+        assert isinstance(new_denominator, flipper.IntegerType)
         
         return AlgebraicApproximation(self.interval.change_denominator(new_denominator), self.log_degree, self.height)
     
@@ -94,7 +94,7 @@ class AlgebraicApproximation(object):
         
         The new_accuracy must be at most self.accuracy. '''
         
-        assert(isinstance(new_accuracy, flipper.IntegerType))
+        assert isinstance(new_accuracy, flipper.IntegerType)
         
         return AlgebraicApproximation(self.interval.change_accuracy(new_accuracy), self.log_degree, self.height)
     

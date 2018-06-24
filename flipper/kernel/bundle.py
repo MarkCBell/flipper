@@ -12,14 +12,14 @@ class Bundle(object):
     bundle and an immersion map. Mapping classes can build their bundles and
     this is the standard way users are expected to create these. '''
     def __init__(self, triangulation, triangulation3, immersion):
-        assert(isinstance(triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(triangulation3, flipper.kernel.Triangulation3))
-        assert(isinstance(immersion, dict))
-        assert(all(triangle in immersion for triangle in triangulation))
-        assert(all(isinstance(immersion[triangle], (list, tuple)) for triangle in triangulation))
-        assert(all(len(immersion[triangle]) == 2 for triangle in triangulation))
-        assert(all(isinstance(immersion[triangle][0], flipper.kernel.Tetrahedron) for triangle in triangulation))
-        assert(all(isinstance(immersion[triangle][1], flipper.kernel.Permutation) for triangle in triangulation))
+        assert isinstance(triangulation, flipper.kernel.Triangulation)
+        assert isinstance(triangulation3, flipper.kernel.Triangulation3)
+        assert isinstance(immersion, dict)
+        assert all(triangle in immersion for triangle in triangulation)
+        assert all(isinstance(immersion[triangle], (list, tuple)) for triangle in triangulation)
+        assert all(len(immersion[triangle]) == 2 for triangle in triangulation)
+        assert all(isinstance(immersion[triangle][0], flipper.kernel.Tetrahedron) for triangle in triangulation)
+        assert all(isinstance(immersion[triangle][1], flipper.kernel.Permutation) for triangle in triangulation)
         
         self.triangulation = triangulation
         self.triangulation3 = triangulation3
@@ -27,7 +27,7 @@ class Bundle(object):
         # This is a dict mapping:
         #   triangle |---> (tetrahedra, perm).
         
-        assert(self.triangulation3.is_closed())
+        assert self.triangulation3.is_closed()
     
     def __repr__(self):
         return str(self)
@@ -59,7 +59,7 @@ class Bundle(object):
                 if cusp_types[index] is None:
                     cusp_types[index] = filled
                 else:
-                    assert(cusp_types[index] == filled)
+                    assert cusp_types[index] == filled
         
         return cusp_types
         
@@ -93,7 +93,7 @@ class Bundle(object):
         
         This triangulation is must be veering. '''
         
-        assert(self.triangulation3.is_veering())
+        assert self.triangulation3.is_veering()
         
         VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
         TEMPS = flipper.kernel.triangulation3.TEMPS

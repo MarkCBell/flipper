@@ -38,9 +38,9 @@ class Interval(object):
     -1.2001?
     '''
     def __init__(self, lower, upper, precision):
-        assert(isinstance(lower, flipper.IntegerType))
-        assert(isinstance(upper, flipper.IntegerType))
-        assert(isinstance(precision, flipper.IntegerType))
+        assert isinstance(lower, flipper.IntegerType)
+        assert isinstance(upper, flipper.IntegerType)
+        assert isinstance(precision, flipper.IntegerType)
         if lower > upper: raise ValueError('Interval is empty.')
         
         self.lower = lower
@@ -100,7 +100,7 @@ class Interval(object):
     def change_denominator(self, new_denominator):
         ''' Return a this interval over a new denominator. '''
         
-        assert(isinstance(new_denominator, flipper.IntegerType))
+        assert isinstance(new_denominator, flipper.IntegerType)
         
         d = new_denominator - self.precision
         if d > 0:
@@ -114,12 +114,12 @@ class Interval(object):
         
         The new_accuracy must be at most self.accuracy. '''
         
-        assert(isinstance(new_accuracy, flipper.IntegerType))
+        assert isinstance(new_accuracy, flipper.IntegerType)
         
         if self.accuracy == INFTY:
             return self
         else:
-            assert(new_accuracy <= self.accuracy)
+            assert new_accuracy <= self.accuracy
             return self.change_denominator(self.precision - (self.accuracy - new_accuracy))
     def simplify(self):
         ''' Return a simpler interval with accuracy at least self.accuracy-1. '''
@@ -131,7 +131,7 @@ class Interval(object):
         else:
             interval = self
         
-        assert(interval.accuracy >= self.accuracy - 1)
+        assert interval.accuracy >= self.accuracy - 1
         return interval
     
     def __contains__(self, other):
@@ -234,14 +234,14 @@ class Interval(object):
     def midpoint(self, magnitude=10):
         ''' Return a smaller interval containing the midpoint of this interval. '''
         
-        assert(isinstance(magnitude, flipper.IntegerType))
+        assert isinstance(magnitude, flipper.IntegerType)
         
         m = (10**magnitude) * (self.lower + self.upper) // 2
         return Interval(m-1, m+1, self.precision+magnitude)
     def intersect(self, other):
         ''' Return the intersection of this interval with other. '''
         
-        assert(isinstance(other, Interval))
+        assert isinstance(other, Interval)
         
         common_precision = max(self.precision, other.precision)
         P, Q = self.change_denominator(common_precision), other.change_denominator(common_precision)

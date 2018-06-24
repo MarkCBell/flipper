@@ -34,17 +34,17 @@ class Lamination(object):
     its weights (by a factor of 2) in order to remove any peripheral
     components / satifsy the triangle inequalities. '''
     def __init__(self, triangulation, geometric, algebraic):
-        assert(isinstance(triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(geometric, (list, tuple)))
-        assert(isinstance(algebraic, (list, tuple)))
+        assert isinstance(triangulation, flipper.kernel.Triangulation)
+        assert isinstance(geometric, (list, tuple))
+        assert isinstance(algebraic, (list, tuple))
         # We should check that geometric / algebraic satisfies reasonable relations.
         
         self.triangulation = triangulation
         self.zeta = self.triangulation.zeta
         self.geometric = list(geometric)
         self.algebraic = list(algebraic)
-        assert(len(self.geometric) == self.zeta)
-        assert(len(self.algebraic) == self.zeta)
+        assert len(self.geometric) == self.zeta
+        assert len(self.algebraic) == self.zeta
         
         self._cache = {}  # For caching hard to compute results.
     
@@ -126,7 +126,7 @@ class Lamination(object):
     def isometries_to(self, other):
         ''' Return a list of isometries taking this lamination to other. '''
         
-        assert(isinstance(other, Lamination))
+        assert isinstance(other, Lamination)
         
         # We used to just test other == isom.encode()(self) but this is much faster.
         # Should we check algebraic too?
@@ -140,7 +140,7 @@ class Lamination(object):
     def all_projective_isometries(self, other):
         ''' Return a list of isometries taking this lamination projectively to other. '''
         
-        assert(isinstance(other, Lamination))
+        assert isinstance(other, Lamination)
         
         # This could be faster, we could build a smaller collection of isometries to begin with.
         return [isometry for isometry in self.triangulation.isometries_to(other.triangulation) if other.projectively_equal(isometry.encode()(self))]
@@ -150,8 +150,8 @@ class Lamination(object):
         
         Other must be on the same Triangulation as this lamination. '''
         
-        assert(isinstance(other, Lamination))
-        assert(other.triangulation == self.triangulation)
+        assert isinstance(other, Lamination)
+        assert other.triangulation == self.triangulation
         
         # We can't do division so we have to cross multiply.
         return self * other.weight() == other * self.weight()
@@ -238,7 +238,7 @@ class Lamination(object):
         #
         # Otherwise, self is a multicurve.
         
-        assert(self.is_multicurve())
+        assert self.is_multicurve()
         
         lamination = self
         best_conjugation = conjugation = lamination.triangulation.id_encoding()
@@ -598,8 +598,8 @@ class Lamination(object):
         # should change dynamically depending on the algebraic numbers involved in
         # this lamination.
         
-        assert(all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self))
-        assert(len(set(entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement))) <= 1)
+        assert all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self)
+        assert len(set(entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement))) <= 1
         
         # Check if the lamination is obviously non-filling.
         if all(isinstance(entry, flipper.IntegerType) for entry in self):
@@ -708,7 +708,7 @@ class Lamination(object):
                     if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
                         isometries = lamination.all_projective_isometries(old_lamination)
                         if len(isometries) > 0:
-                            assert(dilatation is None or old_lamination.weight() == dilatation * lamination.weight())
+                            assert dilatation is None or old_lamination.weight() == dilatation * lamination.weight()
                             # print('!!', index)
                             
                             encoding = flipper.kernel.Encoding([move for item in reversed(encodings) for move in item])
@@ -748,7 +748,7 @@ class Lamination(object):
         
         This lamination must be a twistable curve. '''
         
-        assert(self.is_twistable())
+        assert self.is_twistable()
         
         if k == 0: return self.triangulation.id_encoding()
         
@@ -795,7 +795,7 @@ class Lamination(object):
         
         This lamination must be a half-twistable curve. '''
         
-        assert(self.is_halftwistable())
+        assert self.is_halftwistable()
         
         # This first section is the same as in self.encode_flip.
         if k == 0: return self.triangulation.id_encoding()
@@ -870,8 +870,8 @@ class Lamination(object):
         
         Assumes (and checks) that this is a twistable lamination. '''
         
-        assert(isinstance(lamination, Lamination))
-        assert(lamination.triangulation == self.triangulation)
+        assert isinstance(lamination, Lamination)
+        assert lamination.triangulation == self.triangulation
         
         if not self.is_twistable():
             raise flipper.AssumptionError('Can only compute geometric intersection number between a twistable curve and a lamination.')
@@ -899,7 +899,7 @@ class Lamination(object):
         intersection_number = short_lamination(a) - 2 * min(x, y2, z)
         
         # Check that the other formula gives the same answer.
-        assert(intersection_number == short_lamination(c) - 2 * min(x2, y, z2))
+        assert intersection_number == short_lamination(c) - 2 * min(x2, y, z2)
         
         return intersection_number
     
@@ -912,8 +912,8 @@ class Lamination(object):
         
         This lamination and the given one must be defined on the same triangulation. '''
         
-        assert(isinstance(other, Lamination))
-        assert(self.triangulation == other.triangulation)
+        assert isinstance(other, Lamination)
+        assert self.triangulation == other.triangulation
         
         matrix = flipper.kernel.id_matrix(self.zeta)
         

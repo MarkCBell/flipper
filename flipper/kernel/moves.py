@@ -39,9 +39,9 @@ class Isometry(Move):
         
         It is given by a map taking each edge label of source_triangulation to a label of target_triangulation. '''
         
-        assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(label_map, dict))
+        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(label_map, dict)
         
         self.flip_length = 0  # The number of flips needed to realise this move.
         self.source_triangulation = source_triangulation
@@ -92,8 +92,8 @@ class Isometry(Move):
         applied to the geometric coordinates of the given lamination after
         post-multiplying by the action matrix. '''
         
-        assert(isinstance(lamination, flipper.kernel.Lamination))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(lamination, flipper.kernel.Lamination)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         return flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0)
     
@@ -102,8 +102,8 @@ class Isometry(Move):
         applied to the geometric coordinates by the cell of the specified index
         after post-multiplying by the action matrix. '''
         
-        assert(isinstance(index, flipper.IntegerType))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(index, flipper.IntegerType)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
     
@@ -139,9 +139,9 @@ class Isometry(Move):
 class EdgeFlip(Move):
     ''' Represents the change to a lamination caused by flipping an edge. '''
     def __init__(self, source_triangulation, target_triangulation, edge_label):
-        assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(edge_label, flipper.IntegerType))
+        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(edge_label, flipper.IntegerType)
         
         self.flip_length = 1  # The number of flips needed to realise this move.
         self.source_triangulation = source_triangulation
@@ -149,7 +149,7 @@ class EdgeFlip(Move):
         self.edge_label = edge_label
         self.edge_index = flipper.kernel.norm(self.edge_label)
         self.zeta = self.source_triangulation.zeta
-        assert(self.source_triangulation.is_flippable(self.edge_index))
+        assert self.source_triangulation.is_flippable(self.edge_index)
         
         self.square = self.source_triangulation.square_about_edge(self.edge_label)
     
@@ -183,8 +183,8 @@ class EdgeFlip(Move):
         applied to the geometric coordinates of the given lamination after
         post-multiplying by the action matrix. '''
         
-        assert(isinstance(lamination, flipper.kernel.Lamination))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(lamination, flipper.kernel.Lamination)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
         
@@ -202,8 +202,8 @@ class EdgeFlip(Move):
         applied to the geometric coordinates by the cell of the specified index
         after post-multiplying by the action matrix. '''
         
-        assert(isinstance(index, flipper.IntegerType))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(index, flipper.IntegerType)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         a, b, c, d, e = [edge.index for edge in self.square] + [self.edge_index]
         
@@ -222,7 +222,7 @@ class EdgeFlip(Move):
         
         ''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
         
-        assert(upper_triangulation == self.source_triangulation)
+        assert upper_triangulation == self.source_triangulation
         
         # We use these two functions to quickly tell what a triangle maps to.
         maps_to_triangle = lambda X: isinstance(X[0], flipper.kernel.Triangle)
@@ -301,10 +301,10 @@ class EdgeFlip(Move):
 class LinearTransformation(Move):
     ''' Represents the change to a lamination caused by a linear map. '''
     def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
-        assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(target_triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(geometric, flipper.kernel.Matrix))
-        assert(isinstance(algebraic, flipper.kernel.Matrix))
+        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(geometric, flipper.kernel.Matrix)
+        assert isinstance(algebraic, flipper.kernel.Matrix)
         
         self.flip_length = 0  # The number of flips needed to realise this move.
         self.source_triangulation = source_triangulation
@@ -338,8 +338,8 @@ class LinearTransformation(Move):
         applied to the geometric coordinates of the given lamination after
         post-multiplying by the action matrix. '''
         
-        assert(isinstance(lamination, flipper.kernel.Lamination))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(lamination, flipper.kernel.Lamination)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         return self.geometric * action, flipper.kernel.zero_matrix(0)
     
@@ -348,8 +348,8 @@ class LinearTransformation(Move):
         applied to the geometric coordinates by the cell of the specified index
         after post-multiplying by the action matrix. '''
         
-        assert(isinstance(index, flipper.IntegerType))
-        assert(isinstance(action, flipper.kernel.Matrix))
+        assert isinstance(index, flipper.IntegerType)
+        assert isinstance(action, flipper.kernel.Matrix)
         
         return (self.geometric * action, flipper.kernel.zero_matrix(0))
 

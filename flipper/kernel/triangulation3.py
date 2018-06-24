@@ -38,7 +38,7 @@ EXIT_CUSP_RIGHT = {
 class Tetrahedron(object):
     ''' This represents a tetrahedron. '''
     def __init__(self, label):
-        assert(isinstance(label, flipper.IntegerType))
+        assert isinstance(label, flipper.IntegerType)
         
         self.label = label
         self.glued_to = [None] * 4  # Each entry is either: None or (Tetrahedron, permutation).
@@ -59,9 +59,9 @@ class Tetrahedron(object):
         of additional structure.'''
         
         if self.glued_to[side] is None:
-            assert(self.glued_to[side] is None)
-            assert(target.glued_to[permutation(side)] is None)
-            assert(not permutation.is_even())
+            assert self.glued_to[side] is None
+            assert target.glued_to[permutation(side)] is None
+            assert not permutation.is_even()
             
             self.glued_to[side] = (target, permutation)
             target.glued_to[permutation(side)] = (self, permutation.inverse())
@@ -76,7 +76,7 @@ class Tetrahedron(object):
                 elif my_edge_veering != VEERING_UNKNOWN and his_edge_veering == VEERING_UNKNOWN:
                     target.set_edge_label(x, y, my_edge_veering)
         else:
-            assert((target, permutation) == self.glued_to[side])
+            assert (target, permutation) == self.glued_to[side]
     
     def get_edge_label(self, a, b):
         ''' Return the label on edge (a) -- (b) of this tetrahedron. '''
@@ -110,7 +110,7 @@ class Tetrahedron(object):
 class Triangulation3(object):
     ''' This represents triangulation, that is a collection of tetrahedra. '''
     def __init__(self, num_tetrahedra):
-        assert(isinstance(num_tetrahedra, flipper.IntegerType))
+        assert isinstance(num_tetrahedra, flipper.IntegerType)
         
         self.num_tetrahedra = num_tetrahedra
         self.tetrahedra = [Tetrahedron(i) for i in range(self.num_tetrahedra)]
@@ -169,7 +169,7 @@ class Triangulation3(object):
         
         This triangulation must be closed. '''
         
-        assert(self.is_closed())
+        assert self.is_closed()
         
         cusp_pairing = self.cusp_identification_map()
         
@@ -305,7 +305,7 @@ class Triangulation3(object):
             # If the it is -1 then we need to reverse the direction of the meridian.
             # See SnapPy/kernel_code/intersection_numbers.c for how to do this.
             intersection_number = self.intersection_number(LONGITUDES, MERIDIANS, cusp)
-            assert(abs(intersection_number) == 1)
+            assert abs(intersection_number) == 1
             
             # We might need to reverse the orientation of one of these to get the right sign.
             # If the intersection number is -1 then we need to reverse the direction of one of them (we choose the meridian).
@@ -335,9 +335,9 @@ class Triangulation3(object):
         
         This triangulation must be closed. '''
         
-        assert(fillings is None or isinstance(fillings, (list, tuple)))
+        assert fillings is None or isinstance(fillings, (list, tuple))
         
-        assert(self.is_closed())
+        assert self.is_closed()
         
         if fillings is None: fillings = [(0, 0)] * self.num_cusps
         

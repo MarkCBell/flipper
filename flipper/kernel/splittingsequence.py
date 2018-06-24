@@ -8,10 +8,10 @@ import flipper
 class SplittingSequence(object):
     ''' This represents a sequence of flips of an Triangulation. '''
     def __init__(self, preperiodic, mapping_class, dilatation, lamination):
-        assert(isinstance(preperiodic, flipper.kernel.Encoding))
-        assert(isinstance(mapping_class, flipper.kernel.Encoding))
-        # assert(isinstance(dilatation, flipper.kernel.NumberFieldElement))
-        assert(isinstance(lamination, flipper.kernel.Lamination))
+        assert isinstance(preperiodic, flipper.kernel.Encoding)
+        assert isinstance(mapping_class, flipper.kernel.Encoding)
+        # assert isinstance(dilatation, flipper.kernel.NumberFieldElement)
+        assert isinstance(lamination, flipper.kernel.Lamination)
         
         # We wont bother to save encoding as it can always be reconstructed by:
         #  self.mapping_class.inverse() * self.preperiodic
@@ -30,11 +30,11 @@ class SplittingSequence(object):
 class SplittingSequences(object):
     ''' This represents a sequence of flips of an Triangulation. '''
     def __init__(self, encoding, isometries, index, dilatation, lamination):
-        assert(isinstance(encoding, flipper.kernel.Encoding))
+        assert isinstance(encoding, flipper.kernel.Encoding)
         
-        assert(isinstance(index, flipper.IntegerType))
-        # assert(isinstance(dilatation, flipper.kernel.NumberFieldElement))
-        assert(isinstance(lamination, flipper.kernel.Lamination))
+        assert isinstance(index, flipper.IntegerType)
+        # assert isinstance(dilatation, flipper.kernel.NumberFieldElement)
+        assert isinstance(lamination, flipper.kernel.Lamination)
         
         # We wont bother to save encoding as it can always be reconstructed by:
         #  self.mapping_class.inverse() * self.preperiodic

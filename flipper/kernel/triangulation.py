@@ -34,8 +34,8 @@ class Vertex(object):
     __slots__ = ['label', 'filled']
     
     def __init__(self, label, filled=False):
-        assert(isinstance(label, flipper.IntegerType))
-        assert(isinstance(filled, bool))
+        assert isinstance(label, flipper.IntegerType)
+        assert isinstance(filled, bool)
         self.label = label
         self.filled = filled
     
@@ -64,10 +64,10 @@ class Edge(object):
     __slots__ = ['source_vertex', 'target_vertex', 'label', 'index', 'reversed_edge']
     
     def __init__(self, source_vertex, target_vertex, label, reversed_edge=None):
-        assert(isinstance(source_vertex, Vertex))
-        assert(isinstance(target_vertex, Vertex))
-        assert(isinstance(label, flipper.IntegerType))
-        assert(reversed_edge is None or isinstance(reversed_edge, Edge))
+        assert isinstance(source_vertex, Vertex)
+        assert isinstance(target_vertex, Vertex)
+        assert isinstance(label, flipper.IntegerType)
+        assert reversed_edge is None or isinstance(reversed_edge, Edge)
         
         self.source_vertex = source_vertex
         self.target_vertex = target_vertex
@@ -116,9 +116,9 @@ class Triangle(object):
     __slots__ = ['edges', 'labels', 'indices', 'vertices', 'corners']
     
     def __init__(self, edges):
-        assert(isinstance(edges, (list, tuple)))
-        assert(all(isinstance(edge, Edge) for edge in edges))
-        assert(len(edges) == 3)
+        assert isinstance(edges, (list, tuple))
+        assert all(isinstance(edge, Edge) for edge in edges)
+        assert len(edges) == 3
         
         # Edges are ordered anti-clockwise. We will cyclically permute
         # these to a canonical ordering, the one where the edges are ordered
@@ -177,8 +177,8 @@ class Corner(object):
     __slots__ = ['triangle', 'side', 'edges', 'labels', 'indices', 'vertices', 'label', 'index', 'vertex', 'edge']
     
     def __init__(self, triangle, side):
-        assert(isinstance(triangle, Triangle))
-        assert(isinstance(side, flipper.IntegerType))
+        assert isinstance(triangle, Triangle)
+        assert isinstance(side, flipper.IntegerType)
         
         self.triangle = triangle
         self.side = side
@@ -210,8 +210,8 @@ class Triangulation(object):
     It is specified by a list of Triangles. Its edges must be
     numbered 0, 1, ... and its vertices must be numbered 0, 1, ... '''
     def __init__(self, triangles):
-        assert(isinstance(triangles, (list, tuple)))
-        assert(all(isinstance(triangle, Triangle) for triangle in triangles))
+        assert isinstance(triangles, (list, tuple))
+        assert all(isinstance(triangle, Triangle) for triangle in triangles)
         
         # We will sort the triangles into a canonical ordering, the one where the edges are ordered
         # minimally by label. This allows for fast comparisons.
@@ -222,19 +222,19 @@ class Triangulation(object):
         self.labels = sorted([edge.label for edge in self.edges])
         self.indices = sorted([edge.index for edge in self.positive_edges])
         self.vertices = sorted(set(vertex for triangle in self for vertex in triangle.vertices), key=lambda vertex: vertex.label)
-        assert(not all(vertex.filled for vertex in self.vertices))
+        assert not all(vertex.filled for vertex in self.vertices)
         self.corners = [corner for triangle in self for corner in triangle.corners]
         
         self.num_triangles = len(self.triangles)
         self.zeta = len(self.positive_edges)
-        assert(self.zeta == self.num_triangles * 3 // 2)
+        assert self.zeta == self.num_triangles * 3 // 2
         self.num_vertices = len(self.vertices)
         self.num_filled_vertices = len([vertex for vertex in self.vertices if vertex.filled])
         self.num_unfilled_vertices = self.num_vertices - self.num_filled_vertices
         # Check that the vertices are labelled 0, ..., num_vertices-1.
-        assert(set(vertex.label for vertex in self.vertices) == set(range(self.num_vertices)))
+        assert set(vertex.label for vertex in self.vertices) == set(range(self.num_vertices))
         # Check that the edges have indices 0, ..., zeta-1.
-        assert(set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)]))
+        assert set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)])
         
         self.triangle_lookup = dict((edge.label, triangle) for triangle in self for edge in triangle.edges)
         self.edge_lookup = dict((edge.label, edge) for edge in self.edges)
@@ -315,12 +315,12 @@ class Triangulation(object):
         Secondly, if given, vertex_states is a dict, list or tuple of Boolean flags such that
         the vertex labelled i is filled iff vertex_states[i] == True. '''
         
-        assert(isinstance(edge_labels, (list, tuple)))
-        assert(all(isinstance(labels, (list, tuple)) for labels in edge_labels))
-        assert(all(len(labels) == 3 for labels in edge_labels))
-        assert(vertex_labels is None or isinstance(vertex_labels, dict))
-        assert(vertex_states is None or isinstance(vertex_states, (list, tuple, dict)))
-        assert(len(edge_labels) > 0)
+        assert isinstance(edge_labels, (list, tuple))
+        assert all(isinstance(labels, (list, tuple)) for labels in edge_labels)
+        assert all(len(labels) == 3 for labels in edge_labels)
+        assert vertex_labels is None or isinstance(vertex_labels, dict)
+        assert vertex_states is None or isinstance(vertex_states, (list, tuple, dict))
+        assert len(edge_labels) > 0
         
         zeta = len(edge_labels) * 3 // 2
         
@@ -431,7 +431,7 @@ class Triangulation(object):
         # of closed 2--manifolds only. This will enable us to remove a lot of
         # variables and simplify proceedings.
         
-        assert(isinstance(signature, str))
+        assert isinstance(signature, str)
         
         char = string.ascii_lowercase + string.ascii_uppercase + string.digits + '+-'
         char_lookup = dict((letter, index) for index, letter in enumerate(char))
@@ -563,7 +563,7 @@ class Triangulation(object):
     
     def corner_of_edge(self, edge_label):
         ''' Return the corner opposite the given edge. '''
-        assert(isinstance(edge_label, flipper.IntegerType))
+        assert isinstance(edge_label, flipper.IntegerType)
         
         # Refactor out?
         return self.corner_lookup[edge_label]
@@ -721,7 +721,7 @@ class Triangulation(object):
         
         The given edge must not be flippable. '''
         
-        assert(not self.is_flippable(edge_label))
+        assert not self.is_flippable(edge_label)
         
         # As edge_label is not flippable the triangle containing it must be (edge_label, ~edge_label, x).
         [boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label != edge_label and label != ~edge_label]
@@ -732,7 +732,7 @@ class Triangulation(object):
         
         The chosen edge must be flippable. '''
         
-        assert(self.is_flippable(edge_label))
+        assert self.is_flippable(edge_label)
         
         # Given the label e, return the edges a, b, c, d in order.
         #
@@ -758,7 +758,7 @@ class Triangulation(object):
         
         The chosen edge must be flippable. '''
         
-        assert(self.is_flippable(edge_label))
+        assert self.is_flippable(edge_label)
         
         # Use the following for reference:
         # #<----------#     #-----------#
@@ -953,7 +953,7 @@ class Triangulation(object):
         
         Assumes (and checks) that such an isometry exists and is unique. '''
         
-        assert(isinstance(label_map, dict))
+        assert isinstance(label_map, dict)
         
         # Make a local copy as we may need to make a lot of changes.
         label_map = dict(label_map)
@@ -990,8 +990,8 @@ class Triangulation(object):
     def isometries_to(self, other, respect_fillings=True):
         ''' Return a list of all isometries from this triangulation to other. '''
         
-        assert(isinstance(other, Triangulation))
-        assert(isinstance(respect_fillings, bool))
+        assert isinstance(other, Triangulation)
+        assert isinstance(respect_fillings, bool)
         
         if self.zeta != other.zeta:
             return []
@@ -1022,7 +1022,7 @@ class Triangulation(object):
     def is_isometric_to(self, other):
         ''' Return if there are any orientation preserving isometries from this triangulation to other. '''
         
-        assert(isinstance(other, Triangulation))
+        assert isinstance(other, Triangulation)
         
         return len(self.isometries_to(other)) > 0
     
@@ -1171,7 +1171,7 @@ class Triangulation(object):
         
         The given edge must be flippable. '''
         
-        assert(self.is_flippable(edge_label))
+        assert self.is_flippable(edge_label)
         
         new_triangulation = self.flip_edge(edge_label)
         
@@ -1216,7 +1216,7 @@ class Triangulation(object):
         back to the starting triangulation via the isometry which takes 1 to ~2 and
         then finally flips edge 1. '''
         
-        assert(isinstance(sequence, (list, tuple)))
+        assert isinstance(sequence, (list, tuple))
         
         h = None
         for item in reversed(sequence):
@@ -1268,10 +1268,10 @@ class Triangulation(object):
         Note that edge_labels needs to be reversed in order to match the order of
         composition used in self.encode(). '''
         
-        assert(isinstance(edge_labels, (list, tuple)))
-        assert(all(isinstance(label, flipper.IntegerType) for label in edge_labels))
-        assert(isinstance(edge_from_label, flipper.IntegerType))
-        assert(isinstance(edge_to_label, flipper.IntegerType))
+        assert isinstance(edge_labels, (list, tuple))
+        assert all(isinstance(label, flipper.IntegerType) for label in edge_labels)
+        assert isinstance(edge_from_label, flipper.IntegerType)
+        assert isinstance(edge_to_label, flipper.IntegerType)
         
         E = self.encode(list(reversed(edge_labels)))
         return E.target_triangulation.find_isometry(self, {edge_from_label: edge_to_label}).encode() * E
@@ -1279,7 +1279,7 @@ class Triangulation(object):
     def all_flips(self, depth, prefix=None):
         ''' Return all flip sequences of at most the given number of flips. '''
         
-        assert(isinstance(depth, flipper.IntegerType))
+        assert isinstance(depth, flipper.IntegerType)
         
         def generator(T, d, flippable):
             ''' Return the sequences of at most d flips from this triangulation where only the specified edges are flippable. '''
@@ -1315,7 +1315,7 @@ class Triangulation(object):
     def all_mapping_classes(self, depth, prefix=None):
         ''' Return all mapping classes that can be defined by at most the given number of flips followed by one isometry. '''
         
-        assert(isinstance(depth, flipper.IntegerType))
+        assert isinstance(depth, flipper.IntegerType)
         
         for encoding in self.all_encodings(depth, prefix):
             for isom in encoding.closing_isometries():

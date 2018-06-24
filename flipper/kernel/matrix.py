@@ -37,13 +37,13 @@ def round_fraction(x):
 class Matrix(object):
     ''' This represents a matrix. '''
     def __init__(self, data):
-        assert(isinstance(data, (list, tuple)))
-        assert(all(isinstance(row, (list, tuple)) for row in data))
+        assert isinstance(data, (list, tuple))
+        assert all(isinstance(row, (list, tuple)) for row in data)
         
         self.rows = [list(row) for row in data]
         self.height = len(self.rows)
         self.width = len(self.rows[0]) if self.height > 0 else 0
-        assert(all(len(row) == self.width for row in self))
+        assert all(len(row) == self.width for row in self)
     def copy(self):
         ''' Return a copy of this Matrix. '''
         return Matrix([list(row) for row in self])
@@ -70,7 +70,7 @@ class Matrix(object):
         return Matrix([[-x for x in row] for row in self])
     def __add__(self, other):
         if isinstance(other, Matrix):
-            assert(self.width == other.width and self.height == other.height)
+            assert self.width == other.width and self.height == other.height
             return Matrix([[a+b for a, b in zip(r1, r2)] for r1, r2 in zip(self, other)])
         else:
             return self + (id_matrix(self.width) * other)
@@ -78,7 +78,7 @@ class Matrix(object):
         return self + other
     def __sub__(self, other):
         if isinstance(other, Matrix):
-            assert(self.width == other.width and self.height == other.height)
+            assert self.width == other.width and self.height == other.height
             return Matrix([[self[i][j] - other[i][j] for j in range(self.width)] for i in range(self.height)])
         else:
             return self - (id_matrix(self.width) * other)
@@ -86,13 +86,13 @@ class Matrix(object):
         return -(self - other)
     
     def __call__(self, other):
-        assert(isinstance(other, (list, tuple)))
-        assert(self.width == 0 or self.width == len(other))
+        assert isinstance(other, (list, tuple))
+        assert self.width == 0 or self.width == len(other)
         return [dot(row, other) for row in self]
     
     def __mul__(self, other):
         if isinstance(other, Matrix):
-            assert(self.width == 0 or self.width == len(other))
+            assert self.width == 0 or self.width == len(other)
             other_transpose = other.transpose()
             return Matrix([[dot(a, b) for b in other_transpose] for a in self])
         else:  # Multiply entry wise.
@@ -100,7 +100,7 @@ class Matrix(object):
     def __rmul__(self, other):
         return self * other
     def __pow__(self, power):
-        assert(self.is_square())
+        assert self.is_square()
         
         if power == 0:
             return id_matrix(self.width)
@@ -126,7 +126,7 @@ class Matrix(object):
         
         This matrix must be square. '''
         
-        assert(self.is_square())
+        assert self.is_square()
         
         Ms = [id_matrix(self.width)]
         for _ in range(max_power):
@@ -137,7 +137,7 @@ class Matrix(object):
         
         This matrix must be square and have determinant +/-1. '''
         
-        assert(self.is_square())
+        assert self.is_square()
         
         P = self.characteristic_polynomial()
         assert(abs(P[0]) == 1)  # Check that the determinant is +/-1.
@@ -184,7 +184,7 @@ class Matrix(object):
         
         # We could also just get the constant term of the characteristic polynomial, but this is ~10x faster.
         
-        assert(self.is_square())
+        assert self.is_square()
         
         scale = 1
         A = [list(row) for row in self]
@@ -212,7 +212,7 @@ class Matrix(object):
         
         This matrix must be square. '''
         
-        assert(self.is_square())
+        assert self.is_square()
         
         # We will actually compute det(\lambdaI - self). Then at the
         # end we correct this by multiplying by the required +/-1.
@@ -297,7 +297,7 @@ class Matrix(object):
         
         This matrix must be square. '''
         
-        assert(self.is_square())
+        assert self.is_square()
         
         if self.determinant() == 0:
             raise flipper.AssumptionError('Matrix is not invertible.')
@@ -441,7 +441,7 @@ class Matrix(object):
         if all(entry == 0 for entry in v):
             raise flipper.AssumptionError('Polytope is trivial.')
         
-        assert(self.nonnegative_image(v))
+        assert self.nonnegative_image(v)
         
         return v
 

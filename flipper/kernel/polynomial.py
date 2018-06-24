@@ -13,8 +13,8 @@ class Polynomial(object):
     It is specified by a list of coefficients. It is capable of determining
     the number of roots it has in a given interval by using a Sturm chain. '''
     def __init__(self, coefficients):
-        assert(isinstance(coefficients, (list, tuple)))
-        assert(all(isinstance(coefficient, flipper.IntegerType) for coefficient in coefficients))
+        assert isinstance(coefficients, (list, tuple))
+        assert all(isinstance(coefficient, flipper.IntegerType) for coefficient in coefficients)
         
         # It is easier if the zero polynomial has coefficients [0] instead of [].
         # At various points we will want the min of the coefficients etc.
@@ -103,7 +103,7 @@ class Polynomial(object):
         
         Power must be an integer '''
         
-        assert(isinstance(power, flipper.IntegerType))
+        assert isinstance(power, flipper.IntegerType)
         
         if power >= 0:
             return Polynomial([0] * power + self.coefficients)
@@ -198,7 +198,7 @@ class Polynomial(object):
     def signs_at_interval_endpoints(self, interval):
         ''' Return the signs of this polynomial at the endpoints of the given interval. '''
         
-        assert(isinstance(interval, flipper.kernel.Interval))
+        assert isinstance(interval, flipper.kernel.Interval)
         
         lower, upper, precision = interval.lower, interval.upper, interval.precision
         lower_sign = sum(coefficient * lower**index * 10**(precision*(self.degree - index)) for index, coefficient in enumerate(self))
@@ -303,8 +303,8 @@ class PolynomialRoot(object):
     not an ApproximationError will be raised. These methods are significantly
     faster when the polynomial is square free. '''
     def __init__(self, polynomial, interval):
-        assert(isinstance(polynomial, flipper.kernel.Polynomial))
-        assert(isinstance(interval, flipper.kernel.Interval))
+        assert isinstance(polynomial, flipper.kernel.Polynomial)
+        assert isinstance(interval, flipper.kernel.Interval)
         
         self.polynomial = polynomial
         self.interval = interval
@@ -424,7 +424,7 @@ class PolynomialRoot(object):
             request_accuracy = target_accuracy
             
             self.converge_iterate(request_accuracy)
-            assert(self.interval.accuracy >= target_accuracy)
+            assert self.interval.accuracy >= target_accuracy
         
         return self.interval
     

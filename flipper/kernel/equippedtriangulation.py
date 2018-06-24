@@ -58,35 +58,35 @@ class EquippedTriangulation(object):
     Most importantly this object can construct a mapping class from a string descriptor.
     See self.mapping_class for additional information. '''
     def __init__(self, triangulation, laminations, mapping_classes):
-        assert(isinstance(triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(laminations, (dict, list, tuple)))
-        assert(isinstance(mapping_classes, (dict, list, tuple)))
+        assert isinstance(triangulation, flipper.kernel.Triangulation)
+        assert isinstance(laminations, (dict, list, tuple))
+        assert isinstance(mapping_classes, (dict, list, tuple))
         
         self.triangulation = triangulation
         if isinstance(laminations, dict):
-            assert(all(isinstance(key, str) for key in laminations))
-            assert(all(isinstance(laminations[key], flipper.kernel.Lamination) for key in laminations))
-            assert(all(laminations[key].triangulation == self.triangulation for key in laminations))
+            assert all(isinstance(key, str) for key in laminations)
+            assert all(isinstance(laminations[key], flipper.kernel.Lamination) for key in laminations)
+            assert all(laminations[key].triangulation == self.triangulation for key in laminations)
             self.laminations = laminations
         else:
-            assert(all(isinstance(lamination, flipper.kernel.Lamination) for lamination in laminations))
-            assert(all(lamination.triangulation == self.triangulation for lamination in laminations))
+            assert all(isinstance(lamination, flipper.kernel.Lamination) for lamination in laminations)
+            assert all(lamination.triangulation == self.triangulation for lamination in laminations)
             self.laminations = dict(list(flipper.kernel.utilities.name_objects(laminations)))
         
         if isinstance(mapping_classes, dict):
-            assert(all(isinstance(key, str) for key in mapping_classes))
-            assert(all(isinstance(mapping_classes[key], flipper.kernel.Encoding) for key in mapping_classes))
-            assert(all(mapping_classes[key].source_triangulation == self.triangulation for key in mapping_classes))
-            assert(all(mapping_classes[key].is_mapping_class() for key in mapping_classes))
-            assert(all(key.swapcase() not in mapping_classes for key in mapping_classes))
+            assert all(isinstance(key, str) for key in mapping_classes)
+            assert all(isinstance(mapping_classes[key], flipper.kernel.Encoding) for key in mapping_classes)
+            assert all(mapping_classes[key].source_triangulation == self.triangulation for key in mapping_classes)
+            assert all(mapping_classes[key].is_mapping_class() for key in mapping_classes)
+            assert all(key.swapcase() not in mapping_classes for key in mapping_classes)
             
             self.pos_mapping_classes = dict(mapping_classes)
             self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
             self.mapping_classes = dict(list(self.pos_mapping_classes.items()) + list(self.neg_mapping_classes.items()))
         else:
-            assert(all(isinstance(mapping_class, flipper.kernel.Encoding) for mapping_class in mapping_classes))
-            assert(all(mapping_class.source_triangulation == self.triangulation for mapping_class in mapping_classes))
-            assert(all(mapping_class.is_mapping_class() for mapping_class in mapping_classes))
+            assert all(isinstance(mapping_class, flipper.kernel.Encoding) for mapping_class in mapping_classes)
+            assert all(mapping_class.source_triangulation == self.triangulation for mapping_class in mapping_classes)
+            assert all(mapping_class.is_mapping_class() for mapping_class in mapping_classes)
             
             self.pos_mapping_classes = dict(list(flipper.kernel.utilities.name_objects(mapping_classes)))
             self.neg_mapping_classes = dict((name.swapcase(), self.pos_mapping_classes[name].inverse()) for name in self.pos_mapping_classes)
@@ -181,7 +181,7 @@ class EquippedTriangulation(object):
         of positive, negative or all (default) mapping classes can be used by using the
         flags postive and negative. '''
         
-        assert(isinstance(length, flipper.IntegerType))
+        assert isinstance(length, flipper.IntegerType)
         
         if letters is None:
             pos_keys = sorted(self.pos_mapping_classes.keys())
@@ -527,7 +527,7 @@ class EquippedTriangulation(object):
         
         Raises a KeyError if the greedy decomposition fails. '''
         
-        assert(isinstance(word, str))
+        assert isinstance(word, str)
         
         # By sorting the available keys, longest first, we ensure that any time we
         # get a match it is as long as possible.
@@ -553,7 +553,7 @@ class EquippedTriangulation(object):
         
         Raises a TypeError if the word does not correspond to a mapping class. '''
         
-        assert(isinstance(word, str) or isinstance(word, flipper.IntegerType))
+        assert isinstance(word, str) or isinstance(word, flipper.IntegerType)
         
         if isinstance(word, flipper.IntegerType):
             word = self.random_word(word)

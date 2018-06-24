@@ -22,7 +22,7 @@ INFTY = float('inf')
 def height_int(number):
     ''' Return the height of the given integer. '''
     
-    assert(isinstance(number, flipper.IntegerType))
+    assert isinstance(number, flipper.IntegerType)
     
     return log(max(abs(number), 1))
 
@@ -33,9 +33,9 @@ class NumberField(object):
     
     The given PolynomialRoot must be a monic polynomial. '''
     def __init__(self, polynomial_root=None):
-        assert(polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot))
+        assert polynomial_root is None or isinstance(polynomial_root, flipper.kernel.PolynomialRoot)
         if polynomial_root is None: polynomial_root = flipper.kernel.PolynomialRoot.from_tuple([-1, 1], '1.00')
-        assert(polynomial_root.polynomial.is_monic())
+        assert polynomial_root.polynomial.is_monic()
         
         self.polynomial_root = polynomial_root
         
@@ -80,7 +80,7 @@ class NumberField(object):
             if minimal_accuracy < INFTY:
                 self._approximations = [interval.change_denominator(minimal_accuracy) for interval in self._approximations]
             self.accuracy = min(interval.accuracy for interval in self._approximations)
-            assert(self.accuracy >= target_accuracy)
+            assert self.accuracy >= target_accuracy
         
         return self._approximations
     
@@ -337,7 +337,7 @@ class NumberFieldElement(object):
             request_accuracy = target_accuracy + self.height
             intervals = self.number_field.lmbda_approximations(request_accuracy)
             self._interval = flipper.kernel.dot(self, intervals)
-            assert(self._interval.accuracy >= target_accuracy)
+            assert self._interval.accuracy >= target_accuracy
         
         return self._interval
     

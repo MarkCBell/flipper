@@ -12,9 +12,9 @@ from itertools import permutations, combinations
 class Permutation(object):
     ''' This represents a permutation in Sym(n). '''
     def __init__(self, permutation):
-        assert(isinstance(permutation, (list, tuple)))
-        assert(all(isinstance(entry, flipper.IntegerType) for entry in permutation))
-        assert(set(permutation) == set(range(len(permutation))))
+        assert isinstance(permutation, (list, tuple))
+        assert all(isinstance(entry, flipper.IntegerType) for entry in permutation)
+        assert set(permutation) == set(range(len(permutation)))
         
         self.permutation = tuple(permutation)
     def __repr__(self):
@@ -35,8 +35,8 @@ class Permutation(object):
     def __hash__(self):
         return hash(self.permutation)
     def __mul__(self, other):
-        assert(isinstance(other, Permutation))
-        assert(len(self) == len(other))
+        assert isinstance(other, Permutation)
+        assert len(self) == len(other)
         
         return Permutation([self(other(i)) for i in range(len(self))])
     def __pow__(self, n):

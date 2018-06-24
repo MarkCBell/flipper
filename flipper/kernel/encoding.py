@@ -20,11 +20,11 @@ class Encoding(object):
     The map is given by a sequence of EdgeFlips, LinearTransformations
     and Isometries which act from right to left. '''
     def __init__(self, sequence, _cache=None):
-        assert(isinstance(sequence, (list, tuple)))
-        assert(len(sequence) > 0)
-        assert(all(isinstance(item, flipper.kernel.Move) for item in sequence))
+        assert isinstance(sequence, (list, tuple))
+        assert len(sequence) > 0
+        assert all(isinstance(item, flipper.kernel.Move) for item in sequence)
         # We used to also test:
-        #  assert(all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:])))
+        #  assert all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:]))
         # However this makes composing Encodings a quadratic time algorithm!
         
         self.sequence = sequence
@@ -147,7 +147,7 @@ class Encoding(object):
         else:
             return NotImplemented
     def __pow__(self, k):
-        assert(self.is_mapping_class())
+        assert self.is_mapping_class()
         
         if k == 0:
             return self.source_triangulation.id_encoding()
@@ -177,7 +177,7 @@ class Encoding(object):
         
         This encoding must be a mapping class. '''
         
-        assert(self.is_mapping_class())
+        assert self.is_mapping_class()
         
         # We could do:
         # for i in range(1, self.source_triangulation.max_order + 1):
@@ -226,7 +226,7 @@ class Encoding(object):
         ''' Return the action and condition matrices describing the PL map
         applied to the geometric coordinates of the given lamination. '''
         
-        assert(isinstance(lamination, flipper.kernel.Lamination))
+        assert isinstance(lamination, flipper.kernel.Lamination)
         
         As = flipper.kernel.id_matrix(self.zeta)
         Cs = flipper.kernel.zero_matrix(self.zeta, 1)
@@ -300,7 +300,7 @@ class Encoding(object):
         #  - Store the checked cells in a hash map to prevent rerunning the expensive symboliccomputation.directed_eigenvector.
         #  - Automatically update to a finer RESOLUTION whenever you fail to get a lamination from symboliccomputation.directed_eigenvector.
         
-        assert(self.is_mapping_class())
+        assert self.is_mapping_class()
         
         # We will use a hash to significantly speed up the algorithm.
         resolution = 200
@@ -537,7 +537,7 @@ class Encoding(object):
         
         Currently assumes that at least one mapping class is pseudo-Anosov. '''
         
-        assert(isinstance(other, Encoding))
+        assert isinstance(other, Encoding)
         
         # Nielsen-Thurston type is a conjugacy invariant.
         if self.nielsen_thurston_type() != other.nielsen_thurston_type():
@@ -604,11 +604,11 @@ class Encoding(object):
                 
                 # Work out which way the train track is pointing.
                 if lamination.is_bipod(triangulation.corner_of_edge(a.label)):
-                    assert(lamination.is_bipod(triangulation.corner_of_edge(c.label)))
+                    assert lamination.is_bipod(triangulation.corner_of_edge(c.label))
                     M = M.elementary(item.edge_index, b.index)
                     M = M.elementary(item.edge_index, d.index)
                 elif lamination.is_bipod(triangulation.corner_of_edge(b.label)):
-                    assert(lamination.is_bipod(triangulation.corner_of_edge(d.label)))
+                    assert lamination.is_bipod(triangulation.corner_of_edge(d.label))
                     M = M.elementary(item.edge_index, a.index)
                     M = M.elementary(item.edge_index, c.index)
                 else:
@@ -646,7 +646,7 @@ class Encoding(object):
         
         This encoding must be a mapping class. '''
         
-        assert(self.is_mapping_class())
+        assert self.is_mapping_class()
         triangulation = self.source_triangulation
         
         if canonical:
@@ -691,7 +691,7 @@ class Encoding(object):
         
         tetra_count = 0
         for item in reversed(self.sequence):
-            assert(item.source_triangulation == upper_triangulation)
+            assert item.source_triangulation == upper_triangulation
             
             try:
                 tetra_count, upper_triangulation, upper_map, lower_map = \
@@ -702,7 +702,7 @@ class Encoding(object):
                 raise flipper.FatalError('Unknown move %s encountered while building bundle.' % item)
         
         # We're now back to the starting triangulation.
-        assert(lower_triangulation == upper_triangulation)
+        assert lower_triangulation == upper_triangulation
         
         # This is a map which send each triangle of upper_triangulation via isometry to a pair:
         #    (triangle, permutation)
@@ -717,7 +717,7 @@ class Encoding(object):
                 perm = new_perm * perm
                 
                 c += 1
-                assert(c <= 3 * upper_triangulation.zeta)
+                assert c <= 3 * upper_triangulation.zeta
             full_forwards[source_triangle] = (target_triangle, perm)
         
         # Now close the bundle up.
@@ -729,7 +729,7 @@ class Encoding(object):
                 A.glue(perm_A(3), B, perm_B * perm.embed(4) * perm_A.inverse())
         
         # There are now no unglued faces.
-        assert(triangulation3.is_closed())
+        assert triangulation3.is_closed()
         
         # Install longitudes and meridians. This also calls Triangulation3.assign_cusp_indices().
         triangulation3.install_peripheral_curves()
@@ -757,7 +757,7 @@ class Encoding(object):
         
         This encoding must be a mapping class. '''
         
-        assert(self.is_mapping_class())
+        assert self.is_mapping_class()
         
         splitting_sequence = self.splitting_sequence()
         periodic_triangulation = splitting_sequence.triangulation  # This is the triangulation we will build the flat structure on.
@@ -783,7 +783,7 @@ class Encoding(object):
             else:  # Longest stable and unstable sides are the same.
                 raise flipper.FatalError('Longest stable and unstable edges are the same.')
             
-            assert(sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0, 0)) == flipper.kernel.Vector2(0, 0))
+            assert sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0, 0)) == flipper.kernel.Vector2(0, 0)
         
         return flipper.kernel.FlatStructure(periodic_triangulation, edge_vectors)
 
@@ -793,7 +793,7 @@ def create_encoding(source_triangulation, sequence, _cache=None):
     This is only really here to help with pickling. Users should use
     source_triangulation.encode(sequence) directly. '''
     
-    assert(isinstance(source_triangulation, flipper.kernel.Triangulation))
+    assert isinstance(source_triangulation, flipper.kernel.Triangulation)
     
     return source_triangulation.encode(sequence, _cache=_cache)
 

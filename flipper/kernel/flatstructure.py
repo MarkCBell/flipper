@@ -45,12 +45,12 @@ class FlatStructure(object):
         sum(vector[edge] for edge in triangle) == 0.
     '''
     def __init__(self, triangulation, edge_vectors):
-        assert(isinstance(triangulation, flipper.kernel.Triangulation))
-        assert(isinstance(edge_vectors, dict))
-        assert(all(edge in edge_vectors for edge in triangulation.edges))
-        assert(all(isinstance(edge_vectors[edge], Vector2) for edge in triangulation.edges))
+        assert isinstance(triangulation, flipper.kernel.Triangulation)
+        assert isinstance(edge_vectors, dict)
+        assert all(edge in edge_vectors for edge in triangulation.edges)
+        assert all(isinstance(edge_vectors[edge], Vector2) for edge in triangulation.edges)
         
-        assert(all(sum([edge_vectors[edge] for edge in triangle], Vector2(0, 0)) == Vector2(0, 0) for triangle in triangulation))
+        assert all(sum([edge_vectors[edge] for edge in triangle], Vector2(0, 0)) == Vector2(0, 0) for triangle in triangulation)
         
         self.triangulation = triangulation
         self.edge_vectors = edge_vectors

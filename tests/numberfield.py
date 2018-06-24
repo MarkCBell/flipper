@@ -1,20 +1,13 @@
 
-from __future__ import print_function
+import unittest
 
 import flipper
 
-def main(verbose=False):
-    if verbose: print('Running number field tests.')
-    
+class TestNumberField(unittest.TestCase):
     N = flipper.kernel.NumberField.from_tuple([-2, 0, 1], '1.4142135623')  # QQ(sqrt(2)).
     x = N.lmbda  # sqrt(2)
     
-    tests = [
-        x * x == 2
-        ]
-    
-    return all(tests)
-
-if __name__ == '__main__':
-    print(main(verbose=True))
+    def test_powers(self):
+        self.assertEqual(self.x * self.x, self.x**2)
+        self.assertEqual(self.x * self.x, 2)
 

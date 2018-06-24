@@ -27,11 +27,6 @@ with warnings.catch_warnings():
 # can still use the flipper kernel at least.
 # import flipper.application  # Uses tkinter.
 import flipper.kernel
-# import flipper.example  # Uses snappy.
-import flipper.doc
-# import flipper.test  # Uses snappy.
-import flipper.profile
-
 from flipper.load import load
 from flipper.census import census
 

@@ -151,9 +151,9 @@ class EquippedTriangulation(object):
             mapping_classes[name] = encoding
         
         if triangulation is None:
-            if len(laminations) > 0:
+            if laminations:
                 triangulation = list(laminations.values())[0].triangulation
-            elif len(mapping_classes) > 0:
+            elif mapping_classes:
                 triangulation = list(mapping_classes.values())[0].source_triangulation
             else:
                 raise ValueError('A triangulation, Lamination or Encoding must be given.')
@@ -599,7 +599,7 @@ class EquippedTriangulation(object):
         
         # This can fail with a TypeError.
         sequence = [item for letter in self.decompose_word(word) for item in self.mapping_classes[letter]]
-        return flipper.kernel.Encoding(sequence, _cache={'name': name}) if len(sequence) > 0 else self.triangulation.id_encoding()
+        return flipper.kernel.Encoding(sequence, _cache={'name': name}) if sequence else self.triangulation.id_encoding()
     
     def lamination(self, name):
         ''' Return the lamination given by name. '''

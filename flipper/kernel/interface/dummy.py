@@ -9,7 +9,7 @@ def gram_schmidt(basis):
     basis = [list(row) for row in basis]
     
     dot = flipper.kernel.dot
-    for i in range(len(basis)):
+    for i in range(len(basis)):  # pylint: disable=consider-using-enumerate
         for j in range(i):
             a, b = dot(basis[i], basis[j]), dot(basis[j], basis[j])
             basis[i] = [b * x - a * y for x, y in zip(basis[i], basis[j])]

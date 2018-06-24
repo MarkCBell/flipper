@@ -707,7 +707,7 @@ class Lamination(object):
                     # skip it.
                     if dilatation is None or old_lamination.weight() >= dilatation * lamination.weight():
                         isometries = lamination.all_projective_isometries(old_lamination)
-                        if len(isometries) > 0:
+                        if isometries:
                             assert dilatation is None or old_lamination.weight() == dilatation * lamination.weight()
                             # print('!!', index)
                             
@@ -725,6 +725,8 @@ class Lamination(object):
             else:
                 # Start a new class containing this lamination.
                 seen[target] = [len(encodings)]
+        
+        raise RuntimeError('Unreachable code.')
     
     def splitting_sequences(self, dilatation=None, maxlen=None):
         ''' A version of self.splitting_sequences_uncached with caching. '''
@@ -740,8 +742,8 @@ class Lamination(object):
         
         if isinstance(self._cache['splitting_sequences'][dilatation], Exception):
             raise self._cache['splitting_sequences'][dilatation]
-        else:
-            return self._cache['splitting_sequences'][dilatation]
+        
+        return self._cache['splitting_sequences'][dilatation]
     
     def encode_twist(self, k=1):
         ''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.

@@ -19,4 +19,6 @@ disable=
     trailing-newlines,
     trailing-whitespace,
     unused-variable,
-
+    too-many-arguments,
+    too-many-nested-blocks,
+    too-many-lines,

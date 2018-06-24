@@ -320,7 +320,7 @@ class Triangulation(object):
         assert all(len(labels) == 3 for labels in edge_labels)
         assert vertex_labels is None or isinstance(vertex_labels, dict)
         assert vertex_states is None or isinstance(vertex_states, (list, tuple, dict))
-        assert len(edge_labels) > 0
+        assert edge_labels
         
         zeta = len(edge_labels) * 3 // 2
         
@@ -689,14 +689,14 @@ class Triangulation(object):
         # Pad the type_sequence with 0's so that its length is a multiple of 3.
         type_sequence = type_sequence + [0] * (-len(type_sequence) % 3)
         char_type = ''.join(char[type_sequence[i] + 4 * type_sequence[i+1] + 16 * type_sequence[i+2]] for i in range(0, len(type_sequence), 3))
-        char_perm = ''.join(char[perm] for perm in permutation_sequence)
+        char_perm = ''.join(char[perm] for perm in permutation_sequence)  # pylint: disable=invalid-sequence-index
         
         # Get the number of triangles that we encoutered.
         num_tri = type_sequence.count(1) + 1
         
         if num_tri < 63:
             char_start = char[num_tri]
-            char_target = ''.join(char[target] for target in target_sequence)
+            char_target = ''.join(char[target] for target in target_sequence)  # pylint: disable=invalid-sequence-index
         else:
             digits = int(log(num_tri) / log(64)) + 1
             char_start = char[63] + char[digits] + ''.join(char[(num_tri // 64**i) % 64] for i in range(digits))

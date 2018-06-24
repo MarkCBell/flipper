@@ -21,7 +21,7 @@ class Encoding(object):
     and Isometries which act from right to left. '''
     def __init__(self, sequence, _cache=None):
         assert isinstance(sequence, (list, tuple))
-        assert len(sequence) > 0
+        assert sequence
         assert all(isinstance(item, flipper.kernel.Move) for item in sequence)
         # We used to also test:
         #  assert all(x.source_triangulation == y.target_triangulation for x, y in zip(sequence, sequence[1:]))
@@ -413,8 +413,8 @@ class Encoding(object):
         
         if isinstance(self._cache['invariant_lamination'], Exception):
             raise self._cache['invariant_lamination']
-        else:
-            return self._cache['invariant_lamination']
+        
+        return self._cache['invariant_lamination']
     
     def invariant_lamination(self):
         ''' Return a projectively invariant lamination of this mapping class.
@@ -478,11 +478,11 @@ class Encoding(object):
         
         homology_splittings = [splitting for splitting in self.splitting_sequences() if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
         
-        if len(homology_splittings) == 0:
+        if len(homology_splittings) == 0:  # pylint: disable=len-as-condition
             raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
         elif len(homology_splittings) == 1:
             return homology_splittings[0]
-        else:
+        else:  # len(homology_splittings) > 1:
             raise flipper.FatalError('Mapping class is homologous to multiple splitting sequences.')
     
     def canonical(self):
@@ -555,7 +555,7 @@ class Encoding(object):
             # There's more to do here.
             
             raise flipper.AssumptionError('Mapping class is reducible.')
-        elif self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
+        else:  # if self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV:
             # Two pseudo-Anosov mapping classes are conjugate if and only if
             # there canonical forms are cyclically conjugate via an isometry.
             f = self.canonical()
@@ -768,8 +768,8 @@ class Encoding(object):
         edge_vectors = dict()
         for triangle in periodic_triangulation:
             # Find the sides with largest stable and unstable lengths.
-            index_s = max(range(3), key=lambda i: stable_lamination(triangle.edges[i]))
-            index_u = max(range(3), key=lambda i: unstable_lamination(triangle.edges[i]))
+            index_s = max(enumerate(stable_lamination(edge) for edge in triangle))[1]
+            index_u = max(enumerate(unstable_lamination(edge) for edge in triangle))[1]
             
             # Get the edges of triangle relative to the index_s.
             edges = [triangle[(index_s + i) % 3] for i in range(3)]

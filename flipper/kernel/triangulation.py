@@ -853,14 +853,6 @@ class Triangulation(object):
                         vertices_used[vertex] = True
                         break
         
-        if False:
-            for vertex in self.vertices:
-                if not vertex.filled:
-                    vertices_used[vertex] = True
-                    if not respect_fillings:
-                        # Stop as soon as we've marked one.
-                        break
-        
         while True:
             for edge_index in range(self.zeta):
                 if not tree[edge_index]:

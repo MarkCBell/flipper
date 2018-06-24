@@ -28,7 +28,6 @@ def directed_eigenvector(action_matrix, condition_matrix):
     
     See the docstring of the above function for further details. '''
     
-    dot = flipper.kernel.dot
     # Getting the square free representative makes this faster.
     eigenvalues = [eigenvalue.irreducible_representation() for eigenvalue in action_matrix.characteristic_polynomial().square_free().real_roots() if eigenvalue > 1]
     

@@ -10,15 +10,7 @@ class Bundle(object):
     
     It is specified by a triangulation of the surface, a triangulation of the
     bundle and an immersion map. Mapping classes can build their bundles and
-    this is the standard way users are expected to create these.
-    
-    The following will be our standard examples:
-    >>> import flipper
-    >>> B4_1 = flipper.load('S_1_1').mapping_class('aB').bundle()
-    >>> B8_21 = flipper.load('S_2_1').mapping_class('abcDF').bundle()
-    >>> B4_1a = flipper.load('S_1_1').mapping_class('aB').bundle(canonical=False)
-    >>> B8_21a = flipper.load('S_2_1').mapping_class('abcDF').bundle(canonical=False)
-    '''
+    this is the standard way users are expected to create these. '''
     def __init__(self, triangulation, triangulation3, immersion):
         assert(isinstance(triangulation, flipper.kernel.Triangulation))
         assert(isinstance(triangulation3, flipper.kernel.Triangulation3))
@@ -45,30 +37,7 @@ class Bundle(object):
     def snappy_string(self, name='flipper_triangulation', filled=True):
         ''' Return the SnapPy string describing this triangulation.
         
-        If filled=True then the fake cusps are filled along their fibre slope.
-        
-        >>> try:
-        ...     from snappy import Manifold  # SnapPy might not be installed.
-        ...     Manifold(B4_1.snappy_string()).is_isometric_to(Manifold('4_1'))
-        ...     Manifold(B8_21.snappy_string()).is_isometric_to(Manifold('8_21'))
-        ...     Manifold(B4_1a.snappy_string(filled=False)).is_isometric_to(Manifold('4_1'))
-        ...     Manifold(B8_21a.snappy_string(filled=False)).is_isometric_to(Manifold('8_21'))
-        ...     Manifold(B4_1.snappy_string(filled=False)).is_isometric_to(Manifold('4_1'))  # Could be False.
-        ...     Manifold(B8_21.snappy_string(filled=False)).is_isometric_to(Manifold('8_21'))  # Could be False.
-        ... except ImportError:
-        ...     True
-        ...     True
-        ...     True
-        ...     True
-        ...     True
-        ...     False
-        True
-        True
-        True
-        True
-        True
-        False
-        '''
+        If filled=True then the fake cusps are filled along their fibre slope. '''
         
         fillings = [slope if filled_cusp else (0, 0) for filled_cusp, slope in zip(self.cusp_types(), self.fibre_slopes())] if filled else None
         return self.triangulation3.snappy_string(name, fillings)
@@ -77,13 +46,7 @@ class Bundle(object):
         return self.snappy_string()
     
     def cusp_types(self):
-        ''' Return the list of the type of each cusp.
-        
-        >>> B4_1.cusp_types(), sorted(B8_21.cusp_types())
-        ([False], [False, True])
-        >>> B4_1a.cusp_types(), B8_21a.cusp_types()
-        ([False], [False])
-        '''
+        ''' Return the list of the type of each cusp. '''
         
         cusp_types = [None] * self.triangulation3.num_cusps
         

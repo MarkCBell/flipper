@@ -38,19 +38,7 @@ class AlgebraicApproximation(object):
     
     If the interval is not sufficiently small, in terms of the log_degree
     and height bounds, to uniquely determine the algebraic number then
-    an ApproximationError will be raised.
-    
-    >>> I = AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
-    >>> I
-    1.414213?
-    >>> J = AlgebraicApproximation.from_tuple('1.41421356', 2, 2)
-    >>> I == J
-    True
-    >>> AlgebraicApproximation.from_tuple('1.41', 2, 2)  # doctest: +ELLIPSIS
-    Traceback (most recent call last):
-        ...
-    ApproximationError: ...
-    '''
+    an ApproximationError will be raised. '''
     def __init__(self, interval, log_degree, height):
         assert(isinstance(interval, flipper.kernel.Interval))
         
@@ -104,22 +92,14 @@ class AlgebraicApproximation(object):
     def change_accuracy(self, new_accuracy):
         ''' Return a new approximation of this algebraic number with the given accuracy.
         
-        The new_accuracy must be at most self.accuracy.
-        
-        >>> I.change_accuracy(5)
-        1.414?
-        '''
+        The new_accuracy must be at most self.accuracy. '''
         
         assert(isinstance(new_accuracy, flipper.IntegerType))
         
         return AlgebraicApproximation(self.interval.change_accuracy(new_accuracy), self.log_degree, self.height)
     
     def simplify(self):
-        ''' Return a new approximation of this algebraic number with the given accuracy.
-        
-        >>> I.simplify()
-        1.414213?
-        '''
+        ''' Return a new approximation of this algebraic number with the given accuracy. '''
         
         return AlgebraicApproximation(self.interval.simplify(), self.log_degree, self.height)
     
@@ -182,11 +162,7 @@ class AlgebraicApproximation(object):
         return self.__rdiv__(other)
     
     def sign(self):
-        ''' Return the sign of the underlying algebraic number.
-        
-        >>> I.sign()
-        1
-        '''
+        ''' Return the sign of the underlying algebraic number. '''
         
         if self.interval.lower > 0:
             return +1
@@ -207,12 +183,4 @@ class AlgebraicApproximation(object):
         return not (self == other)
     def __ge__(self, other):
         return not (self < other)
-
-def doctest_globs():
-    ''' Return the globals needed to run doctest on this module. '''
-    
-    I = flipper.kernel.AlgebraicApproximation(flipper.kernel.Interval(141421356, 141421357, 8), 2, 2)
-    J = flipper.kernel.AlgebraicApproximation.from_tuple('1.41421356', 2, 2)
-    
-    return {'I': I, 'J': J}
 

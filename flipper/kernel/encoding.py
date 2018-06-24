@@ -18,21 +18,7 @@ class Encoding(object):
     a mapping class. This can be checked using self.is_mapping_class().
     
     The map is given by a sequence of EdgeFlips, LinearTransformations
-    and Isometries which act from right to left.
-    
-    >>> import flipper
-    >>> S = flipper.load('S_1_1')
-    >>> aB = S.mapping_class('aB')
-    >>> bA = S.mapping_class('bA')
-    >>> ab = S.mapping_class('ab')
-    >>> i = S.mapping_class('')
-    >>> a = S.mapping_class('a')
-    >>> a
-    a
-    >>> x = S.triangulation.encode([1])
-    >>> x
-    [Flip 1]
-    '''
+    and Isometries which act from right to left. '''
     def __init__(self, sequence, _cache=None):
         assert(isinstance(sequence, (list, tuple)))
         assert(len(sequence) > 0)
@@ -55,13 +41,7 @@ class Encoding(object):
     def is_mapping_class(self):
         ''' Return if this encoding is a mapping class.
         
-        That is, if it maps to the triangulation it came from.
-        
-        >>> aB.is_mapping_class(), bA.is_mapping_class()
-        (True, True)
-        >>> x.is_mapping_class()
-        False
-        '''
+        That is, if it maps to the triangulation it came from. '''
         
         return self.source_triangulation == self.target_triangulation
     
@@ -112,15 +92,14 @@ class Encoding(object):
         (assuming we know source_triangulation and target_triangulation)
         by Alexanders trick. '''
         if '__identify__' not in self._cache:
-             images = [self(curve) for curve in self.source_triangulation.key_curves()]
-             self._cache['__identify__'] = tuple(entry for curve in images for vector in [curve.geometric, curve.algebraic] for entry in vector)
+            images = [self(curve) for curve in self.source_triangulation.key_curves()]
+            self._cache['__identify__'] = tuple(entry for curve in images for vector in [curve.geometric, curve.algebraic] for entry in vector)
         
         return self._cache['__identify__']
     
     def __eq__(self, other):
         if isinstance(other, Encoding):
-            if self.source_triangulation != other.source_triangulation or \
-                self.target_triangulation != other.target_triangulation:
+            if self.source_triangulation != other.source_triangulation or self.target_triangulation != other.target_triangulation:
                 raise ValueError('Cannot compare Encodings between different triangulations.')
             
             return self.identify() == other.identify()
@@ -134,15 +113,10 @@ class Encoding(object):
         ''' Return if this encoding is homologous to other.
         
         Two maps are homologous if and only if they induce the same map
-        from H_1(source_triangulation) to H_1(target_triangulation).
-        
-        >>> aB.is_homologous_to(aB), aB.is_homologous_to(bA), bA.is_homologous_to(ab), aB.is_homologous_to(i)
-        (True, False, False, False)
-        '''
+        from H_1(source_triangulation) to H_1(target_triangulation). '''
         
         if isinstance(other, Encoding):
-            if self.source_triangulation != other.source_triangulation or \
-                self.target_triangulation != other.target_triangulation:
+            if self.source_triangulation != other.source_triangulation or self.target_triangulation != other.target_triangulation:
                 raise ValueError('Cannot compare Encodings between different triangulations.')
             
             return all(self(curve).is_homologous_to(other(curve)) for curve in self.source_triangulation.key_curves())
@@ -183,11 +157,7 @@ class Encoding(object):
             return self.inverse()**abs(k)
     
     def inverse(self):
-        ''' Return the inverse of this encoding.
-        
-        >>> aB.inverse() == bA, ab == ab.inverse(), i == i.inverse()
-        (True, False, True)
-        '''
+        ''' Return the inverse of this encoding. '''
         
         return Encoding([item.inverse() for item in reversed(self.sequence)], _cache=dict() if 'name' not in self._cache else {'name': '(%s)^-1' % self._cache['name']})
     def __invert__(self):
@@ -205,13 +175,7 @@ class Encoding(object):
         
         If this has infinite order then return 0.
         
-        This encoding must be a mapping class.
-        
-        >>> aB.order(), a.order()
-        (0, 0)
-        >>> i.order(), ab.order()
-        (1, 6)
-        '''
+        This encoding must be a mapping class. '''
         
         assert(self.is_mapping_class())
         
@@ -233,52 +197,28 @@ class Encoding(object):
         return min(possible_orders)
     
     def is_identity(self):
-        ''' Return if this encoding is the identity map.
-        
-        >>> i.is_identity()
-        True
-        >>> aB.is_identity()
-        False
-        '''
+        ''' Return if this encoding is the identity map. '''
         
         return self.is_mapping_class() and all(self(curve) == curve for curve in self.source_triangulation.key_curves())
     
     def is_periodic(self):
         ''' Return if this encoding has finite order.
         
-        This encoding must be a mapping class.
-        
-        >>> aB.is_periodic(), a.is_periodic()
-        (False, False)
-        >>> i.is_periodic(), ab.is_periodic()
-        (True, True)
-        '''
+        This encoding must be a mapping class. '''
         
         return self.order() > 0
     
     def is_reducible(self):
         ''' Return if this encoding is reducible and NOT periodic.
         
-        This encoding must be a mapping class.
-        
-        >>> aB.is_reducible(), a.is_reducible()
-        (False, True)
-        >>> i.is_reducible(), ab.is_reducible()
-        (False, False)
-        '''
+        This encoding must be a mapping class. '''
         
         return self.nielsen_thurston_type() == NT_TYPE_REDUCIBLE
     
     def is_pseudo_anosov(self):
         ''' Return if this encoding is pseudo-Anosov.
         
-        This encoding must be a mapping class.
-        
-        >>> aB.is_pseudo_anosov(), a.is_pseudo_anosov()
-        (True, False)
-        >>> i.is_pseudo_anosov(), ab.is_pseudo_anosov()
-        (False, False)
-        '''
+        This encoding must be a mapping class. '''
         
         return self.nielsen_thurston_type() == NT_TYPE_PSEUDO_ANOSOV
     
@@ -364,6 +304,7 @@ class Encoding(object):
         
         # We will use a hash to significantly speed up the algorithm.
         resolution = 200
+        
         def curve_hash(curve, resolution):
             ''' A simple hash mapping cuves to a coarse lattice in PML. '''
             # Hmmm, this can suffer from // always rounding down.
@@ -534,8 +475,7 @@ class Encoding(object):
         # Note that we no longer use self.inverse() as periodic now goes in the
         # same direction as self.
         
-        homology_splittings = [splitting for splitting in self.splitting_sequences()
-            if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
+        homology_splittings = [splitting for splitting in self.splitting_sequences() if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
         
         if len(homology_splittings) == 0:
             raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
@@ -552,11 +492,7 @@ class Encoding(object):
     def nielsen_thurston_type(self):
         ''' Return the Nielsen--Thurston type of this encoding.
         
-        This encoding must be a mapping class.
-        
-        >>> ab.nielsen_thurston_type(), a.nielsen_thurston_type(), aB.nielsen_thurston_type()
-        ('Periodic', 'Reducible', 'Pseudo-Anosov')
-        '''
+        This encoding must be a mapping class. '''
         
         if self.is_periodic():
             return NT_TYPE_PERIODIC
@@ -578,19 +514,7 @@ class Encoding(object):
         
         Assumes (and checks) that the mapping class is pseudo-Anosov.
         
-        This encoding must be a mapping class.
-        
-        >>> aB.is_abelian()
-        True
-        >>> ab.is_abelian()  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        AssumptionError: ...
-        >>> a.is_abelian()  # doctest: +ELLIPSIS
-        Traceback (most recent call last):
-            ...
-        AssumptionError: ...
-        '''
+        This encoding must be a mapping class. '''
         
         return self.splitting_sequence().lamination.is_orientable()
     
@@ -750,10 +674,7 @@ class Encoding(object):
             
             return safe_encoding.bundle(canonical=False, _safety=False)
         
-        VEERING_LEFT, VEERING_RIGHT = flipper.kernel.triangulation3.VEERING_LEFT, flipper.kernel.triangulation3.VEERING_RIGHT
         id_perm3 = flipper.kernel.Permutation((0, 1, 2))
-        
-        
         lower_triangulation, upper_triangulation = triangulation, triangulation
         
         triangulation3 = flipper.kernel.Triangulation3(self.flip_length())
@@ -862,7 +783,7 @@ class Encoding(object):
             else:  # Longest stable and unstable sides are the same.
                 raise flipper.FatalError('Longest stable and unstable edges are the same.')
             
-            assert(sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0,0)) == flipper.kernel.Vector2(0, 0))
+            assert(sum([edge_vectors[edge] for edge in triangle], flipper.kernel.Vector2(0, 0)) == flipper.kernel.Vector2(0, 0))
         
         return flipper.kernel.FlatStructure(periodic_triangulation, edge_vectors)
 

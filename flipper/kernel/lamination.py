@@ -182,16 +182,16 @@ class Lamination(object):
         w = self.weight()
         L = [x * 10**precision // w for x in self]
         
-        ##wi = w.interval_approximation(precision)
-        ##Li = [entry.interval_approximation(precision) for entry in self]
-        ##L = [(x / wi).change_denominator(precision).lower for x in Li]
+        # wi = w.interval_approximation(precision)
+        # Li = [entry.interval_approximation(precision) for entry in self]
+        # L = [(x / wi).change_denominator(precision).lower for x in Li]
         
-        ##h = max(entry.height for entry in self)
+        # h = max(entry.height for entry in self)
         # How precise we need w and entries to ensure division works:
-        ##p = int(2*precision + 2*w.degree + 2*w.height + 2*h) + 2
-        ##wi = w.interval_approximation(p).change_denominator(p)
-        ##Li = [entry.interval_approximation(p).change_denominator(p) for entry in self]
-        ##L = [(x / wi).change_denominator(precision).lower for x in Li]
+        # p = int(2*precision + 2*w.degree + 2*w.height + 2*h) + 2
+        # wi = w.interval_approximation(p).change_denominator(p)
+        # Li = [entry.interval_approximation(p).change_denominator(p) for entry in self]
+        # L = [(x / wi).change_denominator(precision).lower for x in Li]
         
         # Other (slow) ways of projectivising:
         # L = [entry // w for entry in self]
@@ -217,9 +217,7 @@ class Lamination(object):
         for corner_class in self.triangulation.corner_classes:
             for corner in corner_class:
                 weights = [self(edge) for edge in corner.triangle]
-                dual_weights_doubled = [weights[1] + weights[2] - weights[0],
-                    weights[2] + weights[0] - weights[1],
-                    weights[0] + weights[1] - weights[2]]
+                dual_weights_doubled = [weights[1] + weights[2] - weights[0], weights[2] + weights[0] - weights[1], weights[0] + weights[1] - weights[2]]
                 if any(dual_weight % 2 != 0 for dual_weight in dual_weights_doubled): return False
         
         return True
@@ -268,8 +266,8 @@ class Lamination(object):
             new_weight = lamination.weight()
             
             # Update new neighbours.
-            I = sorted(set([e.index for e in old_lamination.triangulation.square_about_edge(edge_index)] + [edge_index]))
-            drops = sorted([(d, i) if i not in I else (weight_change(lamination, i), i) for (d, i) in drops])  # This should be lightning fast since the list was basically sorted already.
+            indices = sorted(set([e.index for e in old_lamination.triangulation.square_about_edge(edge_index)] + [edge_index]))
+            drops = sorted([(d, i) if i not in indices else (weight_change(lamination, i), i) for (d, i) in drops])  # This should be lightning fast since the list was basically sorted already.
             # If performance really becomes an issue then we could look at using heapq.
             
             if new_weight < old_weight:
@@ -312,9 +310,8 @@ class Lamination(object):
         if any(vertex_numbers.values()): return False
         
         # So either we have a single curve or we have a multicurve with two parallel components.
-        # We can test for the latter by checking 
         # We can test for the latter by seeing if the halved curve has the correct weight.
-        #if triangulation.lamination([v // 2 for v in short_lamination]).weight() == short_lamination.weight() // 2:
+        # if triangulation.lamination([v // 2 for v in short_lamination]).weight() == short_lamination.weight() // 2:
         #    return False
         if all(ddual % 4 == 0 for corner in triangulation.corners for ddual in short_lamination.dual_weights_doubled(corner)):
             return False

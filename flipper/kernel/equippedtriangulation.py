@@ -26,7 +26,7 @@ def generate_ordering(letters):
         [len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
 
 ##########################################################################
-### A helper function  that can be pickled for multiprocessing.
+# A helper function  that can be pickled for multiprocessing.
 def _worker_thread_word(Q, A):
     while True:
         data = Q.get()
@@ -178,7 +178,7 @@ class EquippedTriangulation(object):
         ''' Return a random word of the required length.
         
         The letters to choose from can be specified or, alternatively, the set
-        of positive, negative or all (default) mapping classes can be used by using the 
+        of positive, negative or all (default) mapping classes can be used by using the
         flags postive and negative. '''
         
         assert(isinstance(length, flipper.IntegerType))

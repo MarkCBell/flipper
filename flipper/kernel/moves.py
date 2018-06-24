@@ -111,7 +111,6 @@ class Isometry(Move):
         ''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
         
         maps_to_triangle = lambda X: isinstance(X[0], flipper.kernel.Triangle)
-        maps_to_tetrahedron = lambda X: not maps_to_triangle(X)
         
         # These are the new maps onto the upper and lower boundary that we will build.
         new_upper_map = dict()

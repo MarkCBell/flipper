@@ -85,10 +85,10 @@ class Interval(object):
         
         if accuracy is None or accuracy > self.accuracy:
             accuracy = self.precision if self.accuracy == INFTY else self.accuracy-1
-        I = self.change_denominator(accuracy)
-        v = (I.lower + I.upper) // 2
+        interval = self.change_denominator(accuracy)
+        v = (interval.lower + interval.upper) // 2
         s = str(v).zfill(accuracy + (2 if v < 0 else 1))
-        return '%s.%s?' % (s[:-I.precision], s[-I.precision:])
+        return '%s.%s?' % (s[:-interval.precision], s[-interval.precision:])
     def tuple(self):
         ''' Return the triple describing this interval. '''
         
@@ -127,12 +127,12 @@ class Interval(object):
         # As self.change_denominator divides outwards then shifts by +/-1 we need
         # to work with at least two more digits.
         if self.accuracy > 0 and self.precision > self.accuracy + 2:
-            I = self.change_denominator(self.accuracy + 2)
+            interval = self.change_denominator(self.accuracy + 2)
         else:
-            I = self
+            interval = self
         
-        assert(I.accuracy >= self.accuracy - 1)
-        return I
+        assert(interval.accuracy >= self.accuracy - 1)
+        return interval
     
     def __contains__(self, other):
         if isinstance(other, Interval):
@@ -143,8 +143,6 @@ class Interval(object):
             return NotImplemented
     def __neg__(self):
         return Interval(-self.upper, -self.lower, self.precision)
-    def __abs__(self):
-        return self if self >= 0 else -self
     def __abs__(self):
         if self.lower > 0:  # Interval is entirely positive.
             return self

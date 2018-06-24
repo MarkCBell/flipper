@@ -226,7 +226,7 @@ class NumberFieldElement(object):
             if self.number_field != other.number_field:
                 raise TypeError('Cannot multiply elements of different number fields.')
             
-            I = flipper.kernel.id_matrix(self.degree+1)
+            id_matrix = flipper.kernel.id_matrix(self.degree+1)
             precision = int(self.height + other.height + self.degree) + 1
             while True:
                 k = 10**precision
@@ -236,7 +236,7 @@ class NumberFieldElement(object):
                 a = self.interval_approximation(precision)
                 b = other.interval_approximation(precision)
                 
-                M = I.join(flipper.kernel.Matrix([[int(k * lmbda) for lmbda in lmbdas] + [int(k * a / b)]])).transpose()
+                M = id_matrix.join(flipper.kernel.Matrix([[int(k * lmbda) for lmbda in lmbdas] + [int(k * a / b)]])).transpose()
                 N = M.LLL()  # This is really slow :(.
                 div, scalar = self.number_field.element(N[0][:self.degree]), -N[0][-2]
                 if div * other == scalar * self:
@@ -258,10 +258,10 @@ class NumberFieldElement(object):
             return int(self) // other
         else:
             try:
-                I = self.algebraic_approximation().interval
-                J = other.algebraic_approximation().interval
-                common_precision = max(I.precision, J.precision)
-                return I.lower * 10**(common_precision - I.precision) // (J.upper * 10**(common_precision - J.precision))
+                interval = self.algebraic_approximation().interval
+                interval_other = other.algebraic_approximation().interval
+                common_precision = max(interval.precision, interval_other.precision)
+                return interval.lower * 10**(common_precision - interval.precision) // (interval_other.upper * 10**(common_precision - interval_other.precision))
             except AttributeError:
                 return NotImplemented
     def __mod__(self, other):
@@ -289,8 +289,8 @@ class NumberFieldElement(object):
         # depends in part on what one knows about the problem" see Cohen Page 100.
         t = int(self.degree + self.height) + 1
         while True:
-            I = self.interval_approximation(t)
-            f = I.polynomial(self.degree, scale=10**t)
+            interval_approx = self.interval_approximation(t)
+            f = interval_approx.polynomial(self.degree, scale=10**t)
             
             if f(self) == 0:
                 break

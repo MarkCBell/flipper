@@ -385,10 +385,10 @@ class PolynomialRoot(object):
         For a description of this variant of the algorithm and an explanation why this works see:
             http://www.rz.uni-karlsruhe.de/~iam/html/language/cxsc/node12.html '''
         
-        I = self.interval.midpoint(10)  # Start by building a really tiny interval containing the midpoint of this one.
-        J = I - self.polynomial(I) / self.polynomial.derivative()(self.interval)  # Apply the interval NR step. This can throw a ZeroDivisionError.
-        K = J.change_denominator(2 * J.accuracy)  # Stop the precision from blowing up too much.
-        return K.intersect(self.interval)  # This can throw a ValueError if the intersection is empty.
+        interval = self.interval.midpoint(10)  # Start by building a really tiny interval containing the midpoint of this one.
+        next_interval = interval - self.polynomial(interval) / self.polynomial.derivative()(self.interval)  # Apply the interval NR step. This can throw a ZeroDivisionError.
+        rescaled_interval = next_interval.change_denominator(2 * next_interval.accuracy)  # Stop the precision from blowing up too much.
+        return rescaled_interval.intersect(self.interval)  # This can throw a ValueError if the intersection is empty.
     
     def converge_iterate(self, accuracy):
         ''' Replace self.interval with a subinterval of at least the requested accuracy.
@@ -457,12 +457,12 @@ class PolynomialRoot(object):
         precision = int(self.height + 2*self.degree) + 1
         while True:
             k = 10**precision
-            I = self.interval_approximation(precision)
-            M = Id.join(flipper.kernel.Matrix([[int(k * I**i) for i in range(self.degree)]])).transpose()
+            interval = self.interval_approximation(precision)
+            M = Id.join(flipper.kernel.Matrix([[int(k * interval**i) for i in range(self.degree)]])).transpose()
             N = M.LLL()  # This is really slow :(.
             f = flipper.kernel.Polynomial(N[0][:-1])
             if self in f.real_roots():
-                return PolynomialRoot(f, I)
+                return PolynomialRoot(f, interval)
             else:
                 # This should never happen if we chose precision correctly.
                 # However Cohen described this choice as `subtle' so let's be

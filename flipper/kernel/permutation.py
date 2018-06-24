@@ -76,7 +76,7 @@ class Permutation(object):
         
         return flipper.kernel.Matrix([[1 if i == self(j) else 0 for j in range(len(self))] for i in range(len(self))])
 
-#### Some special Permutations we know how to build.
+# Some special Permutations we know how to build.
 
 def id_permutation(n):
     ''' Return the identity permutation in Sym(n). '''

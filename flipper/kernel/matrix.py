@@ -19,10 +19,10 @@ def dot(a, b):
     ''' Return the dot product of the two given iterables. '''
     
     # Is it significantly faster to do:
-    #c = 0
-    #for x, y in zip(a, b):
-    #    c += x * y
-    #return c
+    # c = 0
+    # for x, y in zip(a, b):
+    #     c += x * y
+    # return c
     return sum(x * y for x, y in zip(a, b))
 
 def round_fraction(x):
@@ -54,7 +54,7 @@ class Matrix(object):
     def __str__(self):
         return '[\n' + ',\n'.join('[' + ', '.join(str(entry) for entry in row) + ']' for row in self) + '\n]'
         # Suggestion: Make Matrices easier to read by omitting zeros.
-        #return '[\n' + ',\n'.join('[' + ', '.join(str(entry) if entry != 0 else ' ' for entry in row) + ']' for row in self) + '\n]'
+        # return '[\n' + ',\n'.join('[' + ', '.join(str(entry) if entry != 0 else ' ' for entry in row) + ']' for row in self) + '\n]'
     def __hash__(self):
         return hash(tuple([self.width, self.height] + [tuple(row) for row in self]))
     def __len__(self):
@@ -446,8 +446,8 @@ class Matrix(object):
         return v
 
 
-################################################_
-#### Some helper functions for building matrices.
+##############################################
+# Some helper functions for building matrices.
 
 def id_matrix(dim):
     ''' Return the identity matrix of given dimension. '''

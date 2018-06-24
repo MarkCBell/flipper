@@ -702,7 +702,7 @@ class Triangulation(object):
             char_start = char[63] + char[digits] + ''.join(char[(num_tri // 64**i) % 64] for i in range(digits))
             char_target = ''.join(char[(target // 64**i) % 64] for target in target_sequence for i in range(digits))
         
-        return char_start + char_type + char_target  + char_perm
+        return char_start + char_type + char_target + char_perm
     
     def is_flippable(self, edge_label):
         ''' Return if the given edge is flippable.
@@ -977,8 +977,7 @@ class Triangulation(object):
                         raise flipper.AssumptionError('This label_map does not extend to an isometry.')
                 else:
                     # Extend the map.
-                    if source_orders[new_from_label] != target_orders[new_to_label] or \
-                        respect_fillings and self.vertex_lookup[new_from_label].filled != other.vertex_lookup[new_to_label].filled:
+                    if source_orders[new_from_label] != target_orders[new_to_label] or respect_fillings and self.vertex_lookup[new_from_label].filled != other.vertex_lookup[new_to_label].filled:
                         raise flipper.AssumptionError('This label_map does not extend to an isometry.')
                     label_map[new_from_label] = new_to_label
                     to_process.append((new_from_label, new_to_label))

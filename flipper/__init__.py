@@ -7,21 +7,21 @@ for pseudo-Anosov mapping classes, construct a layered, veering
 triangulation of their mapping torus, as described by Agol.
 
 Get started by starting the GUI:
-	> import flipper.app
-	> flipper.app.start()
+    > import flipper.app
+    > flipper.app.start()
 or by creating a Triangulation using the helper function:
-	> flipper.create_triangulation(...)
+    > flipper.create_triangulation(...)
 or from an isomorphism signature:
-	> flipper.create_triangulation_from_iso_sig(...)
+    > flipper.create_triangulation_from_iso_sig(...)
 or by loading one of the provided EquippedTriangulations using:
-	> flipper.load(...) '''
+    > flipper.load(...) '''
 
 import warnings
 
 with warnings.catch_warnings():
-	warnings.simplefilter("ignore")
-	import pkg_resources  # Suppress 'UserWarning: Module flipper was already imported from ...'
-	__version__ = pkg_resources.require('flipper')[0].version
+    warnings.simplefilter("ignore")
+    import pkg_resources  # Suppress 'UserWarning: Module flipper was already imported from ...'
+    __version__ = pkg_resources.require('flipper')[0].version
 
 # We'll only import the bare minimum. This way people missing packages
 # can still use the flipper kernel at least.

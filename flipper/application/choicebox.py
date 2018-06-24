@@ -21,7 +21,6 @@ class GetChoiceApp(object):
         
         self.text_label = TK.Label(self.parent, text=prompt, justify='left')
         
-        
         self.value = TK.StringVar()
         self.combo_choices = TTK.Combobox(self.parent, textvariable=self.value, state='readonly', width=40)
         self.combo_choices['values'] = options

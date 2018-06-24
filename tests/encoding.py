@@ -39,9 +39,9 @@ class TestEncoding(unittest.TestCase):
             ('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
             ('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
             ('S_2_1', 'abcdeF', NT_TYPE_PSEUDO_ANOSOV),
-            #('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
-            #('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
-            #('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
+            # ('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
+            # ('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
+            # ('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
             ]
         
         for surface, word, mapping_class_type in examples:
@@ -61,9 +61,9 @@ class TestEncoding(unittest.TestCase):
             ('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
             ('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
             ('S_2_1', 'abcdeF', NT_TYPE_PSEUDO_ANOSOV),
-            #('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
-            #('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
-            #('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
+            # ('E_12', 'aaaaBBp', NT_TYPE_PSEUDO_ANOSOV),
+            # ('E_12', 'aaBaaBBp', NT_TYPE_REDUCIBLE),
+            # ('E_12', 'aaaaBBaBaBp', NT_TYPE_PSEUDO_ANOSOV),
             ]
         
         for surface, word, mapping_class_type in examples:

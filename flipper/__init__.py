@@ -16,26 +16,25 @@ or from an isomorphism signature:
 or by loading one of the provided EquippedTriangulations using:
     > flipper.load(...) '''
 
+# We'll only import the bare minimum. This way people missing packages
+# can still use the flipper kernel at least.
+# import flipper.application  # Uses tkinter.
+import flipper.kernel
+from flipper.load import load  # noqa: F401
+from flipper.census import census  # noqa: F401
+
 import warnings
+from numbers import Integral as IntegerType  # noqa: F401
 
 with warnings.catch_warnings():
     warnings.simplefilter("ignore")
     import pkg_resources  # Suppress 'UserWarning: Module flipper was already imported from ...'
     __version__ = pkg_resources.require('flipper')[0].version
 
-# We'll only import the bare minimum. This way people missing packages
-# can still use the flipper kernel at least.
-# import flipper.application  # Uses tkinter.
-import flipper.kernel
-from flipper.load import load
-from flipper.census import census
-
 # Set up really short names for the most commonly used classes and functions by users.
 create_triangulation = flipper.kernel.create_triangulation
 triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
 norm = flipper.kernel.norm
-
-from numbers import Integral as IntegerType
 
 AbortError = flipper.kernel.AbortError
 ApproximationError = flipper.kernel.ApproximationError
@@ -45,5 +44,5 @@ FatalError = flipper.kernel.FatalError
 
 # Finally load in the constants. These might require flipper to do the calculations
 # so we can't create them before this point.
-import flipper.kernel.constants
+import flipper.kernel.constants  # noqa: F402
 

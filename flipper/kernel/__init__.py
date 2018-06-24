@@ -13,7 +13,7 @@ in a functions docstring:
         If the assumptions are met then this function is guaranteed to terminate correctly.
         If not then this a flipper.AssumptionError will be raised. '''
 
-import flipper.kernel.interface
+import flipper.kernel.interface  # noqa: F401
 from . import algebraicapproximation
 from . import bundle
 from . import encoding
@@ -28,7 +28,7 @@ from . import numberfield
 from . import permutation
 from . import polynomial
 from . import splittingsequence
-from . import symboliccomputation
+from . import symboliccomputation  # noqa: F401
 from . import triangulation
 from . import triangulation3
 from . import utilities

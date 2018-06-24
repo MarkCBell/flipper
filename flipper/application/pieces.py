@@ -45,8 +45,8 @@ def intersection(A, d, B, d2):
     # where:
     det = d2[0] * d[1] - d[0] * d2[1]
     # So:
-    t  = ((B[0] - A[0]) * -d2[1] + (B[1] - A[1]) * d2[0]) / det
-    t2 = ((B[0] - A[0]) *  -d[1] + (B[1] - A[1]) *  d[0]) / det
+    t  = ((B[0] - A[0]) * -d2[1] + (B[1] - A[1]) * d2[0]) / det  # noqa: E221
+    t2 = ((B[0] - A[0]) *  -d[1] + (B[1] - A[1]) *  d[0]) / det  # noqa: E222
     
     return t, t2
 

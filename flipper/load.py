@@ -15,10 +15,12 @@ def example_0_4():
     a = T.lamination([0, 1, 0, 0, 1, 0])
     b = T.lamination([1, 0, 1, 2, 2, 2])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b], {
-        'a': a.encode_twist(), 'b': b.encode_twist(),
-        'w': a.encode_halftwist(), 'x': b.encode_halftwist(),
-        'y': a.encode_halftwist(), 'z': b.encode_halftwist()
+    return flipper.kernel.EquippedTriangulation(
+        T, [a, b],
+        {
+            'a': a.encode_twist(), 'b': b.encode_twist(),
+            'w': a.encode_halftwist(), 'x': b.encode_halftwist(),
+            'y': a.encode_halftwist(), 'z': b.encode_halftwist()
         })
 
 def example_1_1():
@@ -47,11 +49,11 @@ def example_1_2():
     c = T.lamination([0, 1, 0, 1, 0, 1])
     x = T.lamination([2, 0, 2, 2, 2, 2])
     
-    return flipper.kernel.EquippedTriangulation(T, {
-        'a': a, 'b': b, 'c': c, 'x': x
-        }, {
-        'a': a.encode_twist(), 'b': b.encode_twist(), 'c': c.encode_twist(),
-        'x': T.encode([{0: ~2}, 4, 5, 2, 3, 0, 4, 2])
+    return flipper.kernel.EquippedTriangulation(
+        T, {'a': a, 'b': b, 'c': c, 'x': x},
+        {
+            'a': a.encode_twist(), 'b': b.encode_twist(),
+            'c': c.encode_twist(), 'x': T.encode([{0: ~2}, 4, 5, 2, 3, 0, 4, 2])
         })
 
 def example_1_2p():
@@ -62,11 +64,9 @@ def example_1_2p():
     b = T.lamination([1, 0, 0, 0, 1, 1])
     c = T.lamination([0, 1, 0, 1, 0, 1])
     
-    return flipper.kernel.EquippedTriangulation(T, {
-        'a': a, 'b': b, 'c': c
-        }, {
-        'a': a.encode_twist(), 'b': b.encode_twist(), 'c': c.encode_twist(),
-        })
+    return flipper.kernel.EquippedTriangulation(
+        T, [a, b, c],
+        [a.encode_twist(), b.encode_twist(), c.encode_twist()])
 
 def example_2_1():
     # S_2_1 and its standard (Twister) curves:
@@ -79,9 +79,9 @@ def example_2_1():
     e = T.lamination([0, 1, 1, 1, 1, 2, 1, 0, 1])
     f = T.lamination([0, 0, 1, 0, 0, 0, 1, 0, 0])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
-        d.encode_twist(), e.encode_twist(), f.encode_twist()])
+    return flipper.kernel.EquippedTriangulation(
+        T, [a, b, c, d, e, f],
+        [a.encode_twist(), b.encode_twist(), c.encode_twist(), d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
 def example_2_1b():
     ''' Nathans origional version. '''
@@ -94,12 +94,13 @@ def example_2_1b():
     e = T.lamination([0, 1, 1, 1, 2, 1, 0, 1, 1])
     f = T.lamination([0, 1, 2, 1, 1, 1, 1, 1, 0])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
-        d.encode_twist(), e.encode_twist(), f.encode_twist()])
+    return flipper.kernel.EquippedTriangulation(
+        T, [a, b, c, d, e, f],
+        [a.encode_twist(), b.encode_twist(), c.encode_twist(), d.encode_twist(), e.encode_twist(), f.encode_twist()])
 
 def example_3_1():
-    T = flipper.create_triangulation([[0, 6, 1], [7, ~6, ~5], [8, 2, ~7], [9, ~8, ~4], [10, 3, ~9], [11, ~10, ~3],
+    T = flipper.create_triangulation([
+        [0, 6, 1], [7, ~6, ~5], [8, 2, ~7], [9, ~8, ~4], [10, 3, ~9], [11, ~10, ~3],
         [12, 4, ~11], [13, ~12, ~2], [14, 5, ~13], [~0, ~14, ~1]])
     
     a = T.lamination([0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 1])
@@ -111,15 +112,16 @@ def example_3_1():
     g = T.lamination([1, 1, 1, 0, 1, 1, 0, 1, 2, 1, 1, 1, 0, 1, 2])
     h = T.lamination([1, 1, 1, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 1, 2])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
+    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h], [
+        a.encode_twist(), b.encode_twist(), c.encode_twist(),
         d.encode_twist(), e.encode_twist(), f.encode_twist(),
         g.encode_twist(), h.encode_twist()])
 
 def example_3_1b():
     ''' Nathans origional version. '''
-    T = flipper.create_triangulation([[1, 2, 5], [0, 6, 3], [4, ~1, 7], [~3, 8, ~2], [9, ~5, ~6],
-                                    [10, ~0, ~9], [~10, ~7, ~8], [11, 12, ~4], [~12, 14, 13], [~13, ~11, ~14]])
+    T = flipper.create_triangulation([
+        [1, 2, 5], [0, 6, 3], [4, ~1, 7], [~3, 8, ~2], [9, ~5, ~6],
+        [10, ~0, ~9], [~10, ~7, ~8], [11, 12, ~4], [~12, 14, 13], [~13, ~11, ~14]])
     
     a = T.lamination([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 1])
     b = T.lamination([0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1])
@@ -130,15 +132,16 @@ def example_3_1b():
     g = T.lamination([0, 1, 1, 1, 0, 2, 1, 1, 2, 1, 1, 0, 0, 0, 0])
     h = T.lamination([0, 1, 2, 1, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
+    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h], [
+        a.encode_twist(), b.encode_twist(), c.encode_twist(),
         d.encode_twist(), e.encode_twist(), f.encode_twist(),
         g.encode_twist(), h.encode_twist()])
 
 def example_4_1():
-    T = flipper.create_triangulation([[~8, 1, 2], [3, 4, ~9], [6, ~10, 5], [~0, ~11, 7], [~12, ~1, ~2],
-                                    [~13, ~3, ~4], [~14, ~5, ~6], [~15, ~7, 0], [8, 9, ~16], [11, ~17, 10],
-                                    [13, ~18, 12], [~19, 14, 15], [~20, 16, 17], [18, 19, 20]])
+    T = flipper.create_triangulation([
+        [~8, 1, 2], [3, 4, ~9], [6, ~10, 5], [~0, ~11, 7], [~12, ~1, ~2],
+        [~13, ~3, ~4], [~14, ~5, ~6], [~15, ~7, 0], [8, 9, ~16], [11, ~17, 10],
+        [13, ~18, 12], [~19, 14, 15], [~20, 16, 17], [18, 19, 20]])
     
     a = T.lamination([0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 2])
     b = T.lamination([0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 1, 1, 1, 2])
@@ -151,17 +154,18 @@ def example_4_1():
     i = T.lamination([1, 1, 1, 1, 0, 1, 1, 1, 2, 1, 0, 0, 0, 1, 2, 2, 1, 0, 1, 2, 1])
     j = T.lamination([1, 1, 1, 1, 0, 0, 1, 1, 2, 1, 1, 0, 0, 1, 1, 2, 1, 1, 1, 1, 2])
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
+    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j], [
+        a.encode_twist(), b.encode_twist(), c.encode_twist(),
         d.encode_twist(), e.encode_twist(), f.encode_twist(),
         g.encode_twist(), h.encode_twist(), i.encode_twist(),
         j.encode_twist()])
 
 def example_5_1():
-    T = flipper.create_triangulation([[~10, 1, 2], [~11, 3, 4], [6, ~12, 5], [7, 8, ~13], [~0, ~14, 9],
-                                    [~2, ~15, ~1], [~4, ~16, ~3], [~6, ~17, ~5], [~8, ~18, ~7], [0, ~19, ~9],
-                                    [11, ~20, 10], [12, 13, ~21], [15, ~22, 14], [~23, 16, 17], [19, ~24, 18],
-                                    [20, 21, ~25], [~26, 22, 23], [24, 25, 26]])
+    T = flipper.create_triangulation([
+        [~10, 1, 2], [~11, 3, 4], [6, ~12, 5], [7, 8, ~13], [~0, ~14, 9],
+        [~2, ~15, ~1], [~4, ~16, ~3], [~6, ~17, ~5], [~8, ~18, ~7], [0, ~19, ~9],
+        [11, ~20, 10], [12, 13, ~21], [15, ~22, 14], [~23, 16, 17], [19, ~24, 18],
+        [20, 21, ~25], [~26, 22, 23], [24, 25, 26]])
     
     a = T.lamination([0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0])
     b = T.lamination([0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 1, 1, 0])
@@ -174,17 +178,18 @@ def example_5_1():
     i = T.lamination([0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 1])
     j = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 0, 0, 1, 2, 2, 2, 2, 1, 0, 0, 0, 1, 2, 1, 0, 1, 1])
     k = T.lamination([1, 1, 1, 1, 1, 0, 1, 1, 1, 1, 2, 2, 1, 0, 0, 0, 0, 1, 2, 2, 2, 1, 0, 1, 2, 1, 1])
-    l = T.lamination([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 0])
+    l = T.lamination([1, 1, 1, 1, 1, 0, 0, 1, 1, 1, 2, 2, 0, 0, 0, 0, 0, 0, 2, 2, 2, 0, 0, 0, 2, 2, 0])  # noqa: E741
     
-    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j, k, l],
-        [a.encode_twist(), b.encode_twist(), c.encode_twist(),
+    return flipper.kernel.EquippedTriangulation(T, [a, b, c, d, e, f, g, h, i, j, k, l], [
+        a.encode_twist(), b.encode_twist(), c.encode_twist(),
         d.encode_twist(), e.encode_twist(), f.encode_twist(),
         g.encode_twist(), h.encode_twist(), i.encode_twist(),
         j.encode_twist(), k.encode_twist(), l.encode_twist()])
 
 def example_12():
     # A 12-gon:
-    T = flipper.create_triangulation([[6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0],
+    T = flipper.create_triangulation([
+        [6, 7, 0], [8, 1, ~7], [~8, 9, 2], [~9, 10, 3], [11, 4, ~10], [12, 5, ~11], [~12, 13, ~0],
         [14, ~1, ~13], [~14, 15, ~2], [~15, 16, ~3], [~16, 17, ~4], [~6, ~5, ~17]])
     
     a = T.lamination([1, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0])
@@ -197,7 +202,8 @@ def example_12():
 
 def example_24():
     # A 24-gon.
-    T = flipper.create_triangulation([[12, 13, 0], [14, 1, ~13], [15, 2, ~14], [~15, 16, 3], [17, 4, ~16],
+    T = flipper.create_triangulation([
+        [12, 13, 0], [14, 1, ~13], [15, 2, ~14], [~15, 16, 3], [17, 4, ~16],
         [~17, 18, 5], [~18, 19, 6], [20, 7, ~19], [21, 8, ~20], [~21, 22, 9], [~22, 23, 10], [24, 11, ~23],
         [25, ~0, ~24], [~25, 26, ~1], [~26, 27, ~2], [28, ~3, ~27], [29, ~4, ~28], [~29, 30, ~5], [~30, 31, ~6],
         [32, ~7, ~31], [33, ~8, ~32], [~33, 34, ~9], [~34, 35, ~10], [~12, ~11, ~35]])
@@ -212,7 +218,8 @@ def example_24():
 
 def example_36():
     # A 36-gon
-    T = flipper.create_triangulation([[18, 19, 0], [20, 1, ~19], [21, 2, ~20], [~21, 22, 3], [~22, 23, 4],
+    T = flipper.create_triangulation([
+        [18, 19, 0], [20, 1, ~19], [21, 2, ~20], [~21, 22, 3], [~22, 23, 4],
         [24, 5, ~23], [25, 6, ~24], [~25, 26, 7], [27, 8, ~26], [~27, 28, 9], [~28, 29, 10], [30, 11, ~29],
         [31, 12, ~30], [~31, 32, 13], [~32, 33, 14], [34, 15, ~33], [35, 16, ~34], [~35, 36, 17], [~36, 37, ~0],
         [38, ~1, ~37], [39, ~2, ~38], [~39, 40, ~3], [~40, 41, ~4], [42, ~5, ~41], [43, ~6, ~42], [~43, 44, ~7],
@@ -251,8 +258,8 @@ def example_braid_sphere(n):
     #  3) Left triangle given by [~0, ~(n-2), ~(2n-4)], and
     #  4) Right triangle given by [n-3, 3n-7, 2n-5].
     T = flipper.create_triangulation(
-        [[i, i + 2 * n - 4, ~(i + 1)] for i in range(0, n - 3)] + \
-        [[i, ~(i + 1), ~(i + n - 1)] for i in range(n-2, 2*n - 5)] + \
+        [[i, i + 2 * n - 4, ~(i + 1)] for i in range(0, n - 3)] +
+        [[i, ~(i + 1), ~(i + n - 1)] for i in range(n-2, 2*n - 5)] +
         [[~0, ~(n - 2), ~(2 * n - 4)], [n - 3, 3 * n - 7, 2 * n - 5]]
         )
     

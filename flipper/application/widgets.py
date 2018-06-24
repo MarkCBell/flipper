@@ -6,7 +6,7 @@
 
 try:
     import Tkinter as TK
-    DOWN_ARROW = unichr(9660)
+    DOWN_ARROW = unichr(9660)  # noqa: F821
 except ImportError:  # Python 3.
     import tkinter as TK
     DOWN_ARROW = chr(9660)

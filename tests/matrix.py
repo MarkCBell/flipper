@@ -7,7 +7,6 @@ class TestMatrix(unittest.TestCase):
     def test_product(self):
         M = flipper.kernel.Matrix([[2, 1], [1, 1]])
         N = flipper.kernel.Matrix([[1, -1], [-1, 2]])
-        M_inv = flipper.kernel.Matrix([[1, -1], [-1, 2]])
         
         self.assertEqual(M * N, flipper.kernel.id_matrix(2))
     

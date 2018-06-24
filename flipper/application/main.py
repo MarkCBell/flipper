@@ -12,7 +12,7 @@ import pickle
 from math import sin, cos, pi, ceil
 from itertools import combinations
 
-FileType = io.TextIOWrapper if sys.version_info >= (3, 0) else file
+FileType = io.TextIOWrapper if sys.version_info >= (3, 0) else file  # noqa: F821
 
 try:
     import Tkinter as TK
@@ -173,7 +173,6 @@ class FlipperApplication(object):
         # Create the menus.
         # Make sure to start the Lamination and Mapping class menus disabled.
         self.menubar = TK.Menu(self.parent)
-        app_font = self.options.application_font  # Get a shorter name.
         
         self.filemenu = TK.Menu(self.menubar, tearoff=0)
         self.filemenu.add_command(label='New', command=self.initialise, accelerator=COMMAND['new'])
@@ -190,9 +189,9 @@ class FlipperApplication(object):
         
         self.editmenu = TK.Menu(self.menubar, tearoff=0)
         # Add undo and redo here.
-        #self.editmenu.add_command(label='Undo', command=self.undo, accelerator=COMMAND['undo'])
-        #self.editmenu.add_command(label='Redo', command=self.redo, accelerator=COMMAND['redo'])
-        #self.editmenu.add_separator()
+        # self.editmenu.add_command(label='Undo', command=self.undo, accelerator=COMMAND['undo'])
+        # self.editmenu.add_command(label='Redo', command=self.redo, accelerator=COMMAND['redo'])
+        # self.editmenu.add_separator()
         self.editmenu.add_command(label='Tighten lamination', command=self.tighten_lamination)
         self.editmenu.add_command(label='Erase lamination', command=self.destroy_lamination, accelerator=COMMAND['erase'])
         self.menubar.add_cascade(label='Edit ', menu=self.editmenu)
@@ -208,7 +207,6 @@ class FlipperApplication(object):
         self.mappingclassmenu.add_command(label='Composition', command=self.store_composition, accelerator=COMMAND['compose'])
         self.createmenu.add_cascade(label='Mapping class', menu=self.mappingclassmenu)  # state='disabled')
         self.menubar.add_cascade(label='Create', menu=self.createmenu)
-        
         
         ##########################################
         self.settingsmenu = TK.Menu(self.menubar, tearoff=0)
@@ -604,13 +602,10 @@ class FlipperApplication(object):
             
             self.zoom_to_drawing()
             
-            
-            for name, lamination in sorted(self.equipped_triangulation.laminations.items(),
-                key=lambda x: (len(x[0]), x[0])):
+            for name, lamination in sorted(self.equipped_triangulation.laminations.items(), key=lambda x: (len(x[0]), x[0])):
                 self.add_lamination(lamination, name)
             
-            for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items(),
-                key=lambda x: (len(x[0]), x[0])):
+            for name, mapping_class in sorted(self.equipped_triangulation.pos_mapping_classes.items(), key=lambda x: (len(x[0]), x[0])):
                 self.add_mapping_class(mapping_class, name)
             
             # Get the correct empty lamination.
@@ -789,17 +784,14 @@ class FlipperApplication(object):
     
     def select_object(self, selected_object):
         # We can only ever select vertices, edges and curve_components.
-        assert(selected_object is None or \
-            isinstance(selected_object, (flipper.application.CanvasVertex, flipper.application.CanvasEdge, flipper.application.CurveComponent)))
+        assert selected_object is None or isinstance(selected_object, (flipper.application.CanvasVertex, flipper.application.CanvasEdge, flipper.application.CurveComponent))
         self.selected_object = selected_object
         for x in self.vertices + self.edges + self.curve_components + self.train_track_blocks:
             x.set_current_colour()
         if self.selected_object is not None:
             self.selected_object.set_current_colour(DEFAULT_SELECTED_COLOUR)
     
-    
     ######################################################################
-    
     
     def initialise_radial_n_gon(self):
         gluing = flipper.application.get_input('Surface specification', 'Boundary pattern for radial ngon:', validate=self.valid_specification)
@@ -858,9 +850,7 @@ class FlipperApplication(object):
                 
                 self.unsaved_work = True
     
-    
     ######################################################################
-    
     
     def create_vertex(self, point):
         self.vertices.append(flipper.application.CanvasVertex(self.canvas, point, self.options))
@@ -1012,7 +1002,6 @@ class FlipperApplication(object):
             other_edge.set_colour()
             edge.set_colour()
             
-            
             other_edge.set_colour(other_edge.default_colour)
             edge.set_colour(edge.default_colour)
             
@@ -1051,9 +1040,7 @@ class FlipperApplication(object):
         self.select_object(None)
         self.redraw()
     
-    
     ######################################################################
-    
     
     def set_edge_indices(self):
         # Assigns each edge an index in range(self.zeta).
@@ -1080,12 +1067,12 @@ class FlipperApplication(object):
                 return flipper.kernel.height_int(x) + 1
             else:
                 return x.height + x.log_degree
+        
         def get_accurate(x, acc):
             if isinstance(x, flipper.IntegerType):
                 return flipper.kernel.AlgebraicApproximation.from_int(x, acc)
             else:
                 return x.algebraic_approximation(acc)
-            
         
         # How to label the edge with given index.
         if self.options.label_edges == 'Index':
@@ -1123,7 +1110,8 @@ class FlipperApplication(object):
                     font=self.options.canvas_font,
                     fill=DEFAULT_EDGE_LABEL_BG_COLOUR)
             
-            self.canvas.create_text(edge.centre(),
+            self.canvas.create_text(
+                edge.centre(),
                 text=labels[edge.index],
                 tag='edge_label',
                 font=self.options.canvas_font,
@@ -1150,8 +1138,8 @@ class FlipperApplication(object):
         self.treeview_objects.insert('triangulation', 'end', text='Genus: %d' % triangulation.genus, tags=['txt'])
         self.treeview_objects.insert('triangulation', 'end', text='Punctures: %d' % triangulation.num_vertices, tags=['txt'])
         self.treeview_objects.insert('triangulation', 'end', text='Euler characteristic: %d' % triangulation.euler_characteristic, tags=['txt'])
-        #self.menubar.entryconfig('Lamination', state='normal')
-        #self.menubar.entryconfig('Mapping class', state='normal')
+        # self.menubar.entryconfig('Lamination', state='normal')
+        # self.menubar.entryconfig('Mapping class', state='normal')
     
     def destroy_equipped_triangulation(self):
         self.destroy_lamination()
@@ -1174,9 +1162,7 @@ class FlipperApplication(object):
         elif not self.is_complete() and self.equipped_triangulation is not None:
             self.destroy_equipped_triangulation()
     
-    
     ######################################################################
-    
     
     def canvas_to_lamination(self):
         geometric = [0] * self.zeta
@@ -1225,11 +1211,8 @@ class FlipperApplication(object):
         
         for triangle in self.triangles:
             a_tri_weights = [a_weights[edge.index] for edge in triangle.edges]
-            a_dual_weights = [(a_tri_weights[(j+1)%3] + a_tri_weights[(j+2)%3] - a_tri_weights[(j+0)%3]) / 2 for j in range(3)]
+            a_dual_weights = [(a_tri_weights[(j+1) % 3] + a_tri_weights[(j+2) % 3] - a_tri_weights[(j+0) % 3]) / 2 for j in range(3)]
             for i in range(3):
-                a = triangle[i-1] - triangle[i]
-                b = triangle[i-2] - triangle[i]
-                
                 if render == flipper.application.options.RENDER_LAMINATION_W_TRAIN_TRACK:
                     if a_dual_weights[i] > 0.00001:  # Should be 0 but we have a floating point approximation.
                         # We first do the edge to the left of the vertex.
@@ -1323,7 +1306,9 @@ class FlipperApplication(object):
             max_char = 40
             name_shrinker = lambda strn: strn[10:].replace(']', '') if len(strn) < max_char + 11 else strn[10:7 + max_char] + '...'
             
-            specification = flipper.application.get_choice('Available Isometries.', 'Use isometry mapping edges 0, 1, ... to: ',
+            specification = flipper.application.get_choice(
+                'Available Isometries.',
+                'Use isometry mapping edges 0, 1, ... to: ',
                 [name_shrinker(str(isom)) for isom in sorted(isometries, key=lambda isom: (isom.label_map[0] < 0, abs(isom.label_map[0])))])
             if specification is not None:
                 [isometry] = [isom for isom in isometries if name_shrinker(str(isom)) == specification]
@@ -1345,9 +1330,7 @@ class FlipperApplication(object):
         else:
             tkMessageBox.showwarning('Incomplete triangulation', 'Cannot compute composition when triangulation is incomplete.')
     
-    
     ######################################################################
-    
     
     def canvas_left_click(self, event):
         self.canvas.focus_set()
@@ -1540,7 +1523,9 @@ class FlipperApplication(object):
             except flipper.AbortError:
                 pass
         elif 'mapping_class_conjugate' in tags:
-            other = flipper.application.get_choice('Conjugate.', 'Is this mapping class conjugate to...',
+            other = flipper.application.get_choice(
+                'Conjugate.',
+                'Is this mapping class conjugate to...',
                 sorted(set(self.mapping_class_names.values()), key=lambda x: (len(x), x)))
             if other is not None:
                 try:

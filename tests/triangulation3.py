@@ -34,7 +34,7 @@ class TestTriangulation3(unittest.TestCase):
                     return True
             except RuntimeError:
                 pass  # SnapPy couldn't decide if these are isometric or not.
-            M.randomize()
+            manifold.randomize()
         
         return False
     
@@ -48,5 +48,5 @@ class TestTriangulation3(unittest.TestCase):
         if snappy is None: return
         for surface, word in twister_tests:
             manifold = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle(canonical=False))
-            self.assertManifoldsIsometric(maifold, snappy.twister.Surface(surface).bundle(word))
+            self.assertManifoldsIsometric(manifold, snappy.twister.Surface(surface).bundle(word))
 

@@ -47,7 +47,7 @@ class TestEncoding(unittest.TestCase):
         for surface, word, mapping_class_type in examples:
             h = flipper.load(surface).mapping_class(word)
             self.assertEqual(h.nielsen_thurston_type(), mapping_class_type)
-        
+    
     def test_package(self):
         examples = [
             ('S_1_1', 'a', NT_TYPE_REDUCIBLE),

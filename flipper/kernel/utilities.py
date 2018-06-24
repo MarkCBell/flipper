@@ -21,15 +21,12 @@ def string_generator(n, skip=None):
     
     alphabet = ascii_lowercase
     results = []
-    i = 0
-    while True:
-        i += 1
-        for letters in itertools.product(alphabet, repeat=i):
-            word = ''.join(letters)
-            if word not in skip:
-                results.append(word)
-            if len(results) >= n:
-                break
+    for letters in (c for i in itertools.count(start=1) for c in itertools.product(alphabet, repeat=i)):
+        word = ''.join(letters)
+        if word not in skip:
+            results.append(word)
+        if len(results) >= n:
+            break
     
     return results
 

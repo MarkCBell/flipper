@@ -2,7 +2,6 @@
 ''' A module for interfacing with CyPari. '''
 
 from __future__ import absolute_import
-import fractions
 
 import flipper
 

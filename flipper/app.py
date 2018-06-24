@@ -1,5 +1,4 @@
 
-import sys
 import argparse
 import flipper.application
 

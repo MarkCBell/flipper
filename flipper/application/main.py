@@ -9,7 +9,7 @@ import os
 import io
 import sys
 import pickle
-from math import sin, cos, pi, ceil, sqrt
+from math import sin, cos, pi, ceil
 from itertools import combinations
 
 FileType = io.TextIOWrapper if sys.version_info >= (3, 0) else file

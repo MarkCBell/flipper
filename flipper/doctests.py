@@ -1,7 +1,6 @@
 
 import flipper
 
-import os
 import doctest
 from importlib import import_module
 

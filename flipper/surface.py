@@ -13,19 +13,15 @@ def LP(genus, num_punctures):
     # The below function convert these coloured numbers to indices.
     # For example, if an edge of the triangulation is labelled 5 and colored green then its index is 5+2*g (or 2 if g = 1).
     
-    def green(m):
-        if g == 1: return 2
-        elif g > 1: return m+2*g
-    def pink(m):
-        if g == 2: return 8
-        elif g > 2: return m+4*g
-    def blue(m): return m+5*g
-    def orange(m): return m+6*g-3
+    green = lambda m: m + 2*g if g > 1 else 2
+    pink = lambda m: m + 4*g if g > 2 else 8
+    blue = lambda m: m + 5*g
+    orange = lambda m: m + 6*g - 3
     
-    def empty_lam(): return [0 for i in range(6*g+3*n-6)]
+    empty_lam = lambda: [0 for i in range(6*g+3*n-6)]
     
     if g == 0:
-        triangles = [(3*i, 3*i+2, ~(3*((i+1)%(n-2)))) for i in range(n-2)] + [(3*i+1, ~(3*((i+1)%(n-2))+1), ~(3*i+2)) for i in range(n-2)]
+        triangles = [(3*i, 3*i+2, ~(3*((i+1) % (n-2)))) for i in range(n-2)] + [(3*i+1, ~(3*((i+1) % (n-2))+1), ~(3*i+2)) for i in range(n-2)]
         
         lams = dict()
         for i in range(n):
@@ -64,9 +60,11 @@ def LP(genus, num_punctures):
         lams = dict()
         if g == 1:
             lams['a0'] = empty_lam()
-            lams['a0'][1] += 1; lams['a0'][green(0)] += 1 
+            lams['a0'][1] += 1
+            lams['a0'][green(0)] += 1
             lams['b0'] = empty_lam()
-            lams['b0'][0] += 1; lams['b0'][green(0)] += 1
+            lams['b0'][0] += 1
+            lams['b0'][green(0)] += 1
         elif g > 1:
             for i in [0, 1]:
                 lams['a'+str(i)] = empty_lam()
@@ -141,7 +139,7 @@ def LP(genus, num_punctures):
         def _edges_around_vert(t, vert):
             """ Return the cyclically ordered list of edges around the given vertex.
             
-            Vertex is input as an int corresponding to its index. 
+            Vertex is input as an int corresponding to its index.
             That is, for vertex "Puncture 0", do edges_around_vert(t, 0). """
             
             crns = t.corner_class_of_vertex(t.vertices[vert])
@@ -175,11 +173,11 @@ def LP(genus, num_punctures):
     twists = dict()
     halftwists = dict()
     
-    # If n == 2 then we have to add the halftwist (created above from flips) seperately. 
+    # If n == 2 then we have to add the halftwist (created above from flips) seperately.
     # It seems that the halftwist computed above is actually the right Dehn twist (based on the check below using chain relation).
     # So it is called 'Q0' and its inverse is 'q0' (lower case indicates left twists, upper case right twists).
     if n == 2:
-        #halftwists['Q0'] = isolating_halftwist
+        # halftwists['Q0'] = isolating_halftwist
         halftwists['q0'] = isolating_halftwist.inverse()
     
     for key in lams.keys():
@@ -187,19 +185,19 @@ def LP(genus, num_punctures):
             pass
         elif key[0] == 'q':
             halftwists[key] = laminations[key].encode_halftwist(1)
-            #halftwists[key.upper()] = laminations[key].encode_halftwist(-1)
+            # halftwists[key.upper()] = laminations[key].encode_halftwist(-1)
         else:
             twists[key] = laminations[key].encode_twist(1)
-            #twists[key.upper()] = laminations[key].encode_twist(-1)
+            # twists[key.upper()] = laminations[key].encode_twist(-1)
     all_twists = dict([(key, value) for key, value in twists.items()] + [(key, value) for key, value in halftwists.items()])
     
     return flipper.kernel.EquippedTriangulation(triangulation, laminations, all_twists)
 
 
 def _check(surface):
-    # Check to make sure the MCG generator curves have the correct geometric intersection properties. 
+    # Check to make sure the MCG generator curves have the correct geometric intersection properties.
     # This was used as a test to make sure there were no errors in the code above that creates the laminations.
-    # This of course is not sufficient to guarantee that there are no errors, but its a good start. 
+    # This of course is not sufficient to guarantee that there are no errors, but its a good start.
     # Surfaces S_{g, n} for 1 <= g <= 5 and 1 <= n <= 20 have been checked.
     
     if surface.triangulation.num_vertices == 2:
@@ -210,23 +208,25 @@ def _check(surface):
         chain = surface.mapping_class('a0.b0.' + '.'.join('c%d.b%d' % (i, i+1) for i in range(g-1)))
         assert(chain**(4*g+2) == surface.mapping_class('q0.q0'))
     
-    def intersection(l1, l2): return surface.lamination(l1).geometric_intersection(surface.lamination(l2))
+    def intersection(l1, l2):
+        return surface.lamination(l1).geometric_intersection(surface.lamination(l2))
     keys = sorted(surface.laminations.keys())
     intersections = dict([(tuple(sorted([l1, l2])), intersection(l1, l2)) for l1, l2 in combinations(keys, 2) if intersection(l1, l2) != 0])
     if surface.triangulation.genus == 1:
         expected = dict(
-            [(('a0', 'b0'), 1)] + \
-            [(('b0', 'p{}'.format(i)), 1) for i in range(surface.triangulation.num_vertices-1)] + \
-            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] + \
+            [(('a0', 'b0'), 1)] +
+            [(('b0', 'p{}'.format(i)), 1) for i in range(surface.triangulation.num_vertices-1)] +
+            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] +
             [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
             )
     else:
         expected = dict(
-            [(('a0', 'b0'), 1), (('a1', 'b1'), 1), (('b0', 'c0'), 1)] + \
-            [(('b{}'.format(i), 'c{}'.format(i-1)), 1) for i in range(1, surface.triangulation.genus)] + \
-            [(('b{}'.format(i), 'c{}'.format(i)), 1) for i in range(1, surface.triangulation.genus-1)] + \
-            [(('b{}'.format(surface.triangulation.genus-1), 'p{}'.format(i)), 1) for i in range(surface. triangulation.num_vertices-1)] + \
-            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] + \
+            [(('a0', 'b0'), 1), (('a1', 'b1'), 1), (('b0', 'c0'), 1)] +
+            [(('b{}'.format(i), 'c{}'.format(i-1)), 1) for i in range(1, surface.triangulation.genus)] +
+            [(('b{}'.format(i), 'c{}'.format(i)), 1) for i in range(1, surface.triangulation.genus-1)] +
+            [(('b{}'.format(surface.triangulation.genus-1), 'p{}'.format(i)), 1) for i in range(surface. triangulation.num_vertices-1)] +
+            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] +
             [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
             )
     return expected == intersections
+

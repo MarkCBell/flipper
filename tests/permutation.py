@@ -1,6 +1,6 @@
 
 from __future__ import print_function
-from itertools import product, permutations
+from itertools import product
 
 import flipper
 

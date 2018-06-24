@@ -2,7 +2,6 @@
 ''' A module for loading flipper databases. '''
 
 import pandas as pd
-import flipper
 
 import os
 

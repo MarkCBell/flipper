@@ -345,10 +345,10 @@ class Spiral(Move):
         
         def F(n):  # Note F(0) == Id.
             return flipper.kernel.Matrix([
-                [1,0,  0,  0],
-                [0,1,  0,  0],
-                [0,0,n+1, -n],
-                [0,0,  n,1-n]
+                [1, 0,  0,  0],
+                [0, 1,  0,  0],
+                [0, 0,n+1, -n],
+                [0, 0,  n,1-n]
                 ])  # (Un)Stable transitions.
         G = flipper.kernel.Matrix([
             [1,0,0, 0],

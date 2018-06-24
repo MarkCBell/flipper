@@ -12,9 +12,9 @@ Provides two classes: NumberField and NumberFieldElement. '''
 # This requires the numbers to be given as a linear combinations of
 # 1, lambda, ..., lambda^{d-1}. Currently Sage is much better at doing this than we are.
 
-import flipper
-
 from math import log10 as log
+
+import flipper
 
 LOG_2 = log(2)
 INFTY = float('inf')
@@ -96,7 +96,7 @@ class NumberField(object):
     def __eq__(self, other):
         return self.polynomial == other.polynomial and self.polynomial_root == other.polynomial_root
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     
     def element(self, linear_combination):
         ''' Return a new element of this number field. '''
@@ -215,6 +215,8 @@ class NumberFieldElement(object):
                 return self * square
             else:
                 return square
+        else:
+            raise ValueError('Can only raise to non-negative powers.')
     
     def __div__(self, other):
         return self.__truediv__(other)
@@ -240,12 +242,14 @@ class NumberFieldElement(object):
                 N = M.LLL()  # This is really slow :(.
                 div, scalar = self.number_field.element(N[0][:self.degree]), -N[0][-2]
                 if div * other == scalar * self:
-                    return div, scalar
+                    break
                 else:
                     # This should never happen if we chose precision correctly.
                     # However Cohen described this choice as `subtle' so let's be
                     # careful and repeat the calculation if we got the wrong answer.
                     precision = 2 * precision
+            
+            return div, scalar
         elif isinstance(other, flipper.IntegerType):
             return self.number_field.element([coeff // other for coeff in self])
         else:
@@ -318,11 +322,11 @@ class NumberFieldElement(object):
     def __gt__(self, other):
         return self.compare(other, lambda x, y: x > y)
     def __le__(self, other):
-        return not (self > other)
+        return not self > other
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     def __ge__(self, other):
-        return not (self < other)
+        return not self < other
     
     def interval_approximation(self, accuracy=0):
         ''' Return an interval containing this algebraic number, correct to at least the requested accuracy. '''

@@ -5,7 +5,7 @@ from __future__ import absolute_import
 
 import flipper
 
-from sage.all import Matrix, NumberField, lcm
+from sage.all import Matrix, NumberField, lcm  # pylint: disable=import-error, no-name-in-module
 
 def directed_eigenvector(action_matrix, condition_matrix):
     ''' An implementation of flipper.kernel.symboliccomputation.directed_eigenvector() using Sage.
@@ -20,7 +20,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
         if degree > 1:
             flipper_polynomial_roots = flipper.kernel.Polynomial([int(x) for x in polynomial.coefficients(sparse=False)]).real_roots()
             
-            if len(flipper_polynomial_roots) > 0:
+            if flipper_polynomial_roots:
                 # We need only consider the largest root as it has to be >=1 and bigger than all of its Galois conjugates.
                 flipper_polynomial_root = max(flipper_polynomial_roots)
                 

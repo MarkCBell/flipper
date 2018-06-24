@@ -7,16 +7,16 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
     A Corner is a Triangle with a chosen side.
     A Triangulation is a collection of Triangles. '''
 
-import flipper
-
+from itertools import groupby
+from math import log
+from random import choice
+import string
 try:
     from Queue import Queue
 except ImportError:
     from queue import Queue
-from random import choice
-from itertools import groupby
-import string
-from math import log
+
+import flipper
 
 INFTY = float('inf')
 
@@ -547,7 +547,7 @@ class Triangulation(object):
     def __eq__(self, other):
         return self.signature == other.signature
     def __ne__(self, other):
-        return not(self == other)
+        return not self == other
     
     def vertices_of_edge(self, edge_label):
         ''' Return the two vertices at the ends of the given edge. '''

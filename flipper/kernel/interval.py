@@ -3,10 +3,10 @@
 
 Provides one class: Interval. '''
 
-import flipper
-
-from math import log10 as log
 from math import ceil
+from math import log10 as log
+
+import flipper
 
 # This class represents the interval (lower / 10^precision, upper / 10^precision).
 
@@ -107,7 +107,7 @@ class Interval(object):
             return Interval(self.lower * 10**d, self.upper * 10**d, new_denominator)
         elif d == 0:
             return self
-        elif d < 0:
+        else:  # if d < 0:
             return Interval((self.lower // 10**(-d)) - 1, (self.upper // 10**(-d)) + 1, new_denominator)
     def change_accuracy(self, new_accuracy):
         ''' Return a new interval with the given accuracy.
@@ -148,7 +148,7 @@ class Interval(object):
             return self
         elif self.upper < 0:  # Interval is entirely negative.
             return -self
-        if self.lower <= 0 <= self.upper:  # Interval straddles 0.
+        else:  # if self.lower <= 0 <= self.upper:  # Interval straddles 0.
             return Interval(0, max(-self.lower, self.upper), self.precision)
     def __add__(self, other):
         if isinstance(other, Interval):
@@ -197,12 +197,12 @@ class Interval(object):
             return Interval(1, 1, 0)
         elif power == 1:
             return self
-        elif power > 1:
+        else:  # if power > 1:
             sqrt = self**(power//2)
             square = sqrt * sqrt
             if power % 2 == 1:
                 return self * square
-            else:
+            else:  # power % 2 == 0:
                 return square
     def __div__(self, other):
         return self.__truediv__(other)
@@ -256,7 +256,7 @@ class Interval(object):
             return [Interval(self.lower + i, min(self.lower + i + k, self.upper), self.precision) for i in range(0, d, k)]
         elif d == 1:
             return [Interval(10*self.lower + i, 10*self.lower + i+1, self.precision + 1) for i in range(10)]
-        elif d == 0:
+        else:  # if d == 0:
             return [Interval(self.lower, self.upper, self.precision)]
     
     def polynomial(self, degree, scale):

@@ -5,9 +5,9 @@ Provides one class: Permutation.
 
 There are also two helper functions: Id_permutation and cyclic_permutation. '''
 
-import flipper
-
 from itertools import permutations, combinations
+
+import flipper
 
 class Permutation(object):
     ''' This represents a permutation in Sym(n). '''
@@ -53,7 +53,7 @@ class Permutation(object):
     def __eq__(self, other):
         return self.permutation == other.permutation
     def __ne__(self, other):
-        return not (self.permutation == other.permutation)
+        return not self == other
     def inverse(self):
         ''' Return the inverse of this permutation. '''
         
@@ -79,7 +79,7 @@ class Permutation(object):
         
         new_n must be at least len(self). '''
         
-        assert(new_n >= len(self))  # Cannot embed permutation into smaller symmetric group.
+        assert new_n >= len(self)  # Cannot embed permutation into smaller symmetric group.
         
         return Permutation(list(self.permutation) + list(range(len(self), new_n)))
     def matrix(self):

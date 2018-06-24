@@ -9,6 +9,15 @@ shortened in polynomial time. '''
 import flipper
 
 class Move(object):
+    ''' This represents an abstract move between triangulations and provides the framework for subclassing. '''
+    def __init__(self, source_triangulation, target_triangulation):
+        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
+        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        
+        self.source_triangulation = source_triangulation
+        self.target_triangulation = target_triangulation
+        self.zeta = self.source_triangulation.zeta
+    
     def __repr__(self):
         return str(self)
     
@@ -23,6 +32,16 @@ class Move(object):
                 remove_peripheral=False)
         else:
             return NotImplemented
+    
+    def apply_geometric(self, vector):  # pylint: disable=unused-argument, no-self-use
+        ''' Return the list of geometric intersection numbers corresponding to the image of the given lamination under self. '''
+        
+        return NotImplemented
+    
+    def apply_algebraic(self, vector):  # pylint: disable=unused-argument, no-self-use
+        ''' Return the list of algebraic intersection numbers corresponding to the image of the given lamination under self. '''
+        
+        return NotImplemented
     
     def encode(self):
         ''' Return the Encoding induced by this isometry. '''
@@ -39,16 +58,12 @@ class Isometry(Move):
         
         It is given by a map taking each edge label of source_triangulation to a label of target_triangulation. '''
         
-        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
-        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
         assert isinstance(label_map, dict)
         
-        self.flip_length = 0  # The number of flips needed to realise this move.
-        self.source_triangulation = source_triangulation
-        self.target_triangulation = target_triangulation
-        self.zeta = self.source_triangulation.zeta
-        
+        super(Isometry, self).__init__(source_triangulation, target_triangulation)
         self.label_map = dict(label_map)
+        
+        self.flip_length = 0  # The number of flips needed to realise this move.
         
         # If we are missing any labels then use a depth first search to find the missing ones.
         # Hmmm, should always we do this just to check consistency?
@@ -78,6 +93,7 @@ class Isometry(Move):
     
     def apply_geometric(self, vector):
         return [vector[self.inverse_index_map[i]] for i in range(self.zeta)]
+    
     def apply_algebraic(self, vector):
         return [vector[self.inverse_index_map[i]] * self.inverse_signs[i] for i in range(self.zeta)]
     
@@ -107,7 +123,7 @@ class Isometry(Move):
         
         return (flipper.kernel.Matrix([action[self.inverse_index_map[i]] for i in range(self.zeta)]), flipper.kernel.zero_matrix(0))
     
-    def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):
+    def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):  # pylint: disable=unused-argument, too-many-arguments
         ''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
         
         maps_to_triangle = lambda X: isinstance(X[0], flipper.kernel.Triangle)
@@ -139,13 +155,10 @@ class Isometry(Move):
 class EdgeFlip(Move):
     ''' Represents the change to a lamination caused by flipping an edge. '''
     def __init__(self, source_triangulation, target_triangulation, edge_label):
-        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
-        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        super(EdgeFlip, self).__init__(source_triangulation, target_triangulation)
         assert isinstance(edge_label, flipper.IntegerType)
         
         self.flip_length = 1  # The number of flips needed to realise this move.
-        self.source_triangulation = source_triangulation
-        self.target_triangulation = target_triangulation
         self.edge_label = edge_label
         self.edge_index = flipper.kernel.norm(self.edge_label)
         self.zeta = self.source_triangulation.zeta
@@ -168,6 +181,7 @@ class EdgeFlip(Move):
         a, b, c, d = self.square
         m = max(vector[a.index] + vector[c.index], vector[b.index] + vector[d.index]) - vector[self.edge_index]
         return [vector[i] if i != self.edge_index else m for i in range(self.zeta)]
+    
     def apply_algebraic(self, vector):
         a, b, c, d = self.square
         m = b.sign() * vector[b.index] + c.sign() * vector[c.index]
@@ -218,7 +232,7 @@ class EdgeFlip(Move):
             raise IndexError('Index out of range.')
         return flipper.kernel.Matrix(rows), Cs
     
-    def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):
+    def extend_bundle(self, triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map):  # pylint: disable=too-many-arguments
         
         ''' Modify triangulation3 to extend the embedding of upper_triangulation via upper_map under this move. '''
         
@@ -301,14 +315,11 @@ class EdgeFlip(Move):
 class LinearTransformation(Move):
     ''' Represents the change to a lamination caused by a linear map. '''
     def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
-        assert isinstance(source_triangulation, flipper.kernel.Triangulation)
-        assert isinstance(target_triangulation, flipper.kernel.Triangulation)
+        super(LinearTransformation, self).__init__(source_triangulation, target_triangulation)
         assert isinstance(geometric, flipper.kernel.Matrix)
         assert isinstance(algebraic, flipper.kernel.Matrix)
         
         self.flip_length = 0  # The number of flips needed to realise this move.
-        self.source_triangulation = source_triangulation
-        self.target_triangulation = target_triangulation
         self.geometric = geometric
         self.algebraic = algebraic
     
@@ -326,7 +337,7 @@ class LinearTransformation(Move):
     def apply_algebraic(self, vector):
         return self.algebraic(vector)
     
-    def inverse(self):
+    def inverse(self):  # pylint: disable=no-self-use
         ''' Return the inverse of this map.
         
         Note that these do not exist and so NotImplemented is returned. '''

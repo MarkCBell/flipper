@@ -5,10 +5,10 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
-import flipper
 from fractions import Fraction
-
 import itertools
+
+import flipper
 
 def nonnegative(v):
     ''' Return if the given vector is non-negative. '''
@@ -64,7 +64,7 @@ class Matrix(object):
     def __eq__(self, other):
         return self.width == other.width and self.height == other.height and all(row1 == row2 for row1, row2 in zip(self.rows, other.rows))
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     
     def __neg__(self):
         return Matrix([[-x for x in row] for row in self])
@@ -114,7 +114,7 @@ class Matrix(object):
             else:
                 return square
         else:  # power < 0.
-            raise TypeError('Can only raise matrices to positive powers.')
+            raise ValueError('Can only raise matrices to non-negative powers.')
     
     def is_square(self):
         ''' Return if this matrix is square. '''
@@ -140,7 +140,7 @@ class Matrix(object):
         assert self.is_square()
         
         P = self.characteristic_polynomial()
-        assert(abs(P[0]) == 1)  # Check that the determinant is +/-1.
+        assert abs(P[0]) == 1  # Check that the determinant is +/-1.
         # In the next line we should do x // -P[0], but as we know that P[0] == +/-1
         # 1/-P[0] == -P[0] and so we can use a cheaper multiplication.
         return -P[0] * P.shift(-1)(self)
@@ -402,10 +402,10 @@ class Matrix(object):
             pos_rows = [row for row in M if row[index] > 0]
             neg_rows = [row for row in M if row[index] < 0]
             non_rows = [row for row in M if row[index] == 0]
-            if len(pos_rows) == 0:  # Problem is independent of x_index.
+            if not pos_rows:  # Problem is independent of x_index.
                 M = M.discard_column(index)
                 B.append((index, -1))
-            elif len(neg_rows) == 0:  # Problem is independent of x_index.
+            elif not neg_rows:  # Problem is independent of x_index.
                 M = M.discard_column(index)
                 B.append((index, 1))
             else:
@@ -424,7 +424,7 @@ class Matrix(object):
         # Reverse the process to rebuild the vector.
         for index, BB in reversed(B):
             if isinstance(BB, Matrix):
-                ratios = zip((-BB).discard_column(index)(v), BB.transpose()[index])
+                ratios = list(zip((-BB).discard_column(index)(v), BB.transpose()[index]))
                 # In this list of ratios all denominators are positive.
                 # Get the pair (a, b) with the biggest ratio:
                 a, b = ratios[0]

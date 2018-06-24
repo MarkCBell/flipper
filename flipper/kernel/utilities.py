@@ -1,12 +1,12 @@
 
 ''' A module of useful, generic functions; including input and output formatting. '''
 
-import flipper
-
-import itertools
-from string import ascii_lowercase, digits, ascii_letters, punctuation
 from fractions import gcd as gcd2
 from functools import reduce as freduce
+from string import ascii_lowercase, digits, ascii_letters, punctuation
+import itertools
+
+import flipper
 
 VISIBLE_CHARACTERS = digits + ascii_letters + punctuation
 
@@ -29,7 +29,9 @@ def string_generator(n, skip=None):
             if word not in skip:
                 results.append(word)
             if len(results) >= n:
-                return results
+                break
+    
+    return results
 
 def name_objects(objects, skip=None):
     ''' Return a list of pairs (name, object). '''

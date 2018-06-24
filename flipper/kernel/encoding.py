@@ -3,9 +3,9 @@
 
 Provides one class: Encoding. '''
 
-import flipper
-
 from itertools import product
+
+import flipper
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'  # Strictly this  means "reducible and not periodic".
@@ -36,6 +36,7 @@ class Encoding(object):
         self._cache = {'name': ''} if _cache is None else _cache  # For caching hard to compute results.
     
     def without_cache(self):
+        ''' Return this Encoding but with an empty cache. '''
         return Encoding(self.sequence, _cache={'name': self._cache['name']})
     
     def is_mapping_class(self):
@@ -106,7 +107,7 @@ class Encoding(object):
         else:
             return NotImplemented
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     def __hash__(self):
         return hash(self.identify())
     def is_homologous_to(self, other):

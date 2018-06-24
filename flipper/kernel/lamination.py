@@ -3,13 +3,13 @@
 
 Provides one class: Lamination. '''
 
-import flipper
-
 import heapq
 try:
     from Queue import Queue
 except ImportError:
     from queue import Queue
+
+import flipper
 
 INFTY = float('inf')
 HASH_DENOMINATOR = 30
@@ -89,7 +89,7 @@ class Lamination(object):
             all(v == w for v, w in zip(self.geometric, other.geometric)) and \
             all(v == w for v, w in zip(self.algebraic, other.algebraic))
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     
     def __hash__(self):
         # This should be done better.
@@ -598,7 +598,7 @@ class Lamination(object):
         # should change dynamically depending on the algebraic numbers involved in
         # this lamination.
         
-        assert all(isinstance(entry, flipper.IntegerType) or isinstance(entry, flipper.kernel.NumberFieldElement) for entry in self)
+        assert all(isinstance(entry, (flipper.IntegerType, flipper.kernel.NumberFieldElement)) for entry in self)
         assert len(set(entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement))) <= 1
         
         # Check if the lamination is obviously non-filling.

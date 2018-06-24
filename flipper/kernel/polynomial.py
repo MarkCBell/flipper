@@ -3,9 +3,9 @@
 
 Provides two classes: Polynomial and PolynomialRoot. '''
 
-import flipper
-
 from math import log10 as log
+
+import flipper
 
 class Polynomial(object):
     ''' This represents an integral polynomial in one variable.
@@ -55,7 +55,7 @@ class Polynomial(object):
         else:
             return NotImplemented
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     def __hash__(self):
         return hash(tuple(self.coefficients))
     def __neg__(self):
@@ -358,11 +358,11 @@ class PolynomialRoot(object):
     def __gt__(self, other):
         return self.compare(other, lambda x, y: x > y)
     def __le__(self, other):
-        return not (self > other)
+        return not self > other
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     def __ge__(self, other):
-        return not (self < other)
+        return not self < other
     
     def subdivide_iterate(self):
         ''' Return a subinterval of self.interval which contains a root of self.polynomial.
@@ -372,7 +372,7 @@ class PolynomialRoot(object):
         of self.polynomial the subinterval is also unique. '''
         
         roots = [I for I in self.interval.subdivide() if self.polynomial.num_roots(I) > 0]
-        assert(len(roots) == 1)  # What if a root occurs at the end of an interval? It would have to be rational.
+        assert len(roots) == 1  # What if a root occurs at the end of an interval? It would have to be rational.
         return roots[0]
     
     def newton_raphson_iterate(self):
@@ -462,10 +462,12 @@ class PolynomialRoot(object):
             N = M.LLL()  # This is really slow :(.
             f = flipper.kernel.Polynomial(N[0][:-1])
             if self in f.real_roots():
-                return PolynomialRoot(f, interval)
+                break
             else:
                 # This should never happen if we chose precision correctly.
                 # However Cohen described this choice as `subtle' so let's be
                 # careful and repeat the calculation if we got the wrong answer.
                 precision = 2 * precision
+        
+        return PolynomialRoot(f, interval)
 

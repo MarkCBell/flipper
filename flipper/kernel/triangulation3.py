@@ -8,9 +8,9 @@ Provides two classes: Tetrahedron and Triangulation3. '''
 # We follow the orientation conventions in SnapPy/headers/kernel_typedefs.h L:154
 # and SnapPy/kernel/peripheral_curves.c.
 
-import flipper
-
 from itertools import combinations, product
+
+import flipper
 
 # Edge veerings:
 VEERING_UNKNOWN, VEERING_LEFT, VEERING_RIGHT = 'Unknown', 'Left', 'Right'
@@ -50,7 +50,7 @@ class Tetrahedron(object):
     def __repr__(self):
         return str(self)
     def __str__(self):
-        return '%s --> %s' % (self.label, ', '.join('%d: %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))
+        return '%s --> %s' % (self.label, ', '.join('%d: %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))  # pylint: disable=unsubscriptable-object
     
     def glue(self, side, target, permutation):
         ''' Glue the given side of this tetrahedron to target via the given permutation.

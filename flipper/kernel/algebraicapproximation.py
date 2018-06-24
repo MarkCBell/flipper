@@ -25,9 +25,10 @@ Provides one class: AlgebraicApproximation. '''
 # Thus by knowing a sufficiently accurate approximation of x_0 we can determine if x_0 > 0. Combining this with 1) we can
 # therefore determine if x_0 > x_1 by determining if (x_0 - x_1) > 0.
 
+from math import log10 as log
+
 import flipper
 
-from math import log10 as log
 LOG_2 = log(2)
 
 class AlgebraicApproximation(object):
@@ -142,8 +143,10 @@ class AlgebraicApproximation(object):
             square = sqrt * sqrt
             if power % 2 == 1:
                 return self * square
-            else:
+            else:  # power % 2 == 0:
                 return square
+        else:  # power < 0:
+            raise ValueError('Can only raise to non-negative powers.')
     def __div__(self, other):
         return self.__truediv__(other)
     def __truediv__(self, other):
@@ -178,9 +181,9 @@ class AlgebraicApproximation(object):
     def __gt__(self, other):
         return (self - other).sign() > 0
     def __le__(self, other):
-        return not (self > other)
+        return not self > other
     def __ne__(self, other):
-        return not (self == other)
+        return not self == other
     def __ge__(self, other):
-        return not (self < other)
+        return not self < other
 

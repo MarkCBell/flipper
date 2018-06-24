@@ -3,10 +3,10 @@
 
 Provides one class: EquippedTriangulation. '''
 
-from random import choice
 from itertools import product
-import re
+from random import choice
 import multiprocessing
+import re
 
 import flipper
 
@@ -553,7 +553,7 @@ class EquippedTriangulation(object):
         
         Raises a TypeError if the word does not correspond to a mapping class. '''
         
-        assert isinstance(word, str) or isinstance(word, flipper.IntegerType)
+        assert isinstance(word, (str, flipper.IntegerType))
         
         if isinstance(word, flipper.IntegerType):
             word = self.random_word(word)

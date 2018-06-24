@@ -1,0 +1,37 @@
+
+build: false
+
+branches:
+  only:
+  - master
+  - dev
+
+environment:
+  matrix:
+    - PYTHON: "C:\\Python27"
+      TOX_ENV: "py27"
+
+    - PYTHON: "C:\\Python34"
+      TOX_ENV: "py34"
+
+    - PYTHON: "C:\\Python35"
+      TOX_ENV: "py35"
+
+    - PYTHON: "C:\\Python36"
+      TOX_ENV: "py36"
+
+init:
+  - set "PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+  - echo "%PYTHON%"
+  - python.exe -c "import sys; print(sys.version)"
+
+install:
+  - pip.exe install setuptools --upgrade
+  - pip.exe install -r requirements-dev.txt
+  - pip.exe install --editable .
+
+test_script:
+  - flake8.exe
+  - pylint.exe flipper.kernel
+  - tox.exe -e %TOX_ENV% -- --hypothesis-profile=ci --duration=20
+

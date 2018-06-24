@@ -29,7 +29,7 @@ Flipper
 Flipper is a program for computing the action of mapping classes on laminations on punctured surfaces using ideal triangulation coordinates.
 It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol.
 
-Flipper officially supports Python 2.7 and 3.4 -- 3.6.
+Flipper officially supports Python 2.7, 3.5 and 3.6.
 It also runs on PyPy and `Sage`_.
 Currently, it is fastest when run through Sage.
 For even more speed (~25% more) consider running flipper with the -O optimise bytecode option.

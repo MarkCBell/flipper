@@ -74,20 +74,18 @@ Ready to contribute? Here's how to set up `flipper` for local development.
 
    Now you can make your changes locally.
 
-5. When you're done making changes, check that your changes pass flake8, pylint and the tests::
+5. When you're done making changes, check that your changes pass the tests::
 
-    $ flake8
-    $ pylint flipper.kernel
     $ tox
 
-  tox will install and run flipper unittests in several versions of Python.
+  tox will install and run flake8, pylint and flippers unittests in several versions of Python.
   Since this can take a long time, you may wish to run just a single environment during development, for example::
 
     $ tox -e py27
 
   Alternatively, you may wish to run just the tests associated to the code you are developing, for example::
 
-    $ tox tests/test_encoding.py::TestEncoding::test_homology_matrix
+    $ tox tests/encoding.py::TestEncoding::test_nt_type
 
 6. Commit your changes and push your branch to GitHub::
 

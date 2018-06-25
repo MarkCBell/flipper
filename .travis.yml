@@ -14,8 +14,6 @@ install:
 - pip install tox-travis
 - pip install coveralls
 script:
-- flake8
-- pylint flipper.kernel
 - tox -- --hypothesis-profile=ci --duration=20
 after_success:
 - if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi

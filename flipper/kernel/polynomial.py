@@ -158,8 +158,8 @@ class Polynomial(object):
         elif isinstance(other, flipper.IntegerType):
             # Just so self % d will work.
             return None, Polynomial([coefficient % other for coefficient in self])
-        else:
-            return NotImplemented
+        
+        return NotImplemented
     def __mod__(self, other):
         _, remainder = divmod(self, other)
         return remainder

@@ -252,8 +252,8 @@ class NumberFieldElement(object):
             return div, scalar
         elif isinstance(other, flipper.IntegerType):
             return self.number_field.element([coeff // other for coeff in self])
-        else:
-            return NotImplemented
+        
+        return NotImplemented
     def __floordiv__(self, other):
         if other == 0:
             raise ZeroDivisionError

@@ -26,17 +26,7 @@ import flipper
 INFTY = float('inf')
 
 class Interval(object):
-    ''' This represents a closed interval [lower / 10**precision, upper / 10**precision].
-    
-    >>> w = Interval.from_string('0.10')
-    >>> x = Interval.from_string('10000.0')
-    >>> y = Interval.from_string('1.14571')
-    >>> z = Interval.from_string('1.00000')
-    >>> a = Interval.from_string('-1.200000')
-    >>> b = Interval.from_string('1.4142135623')
-    >>> a
-    -1.2001?
-    '''
+    ''' This represents a closed interval [lower / 10**precision, upper / 10**precision]. '''
     def __init__(self, lower, upper, precision):
         assert isinstance(lower, flipper.IntegerType)
         assert isinstance(upper, flipper.IntegerType)
@@ -269,16 +259,4 @@ class Interval(object):
         # Should this also appear in the symbolic library? Sage is much faster than us at LLL.
         
         return flipper.kernel.Polynomial(M.LLL()[0][:-1])
-
-def doctest_globs():
-    ''' Return the globals needed to run doctest on this module. '''
-    
-    w = Interval.from_string('0.10')
-    x = Interval.from_string('10000.0')
-    y = Interval.from_string('1.14571')
-    z = Interval.from_string('1.00000')
-    a = Interval.from_string('-1.200000')
-    b = Interval.from_string('1.4142135623')
-    
-    return {'w': w, 'x': x, 'y': y, 'z': z, 'a': a, 'b': b}
 

@@ -798,16 +798,3 @@ def create_encoding(source_triangulation, sequence, _cache=None):
     
     return source_triangulation.encode(sequence, _cache=_cache)
 
-def doctest_globs():
-    ''' Return the globals needed to run doctest on this module. '''
-    
-    S = flipper.load('S_1_1')
-    aB = S.mapping_class('aB')
-    bA = S.mapping_class('bA')
-    ab = S.mapping_class('ab')
-    i = S.mapping_class('')
-    a = S.mapping_class('a')
-    x = S.triangulation.encode([1])
-    
-    return {'aB': aB, 'bA': bA, 'ab': ab, 'i': i, 'a': a, 'x': x}
-

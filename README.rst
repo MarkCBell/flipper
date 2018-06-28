@@ -14,7 +14,7 @@ Flipper
     :target: https://travis-ci.org/MarkCBell/flipper
     :alt: Travis build status
 
-.. image:: https://ci.appveyor.com/api/projects/status/kd8b36bkas7h9pp6/branch/master?svg=true
+.. image:: https://ci.appveyor.com/api/projects/status/8spedakb6ahj91b5/branch/master?svg=true
     :target: https://ci.appveyor.com/project/MarkCBell/flipper/branch/master
     :alt: AppVeyor build status
 
@@ -30,9 +30,8 @@ Flipper is a program for computing the action of mapping classes on laminations 
 It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol.
 
 Flipper officially supports Python 2.7, 3.5 and 3.6.
-It also runs on PyPy and `Sage`_.
-Currently, it is fastest when run through Sage.
-For even more speed (~25% more) consider running flipper with the -O optimise bytecode option.
+It also runs on `Sage`_ which is currently the fastest way to run it.
+If you need even more speed (~25% more) then consider running flipper with the -O optimise bytecode option.
 
 .. note:: The use of **Python 3** is *highly* preferred over Python 2.
     Consider upgrading your applications and infrastructure if you find yourself *still* using Python 2 in production today.

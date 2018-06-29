@@ -1,4 +1,3 @@
-import multiprocessing
 from time import time
 import flipper
 
@@ -12,9 +11,8 @@ print('Built %d words.' % len(all_words))
 print('Completed in %0.3fs' % (time() - start_time))
 
 print('Starting again in parallel.')
-cores = 2
 start_time = time()
-all_words2 = list(S.all_words(length, cores=cores))
+all_words2 = list(S.all_words(length, cores=2))
 print('Built %d words.' % len(all_words2))
 print('Completed in %0.3fs' % (time() - start_time))
 

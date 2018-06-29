@@ -18,8 +18,7 @@ def compare(surface, monodromy, manifold):
 
 database = 'CHW'  # We could also load 'knots'.
 df = flipper.census(database)  # A pandas DataFrame.
-print('Building mapping tori for each monodromy in:')
-print('\t%s' % database)
+print('Building mapping tori for each monodromy in %s' % database)
 
 for manifold, row in df.iterrows():
     print('Buiding: %s over %s (target %s).' % (row.monodromy, row.surface, manifold))

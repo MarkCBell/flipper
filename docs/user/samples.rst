@@ -9,45 +9,45 @@ Here are several small sample scripts that demonstrate some of the features of f
 Mapping classes
 ---------------
 
-Computing some basic properties of a mapping class:
+We can compute some basic properties of a mapping class:
 
-.. literalinclude:: samples/encoding.rst
+.. literalinclude:: samples/encoding.py
 
 All words
 ---------
 
 Flipper can systematically generate all words in a given generating set.
-This is useful for exhaustively searching for rare properties of mapping classes:
+This is useful for exhaustively searching for mapping classes with rare properties:
 
-.. literalinclude:: samples/all_words.rst
+.. literalinclude:: samples/all_words.py
 
 Invariant laminations
 ---------------------
 
-This sample highlights just how good flipper is at finding invariant laminations:
+We can see just how good flipper is at finding invariant laminations:
 
-.. literalinclude:: samples/invariant_lamination.rst
+.. literalinclude:: samples/invariant_lamination.py
 
 Hard invariant laminations
 --------------------------
 
-Here are some of the mapping classes that flipper has previously had a hard time finding invariant laminations for:
+We can see how flipper handles some of the mapping classes that it previously had a hard time finding invariant laminations for:
 
-.. literalinclude:: samples/hard_invariant_lamination.rst
+.. literalinclude:: samples/hard_invariant_lamination.py
 
 Pseudo-Anosov distributions
 ---------------------------
 
-Since flipper can determine the Nielsen--Thurston type of a mapping class we can use it to explore how the percentage of pseudo-Anosovs grows with respect to word length:
+Since flipper can determine the Nielsen--Thupyon type of a mapping class we can use it to explore how the percentage of pseudo-Anosovs grows with respect to word length:
 
-.. literalinclude:: samples/distributions.rst
+.. literalinclude:: samples/distributions.py
 
 Conjugacy classes
 -----------------
 
 Flipper can partition pseudo-Anosov mapping classes into conjugacy classes:
 
-.. literalinclude:: samples/conjugacy.rst
+.. literalinclude:: samples/conjugacy.py
 
 Bundles
 -------
@@ -55,26 +55,26 @@ Bundles
 Flipper can interface with SnapPy to build the mapping tori associated to a mapping class.
 When the mapping class is pseudo-Anosov, flipper builds Agol's veering triangulation of the fulling punctured mapping torus and installs the correct Dehn fillings:
 
-.. literalinclude:: samples/bundles.rst
+.. literalinclude:: samples/bundles.py
 
 Twister
 -------
 
 We can check that the mapping tori built by Twister and flipper agree:
 
-.. literalinclude:: samples/twister.rst
+.. literalinclude:: samples/twister.py
 
 Censuses
 --------
 
 Flipper includes large censuses of monodromies for fibred knots and manifolds:
 
-.. literalinclude:: samples/censuses.rst
+.. literalinclude:: samples/censuses.py
 
 Knot cusp orders
 ----------------
 
 Flipper can find fibred knots where the stable lamination has two (6_2) or even one (8_20) prong coming out of the knot:
 
-.. literalinclude:: samples/knot_cusp_orders.rst
+.. literalinclude:: samples/knot_cusp_orders.py
 

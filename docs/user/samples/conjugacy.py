@@ -1,5 +1,3 @@
-from __future__ import print_function
-import sys
 import flipper
 
 S = flipper.load('S_1_1')
@@ -21,8 +19,7 @@ for index, word in enumerate(S.all_words(length)):
                 break
         else:  # We have found a new conjugacy class.
             buckets.append([h])
-    print('\r%d words in %d conjugacy classes.' % (index, len(buckets)), end='')
-    sys.stdout.flush()
+    print('%d words in %d conjugacy classes.' % (index, len(buckets)))
 
 print(buckets)
 

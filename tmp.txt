@@ -1,8 +1,0 @@
-cffi==1.11.5
-flipper==0.12.3
-greenlet==0.4.13
-numpy==1.14.5
-python-dateutil==2.7.3
-pytz==2018.4
-readline==6.2.4.1
-six==1.11.0

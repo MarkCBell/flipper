@@ -1,24 +1,11 @@
 import snappy
 import flipper
 
-while True:
-    surface = raw_input('Choose surface (leave blank to quit): ')
-    if not surface: break
-    try:
-        S = flipper.load(surface)
-    except KeyError:
-        print('Not a valid surface name')
-    else:
-        while True:
-            word = raw_input('Enter mapping class (leave blank to rechoose surface): ')
-            if not word: break
-            try:
-                M = snappy.twister.Surface(surface).bundle(word)
-                mapping_class = S.mapping_class(word)
-                match = M.is_isometric_to(snappy.Manifold(mapping_class.bundle().snappy_string()))
-                print('Match: %s' % match)
-            except KeyError:
-                print('Not a valid mapping class.')
-            except flipper.AssumptionError:
-                print('Mapping class is not pseudo-Anosov.')
+def match(surface, monodromy):
+    M = snappy.twister.Surface(surface).bundle(monodromy)
+    N = snappy.Manifold(flipper.load(surface).mapping_class(monodromy).bundle())
+    return M.is_isometric_to(N)
 
+assert match('S_1_1', 'aB')
+assert match('S_1_2', 'abC')
+assert match('S_2_1', 'abbbCddEdaa')

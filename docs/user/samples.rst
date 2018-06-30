@@ -28,13 +28,6 @@ We can see just how good flipper is at finding invariant laminations:
 
 .. literalinclude:: samples/invariant_lamination.py
 
-Hard invariant laminations
---------------------------
-
-We can see how flipper handles some of the mapping classes that it previously had a hard time finding invariant laminations for:
-
-.. literalinclude:: samples/hard_invariant_lamination.py
-
 Pseudo-Anosov distributions
 ---------------------------
 
@@ -77,4 +70,12 @@ Knot cusp orders
 Flipper can find fibred knots where the stable lamination has two (6_2) or even one (8_20) prong coming out of the knot:
 
 .. literalinclude:: samples/knot_cusp_orders.py
+
+Hard invariant laminations
+--------------------------
+
+There is also a database of mapping classes that flipper has previously had a hard time finding invariant laminations for.
+These may be useful test cases for other pieces of software or be worth exploring for interesting mathematical properties:
+
+.. literalinclude:: samples/hard_invariant_lamination.py
 

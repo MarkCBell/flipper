@@ -2,7 +2,7 @@ from time import time
 import snappy
 import flipper
 
-for _, row in flipper.census('CHW').iterrows():  # We could also load 'knots'.
+for _, row in flipper.census('CHW').iterrows():
     start_time = time()
     M = snappy.Manifold(row.manifold)
     N = snappy.Manifold(flipper.load(row.surface).mapping_class(row.monodromy).bundle())

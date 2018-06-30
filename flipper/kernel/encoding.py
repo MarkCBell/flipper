@@ -624,11 +624,11 @@ class Encoding(object):
         
         return M
     
-    def bundle(self, canonical=True, _safety=True):
+    def bundle(self, veering=True, _safety=True):
         ''' Return the bundle associated to this mapping class.
         
         This method can be run in two different modes:
-        If canonical=True:
+        If veering=True:
             Then the bundle returned is triangulated by a veering, layered
             triangulation and has at most 6g+5n-6 additional loops drilled
             from it, as described by Agol. These additional cusps are marked
@@ -636,7 +636,7 @@ class Encoding(object):
             fibre slope.
             
             Assumes (and checks) that this mapping class is pseudo-Anosov.
-        If canonical=False:
+        If veering=False:
             Then the bundle returned is triangulated by a layered triangulation
             obtained by stacking flat tetrahedra, one for each edge flip in
             self.
@@ -650,9 +650,9 @@ class Encoding(object):
         assert self.is_mapping_class()
         triangulation = self.source_triangulation
         
-        if canonical:
+        if veering:
             # This can fail with an flipper.AssumptionError if self is not pseudo-Anosov.
-            return self.canonical().bundle(canonical=False, _safety=False)
+            return self.canonical().bundle(veering=False, _safety=False)
         
         if _safety:
             # We should add enough flips to ensure the triangulation is a manifold.
@@ -673,7 +673,7 @@ class Encoding(object):
                     extra = triangulation.encode([i, boundary_edge])
                     safe_encoding = extra.inverse() * extra * safe_encoding
             
-            return safe_encoding.bundle(canonical=False, _safety=False)
+            return safe_encoding.bundle(veering=False, _safety=False)
         
         id_perm3 = flipper.kernel.Permutation((0, 1, 2))
         lower_triangulation, upper_triangulation = triangulation, triangulation

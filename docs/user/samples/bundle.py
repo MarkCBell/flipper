@@ -8,8 +8,8 @@ h = flipper.load(surface).mapping_class(word)
 print('Built the mapping class h := \'%s\' on %s.' % (word, surface))
 # Get the bundle of h.
 bundle = h.bundle()
-print('Built the canonical triangulation of the bundle with monodromy h.')
-print('This triangulation %s veering.' % ('is' if bundle.is_veering() else 'is not'))
+
+assert bundle.is_veering()
 print('It has %d cusp(s) with the following properties:' % bundle.num_cusps)
 for index, (real, fibre, degeneracy) in enumerate(zip(bundle.cusp_types(), bundle.fibre_slopes(), bundle.degeneracy_slopes())):
     print('\tCusp %s (%s): Fibre slope %s, degeneracy slope %s' % (index, 'Real' if real else 'Fake', fibre, degeneracy))

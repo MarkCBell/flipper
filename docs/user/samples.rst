@@ -40,7 +40,7 @@ Pseudo-Anosov distributions
 
 Since flipper can determine the Nielsen--Thupyon type of a mapping class we can use it to explore how the percentage of pseudo-Anosovs grows with respect to word length:
 
-.. literalinclude:: samples/distributions.py
+.. literalinclude:: samples/distribution.py
 
 Conjugacy classes
 -----------------
@@ -55,7 +55,7 @@ Bundles
 Flipper can interface with SnapPy to build the mapping tori associated to a mapping class.
 When the mapping class is pseudo-Anosov, flipper builds Agol's veering triangulation of the fulling punctured mapping torus and installs the correct Dehn fillings:
 
-.. literalinclude:: samples/bundles.py
+.. literalinclude:: samples/bundle.py
 
 Twister
 -------

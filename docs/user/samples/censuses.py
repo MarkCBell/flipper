@@ -2,28 +2,10 @@ from time import time
 import snappy
 import flipper
 
-def compare(surface, monodromy, manifold):
-    M = snappy.Manifold(manifold)  # = snappy.twister.Surface(surface).bundle(monodromy)
-    N = snappy.Manifold(flipper.load(surface).mapping_class(monodromy).bundle())
-    for _ in range(100):
-        try:
-            if M.is_isometric_to(N):
-                return True
-        except RuntimeError:
-            pass  # SnapPy couldn't decide if these are isometric or not.
-        M.randomize()
-        N.randomize()
-
-    return False
-
-database = 'CHW'  # We could also load 'knots'.
-df = flipper.census(database)  # A pandas DataFrame.
-print('Building mapping tori for each monodromy in %s' % database)
-
-for manifold, row in df.iterrows():
-    print('Buiding: %s over %s (target %s).' % (row.monodromy, row.surface, manifold))
+for _, row in flipper.census('CHW').iterrows():  # We could also load 'knots'.
     start_time = time()
-    if not compare(row.surface, row.monodromy, manifold):
-        print('Could not match %s on %s' % (row.monodromy, row.surface))
-    print('\tComputed in %0.3fs' % (time() - start_time))
+    M = snappy.Manifold(row.manifold)
+    N = snappy.Manifold(flipper.load(row.surface).mapping_class(row.monodromy).bundle())
+    assert M.is_isometric_to(N)  # Never fails for these examples.
+    print('Matched %s over %s with %s in %0.3fs.' % (row.monodromy, row.surface, row.manifold, time() - start_time))
 

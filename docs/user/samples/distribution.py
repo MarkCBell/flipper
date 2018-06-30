@@ -1,17 +1,10 @@
-from __future__ import print_function
-import sys
 import flipper
 
-surface = 'S_2_1'
 length = 10
 num_samples = 100
 
-S = flipper.load(surface)
+S = flipper.load('S_2_1')
 for i in range(length):
-    count = 0
-    for j in range(num_samples):
-        if S.mapping_class(i).is_pseudo_anosov(): count += 1
-        print('\rLength: %d, Computed %d/%d - %0.1f%% pA' % (i, (j+1), num_samples, float(count) * 100 / (j+1)), end='')
-        sys.stdout.flush()
-    print('')
+    pA_samples = sum(1 if S.mapping_class(i).is_pseudo_anosov() else 0 if j for j in range(num_samples))
+    print('Length %d: %0.1f%% pA' % (i, float(pA_samples) * 100 / num_samples))
 

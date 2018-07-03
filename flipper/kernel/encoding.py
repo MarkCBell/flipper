@@ -262,8 +262,7 @@ class Encoding(object):
         
         To find this we start with a curve on the surface and repeatedly apply
         the map until it appear to be projectively similar to a previous iteration.
-        Finally it uses:
-            flipper.kernel.symboliccomputation.perron_frobenius_eigen()
+        Finally it uses :func:`flipper.kernel.symboliccomputation.directed_eigenvector()`
         to find the nearby projective fixed point. If this fails after some number
         of iterations then we fall back to computing the action inside of every
         cell of the PL action. Generically this is exponentially slow.
@@ -628,22 +627,20 @@ class Encoding(object):
         ''' Return the bundle associated to this mapping class.
         
         This method can be run in two different modes:
-        If veering=True:
-            Then the bundle returned is triangulated by a veering, layered
-            triangulation and has at most 6g+5n-6 additional loops drilled
-            from it, as described by Agol. These additional cusps are marked
-            as fake cusps and can be dealt with by filling along their
-            fibre slope.
-            
-            Assumes (and checks) that this mapping class is pseudo-Anosov.
-        If veering=False:
-            Then the bundle returned is triangulated by a layered triangulation
-            obtained by stacking flat tetrahedra, one for each edge flip in
-            self.
-            
-            Assumes (and checks) that the resulting triangulation is an ideal
-            triangulation of a manifold and that the fibre surface immerses
-            into the two skeleton. If _safety=True then this should always happen.
+        
+        If veering=True then the bundle returned is triangulated by a veering,
+        layered triangulation and has at most 6g+5n-6 additional loops drilled
+        from it, as described by Agol. These additional cusps are marked as
+        fake cusps and can be dealt with by filling along their fibre slope.
+        Assumes (and checks) that this mapping class is pseudo-Anosov.
+        
+        If veering=False then the bundle returned is triangulated by a layered
+        triangulation obtained by stacking flat tetrahedra, one for each edge
+        flip in self.
+        
+        Assumes (and checks) that the resulting triangulation is an ideal
+        triangulation of a manifold and that the fibre surface immerses into
+        the two skeleton. If _safety=True then this should always happen.
         
         This encoding must be a mapping class. '''
         

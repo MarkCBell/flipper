@@ -3,11 +3,13 @@
 
 Some of the functions and methods have assumptions on them. We denote
 in a functions docstring:
-    Assumes that ...
+
+ - *Assumes that* ...
         If the assumptions are met then this function is guaranteed to terminate correctly.
         If not then this function will either:
-            terminate correctly, OR
-            a flipper.AssumptionError will be raised.
+        
+            - terminate correctly, OR
+            - a flipper.AssumptionError will be raised.
     
     Assumes (and checks) that ...
         If the assumptions are met then this function is guaranteed to terminate correctly.

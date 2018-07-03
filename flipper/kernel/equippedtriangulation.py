@@ -96,10 +96,10 @@ class EquippedTriangulation(object):
     
     @classmethod
     def from_tuple(cls, objects):
-        
         ''' Create an EquippedTriangulation from a list of triangulations, laminations and mapping classes.
         
         Objects must be a non-empty list where each item is:
+        
             1) an triangulation (at most one may be given),
             2) a Lamination,
             3) an Encoding,
@@ -107,8 +107,7 @@ class EquippedTriangulation(object):
             5) a pair (String, Encoding).
         
         All laminations / mapping classes must be defined on the same triangulation
-        We will automatically name items of type 2) and 3) sequentially:
-            a, b, ..., z, aa, ab, ... . '''
+        We will automatically name items of type 2) and 3) sequentially `a, b, ..., z, aa, ab, ...` . '''
         
         triangulation = None
         laminations, mapping_classes = {}, {}
@@ -303,23 +302,26 @@ class EquippedTriangulation(object):
         
         There are several equivalence relations defined on these words.
         Words may represent the same:
+        
             - mapping class group element (==),
             - conjugacy class (~~), or
             - fibre class (~?).
         
         Valid options and their defaults:
-            equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
-            exact=False -- skip words that do not have exactly the required length.
-            letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
-            skip=None -- an iterable containing substrings that cannot appear.
-            relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
-            prefilter=None -- filter the prefixes of words by this function.
-            filter=None -- filter the words by this function.
-            apply=None -- apply the given function to the words.
-            cores=None -- how many cores to use.
-            prefix_depth=4 -- depth to search for prefixes for other cores.
+        
+            - equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
+            - exact=False -- skip words that do not have exactly the required length.
+            - letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
+            - skip=None -- an iterable containing substrings that cannot appear.
+            - relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
+            - prefilter=None -- filter the prefixes of words by this function.
+            - filter=None -- filter the words by this function.
+            - apply=None -- apply the given function to the words.
+            - cores=None -- how many cores to use.
+            - prefix_depth=4 -- depth to search for prefixes for other cores.
         
         Notes:
+        
             - By default letters are sorted by (length, lower case, swapcase).
             - For the equivalence used bundle ==> conjugacy ==> group.
             - The function given toapply must be a pickleable if using multiple cores. '''
@@ -415,23 +417,26 @@ class EquippedTriangulation(object):
         
         There are several equivalence relations defined on these mapping classes.
         We may try to only one of each:
+        
             - mapping class group element (==),
             - conjugacy class (~~), or
             - fibre class (~?).
         
         Valid options and their defaults:
-            equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
-            exact=False -- skip words that do not have exactly the required length.
-            letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
-            skip=None -- an iterable containing substrings that cannot appear.
-            relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
-            prefilter=None -- filter the prefixes of words by this function.
-            filter=None -- filter the words by this function.
-            apply=None -- apply the given function to the words.
-            cores=None -- how many cores to use.
-            prefix_depth=3 -- depth to search for prefixes for other cores.
+        
+            - equivalence='bundle' -- equivalence relation to use. 'bundle', 'conjugacy', 'group', 'none'
+            - exact=False -- skip words that do not have exactly the required length.
+            - letters=self.mapping_classes - a list of available letters to use, in alphabetical order.
+            - skip=None -- an iterable containing substrings that cannot appear.
+            - relator_len=2 -- if skip is not given then search words of length at most this much looking for relations.
+            - prefilter=None -- filter the prefixes of words by this function.
+            - filter=None -- filter the words by this function.
+            - apply=None -- apply the given function to the words.
+            - cores=None -- how many cores to use.
+            - prefix_depth=3 -- depth to search for prefixes for other cores.
         
         Notes:
+        
             - By default letters are sorted by (length, lower case, swapcase).
             - For the equivalence used bundle ==> conjugacy ==> group.
             - The function given toapply must be a pickleable if using multiple cores. '''

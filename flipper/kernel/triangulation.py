@@ -294,10 +294,11 @@ class Triangulation(object):
         Let T be an ideal triangulaton of the punctured (oriented) surface S. Orient
         and edge e of T and assign an index i(e) in 0, ..., zeta-1. Now to each
         triangle t of T associate the triple j)t) := (j(e_1), j(e_2), j(e_3)) where:
+        
             - e_1, e_2, e_3 are the edges of t, ordered acording to the orientation of t, and
-            - j(e) = {  i(e) if the orientation of e agrees with that of t, and
-                     { ~i(e) otherwise.
-                Here ~x := -1 - x, the two's complement of x.
+            - j(e) = i(e) if the orientation of e agrees with that of t else ~i(e)
+        
+        Here ~x := -1 - x, the two's complement of x.
         
         We may describe T by the list [j(t) for t in T]. This function reconstructs
         T from such a list.
@@ -423,8 +424,10 @@ class Triangulation(object):
         ''' Return the triangulation described by the given isomorphism signature.
         
         See the appendix of:
-            Simplification paths in the Pachner graphs of closed orientable
-            3-manifold triangulations
+        
+            - Simplification paths in the Pachner graphs of closed orientable, and
+            - 3-manifold triangulations
+        
         for a more detailed description of this construction. '''
         
         # We will specialise this function for loading isomorphism signatures
@@ -1197,16 +1200,17 @@ class Triangulation(object):
         
         This consists of EdgeFlips, Isometries and LinearTransformations. Furthermore there are
         several conventions that allow these to be specified by a smaller amount of information.
+        
          - An integer x represents EdgeFlip(..., edge_label=x)
          - A dictionary which has i or ~i as a key (for every i) represents a relabelling.
          - A dictionary which is missing i and ~i (for some i) represents an isometry back to this triangulation.
          - None represents the identity isometry.
         
-        This sequence is read in reverse in order respect composition. For example:
-            self.encode([1, {1: ~2}, 2, 3, ~4])
-        is the mapping class which: flips edge ~4, then 3, then 2, then relabels
-        back to the starting triangulation via the isometry which takes 1 to ~2 and
-        then finally flips edge 1. '''
+        This sequence is read in reverse in order respect composition.
+        For example ``self.encode([1, {1: ~2}, 2, 3, ~4])`` is the mapping
+        class which: flips edge ~4, then 3, then 2, then relabels back to the
+        starting triangulation via the isometry which takes 1 to ~2 and then
+        finally flips edge 1. '''
         
         assert isinstance(sequence, (list, tuple))
         
@@ -1255,8 +1259,8 @@ class Triangulation(object):
         
         The isometry used is the one taking edge_from_label to edge_to_label.
         
-        This function has been depreciated in favour of self.encode() and is equivalent to:
-            self.encode([{edge_from_label: edge_to_label}] + list(reversed(edge_labels)))
+        This function has been depreciated in favour of self.encode().
+        It is equivalent to ``self.encode([{edge_from_label: edge_to_label}] + list(reversed(edge_labels)))``.
         Note that edge_labels needs to be reversed in order to match the order of
         composition used in self.encode(). '''
         

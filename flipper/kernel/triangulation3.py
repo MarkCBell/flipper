@@ -207,13 +207,14 @@ class Triangulation3(object):
         
         See SnapPy/kernel_code/intersection_numbers.c for more information.
         
-        Convention:
-            B
-            ^
+        Convention::
+        
+            ^ B
             |
          ---+---> A
             |
             |
+        
         has intersection <A, B> := +1. '''
         
         # This is the number of strands flowing from A to B. It is negative if they go in the opposite direction.

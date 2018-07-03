@@ -1,8 +1,9 @@
 
-# Provides several Tkinter widgets:
-#    1) Meter - a progress bar, and
-#    2) SplitButton - a button with additional menu of actions.
-#    3) AnimatedCanvas - a canvas that periodically updates.
+''' Provides several Tkinter widgets:
+
+    1) Meter - a progress bar, and
+    2) SplitButton - a button with additional menu of actions.
+    3) AnimatedCanvas - a canvas that periodically updates. '''
 
 try:
     import Tkinter as TK
@@ -79,9 +80,7 @@ class Meter(TK.Frame):
     All methods of a TK.Frame can be used; additionally there are two widget specific methods:
     
         get() -- returns a tuple of the form (value, text)
-        set(value, text) -- updates the widget's value and the displayed text;
-                            if value is omitted it defaults to 0.0 , text defaults to None .
-    '''
+        set(value=0.0, text=None) -- updates the widget's value and the displayed text. '''
     def __init__(self, master, width=300, height=20, bg='white', fillcolour='midnight blue', value=0.0, text=None, font=None, textcolour='black', *args, **kw):
         
         TK.Frame.__init__(self, master, bg=bg, width=width, height=height, *args, **kw)
@@ -97,8 +96,7 @@ class Meter(TK.Frame):
         self.bind('<Configure>', self._update_coords)
     
     def _update_coords(self, event):
-        '''Updates the position of the text and rectangle inside the canvas when the size of
-        the widget gets changed.'''
+        '''Updates the position of the text and rectangle inside the canvas when the size of the widget gets changed.'''
         # Looks like we have to call update_idletasks() twice to make sure to get the results we expect
         self._canv.update_idletasks()
         self._canv.coords(self._text, self._canv.winfo_width()/2, self._canv.winfo_height()/2)
@@ -125,16 +123,18 @@ class AnimatedCanvas(TK.Canvas, object):
     
     INITIALIZATION OPTIONS:
     The widget subclasses a TK.Canvas and adds:
-        - frames -- a list of TK.PhotoImages to show.
-        - frames_contensts -- a list of base64 encoded images to show.
-        - frames_path -- a path to a directory containing frames to load.
-        - delay -- the delay (in ms) between showing each frame.
-        - start_animated -- start animating as soon as the widget is created.
+    
+     - frames -- a list of TK.PhotoImages to show.
+     - frames_contensts -- a list of base64 encoded images to show.
+     - frames_path -- a path to a directory containing frames to load.
+     - delay -- the delay (in ms) between showing each frame.
+     - start_animated -- start animating as soon as the widget is created.
     
     WIDGET METHODS:
     All methods of a TK.Canvas can be used; additionally:
-        start() -- start animating the canvas.
-        stop() -- stop animating the canvas. '''
+    
+     - start() -- start animating the canvas.
+     - stop() -- stop animating the canvas. '''
     def __init__(self, parent, frames_path=None, frames_contents=None, frames=None, delay=85, start_animated=True, **options):
         self.parent = parent
         

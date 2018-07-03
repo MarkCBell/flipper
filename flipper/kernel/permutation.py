@@ -97,7 +97,7 @@ def id_permutation(n):
     return Permutation(list(range(n)))
 
 def cyclic_permutation(cycle, n):
-    ''' Return the cyclic permutation sending 1 |--> cycle in Sym(n). '''
+    ''' Return the cyclic permutation sending i to i + cycle in Sym(n). '''
     
     return Permutation([(cycle + i) % n for i in range(n)])
 

@@ -448,6 +448,7 @@ class FlipperApplication(object):
             - the path to a flipper file,
             - the contents of flipper file, or
             - something that flipper.kernel.package can eat.
+        
         If given nothing it asks the user to select a flipper (kernel) file.'''
         
         try:

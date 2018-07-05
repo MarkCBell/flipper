@@ -48,8 +48,10 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.ifconfig',
     'sphinx.ext.napoleon',
-    'sphinx.ext.autosectionlabel'
+    'sphinx.ext.autosectionlabel',
     ]
+
+autodoc_mock_imports = ['sage']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -289,8 +291,9 @@ def run_apidoc(_):
     from sphinx.apidoc import main
     output_path = os.path.join(current_dir, 'api')
     module_path = os.path.join(project_root, 'flipper')
-    main(None, ['--separate', '--force', '--output-dir', output_path, module_path])
+    main(None, ['--no-toc', '--output-dir', output_path, module_path])
 
 def setup(app):
-    app.connect('builder-inited', run_apidoc)  # Trigger the run_apidoc.
+    # app.connect('builder-inited', run_apidoc)  # Trigger the run_apidoc.
+    pass
 

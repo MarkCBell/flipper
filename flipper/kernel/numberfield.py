@@ -278,8 +278,7 @@ class NumberFieldElement(object):
         ''' Return a polynomial that this algebraic number is a root of.
         
         Note that this is NOT guaranteed to return the minimal polynomial
-        of self. However it will whenever:
-            deg(self) == def(self.number_field). '''
+        of self. However it will whenever ``deg(self) == deg(self.number_field)``. '''
         
         # We get such a polynomial from the characteristic polynomial of the matrix
         # describing the action of self on the basis 1, \lmbda, \lambda^2, ...

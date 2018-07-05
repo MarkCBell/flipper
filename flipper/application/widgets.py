@@ -65,16 +65,17 @@ class Meter(TK.Frame):
     INITIALIZATION OPTIONS:
     The widget subclasses a TK.Frame and adds:
     
-        fillcolour -- the colour that is used to indicate the progress of the
-                     corresponding process; default is "orchid1".
-        value -- a float value between 0.0 and 1.0 (corresponding to 0% - 100%)
-                 that represents the current status of the process; values higher
-                 than 1.0 (lower than 0.0) are automagically set to 1.0 (0.0); default is 0.0 .
-        text -- the text that is displayed inside the widget; if set to None the widget
-                displays its value as percentage; if you don't want any text, use text="";
-                default is None.
-        font -- the font to use for the widget's text; the default is system specific.
-        textcolour -- the colour to use for the widget's text; default is "black".
+     - fillcolour: the colour that is used to indicate the progress of the
+       corresponding process; default is "orchid1".
+     - value: a float value between 0.0 and 1.0 (corresponding to 0% - 100%)
+       that represents the current status of the process; values higher than
+       1.0 (lower than 0.0) are automagically set to 1.0 (0.0); default is 0.0.
+     - text: the text that is displayed inside the widget; if set to None the
+       widget displays its value as percentage; if you don't want any text, use
+       text=""; default is None.
+     - font: the font to use for the widget's text; the default is system
+       specific.
+     - textcolour: the colour to use for the widget's text; default is "black".
     
     WIDGET METHODS:
     All methods of a TK.Frame can be used; additionally there are two widget specific methods:

@@ -11,7 +11,7 @@ in a functions docstring:
             - terminate correctly, OR
             - a flipper.AssumptionError will be raised.
     
-    Assumes (and checks) that ...
+ - *Assumes (and checks) that* ...
         If the assumptions are met then this function is guaranteed to terminate correctly.
         If not then this a flipper.AssumptionError will be raised. '''
 

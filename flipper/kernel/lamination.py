@@ -19,11 +19,13 @@ class Lamination(object):
     
     It is given by a list of its geometric intersection numbers and a
     list of its algebraic intersection numbers with the (oriented) edges
-    of underlying triangulation. Note that:
-         ^L
-         |
-    -----|------> e
-         |
+    of underlying triangulation. Note that::
+    
+            ^ L
+            |
+        ----|----> e
+            |
+     
     has algebraic intersection +1.
     
     Users should use Triangulation.lamination() to create laminations with,

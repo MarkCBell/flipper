@@ -41,8 +41,7 @@ class FlatStructure(object):
     ''' This represents a triangulation with a flat structure.
     
     It is specified by a triangulation together with a map taking each edge to a Vector2.
-    These should satisfy some standard relations like:
-        sum(vector[edge] for edge in triangle) == 0.
+    These should satisfy some standard relations like ``sum(vector[edge] for edge in triangle) == 0``.
     '''
     def __init__(self, triangulation, edge_vectors):
         assert isinstance(triangulation, flipper.kernel.Triangulation)

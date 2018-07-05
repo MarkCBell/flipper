@@ -211,12 +211,13 @@ class Polynomial(object):
         
         This is a finite list of polynomials p_0, p_1, ..., p_m of decreasing degree
         with these following properties:
-            p_0 = p is square free,
-            if p(x) = 0 then sign(p_1(x)) = sign(p'(x)),
-            if p_i(x) = 0 then sign(p_{i-1}(x)) = -sign(p_{i+1}(x)), and
-            p_m has constant sign.
-        We use Sturm's method for constructing such a chain based off of the Euclidean algorithm, see:
-            http://en.wikipedia.org/wiki/Sturm's_theorem '''
+        
+         - p_0 = p is square free,
+         - if p(x) = 0 then sign(p_1(x)) = sign(p'(x)),
+         - if p_i(x) = 0 then sign(p_{i-1}(x)) = -sign(p_{i+1}(x)), and
+         - p_m has constant sign.
+         
+        We use `Sturm's method <http://en.wikipedia.org/wiki/Sturm's_theorem>`_  for constructing such a chain based off of the Euclidean algorithm. '''
         
         if self._chain is None:
             square_free = self.square_free()
@@ -280,10 +281,12 @@ class Polynomial(object):
     def companion_matrix(self):
         ''' Return the companion matrix of this polynomial.
         
-        This is the matrix:
+        This is the matrix::
+        
         (  0 |           )
         (----+ -V[:-1]^T )
         ( Id |           )
+        
         where V is the vector of coefficients of this polynomial.
         
         Assumes (and checks) that this polynomial is monic. '''

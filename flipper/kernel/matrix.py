@@ -153,10 +153,12 @@ class Matrix(object):
         
         return Matrix(list(zip(*self.rows)))
     def join(self, other):
-        ''' Return the matrix:
+        ''' Return the matrix::
+        
             (self )
             (-----)
             (other)
+        
         This is the same as Sages Matrix.stack() function. '''
         
         return Matrix(self.rows + other.rows)
@@ -206,8 +208,7 @@ class Matrix(object):
     def characteristic_polynomial(self):
         ''' Return the characteristic polynomial of this matrix.
         
-        Based off of the Faddeev-Leverrier method. See:
-            http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html
+        Based off of the `Faddeev-Leverrier method <http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html>`_.
         This avoids have to compute an expensive determinant.
         
         This matrix must be square. '''
@@ -238,9 +239,11 @@ class Matrix(object):
     def row_reduce(self, zeroing_width=None):
         ''' Return this matrix after applying elementary row operations
         so that in each row each non-zero entry either:
+        
             1) has a non-zero entry to the left of it,
             2) has no non-zero entries below it, or
             3) is in a column > zeroing_width.
+        
         if zeroing_width is None: zeroing_width = self.width. '''
         
         if zeroing_width is None: zeroing_width = self.width

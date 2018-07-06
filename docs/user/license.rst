@@ -1,0 +1,5 @@
+
+Flipper License
+===============
+
+    .. include:: ../../LICENSE

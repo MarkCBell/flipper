@@ -11,12 +11,12 @@ instructions for getting the most out of Flipper.
 .. toctree::
    :maxdepth: 2
 
-   user/intro
    user/install
-   user/taste.rst
-   user/walkthrough.rst
-   user/samples.rst
+   user/taste
+   user/walkthrough
+   user/samples
    user/citing
+   user/license
    user/history
 
 The API Documentation

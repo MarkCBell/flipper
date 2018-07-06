@@ -287,13 +287,3 @@ texinfo_documents = [
 # If true, do not generate a @detailmenu in the "Top" node's menu.
 #texinfo_no_detailmenu = False
 
-def run_apidoc(_):
-    from sphinx.apidoc import main
-    output_path = os.path.join(current_dir, 'api')
-    module_path = os.path.join(project_root, 'flipper')
-    main(None, ['--no-toc', '--output-dir', output_path, module_path])
-
-def setup(app):
-    # app.connect('builder-inited', run_apidoc)  # Trigger the run_apidoc.
-    pass
-

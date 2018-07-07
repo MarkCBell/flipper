@@ -17,6 +17,9 @@ environment:
     - PYTHON: "C:\\Python36"
       TOX_ENV: "py36"
 
+    - PYTHON: "C:\\Python36"
+      TOX_ENV: "docs"
+
 init:
   - set "PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - echo "%PYTHON%"

@@ -7,4 +7,5 @@ History
 -------------------
 
 * First git release.
+* Changed optional flag of Encoding.bundle from ``canonical`` to ``veering``.
 

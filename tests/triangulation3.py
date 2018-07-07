@@ -27,7 +27,7 @@ twister_tests = [
     ]
 
 class TestTriangulation3(unittest.TestCase):
-    def assertManifoldsEqual(manifold, target):
+    def assertManifoldsIsometric(self, manifold, target):
         for _ in range(100):
             try:
                 if manifold.is_isometric_to(target):
@@ -41,12 +41,12 @@ class TestTriangulation3(unittest.TestCase):
     def test_snappy(self):
         if snappy is None: return
         for surface, word, target_manifold in tests:
-            manifold = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle(canonical=False))
+            manifold = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle(veering=False))
             self.assertManifoldsIsometric(manifold, snappy.Manifold(target_manifold))
     
     def test_twister(self):
         if snappy is None: return
         for surface, word in twister_tests:
-            manifold = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle(canonical=False))
+            manifold = snappy.Manifold(flipper.load(surface).mapping_class(word).bundle(veering=False))
             self.assertManifoldsIsometric(manifold, snappy.twister.Surface(surface).bundle(word))
 

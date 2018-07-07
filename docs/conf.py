@@ -52,6 +52,7 @@ extensions = [
     ]
 
 autodoc_mock_imports = ['sage']
+autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']

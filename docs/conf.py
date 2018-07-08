@@ -49,13 +49,14 @@ extensions = [
     'sphinx.ext.ifconfig',
     'sphinx.ext.napoleon',
     'sphinx.ext.autosectionlabel',
+    'sphinx.ext.autosummary',
     ]
 
 autodoc_mock_imports = ['sage']
-autodoc_default_flags = ['members', 'undoc-members', 'show-inheritance']
+autosummary_generate = True
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+templates_path = ['templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -68,7 +69,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'flipper'
-copyright = u"2017, Mark Bell"
+copyright = u"2013, Mark Bell"
 
 # The version info for the project you're documenting, acts as replacement
 # for |version| and |release|, also used in various other places throughout

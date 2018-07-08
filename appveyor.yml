@@ -26,10 +26,6 @@ init:
   - python.exe -c "import sys; print(sys.version)"
 
 install:
-  # install ActiveState Tcl:
-  - appveyor DownloadFile http://downloads.activestate.com/ActiveTcl/releases/8.6.7.0/ActiveTcl-8.6.7.0-MSWin32-x64-404764.exe
-  - ActiveTcl-8.6.7.0-MSWin32-x64-404764.exe --directory C:\Tcl
-
   - pip.exe install setuptools --upgrade
   - pip.exe install -r requirements-dev.txt
   - pip.exe install --editable .

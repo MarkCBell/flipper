@@ -3,7 +3,7 @@
 
 Provides one class: Encoding. '''
 
-from itertools import product
+from itertools import product, count
 
 import flipper
 
@@ -311,6 +311,26 @@ class Encoding(object):
             w = curve.weight()
             return (resolution,) + tuple([entry * resolution // w for entry in curve])
         
+        cells = self.pl_action()
+        tested = set()
+        
+        def test_cell(cell):
+            ''' Return an eigenvector of this action matrix inside the cone defined by condtion matrix.
+            
+            Raise a ComputationError if no such vector exists. '''
+            # We'll store cell in a set to ensure that we never test the same cell twice.
+            if cell in tested:
+                raise flipper.ComputationError('No interesting eigenvectors in cell.')
+            
+            tested.add(cell)
+            action_matrix, condition_matrix = cell
+            eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix)
+            invariant_lamination = triangulation.lamination(eigenvector)
+            if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+                raise flipper.ComputationError('No interesting eigenvectors in cell.')
+            
+            return eigenvalue, invariant_lamination
+        
         # We start with a fast test for periodicity.
         # This isn't needed but it means that if we ever discover that
         # self is not pA then it must be reducible.
@@ -322,43 +342,35 @@ class Encoding(object):
         if starting_curve is None: starting_curve = triangulation.key_curves()[0]
         curves = [starting_curve]
         seen = {curve_hash(curves[0], resolution): [0]}
-        tested = set()
-        # Experimentally this is a good number to do.
-        # Should it be max_order**2 or even depend on len(self)?
-        for i in range(max(10 * max_order, 100)):
+        
+        # The result of Margalit--Strenner--Yurtas implies that this count will never go over some polynomial function of len(self).
+        # So in the future this could be replaced by range(poly(len(self))).
+        for i in count():
             new_curve = self(curves[-1])
             curves.append(new_curve)
-            
             hsh = curve_hash(new_curve, resolution)
             # print(i, new_curve, hsh)
+            
+            # We try to find a projective fixed point through iteration.
             if hsh in seen:
                 for j in reversed(seen[hsh]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
                     # Check if we have seen this curve before.
                     if new_curve == curves[j]:  # self**(i-j)(new_curve) == new_curve, so self is reducible.
                         raise flipper.AssumptionError('Mapping class is reducible.')
-                    # Average the last few curves in case they have 'spiralled' around the fixedpoint.
+                    # Test the cell containing the average the last few curves in case they have 'spiralled' around the fixedpoint.
                     average_curve = sum(curves[j:])
-                    action_matrix, condition_matrix = self.applied_geometric(average_curve)
-                    # We'll store condition_matrix in a set to ensure that we never test the same cell twice.
-                    if condition_matrix not in tested:
-                        tested.add(condition_matrix)
-                        try:
-                            eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
-                                action_matrix, condition_matrix)
-                        except flipper.ComputationError:
-                            pass  # Could not find an eigenvector in the cone.
-                        except flipper.AssumptionError:
-                            raise flipper.AssumptionError('Mapping class is reducible.')
-                        else:
-                            invariant_lamination = triangulation.lamination(eigenvector)
-                            if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-                                return eigenvalue, invariant_lamination
+                    try:
+                        return test_cell(self.applied_geometric(average_curve))
+                    except flipper.ComputationError:
+                        pass
                 
                 seen[hsh].append(i+1)
             else:
                 seen[hsh] = [i+1]
             
-            # We now have an extra test to handle the case when self is reducible and curve lies only in periodic parts.
+            # We now have a series of extra tests for edge cases / performance.
+            
+            # Extra test: handle the case when self is reducible and curve lies only in periodic parts.
             if len(seen[hsh]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.
                 for j in reversed(range(max(len(curves) - max_order, 0), len(curves)-1)):
                     # A good guess for the reducing curve is the (additive) growth rate.
@@ -374,31 +386,27 @@ class Encoding(object):
                                 else:
                                     raise flipper.AssumptionError('Mapping class is reducible.')
             
+            # Performance.
             if len(seen[hsh]) > 6:
                 # Recompute seen to a higher resolution.
                 # This reduces the chances that we will get false positives that need
                 # to have an expensive directed_eigenvector calculation done on them.
                 resolution = resolution * 10  # Crank up exponentially.
-        
-        # If all else fails then just check every cell of the PL action. There can be exponentially many cells
-        # (and generically there are) so this process is extremely slow. However it is guaranteed to terminate
-        # with an invariant lamination or prove that the mapping class is reducible.
-        for action_matrix, condition_matrix in self.pl_action():
-            if condition_matrix not in tested:  # We may as well skip cells that we've already tested.
+            
+            # Extra test: just examine every cell.
+            if i > max(10 * max_order, 100):  # Is this a reasonable threshold?
+                # There can be (and generically are) exponentially many cells so this process is extremely slow.
+                # However it is guaranteed to terminate with an invariant lamination or prove that the mapping class is reducible.
                 try:
-                    eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(
-                        action_matrix, condition_matrix)
+                    return test_cell(next(cells))
                 except flipper.ComputationError:
-                    pass  # Could not find an eigenvector in the cone.
-                except flipper.AssumptionError:
+                    pass
+                except StopIteration:
+                    # If none of the cells contained a projective fixed-point with eigenvalue > 1 then this mapping class must be reducible.
                     raise flipper.AssumptionError('Mapping class is reducible.')
-                else:
-                    invariant_lamination = triangulation.lamination(eigenvector)
-                    if not invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-                        return eigenvalue, invariant_lamination
         
-        # If none of the cells contained a projective fixed-point with eigenvalue > 1 then this mapping class
-        # must be reducible.
+        # Currently, we can never reach this line. But it is here in case we
+        # ever replace the count() with range().
         raise flipper.AssumptionError('Mapping class is reducible.')
     
     def pml_fixedpoint(self):

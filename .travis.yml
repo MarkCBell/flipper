@@ -24,7 +24,7 @@ install:
 script:
 - tox -e $TOX_ENV -- --hypothesis-profile=ci --duration=20
 after_success:
-- if [[ $TRAVIS_PYTHON_VERSION == 2.7 ]]; then coveralls; fi
+- if [[ $TOX_ENV == "py27" ]]; then coveralls; fi
 deploy:
   provider: pypi
   user: mark_bell
@@ -32,4 +32,4 @@ deploy:
     secure: m2AcBGKuwVUUnDqn2p0Ft5juSUMb6LMPIYeE/sfORXjCOU/7YQkxx9jVx5P01s6caS7aMRULczNFbkYYK2saQaXGEPDzgSOrvAWOC1+W/GQIbyiosnZ4tTjTFWIhbMFMWr5GE8Xc61BFdRhnIUWTorPr3wOfokHWROiyNNXuCfwhWHi33aeUy73sFlEKSlkgCIm3U4B3Evm0NWmXWoFT38fLt0hjCb3ry29GOk74TI8FeGM+MnLghZLaduIQWUglWMDKO0qo/wMDmzNTa4bHG0rRSGjsYV4aCUu4OSRHCDt9OPKYuSJKr1e6fxUAs4bKO4C5lepoUF7ULdgQP7cMhqPNk0wkxGkDj84dFjcL8m7PbJ9VfW8PMd9vqL5HjrBBMEzgda0uPkYLlHCq0Itd9QIKPQEFrRg1fRb7gZfyva1250XAPqcryq9JhjHDe68aOWf6ykWXZgtM2EWYNL/fMCfmC9P8RnTzeJ6QszVqKsap+J/4SQ8VZO5yRvN06c91t6IfHjWdIsdRl2cAk5O2yf9AUit9h5kPCtLF+T+eZUmqHP40LswAKsnV95QCr1B4IwRRE9irKeFRUFFIXXFrkJ6qeUp4LC2/BIwYaHwZYjBmlVuiiuT5aI80RWpzV1OMsk1UgfFjZXokur8IQzakZx5IV7qoYaanDyBs377goBA=
   on:
     tags: true
-    python: 2.7
+    condition: $TOX_ENV == "py27"

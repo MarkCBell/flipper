@@ -7,6 +7,10 @@ language: python
 matrix:
   include:
   - python: "2.7"
+    env: TOX_ENV="lint2"
+  - python: "3.6"
+    env: TOX_ENV="lint3"
+  - python: "2.7"
     env: TOX_ENV="py27"
   - python: "3.5"
     env: TOX_ENV="py35"
@@ -15,8 +19,7 @@ matrix:
   - python: "3.6"
     env: TOX_ENV="docs"
 install:
-- pip install -r requirements-dev.txt
-- pip install --editable .
+- pip install tox
 - pip install coveralls
 script:
 - tox -e $TOX_ENV -- --hypothesis-profile=ci --duration=20

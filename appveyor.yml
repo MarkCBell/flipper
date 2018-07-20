@@ -9,6 +9,12 @@ branches:
 environment:
   matrix:
     - PYTHON: "C:\\Python27"
+      TOX_ENV: "lint2"
+
+    - PYTHON: "C:\\Python36"
+      TOX_ENV: "lint3"
+
+    - PYTHON: "C:\\Python27"
       TOX_ENV: "py27"
 
     - PYTHON: "C:\\Python35"
@@ -27,7 +33,6 @@ init:
 
 install:
   - pip.exe install setuptools --upgrade
-  - pip.exe install -r requirements-dev.txt
   - pip.exe install --editable .
 
 test_script:

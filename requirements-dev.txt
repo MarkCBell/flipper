@@ -1,6 +1,6 @@
 flake8
 hypothesis
-pylint
+pylint!=2.0.0
 pytest
 pytest-cov
 sphinx

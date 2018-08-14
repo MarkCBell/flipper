@@ -1214,40 +1214,43 @@ class Triangulation(object):
         
         assert isinstance(sequence, (list, tuple))
         
-        h = None
-        for item in reversed(sequence):
-            if isinstance(item, flipper.IntegerType):  # Flip.
-                if h is None:
-                    h = self.encode_flip(item)
-                else:
-                    h = h.target_triangulation.encode_flip(item) * h
-            elif isinstance(item, dict):  # Isometry.
-                if h is None:
-                    h = self.encode_relabel_edges(item)
-                elif all(i in item or ~i in item for i in self.indices):
-                    h = h.target_triangulation.encode_relabel_edges(item) * h
-                else:  # If some edges are missing then we assume that we must be mapping back to this triangulation.
-                    h = h.target_triangulation.find_isometry(self, item).encode() * h
-            elif item is None:  # Identity isometry.
-                if h is None:
-                    h = self.id_encoding()
-                else:
-                    h = h.target_triangulation.id_encoding() * h
-            elif isinstance(item, flipper.kernel.Encoding):  # Encoding.
-                if h is None:
-                    h = item
-                else:
-                    h = item * h
-            elif isinstance(item, flipper.kernel.Move):  # Move.
-                if h is None:
-                    h = item.encode()
-                else:
-                    h = item.encode() * h
-            else:  # Other.
-                if h is None:
-                    h = item.encode()
-                else:
-                    h = item.encode() * h
+        if sequence:
+            h = None
+            for item in reversed(sequence):
+                if isinstance(item, flipper.IntegerType):  # Flip.
+                    if h is None:
+                        h = self.encode_flip(item)
+                    else:
+                        h = h.target_triangulation.encode_flip(item) * h
+                elif isinstance(item, dict):  # Isometry.
+                    if h is None:
+                        h = self.encode_relabel_edges(item)
+                    elif all(i in item or ~i in item for i in self.indices):
+                        h = h.target_triangulation.encode_relabel_edges(item) * h
+                    else:  # If some edges are missing then we assume that we must be mapping back to this triangulation.
+                        h = h.target_triangulation.find_isometry(self, item).encode() * h
+                elif item is None:  # Identity isometry.
+                    if h is None:
+                        h = self.id_encoding()
+                    else:
+                        h = h.target_triangulation.id_encoding() * h
+                elif isinstance(item, flipper.kernel.Encoding):  # Encoding.
+                    if h is None:
+                        h = item
+                    else:
+                        h = item * h
+                elif isinstance(item, flipper.kernel.Move):  # Move.
+                    if h is None:
+                        h = item.encode()
+                    else:
+                        h = item.encode() * h
+                else:  # Other.
+                    if h is None:
+                        h = item.encode()
+                    else:
+                        h = item.encode() * h
+        else:
+            h = self.id_encoding()
         
         # Install a cache if we were given one.
         if _cache is not None: h._cache = _cache
@@ -1280,8 +1283,8 @@ class Triangulation(object):
         def generator(T, d, flippable):
             ''' Return the sequences of at most d flips from this triangulation where only the specified edges are flippable. '''
             for i in flippable:
-                yield [i]
-                if d > 1:
+                if d >= 1:
+                    yield [i]
                     T2 = T.flip_edge(i)
                     square = [edge.index for edge in T.square_about_edge(i)]
                     new_flippable = [j for j in T2.flippable_edges() if (j > i and j in flippable) or j in square]
@@ -1297,6 +1300,7 @@ class Triangulation(object):
             T = T.flip_edge(item)
             flippable = [j for j in T.flippable_edges() if (j > item and j in flippable) or j in square]
         
+        yield prefix
         for sequence in generator(T, depth - len(prefix), flippable):
             yield prefix + sequence
     

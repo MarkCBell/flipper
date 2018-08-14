@@ -252,8 +252,6 @@ class Encoding(object):
                 Cs = Cs.join(C)
         
             yield (As, Cs)
-        
-        return
     
     def pml_fixedpoint_uncached(self, starting_curve=None):
         ''' Return a rescaling constant and projectively invariant lamination.

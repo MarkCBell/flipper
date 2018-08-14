@@ -20,7 +20,7 @@ def generate_ordering(letters):
     
     If v or w contains any letter not in letters then returns False. '''
     
-    positions = dict([(letter, index) for index, letter in enumerate(letters)])
+    positions = dict((letter, index) for index, letter in enumerate(letters))
     return lambda v, w: all(x in positions for x in v) and \
         all(y in positions for y in v) and \
         [len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
@@ -280,22 +280,16 @@ class EquippedTriangulation(object):
                 if good:
                     for word in self._all_words_unjoined(length, prefix2, **options):
                         yield word
-        
-        return
     
     def _all_words_joined(self, length, prefix, **options):
         for word in self._all_words_unjoined(length, prefix, **options):
             joined = '.'.join(word)
             yield joined if options['apply'] is None else options['apply'](joined)
-        
-        return
     
     def _all_mapping_classes(self, length, prefix, **options):
         for word in self._all_words_unjoined(length, prefix, **options):
             mapping_class = self.mapping_class('.'.join(word))
             yield mapping_class if options['apply'] is None else options['apply'](mapping_class)
-        
-        return
     
     def all_words(self, length, prefix=None, **options):
         ''' Yield all words of at most the specified length.

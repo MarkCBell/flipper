@@ -257,7 +257,7 @@ class Lamination(object):
         possible_edges = lamination.triangulation.indices
         drops = sorted([(weight_change(lamination, i), i) for i in possible_edges])
         # If we ever fail to make progress more than once then the curve is as short as it's going to get.
-        while time_since_last_weight_loss < 2 and old_weight > 2:
+        while time_since_last_weight_loss < 2 < old_weight:
             # Find the edge which decreases our weight the most.
             # If none exist then it doesn't matter which edge we flip, so long as it meets the curve.
             _, edge_index = drops[0]

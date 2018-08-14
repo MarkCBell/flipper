@@ -42,12 +42,13 @@ class Permutation(object):
     def __pow__(self, n):
         if n < 0: return (~self)**(-n)
         
+        perm = self
         result = Permutation(list(range(len(self))))
         while n:
             if n % 2 == 1:
-                result = result * self
+                result = result * perm
                 n = n - 1
-            self = self * self
+            perm = perm * perm
             n = n // 2
         return result
     def __eq__(self, other):

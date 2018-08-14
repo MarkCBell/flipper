@@ -291,8 +291,8 @@ class EdgeFlip(Move):
         new_A, new_B = new_cornerA.triangle, new_cornerB.triangle
         # Most of the triangles have stayed the same.
         # This relies on knowing how the upper_triangulation.flip_edge() function works.
-        old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle != A and triangle != B]
-        new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle != new_A and triangle != new_B]
+        old_fixed_triangles = [triangle for triangle in upper_triangulation if triangle not in (A, B)]
+        new_fixed_triangles = [triangle for triangle in new_upper_triangulation if triangle not in (new_A, new_B)]
         for old_triangle, new_triangle in zip(old_fixed_triangles, new_fixed_triangles):
             new_upper_map[new_triangle] = upper_map[old_triangle]
             if maps_to_triangle(upper_map[old_triangle]):  # Don't forget to update the lower_map too.

@@ -727,7 +727,7 @@ class Triangulation(object):
         assert not self.is_flippable(edge_label)
         
         # As edge_label is not flippable the triangle containing it must be (edge_label, ~edge_label, x).
-        [boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label != edge_label and label != ~edge_label]
+        [boundary_edge] = [label for label in self.triangle_lookup[edge_label].labels if label not in (edge_label, ~edge_label)]
         return boundary_edge
     
     def square_about_edge(self, edge_label):
@@ -953,8 +953,8 @@ class Triangulation(object):
         # Make a local copy as we may need to make a lot of changes.
         label_map = dict(label_map)
         
-        source_orders = dict([(corner.label, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class])
-        target_orders = dict([(corner.label, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class])
+        source_orders = dict((corner.label, len(corner_class)) for corner_class in self.corner_classes for corner in corner_class)
+        target_orders = dict((corner.label, len(corner_class)) for corner_class in other.corner_classes for corner in corner_class)
         # We do a depth first search extending the corner map across the triangulation.
         # This is a stack of labels that may still have consequences to check.
         to_process = [(edge_from_label, label_map[edge_from_label]) for edge_from_label in label_map]

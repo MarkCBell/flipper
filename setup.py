@@ -7,7 +7,6 @@ from setuptools import setup, find_packages
 
 requirements = [
     'pandas',
-    'numpy',
     'cypari'
 ]
 

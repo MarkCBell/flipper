@@ -33,10 +33,8 @@ from flipper.census import census  # noqa: F401
 import warnings
 from numbers import Integral as IntegerType  # noqa: F401
 
-with warnings.catch_warnings():
-    warnings.simplefilter("ignore")
-    import pkg_resources  # Suppress 'UserWarning: Module flipper was already imported from ...'
-    __version__ = pkg_resources.require('flipper')[0].version
+import pkg_resources
+__version__ = pkg_resources.get_distribution('flipper').version
 
 # Set up really short names for the most commonly used classes and functions by users.
 create_triangulation = flipper.kernel.create_triangulation

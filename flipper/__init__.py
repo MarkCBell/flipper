@@ -30,7 +30,6 @@ import flipper.kernel
 from flipper.load import load  # noqa: F401
 from flipper.census import census  # noqa: F401
 
-import warnings
 from numbers import Integral as IntegerType  # noqa: F401
 
 import pkg_resources

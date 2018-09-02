@@ -15,71 +15,29 @@ in a functions docstring:
         If the assumptions are met then this function is guaranteed to terminate correctly.
         If not then this a flipper.AssumptionError will be raised. '''
 
-import flipper.kernel.interface  # noqa: F401
-from . import algebraicapproximation
-from . import bundle
-from . import encoding
-from . import error
-from . import equippedtriangulation
-from . import flatstructure
-from . import interval
-from . import lamination
-from . import matrix
-from . import moves
-from . import numberfield
-from . import permutation
-from . import polynomial
-from . import splittingsequence
+from .algebraicapproximation import AlgebraicApproximation  # noqa: F401
+from .bundle import Bundle  # noqa: F401
+from .encoding import Encoding  # noqa: F401
+from .error import AssumptionError, ComputationError, FatalError, ApproximationError, AbortError  # noqa: F401
+from .equippedtriangulation import EquippedTriangulation  # noqa: F401
+from .flatstructure import FlatStructure, Vector2  # noqa: F401
+from .interval import Interval  # noqa: F401
+from .lamination import Lamination  # noqa: F401
+from .matrix import Matrix, id_matrix, zero_matrix, dot  # noqa: F401
+from .moves import Move, Isometry, EdgeFlip, LinearTransformation  # noqa: F401
+from .numberfield import NumberField, NumberFieldElement, height_int  # noqa: F401
+from .permutation import Permutation  # noqa: F401
+from .polynomial import Polynomial, PolynomialRoot  # noqa: F401
+from .splittingsequence import SplittingSequence, SplittingSequences  # noqa: F401
+from .triangulation import Vertex, Edge, Triangle, Triangulation, Corner, norm  # noqa: F401
+from .triangulation3 import Tetrahedron, Triangulation3  # noqa: F401
+from .utilities import product, gcd  # noqa: F401
+
+from . import interface  # noqa: F401
 from . import symboliccomputation  # noqa: F401
-from . import triangulation
-from . import triangulation3
-from . import utilities
-
-# Set up shorter names for all of the different classes.
-Vertex = triangulation.Vertex
-Edge = triangulation.Edge
-Triangle = triangulation.Triangle
-Triangulation = triangulation.Triangulation
-Corner = triangulation.Corner
-AlgebraicApproximation = algebraicapproximation.AlgebraicApproximation
-Bundle = bundle.Bundle
-Encoding = encoding.Encoding
-AbortError = error.AbortError
-ApproximationError = error.ApproximationError
-AssumptionError = error.AssumptionError
-ComputationError = error.ComputationError
-FatalError = error.FatalError
-EquippedTriangulation = equippedtriangulation.EquippedTriangulation
-Vector2 = flatstructure.Vector2
-FlatStructure = flatstructure.FlatStructure
-Interval = interval.Interval
-Lamination = lamination.Lamination
-Matrix = matrix.Matrix
-Move = moves.Move
-Isometry = moves.Isometry
-EdgeFlip = moves.EdgeFlip
-LinearTransformation = moves.LinearTransformation
-NumberField = numberfield.NumberField
-NumberFieldElement = numberfield.NumberFieldElement
-PolynomialRoot = polynomial.PolynomialRoot
-Permutation = permutation.Permutation
-Polynomial = polynomial.Polynomial
-SplittingSequence = splittingsequence.SplittingSequence
-SplittingSequences = splittingsequence.SplittingSequences
-Tetrahedron = triangulation3.Tetrahedron
-Triangulation3 = triangulation3.Triangulation3
-
-id_matrix = matrix.id_matrix
-zero_matrix = matrix.zero_matrix
-dot = matrix.dot
-height_int = numberfield.height_int
-norm = triangulation.norm
 
 # Functions that help with construction.
 create_triangulation = Triangulation.from_tuple
 triangulation_from_iso_sig = Triangulation.from_string
 create_equipped_triangulation = EquippedTriangulation.from_tuple
-
-product = utilities.product
-gcd = utilities.gcd
 

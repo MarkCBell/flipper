@@ -132,18 +132,6 @@ class Matrix(object):
         for _ in range(max_power):
             Ms.append(self * Ms[-1])
         return Ms
-    def inverse(self):
-        ''' Return the inverse of this matrix.
-        
-        This matrix must be square and have determinant +/-1. '''
-        
-        assert self.is_square()
-        
-        P = self.characteristic_polynomial()
-        assert abs(P[0]) == 1  # Check that the determinant is +/-1.
-        # In the next line we should do x // -P[0], but as we know that P[0] == +/-1
-        # 1/-P[0] == -P[0] and so we can use a cheaper multiplication.
-        return -P[0] * P.shift(-1)(self)
     
     def flatten(self):
         ''' Return the entries of this matrix as a single flattened list. '''
@@ -205,27 +193,6 @@ class Matrix(object):
                     if i: A[j][k] = A[j][k] // A[i-1][i-1]  # Division is exact.
         
         return scale * A[self.width-1][self.width-1]
-    def characteristic_polynomial(self):
-        ''' Return the characteristic polynomial of this matrix.
-        
-        Based off of the `Faddeev-Leverrier method <http://mathfaculty.fullerton.edu/mathews/n2003/FaddeevLeverrierMod.html>`_.
-        This avoids have to compute an expensive determinant.
-        
-        This matrix must be square. '''
-        
-        assert self.is_square()
-        
-        # We will actually compute det(\lambdaI - self). Then at the
-        # end we correct this by multiplying by the required +/-1.
-        A = self
-        p = [1] * (self.width+1)
-        for i in range(1, self.width+1):
-            p[i] = -A.trace() // i
-            # If we were smarter we would skip this on the final iteration.
-            A = self * (A + p[i])
-        # Actually now A / p[i] == A^{-1}.
-        sign = +1 if self.width % 2 == 0 else -1
-        return flipper.kernel.Polynomial(p[::-1]) * sign
     
     def elementary(self, i, j, k=1):
         ''' Return the matrix obtained by performing the elementary move:
@@ -340,6 +307,79 @@ class Matrix(object):
 
         return M
     
+<<<<<<< HEAD
+=======
+    def simplify(self):
+        ''' Return a simpler matrix defining the same cone. '''
+        
+        # Remove nonnegative rows.
+        rows = [row for row in self if any(entry < 0 for entry in row)]
+        # Remove dupliates.
+        rows = list(set(tuple(row) for row in rows))
+        # Remove dominated rows.
+        rows = [row for row in rows if all(row == row2 or any(x < y for x, y in zip(row, row2)) for row2 in rows)]
+        return Matrix(rows)
+    
+    def LLL(self, delta=Fraction(3, 4)):
+        ''' Return a delta-LLL reduced basis for the lattice defined by the rows of this matrix. '''
+        
+        # Here we will use Fractions to ensure that we retain absolute precision.
+        
+        # For further information about how this algorithm works see:
+        #    * 'Factoring polynomials with rational coefficients' (Lenstra et al. 1982) in particular
+        #      Figure 1, available at http://www.cs.elte.hu/~lovasz/scans/lll.pdf
+        #    * LibLLL available at https://github.com/kutio/liblll
+        
+        m, n = self.width, self.height
+        
+        M = self
+        GS = self  # The Gram-Schmidt orthogonalisation of self.
+        mu = zero_matrix(m, n)  # The Gram-Schmidt coefficients.
+        for i in range(n):
+            for j in range(i):
+                mu[i][j] = Fraction(dot(self[i], GS[j]), dot(GS[j], GS[j]))
+                GS = GS.elementary(i, j, -mu[i][j])
+        B = [dot(GS[i], GS[i]) for i in range(n)]
+        
+        N = 1
+        while True:
+            if abs(mu[N][N-1]) > 0.5:
+                r = round_fraction(mu[N][N-1])
+                M = M.elementary(N, N-1, -r)
+                for k in range(N-1):
+                    mu[N][k] = mu[N][k] - r * mu[N-1][k]
+                mu[N][N-1] = mu[N][N-1] - r
+            
+            if B[N] < (delta - mu[N][N-1] * mu[N][N-1])*B[N-1]:
+                u = mu[N][N-1]
+                big_B = B[N] + (u * u) * B[N-1]
+                mu[N][N-1] = u * Fraction(B[N-1], big_B)
+                B[N] = B[N-1] * Fraction(B[N], big_B)
+                B[N-1] = big_B
+                M = M.swap(N, N-1)
+                
+                for j in range(N-1):
+                    mu[N-1][j], mu[N][j] = mu[N][j], mu[N-1][j]
+                for i in range(N+1, n):
+                    mu[i][N-1], mu[i][N] = mu[N][N-1]*mu[i][N-1] + mu[i][N] - u*mu[i][N]*mu[N][N-1], mu[i][N-1] - u * mu[i][N]
+                
+                if N > 1: N -= 1
+            else:
+                for j in range(N-2, -1, -1):
+                    if abs(mu[N][j]) > 0.5:
+                        r = round_fraction(mu[N][j])
+                        M = M.elementary(N, j, -r)
+                        for k in range(j):
+                            mu[N][k] = mu[N][k] - r * mu[j][k]
+                        mu[N][j] = mu[N][j] - r
+                
+                if N == n-1: break
+                
+                N += 1
+        
+        return M
+    
+>>>>>>> Trying new algebraic.
     def discard_column(self, column):
         ''' Return the matrix obtained by discarding the given column. '''
         

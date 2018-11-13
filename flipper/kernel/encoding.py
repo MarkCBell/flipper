@@ -437,7 +437,7 @@ class Encoding(object):
         This encoding must be a mapping class. '''
         
         if self.nielsen_thurston_type() != NT_TYPE_PSEUDO_ANOSOV:
-            return flipper.kernel.NumberField().one  # This is equivalent to ZZ[1].one.
+            return 1
         else:
             lmbda, _ = self.pml_fixedpoint()
             return lmbda

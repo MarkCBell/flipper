@@ -558,8 +558,8 @@ class Lamination(object):
         Assumes that this lamination is projectively invariant under some mapping class.
         Assumes (and checks) that this lamination is filling.
         
-        Each entry of self.geometric must be an Integer or a NumberFieldElement (over
-        the same NumberField). '''
+        Each entry of self.geometric must be an Integer or a RealAlgebraic (over
+        the same RealNumberField). '''
         
         # In this method we use Lamination.projective_hash to store the laminations
         # we encounter efficiently and so avoid a quadratic algorithm. This currently
@@ -567,8 +567,8 @@ class Lamination(object):
         # should change dynamically depending on the algebraic numbers involved in
         # this lamination.
         
-        assert all(isinstance(entry, (flipper.IntegerType, flipper.kernel.NumberFieldElement)) for entry in self)
-        assert len(set(entry.number_field for entry in self if isinstance(entry, flipper.kernel.NumberFieldElement))) <= 1
+        assert all(isinstance(entry, (flipper.IntegerType, flipper.kernel.RealAlgebraic)) for entry in self)
+        assert len(set(entry.field for entry in self if isinstance(entry, flipper.kernel.RealAlgebraic))) <= 1
         
         # Check if the lamination is obviously non-filling.
         if all(isinstance(entry, flipper.IntegerType) for entry in self):

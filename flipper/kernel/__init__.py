@@ -21,6 +21,7 @@ from .encoding import Encoding  # noqa: F401
 from .error import AssumptionError, ComputationError, FatalError, ApproximationError, AbortError  # noqa: F401
 from .equippedtriangulation import EquippedTriangulation  # noqa: F401
 from .flatstructure import FlatStructure, Vector2  # noqa: F401
+from .interval import Interval  # noqa: F401
 from .lamination import Lamination  # noqa: F401
 from .matrix import Matrix, id_matrix, zero_matrix, dot  # noqa: F401
 from .moves import Move, Isometry, EdgeFlip, LinearTransformation  # noqa: F401

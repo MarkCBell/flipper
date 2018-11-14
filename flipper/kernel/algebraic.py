@@ -31,6 +31,8 @@ class RealNumberField(object):
         self.length = sum(log_plus(coefficient.numerator) + log_plus(coefficient.denominator) for coefficient in self.coefficients)
         self.sp_place = self.sp_polynomial.real_roots()[index]  # Get the real root, will raise an IndexError if no real roots.
         self.lmbda = self([0, 1])
+        self._prec = 0
+        self._intervals = None
     
     def __str__(self):
         return 'QQ(x) / <<{}>> embedding x |--> {}'.format(self.cp_polynomial.lift(), self.N())
@@ -41,7 +43,14 @@ class RealNumberField(object):
     def __hash__(self):
         return hash(tuple(self.coefficients))
     def N(self, prec=8):
-        return sp.N(self.sp_place, prec)
+        prec = max(prec, 2*(int(self.length)+1))
+        return str(sp.N(self.sp_place, prec))
+    
+    def intervals(self, prec):
+        if prec > self._prec:
+            self._prec = prec
+            self._intervals = [flipper.kernel.Interval.from_string(str(sp.N(self.sp_place**i, 2*prec)), prec) for i in range(self.degree)]
+        return [I.simplify(prec) for I in self._intervals]
 
 @total_ordering
 class RealAlgebraic(object):
@@ -51,6 +60,8 @@ class RealAlgebraic(object):
         self.cp_polynomial = self.cp_mod.lift()
         self.len = self.cp_polynomial.poldegree()
         self.coefficients = [Fraction(int(self.cp_polynomial.polcoeff(i).numerator()), int(self.cp_polynomial.polcoeff(i).denominator())) for i in range(self.len+1)]
+        if not self.coefficients:
+            self.coefficients = [Fraction(0, 1)]
         self.sp_polynomial = sp_polynomial(self.coefficients)
         self.length = sum(log_plus(coefficient.numerator) + log_plus(coefficient.denominator) + index * self.field.length for index, coefficient in enumerate(self.coefficients))
     @classmethod
@@ -118,26 +129,18 @@ class RealAlgebraic(object):
     def minpoly(self):
         return self.cp_mod.minpoly()
     
-    def N(self, prec=8):
-        x = self.field.N(prec)
-        total = 0
-        for coefficient in reversed(self.coefficients):
-            total = (x * total) + coefficient
-        return total
-        return self.sp_polynomial(self.field.N(prec))
-        return sp.N(self.sp_place, prec)
-    def __float__(self):
-        return float(self.N())
+    def interval(self, precision=8):
+        intervals = self.field.intervals(precision)
+        coeffs = [flipper.kernel.Interval.from_fraction(coeff, precision) for coeff in self.coefficients]
+        return sum(coeff * interval for coeff, interval in zip(coeffs, intervals))
+    def N(self, precision=8):
+        I = self.interval(precision)
+        m = str((I.lower + I.upper) // 2).zfill(I.precision)
+        return '{}.{}'.format(m[:-I.precision], m[-I.precision:])
     def __int__(self):
         return int(self.N())
     def sign(self):
-        scaled_approx = self.N(2*int(self.length+1)) * exp(int(self.length+1))
-        if scaled_approx < -1:
-            return -1
-        elif scaled_approx > 1:
-            return +1
-        else:
-            return 0
+        return self.N(2*int(self.length+1)).sign()
     def __eq__(self, other):
         return (self - other).sign() == 0
     def __gt__(self, other):

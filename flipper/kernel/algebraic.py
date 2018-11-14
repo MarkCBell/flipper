@@ -53,7 +53,6 @@ class RealAlgebraic(object):
         self.coefficients = [Fraction(int(self.cp_polynomial.polcoeff(i).numerator()), int(self.cp_polynomial.polcoeff(i).denominator())) for i in range(self.len+1)]
         self.sp_polynomial = sp_polynomial(self.coefficients)
         self.length = sum(log_plus(coefficient.numerator) + log_plus(coefficient.denominator) + index * self.field.length for index, coefficient in enumerate(self.coefficients))
-        self.sp_place = self.sp_polynomial(self.field.sp_place)
     @classmethod
     def from_coefficients(cls, field, coefficients):
         return cls(field, cp_polynomial(coefficients).Mod(field.cp_polynomial))

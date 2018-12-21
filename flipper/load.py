@@ -258,9 +258,9 @@ def example_braid_sphere(n):
     #  3) Left triangle given by [~0, ~(n-2), ~(2n-4)], and
     #  4) Right triangle given by [n-3, 3n-7, 2n-5].
     T = flipper.create_triangulation(
-        [[i, i + 2 * n - 4, ~(i + 1)] for i in range(0, n - 3)] +
-        [[i, ~(i + 1), ~(i + n - 1)] for i in range(n-2, 2*n - 5)] +
-        [[~0, ~(n - 2), ~(2 * n - 4)], [n - 3, 3 * n - 7, 2 * n - 5]]
+        [[i, i + 2 * n - 4, ~(i + 1)] for i in range(0, n - 3)]
+        + [[i, ~(i + 1), ~(i + n - 1)] for i in range(n-2, 2*n - 5)]
+        + [[~0, ~(n - 2), ~(2 * n - 4)], [n - 3, 3 * n - 7, 2 * n - 5]]
         )
     
     # We'll then create a curve isolating the ith and (i+1)st punctures from the others.

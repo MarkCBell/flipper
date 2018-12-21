@@ -214,19 +214,19 @@ def _check(surface):
     intersections = dict([(tuple(sorted([l1, l2])), intersection(l1, l2)) for l1, l2 in combinations(keys, 2) if intersection(l1, l2) != 0])
     if surface.triangulation.genus == 1:
         expected = dict(
-            [(('a0', 'b0'), 1)] +
-            [(('b0', 'p{}'.format(i)), 1) for i in range(surface.triangulation.num_vertices-1)] +
-            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] +
-            [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
+            [(('a0', 'b0'), 1)]
+            + [(('b0', 'p{}'.format(i)), 1) for i in range(surface.triangulation.num_vertices-1)]
+            + [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)]
+            + [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
             )
     else:
         expected = dict(
             [(('a0', 'b0'), 1), (('a1', 'b1'), 1), (('b0', 'c0'), 1)] +
-            [(('b{}'.format(i), 'c{}'.format(i-1)), 1) for i in range(1, surface.triangulation.genus)] +
-            [(('b{}'.format(i), 'c{}'.format(i)), 1) for i in range(1, surface.triangulation.genus-1)] +
-            [(('b{}'.format(surface.triangulation.genus-1), 'p{}'.format(i)), 1) for i in range(surface. triangulation.num_vertices-1)] +
-            [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)] +
-            [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
+            + [(('b{}'.format(i), 'c{}'.format(i-1)), 1) for i in range(1, surface.triangulation.genus)]
+            + [(('b{}'.format(i), 'c{}'.format(i)), 1) for i in range(1, surface.triangulation.genus-1)]
+            + [(('b{}'.format(surface.triangulation.genus-1), 'p{}'.format(i)), 1) for i in range(surface. triangulation.num_vertices-1)]
+            + [(('p{}'.format(i), 'q{}'.format(i)), 2) for i in range(surface.triangulation.num_vertices-1)]
+            + [(tuple(sorted(['q{}'.format(i), 'q{}'.format(i+1)])), 2) for i in range(surface.triangulation.num_vertices-2)]
             )
     return expected == intersections
 

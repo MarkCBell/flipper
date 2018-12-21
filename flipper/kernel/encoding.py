@@ -771,8 +771,8 @@ class Encoding(object):
         edge_vectors = dict()
         for triangle in periodic_triangulation:
             # Find the sides with largest stable and unstable lengths.
-            index_s = max(enumerate(stable_lamination(edge) for edge in triangle))[1]
-            index_u = max(enumerate(unstable_lamination(edge) for edge in triangle))[1]
+            index_s = max(range(3), key=lambda i: stable_lamination(triangle.edges[i]))  # pylint: disable=cell-var-from-loop
+            index_u = max(range(3), key=lambda i: unstable_lamination(triangle.edges[i]))  # pylint: disable=cell-var-from-loop
             
             # Get the edges of triangle relative to the index_s.
             edges = [triangle[(index_s + i) % 3] for i in range(3)]

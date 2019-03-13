@@ -61,7 +61,7 @@ Here we can also access large censuses of monodromies::
     ...     if h.dilatation() < 1.2:
     ...             print(s, w)
     ... 
-    ('S_5_1', 'abcdefghil')  # There is only one known example of a fibred know whose monodromy has dilatation < 1.2.
+    ('S_5_1', 'abcdefghil')  # There is only one known example of a fibred knot whose monodromy has dilatation < 1.2.
     
 
 These are great for finding unusual examples and counter-examples to conjectures.

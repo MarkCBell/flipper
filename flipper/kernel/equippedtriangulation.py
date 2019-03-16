@@ -172,6 +172,8 @@ class EquippedTriangulation(object):
         lam_keys = sorted(self.laminations.keys())
         pos_keys = sorted(self.pos_mapping_classes.keys())
         return 'Triangulation with laminations: %s and mapping classes: %s.' % (lam_keys, pos_keys)
+    def __call__(self, word):
+        return self.mapping_class(word)
     
     def random_word(self, length, positive=True, negative=True, letters=None):
         ''' Return a random word of the required length.

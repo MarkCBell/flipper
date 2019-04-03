@@ -1,0 +1,53 @@
+
+trigger:
+  branches:
+    include:
+    - '*'
+  tags:
+    include:
+    - 'v*'
+
+jobs:
+- job: 'Test'
+  pool:
+    vmImage: 'Ubuntu-16.04'
+  strategy:
+    matrix:
+      Docs:
+        python.version: '3.7'
+        TOX_ENV: 'docs'
+      Lint2:
+        python.version: '2.7'
+        TOX_ENV: 'lint2'
+      Lint3:
+        python.version: '3.6'
+        TOX_ENV: 'lint3'
+      Python27:
+        python.version: '2.7'
+        TOX_ENV: 'py27'
+      Python35:
+        python.version: '3.5'
+        TOX_ENV: 'py35'
+      Python36:
+        python.version: '3.6'
+        TOX_ENV: 'py36'
+      Python37:
+        python.version: '3.7'
+        TOX_ENV: 'py37'
+  
+  steps:
+  - task: UsePythonVersion@0
+    displayName: 'Use Python $(python.version)'
+    inputs:
+      versionSpec: '$(python.version)'
+  - script: pip install tox
+    displayName: 'Install tox'
+  - script: tox -e $(TOX_ENV) -- --hypothesis-profile=ci --duration=20 --junitxml=results.xml
+    displayName: 'Run tox'
+  - task: PublishTestResults@2
+    displayName: 'Publish results file'
+    condition: startswith(variables['TOX_ENV'], 'py')
+    inputs:
+      testResultsFiles: 'results.xml'
+      testRunTitle: 'Test results for Python $(python.version)'
+

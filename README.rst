@@ -14,14 +14,6 @@ Flipper
     :target: https://travis-ci.org/MarkCBell/flipper
     :alt: Travis build status
 
-.. image:: https://ci.appveyor.com/api/projects/status/8spedakb6ahj91b5/branch/master?svg=true
-    :target: https://ci.appveyor.com/project/MarkCBell/flipper/branch/master
-    :alt: AppVeyor build status
-
-.. image:: https://readthedocs.org/projects/flipper/badge/?version=master
-    :target: https://flipper.readthedocs.io
-    :alt: Documentation status
-
 .. image:: https://img.shields.io/coveralls/github/MarkCBell/flipper.svg?branch=master
     :target: https://coveralls.io/github/MarkCBell/flipper?branch=master
     :alt: Coveralls status
@@ -37,5 +29,23 @@ If you need even more speed (~25% more) then consider running flipper with the -
     Consider upgrading your applications and infrastructure if you find yourself *still* using Python 2 in production today.
     If you are using Python 3, congratulations — you are indeed a person of excellent taste. — *Kenneth Reitz*
 
-.. _Sage: http://www.sagemath.org/
+External Links
+--------------
+
+* `PyPI`_
+* `ReadTheDocs`_
+* `GitHub`_
+* `Travis`_
+* `AppVeyor`_
+* `Azure`_
+* `Coveralls`_
+
+.. _AppVeyor: https://ci.appveyor.com/project/MarkCBell/flipper
+.. _Azure: https://dev.azure.com/MarkCBell/flipper
+.. _GitHub: https://github.com/MarkCBell/flipper
+.. _PyPI: https://pypi.python.org/pypi/flipper
+.. _ReadTheDocs: http://flipper.readthedocs.io
+.. _Sage: http://www.sagemath.org
+.. _Travis: https://travis-ci.org/MarkCBell/flipper
+.. _Coveralls: https://coveralls.io/github/MarkCBell/flipper
 

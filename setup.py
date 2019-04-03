@@ -10,11 +10,15 @@ requirements = [
     'cypari'
 ]
 
+def readme():
+    with open('README.rst') as f:
+        return f.read()
+
 setup(
     name='flipper',
     version='0.12.3',
     description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
-    long_description='See http://flipper.readthedocs.io for the full README, LICENCE and documentation.',
+    long_description=readme(),
     author='Mark Bell',
     author_email='mcbell@illinois.edu',
     url='https://github.com/MarkCBell/flipper',

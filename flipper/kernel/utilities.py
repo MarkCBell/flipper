@@ -1,7 +1,6 @@
 
 ''' A module of useful, generic functions; including input and output formatting. '''
 
-from functools import reduce as freduce
 from string import ascii_lowercase, digits, ascii_letters, punctuation
 import itertools
 

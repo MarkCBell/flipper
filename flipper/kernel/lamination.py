@@ -624,7 +624,8 @@ class Lamination(object):
         encodings.append(E)
         
         # This is a dict taking the hash of each lamination to the index where we saw it.
-        seen = {}
+        target = lamination.projective_hash()
+        seen = dict()
         # We then want a second dictionary taking indices where laminations occur back to
         # the lamination. This can use a lot of memory however as Tao's K(S) can grow very
         # large when the surface has high genus. To get around this we note that we will only
@@ -636,9 +637,8 @@ class Lamination(object):
         laminations = [dict() for i in range(NUM_LAM_BLOCKS)]
         current_block = 0  # This records which dictionary we are currently filling.
         
-        # We don't include self or lamination in seen just incase they are already
-        # on the axis and the puncture_tripods does nothing, misaligning the indices.
-        # This ensures that at least one maximal split will be done.
+        seen[target] = [1]
+        laminations[current_block][1] = lamination
         
         # We'll store the edge weights in a maximal heap using heapq. This allows us to quickly find the maximal weight edges.
         flip_first = lambda x: (-x[0], x[1])  # A small function allowing us to use Pythons defaul min heap as a max heap.

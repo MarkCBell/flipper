@@ -69,4 +69,17 @@ class TestEncoding(unittest.TestCase):
         for surface, word, mapping_class_type in examples:
             h = flipper.load(surface).mapping_class(word)
             self.assertEqual(h.package(), h.source_triangulation.encode(h.package()).package())
+    
+    def test_canonical_idempotence(self):
+        examples = [
+            ('SB_4', 's_0S_1s_2S_3s_1S_2', NT_TYPE_PSEUDO_ANOSOV),
+            ('S_1_1', 'aB', NT_TYPE_PSEUDO_ANOSOV),
+            ('S_1_2', 'aCBACBacbaccbAaAcAaBBcCcBBcCaBaaaABBabBcaBbCBCbaaa', NT_TYPE_PSEUDO_ANOSOV),
+            ('S_2_1', 'aaabcd', NT_TYPE_PSEUDO_ANOSOV),
+            ('S_2_1', 'abcdeF', NT_TYPE_PSEUDO_ANOSOV),
+            ]
+        
+        for surface, word, nt_type in examples:
+            h = flipper.load(surface).mapping_class(word)
+            self.assertEqual(h.canonical(), h.canonical().canonical())
 

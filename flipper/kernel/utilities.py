@@ -1,7 +1,6 @@
 
 ''' A module of useful, generic functions; including input and output formatting. '''
 
-from fractions import gcd as gcd2
 from functools import reduce as freduce
 from string import ascii_lowercase, digits, ascii_letters, punctuation
 import itertools
@@ -62,6 +61,11 @@ def encode_binary(sequence):
 
 def gcd(numbers):
     ''' Return the gcd of a list of numbers. '''
+    numbers = list(numbers)
     
-    return freduce(gcd2, numbers)
+    while len(numbers) > 1:
+        while numbers[0]:
+            numbers[0], numbers[1] = numbers[1] % numbers[0], numbers[0]
+        numbers = numbers[1:]
+    return numbers[0]
 

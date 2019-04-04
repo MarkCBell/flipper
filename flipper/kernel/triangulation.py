@@ -551,6 +551,8 @@ class Triangulation(object):
         return self.signature == other.signature
     def __ne__(self, other):
         return not self == other
+    def __call__(self, geometric, algebraic=None, remove_peripheral=True):
+        return self.lamination(geometric, algebraic, remove_peripheral)
     
     def vertices_of_edge(self, edge_label):
         ''' Return the two vertices at the ends of the given edge. '''

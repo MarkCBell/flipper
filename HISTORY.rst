@@ -7,5 +7,6 @@ History
 
 * First git release.
 * Changed optional flag of Encoding.bundle from ``canonical`` to ``veering``.
+* EquippedTriangulation and Triangulation are now callable.
 * Fixed bug which prevented canonical pA representatives from being found at the starting position.
 

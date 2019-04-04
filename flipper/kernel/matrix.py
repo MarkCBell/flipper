@@ -26,15 +26,6 @@ def dot(a, b):
     # return c
     return sum(x * y for x, y in zip(a, b))
 
-def round_fraction(x):
-    ''' Return the integer closest to this fraction.
-    
-    Note that we can't use int(round(x)) as x may be too large
-    to be represented as a float. '''
-    
-    # There are three possibilities for what could be the closest integer.
-    return min([int(x), int(x) - 1, int(x) + 1], key=lambda y: abs(y - x))
-
 class Matrix(object):
     ''' This represents a matrix. '''
     def __init__(self, data):
@@ -122,18 +113,6 @@ class Matrix(object):
         
         return self.width == self.height
     
-    def powers(self, max_power):
-        ''' Return the list [self**0, ..., self**max_power].
-        
-        This matrix must be square. '''
-        
-        assert self.is_square()
-        
-        Ms = [id_matrix(self.width)]
-        for _ in range(max_power):
-            Ms.append(self * Ms[-1])
-        return Ms
-    
     def flatten(self):
         ''' Return the entries of this matrix as a single flattened list. '''
         return [entry for row in self for entry in row]
@@ -165,35 +144,6 @@ class Matrix(object):
         ''' Return the trace of this matrix. '''
         
         return sum(self[i][i] for i in range(self.width))
-    def determinant(self):
-        ''' Return the determinant of this matrix.
-        
-        Uses Bareiss' algorithm to compute the determinant in ~O(n^3). See:
-            http://cs.nyu.edu/exact/core/download/core_v1.4/core_v1.4/progs/bareiss/bareiss.cpp
-        
-        This matrix must be square. '''
-        
-        # We could also just get the constant term of the characteristic polynomial, but this is ~10x faster.
-        
-        assert self.is_square()
-        
-        scale = 1
-        A = [list(row) for row in self]
-        for i in range(self.width-1):
-            if not A[i][i]:  # == 0.
-                for j in range(i+1, self.height):
-                    if A[j][i]:  # != 0.
-                        A[i], A[j] = A[j], A[i]
-                        scale = -scale
-                        break
-                else:
-                    return 0  # We have a column of all 0's.
-            for j in range(i+1, self.width):
-                for k in range(i+1, self.width):
-                    A[j][k] = A[j][k]*A[i][i] - A[j][i]*A[i][k]
-                    if i: A[j][k] = A[j][k] // A[i-1][i-1]  # Division is exact.
-        
-        return scale * A[self.width-1][self.width-1]
     
     def elementary(self, i, j, k=1):
         ''' Return the matrix obtained by performing the elementary move:
@@ -204,46 +154,6 @@ class Matrix(object):
         ''' Return the matrix obtained by swapping rows i and j. '''
         
         return Matrix([self[j if k == i else i if k == j else k] for k in range(self.height)])
-    def row_reduce(self, zeroing_width=None):
-        ''' Return this matrix after applying elementary row operations
-        so that in each row each non-zero entry either:
-        
-            1) has a non-zero entry to the left of it,
-            2) has no non-zero entries below it, or
-            3) is in a column > zeroing_width.
-        
-        if zeroing_width is None: zeroing_width = self.width. '''
-        
-        if zeroing_width is None: zeroing_width = self.width
-        i, j = 0, 0
-        A = [list(row) for row in self]
-        while j < zeroing_width:
-            for b, a in itertools.product(range(j, zeroing_width), range(i, self.height)):
-                if A[a][b] != 0:
-                    A[i], A[a] = A[a], A[i]
-                    j = b
-                    break
-            else:
-                break
-            
-            rlead = A[i][j]
-            for k in range(self.height):
-                if k != i:
-                    r2lead = A[k][j]
-                    if r2lead != 0:
-                        for x in range(j, self.width):
-                            A[k][x] = (A[k][x] * rlead) - (A[i][x] * r2lead)
-            
-            i += 1
-            j += 1
-        return Matrix(A)
-    def kernel(self):
-        ''' Return a matrix whose rows are a basis for the kernel of this matrix. '''
-        
-        A = self.join(id_matrix(self.width))
-        B = A.transpose()
-        C = B.row_reduce(zeroing_width=self.height)
-        return Matrix([row[self.height:] for row in C if any(row) and not any(row[:self.height])])
     
     def nonnegative_image(self, v):
         ''' Return if self * v >= 0. '''
@@ -307,84 +217,6 @@ class Matrix(object):
                 N += 1
 
         return M
-    
-    def discard_column(self, column):
-        ''' Return the matrix obtained by discarding the given column. '''
-        
-        return Matrix([[row[i] for i in range(self.width) if i != column] for row in self])
-    
-    def find_vector_with_nonnegative_image(self):
-        ''' Return a vector v != 0 such that self * v >= 0.
-        
-        Assumes that such a vector exists. '''
-        
-        # We repeatedly use Fourier--Motzkin elimination to eliminate variables and so
-        # reduce the size of the matrix involved. We then reverse this process to construct
-        # the required vector.
-        # Currently we only use the standard algorithm and so this can result in doubly
-        # exponential complexity. See:
-        #   http://en.wikipedia.org/wiki/Fourier%E2%80%93Motzkin_elimination
-        # for more information.
-        
-        M = self
-        B = []  # Instructions for how to rebuild the vector.
-        
-        while M.width > 1:
-            # Find a good index to reduce by. Ideally, we want one where (almost) all
-            # entries of that column have the same sign.
-            bias = [0] * M.width
-            for row in M:
-                for index, entry in enumerate(row):
-                    bias[index] += 1 if entry > 0 else -1 if entry < 0 else 0
-            # The column we will reduce:
-            index = max(range(M.width), key=lambda i: abs(bias[i]))
-            
-            # Perform Fourier--Motzkin elimination with respect to this index.
-            pos_rows = [row for row in M if row[index] > 0]
-            neg_rows = [row for row in M if row[index] < 0]
-            non_rows = [row for row in M if row[index] == 0]
-            if not pos_rows:  # Problem is independent of x_index.
-                M = M.discard_column(index)
-                B.append((index, -1))
-            elif not neg_rows:  # Problem is independent of x_index.
-                M = M.discard_column(index)
-                B.append((index, 1))
-            else:
-                new_rows = [[r1[index] * y - r2[index] * x for x, y in zip(r1, r2)] for r1, r2 in itertools.product(pos_rows, neg_rows)]
-                M = Matrix(new_rows + non_rows).discard_column(index)
-                B.append((index, Matrix(pos_rows)))
-        
-        # Now that M.width == 1 it is easy to solve.
-        if all(entry >= 0 for row in M for entry in row):
-            v = [1]
-        elif all(entry <= 0 for row in M for entry in row):
-            v = [-1]
-        else:
-            v = [0]
-        
-        # Reverse the process to rebuild the vector.
-        for index, BB in reversed(B):
-            if isinstance(BB, Matrix):
-                ratios = list(zip((-BB).discard_column(index)(v), BB.transpose()[index]))
-                # In this list of ratios all denominators are positive.
-                # Get the pair (a, b) with the biggest ratio:
-                a, b = ratios[0]
-                for p, q in ratios:
-                    if p * b > a * q:  # If p/q > a/b:
-                        a, b = p, q
-                
-                x, scale = a, b
-            else:
-                x, scale = BB, 1
-            v = [entry * scale for entry in v[:index]] + [x] + [entry * scale for entry in v[index:]]
-        
-        # Check that the vector we've built is nontrivial.
-        if all(entry == 0 for entry in v):
-            raise flipper.AssumptionError('Polytope is trivial.')
-        
-        assert self.nonnegative_image(v)
-        
-        return v
     
     def directed_eigenvector(self, condition_matrix):
         ''' Return an interesting eigenvector of self which lives inside of the cone C, defined by condition_matrix.

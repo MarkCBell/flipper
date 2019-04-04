@@ -5,7 +5,6 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
-from fractions import Fraction
 import itertools
 
 import flipper

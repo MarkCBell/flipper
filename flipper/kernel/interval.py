@@ -7,15 +7,6 @@ from fractions import Fraction
 
 import flipper
 
-class FixedPointField(object):
-    def __init__(self, precision):
-        self.precision = precision
-        
-
-class FixedPointInterval(object):
-    def __init__(self, field, lower, upper):
-        pass
-
 class Interval(object):
     ''' This represents a closed interval [lower / 10**precision, upper / 10**precision]. '''
     def __init__(self, lower, upper, precision):

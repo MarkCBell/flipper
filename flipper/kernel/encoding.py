@@ -260,7 +260,7 @@ class Encoding(object):
         
         To find this we start with a curve on the surface and repeatedly apply
         the map until it appear to be projectively similar to a previous iteration.
-        Finally it uses :func:`flipper.kernel.symboliccomputation.directed_eigenvector()`
+        Finally it uses :func:`~flipper.kernel.matrix.Matrix.directed_eigenvector()`
         to find the nearby projective fixed point. If this fails after some number
         of iterations then we fall back to computing the action inside of every
         cell of the PL action. Generically this is exponentially slow.
@@ -295,8 +295,8 @@ class Encoding(object):
         # fixed by a power of self then we must reducible.
         
         # Possible future improvements:
-        #  - Store the checked cells in a hash map to prevent rerunning the expensive symboliccomputation.directed_eigenvector.
-        #  - Automatically update to a finer RESOLUTION whenever you fail to get a lamination from symboliccomputation.directed_eigenvector.
+        #  - Store the checked cells in a hash map to prevent rerunning the expensive action_matrix.directed_eigenvector.
+        #  - Automatically update to a finer RESOLUTION whenever you fail to get a lamination from action_matrix.directed_eigenvector.
         
         assert self.is_mapping_class()
         
@@ -322,7 +322,7 @@ class Encoding(object):
             
             tested.add(cell)
             action_matrix, condition_matrix = cell
-            eigenvalue, eigenvector = flipper.kernel.symboliccomputation.directed_eigenvector(action_matrix, condition_matrix)
+            eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
             invariant_lamination = triangulation.lamination(eigenvector)
             if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
                 raise flipper.ComputationError('No interesting eigenvectors in cell.')

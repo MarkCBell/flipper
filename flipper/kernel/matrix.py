@@ -5,7 +5,6 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
-from fractions import Fraction
 import itertools
 import cypari
 
@@ -159,64 +158,6 @@ class Matrix(object):
         ''' Return if self * v >= 0. '''
         
         return all(dot(row, v) >= 0 for row in self)
-    def LLL(self, delta=Fraction(3, 4)):
-        ''' Return a delta-LLL reduced basis for the lattice defined by the rows of this matrix. '''
-
-        # Here we will use Fractions to ensure that we retain absolute precision.
-
-        # For further information about how this algorithm works see:
-        #    * 'Factoring polynomials with rational coefficients' (Lenstra et al. 1982) in particular
-        #      Figure 1, available at http://www.cs.elte.hu/~lovasz/scans/lll.pdf
-        #    * LibLLL available at https://github.com/kutio/liblll
-
-        m, n = self.width, self.height
-
-        M = self
-        GS = self  # The Gram-Schmidt orthogonalisation of self.
-        mu = zero_matrix(m, n)  # The Gram-Schmidt coefficients.
-        for i in range(n):
-            for j in range(i):
-                mu[i][j] = Fraction(dot(self[i], GS[j]), dot(GS[j], GS[j]))
-                GS = GS.elementary(i, j, -mu[i][j])
-        B = [dot(GS[i], GS[i]) for i in range(n)]
-
-        N = 1
-        while True:
-            if abs(mu[N][N-1]) > 0.5:
-                r = round_fraction(mu[N][N-1])
-                M = M.elementary(N, N-1, -r)
-                for k in range(N-1):
-                    mu[N][k] = mu[N][k] - r * mu[N-1][k]
-                mu[N][N-1] = mu[N][N-1] - r
-
-            if B[N] < (delta - mu[N][N-1] * mu[N][N-1])*B[N-1]:
-                u = mu[N][N-1]
-                big_B = B[N] + (u * u) * B[N-1]
-                mu[N][N-1] = u * Fraction(B[N-1], big_B)
-                B[N] = B[N-1] * Fraction(B[N], big_B)
-                B[N-1] = big_B
-                M = M.swap(N, N-1)
-
-                for j in range(N-1):
-                    mu[N-1][j], mu[N][j] = mu[N][j], mu[N-1][j]
-                for i in range(N+1, n):
-                    mu[i][N-1], mu[i][N] = mu[N][N-1]*mu[i][N-1] + mu[i][N] - u*mu[i][N]*mu[N][N-1], mu[i][N-1] - u * mu[i][N]
-
-                if N > 1: N -= 1
-            else:
-                for j in range(N-2, -1, -1):
-                    if abs(mu[N][j]) > 0.5:
-                        r = round_fraction(mu[N][j])
-                        M = M.elementary(N, j, -r)
-                        for k in range(j):
-                            mu[N][k] = mu[N][k] - r * mu[j][k]
-                        mu[N][j] = mu[N][j] - r
-
-                if N == n-1: break
-
-                N += 1
-
-        return M
     
     def directed_eigenvector(self, condition_matrix):
         ''' Return an interesting eigenvector of self which lives inside of the cone C, defined by condition_matrix.

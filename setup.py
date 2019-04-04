@@ -7,7 +7,8 @@ from setuptools import setup, find_packages
 
 requirements = [
     'pandas',
-    'cypari'
+    'cypari',
+    'sympy',
 ]
 
 def readme():

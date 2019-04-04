@@ -20,10 +20,11 @@ class Interval(object):
         self.precision = precision
     
     @classmethod
-    def from_string(cls, string, precision):
+    def from_string(cls, string, precision=None):
         ''' A short way of constructing Intervals from a string. '''
         
         assert '.' in string
+        if precision is None: precision = len(string.split('.')[1])
         string = string.ljust(precision, '0')
         i, r = string.split('.')
         assert len(str(r)) >= precision
@@ -90,6 +91,10 @@ class Interval(object):
     
     def __int__(self):
         return self.upper // 10**self.precision
+    
+    def midpoint(self):
+        m = str((self.lower + self.upper) // 2).zfill(self.precision+1)
+        return '{}.{}'.format(m[:-self.precision], m[-self.precision:])
     
     def simplify(self, new_precision):
         assert new_precision <= self.precision

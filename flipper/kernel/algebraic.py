@@ -134,13 +134,11 @@ class RealAlgebraic(object):
         coeffs = [flipper.kernel.Interval.from_fraction(coeff, precision) for coeff in self.coefficients]
         return sum(coeff * interval for coeff, interval in zip(coeffs, intervals))
     def N(self, precision=8):
-        I = self.interval(precision)
-        m = str((I.lower + I.upper) // 2).zfill(I.precision)
-        return '{}.{}'.format(m[:-I.precision], m[-I.precision:])
+        return self.interval(precision).midpoint()
     def __int__(self):
-        return int(self.N())
+        return int(self.interval(2*int(self.length+1)))
     def sign(self):
-        return self.N(2*int(self.length+1)).sign()
+        return self.interval(2*int(self.length+1)).sign()
     def __eq__(self, other):
         return (self - other).sign() == 0
     def __gt__(self, other):

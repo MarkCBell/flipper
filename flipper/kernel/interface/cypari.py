@@ -7,15 +7,6 @@ import cypari
 
 import flipper
 
-def lcm(numbers):
-    ''' Return the lcm of a list of numbers. '''
-    
-    x = cypari.pari.one()
-    for number in numbers:
-        x = x.lcm(number)
-    
-    return int(x)
-
 def directed_eigenvector(action_matrix, condition_matrix):
     ''' An implementation of flipper.kernel.symboliccomputation.directed_eigenvector() using CyPari.
     
@@ -39,10 +30,7 @@ def directed_eigenvector(action_matrix, condition_matrix):
                 kernel_basis = (M - a).matker()
                 
                 basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
-                scale = lcm([int(coeff.denominator()) for v in basis for entry in v for coeff in entry])
-                scaled_basis = [[[int(int(coeff.numerator()) * scale) // int(coeff.denominator()) for coeff in entry] for entry in v] for v in basis]
-                
-                flipper_basis_matrix = flipper.kernel.Matrix([[K(entry) for entry in v] for v in scaled_basis])
+                flipper_basis_matrix = flipper.kernel.Matrix([[K(entry) for entry in v] for v in basis])
                 
                 if len(flipper_basis_matrix) == 1:  # If rank(kernel) == 1.
                     [flipper_eigenvector] = flipper_basis_matrix

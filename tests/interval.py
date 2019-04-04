@@ -21,10 +21,4 @@ class TestInterval(unittest.TestCase):
         #    acc(I * J) >= min(acc(I), acc(J)) - log(I.lower + J.lower + 1)
         #    acc(I / J) >= min(acc(I), acc(J)) - log+(J)  # If J > I.
         #    acc(x * I) >= acc(I) - log+(x)
-        
-        for I, J in product([w, x, y, z, a, b], repeat=2):
-            m = min(I.accuracy, J.accuracy)
-            self.assertGreaterEqual((I + J).accuracy, m - 1)
-            self.assertGreaterEqual((I * J).accuracy, m - log(max(I.lower + J.lower + 1, 1)))
-            # self.assertGreaterEqual((I / J).accuracy, m - J.log_plus()) # Should only do this test when J > I.
 

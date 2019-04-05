@@ -12,9 +12,6 @@ import flipper
 sp_x = sp.Symbol('x')
 cp_x = cp.pari('x')
 
-def exp(x):
-    ''' Return the exponential of x. '''
-    return 10**x
 def log_plus(x):
     ''' Return the height of the number ``x``. '''
     return log(max(1, abs(x)))

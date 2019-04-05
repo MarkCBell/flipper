@@ -54,16 +54,8 @@ class Lamination(object):
         return str(self)
     def __str__(self):
         return str(self.geometric)
-    
-    def projective_string(self):
-        ''' Return a string describing this lamination in PML. '''
-        
-        w = float(self.weight())
-        return str([float(x) / w for x in self])
-    
     def __iter__(self):
         return iter(self.geometric)
-    
     def __call__(self, item):
         ''' Return the geometric measure assigned to item. '''
         if isinstance(item, flipper.IntegerType):
@@ -72,7 +64,6 @@ class Lamination(object):
             return self.geometric[item.index]
         else:
             return NotImplemented
-    
     def __getitem__(self, item):
         ''' Return the algebraic measure assigned to item. '''
         if isinstance(item, flipper.IntegerType):
@@ -82,17 +73,14 @@ class Lamination(object):
             return self.algebraic[item.index] * item.sign()
         else:
             return NotImplemented
-    
     def __len__(self):
         return self.zeta
-    
     def __eq__(self, other):
         return self.triangulation == other.triangulation and \
             all(v == w for v, w in zip(self.geometric, other.geometric)) and \
             all(v == w for v, w in zip(self.algebraic, other.algebraic))
     def __ne__(self, other):
         return not self == other
-    
     def __hash__(self):
         # This should be done better.
         return hash(tuple(self.geometric) + tuple(self.algebraic))

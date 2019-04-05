@@ -138,11 +138,6 @@ class Matrix(object):
             rows[i][j] -= 1
         return Matrix(rows)
     
-    def trace(self):
-        ''' Return the trace of this matrix. '''
-        
-        return sum(self[i][i] for i in range(self.width))
-    
     def elementary(self, i, j, k=1):
         ''' Return the matrix obtained by performing the elementary move:
             replace row i by row i + k * row j. '''

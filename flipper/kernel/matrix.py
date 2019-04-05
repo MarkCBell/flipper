@@ -143,10 +143,6 @@ class Matrix(object):
             replace row i by row i + k * row j. '''
         
         return Matrix([self[n] if n != i else [x+k*y for x, y in zip(self[i], self[j])] for n in range(self.height)])
-    def swap(self, i, j):
-        ''' Return the matrix obtained by swapping rows i and j. '''
-        
-        return Matrix([self[j if k == i else i if k == j else k] for k in range(self.height)])
     
     def nonnegative_image(self, v):
         ''' Return if self * v >= 0. '''

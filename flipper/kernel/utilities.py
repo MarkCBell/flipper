@@ -39,6 +39,7 @@ def name_objects(objects, skip=None):
 
 def product(iterable, start=1, left=True):
     ''' Return the product of start (default 1) and an iterable of numbers. '''
+    assert False
     
     value = None
     for item in iterable:
@@ -57,14 +58,4 @@ def encode_binary(sequence):
     
     step = 6  # 2**step <= len(VISABLE_CHARACTERS)
     return ''.join(VISIBLE_CHARACTERS[int(''.join(str(x) for x in sequence[i:i+step]), base=2)] for i in range(0, len(sequence), step))
-
-def gcd(numbers):
-    ''' Return the gcd of a list of numbers. '''
-    numbers = list(numbers)
-    
-    while len(numbers) > 1:
-        while numbers[0]:
-            numbers[0], numbers[1] = numbers[1] % numbers[0], numbers[0]
-        numbers = numbers[1:]
-    return numbers[0]
 

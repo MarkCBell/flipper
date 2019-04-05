@@ -29,7 +29,8 @@ from .permutation import Permutation  # noqa: F401
 from .splittingsequence import SplittingSequence, SplittingSequences  # noqa: F401
 from .triangulation import Vertex, Edge, Triangle, Triangulation, Corner, norm  # noqa: F401
 from .triangulation3 import Tetrahedron, Triangulation3  # noqa: F401
-from .utilities import product, gcd  # noqa: F401
+
+from . import utilities  # noqa: F401
 
 # Functions that help with construction.
 create_triangulation = Triangulation.from_tuple

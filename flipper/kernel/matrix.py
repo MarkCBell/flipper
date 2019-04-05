@@ -5,7 +5,6 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
-import itertools
 import cypari
 
 import flipper

@@ -12,6 +12,5 @@ class TestMatrix(unittest.TestCase):
     
     def test_powers(self):
         M = flipper.kernel.Matrix([[2, 1], [1, 1]])
-        M_inv = flipper.kernel.Matrix([[1, -1], [-1, 2]])
         self.assertEqual((M**2)**3, (M**3)**2)  # Check that powers are associative.
 

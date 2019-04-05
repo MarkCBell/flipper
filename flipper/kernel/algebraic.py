@@ -1,4 +1,6 @@
 
+''' A module for representing and manipulating real algebraic numbers and the fields that they live in. '''
+
 from fractions import Fraction
 from functools import total_ordering
 from math import log10 as log
@@ -11,17 +13,22 @@ sp_x = sp.Symbol('x')
 cp_x = cp.pari('x')
 
 def exp(x):
+    ''' Return the exponential of x. '''
     return 10**x
 def log_plus(x):
+    ''' Return the height of the number ``x``. '''
     return log(max(1, abs(x)))
 
 def sp_polynomial(coefficients):
+    ''' Return the sympy polynomial with the given coefficients. '''
     return sp.Poly(coefficients[::-1], sp_x)
 
 def cp_polynomial(coefficients):
+    ''' Return the cypari polynomial with the given coefficients. '''
     return cp.pari(' + '.join('{}*x^{}'.format(coefficient, index) for index, coefficient in enumerate(coefficients)))
 
 class RealNumberField(object):
+    ''' Represents the NumberField QQ(lmbda) = QQ[x] / << f(x) >> where lmbda is a real root of f(x). '''
     def __init__(self, coefficients, index=-1):  # List of integers and / or Fractions, integer index
         self.coefficients = [Fraction(coefficient) for coefficient in coefficients]
         self.sp_polynomial = sp_polynomial(self.coefficients)
@@ -43,10 +50,12 @@ class RealNumberField(object):
     def __hash__(self):
         return hash(tuple(self.coefficients))
     def N(self, prec=8):
+        ''' Return the string approximating the fields root correct to at least ``prec`` digits. '''
         prec = max(prec, 2*(int(self.length)+1))
         return str(sp.N(self.sp_place, prec))
     
     def intervals(self, prec):
+        ''' Return intervals around self.lmbda**i that are all correct to at least ``prec`` digits. '''
         if prec > self._prec:
             self._prec = prec
             self._intervals = [flipper.kernel.Interval.from_string(str(sp.N(self.sp_place**i, 2*prec)), prec) for i in range(self.degree)]
@@ -54,6 +63,7 @@ class RealNumberField(object):
 
 @total_ordering
 class RealAlgebraic(object):
+    ''' Represents an element of a number field. '''
     def __init__(self, field, cp_mod):
         self.field = field
         self.cp_mod = cp_mod
@@ -66,9 +76,11 @@ class RealAlgebraic(object):
         self.length = sum(log_plus(coefficient.numerator) + log_plus(coefficient.denominator) + index * self.field.length for index, coefficient in enumerate(self.coefficients))
     @classmethod
     def from_coefficients(cls, field, coefficients):
+        ''' Return the element of the field with the given coefficients. '''
         return cls(field, cp_polynomial(coefficients).Mod(field.cp_polynomial))
     @classmethod
     def from_rational(cls, field, rational):
+        ''' Return the element of QQ within the given field. '''
         return cls(field, cp_polynomial([rational]).Mod(field.cp_polynomial))
     def __str__(self):
         return str(self.N())
@@ -77,7 +89,7 @@ class RealAlgebraic(object):
     def __add__(self, other):
         if isinstance(other, RealAlgebraic):
             return RealAlgebraic(self.field, self.cp_mod + other.cp_mod)
-        elif isinstance(other, Fraction) or isinstance(other, flipper.IntegerType):
+        elif isinstance(other, (Fraction, flipper.IntegerType)):
             return self + RealAlgebraic.from_rational(self.field, other)
         else:
             return NotImplemented
@@ -90,7 +102,7 @@ class RealAlgebraic(object):
     def __mul__(self, other):
         if isinstance(other, RealAlgebraic):
             return RealAlgebraic(self.field, self.cp_mod * other.cp_mod)
-        elif isinstance(other, Fraction) or isinstance(other, flipper.IntegerType):
+        elif isinstance(other, (Fraction, flipper.IntegerType)):
             return self * RealAlgebraic.from_rational(self.field, other)
         else:
             return NotImplemented
@@ -105,14 +117,14 @@ class RealAlgebraic(object):
             raise ZeroDivisionError('division by zero')
         if isinstance(other, RealAlgebraic):
             return RealAlgebraic(self.field, self.cp_mod / other.cp_mod)
-        elif isinstance(other, Fraction) or isinstance(other, flipper.IntegerType):
+        elif isinstance(other, (Fraction, flipper.IntegerType)):
             return self / RealAlgebraic.from_rational(self.field, other)
         else:
             return NotImplemented
     def __rdiv__(self, other):
         return self.__rtruediv__(other)
     def __rtruediv__(self, other):
-        if isinstance(other, Fraction) or isinstance(other, flipper.IntegerType):
+        if isinstance(other, (Fraction, flipper.IntegerType)):
             return RealAlgebraic.from_rational(self.field, other) / self
         else:
             return NotImplemented
@@ -127,17 +139,21 @@ class RealAlgebraic(object):
         else:
             return NotImplemented
     def minpoly(self):
+        ''' Return the (cypari) minimum polynomial of this algebraic number. '''
         return self.cp_mod.minpoly()
     
     def interval(self, precision=8):
+        ''' Return an interval around self that is correct to at least ``prec`` digits. '''
         intervals = self.field.intervals(precision)
         coeffs = [flipper.kernel.Interval.from_fraction(coeff, precision) for coeff in self.coefficients]
         return sum(coeff * interval for coeff, interval in zip(coeffs, intervals))
     def N(self, precision=8):
+        ''' Return a string approximating self to at least ``prec`` digits. '''
         return self.interval(precision).midpoint()
     def __int__(self):
         return int(self.interval(2*int(self.length+1)))
     def sign(self):
+        ''' Return the sign of this real number. '''
         return self.interval(2*int(self.length+1)).sign()
     def __eq__(self, other):
         return (self - other).sign() == 0

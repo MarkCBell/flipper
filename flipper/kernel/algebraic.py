@@ -69,7 +69,7 @@ class RealAlgebraic(object):
         self.coefficients = [Fraction(int(self.cp_polynomial.polcoeff(i).numerator()), int(self.cp_polynomial.polcoeff(i).denominator())) for i in range(self.len+1)]
         if not self.coefficients:
             self.coefficients = [Fraction(0, 1)]
-        self.sp_polynomial = sp_polynomial(self.coefficients)
+        # self.sp_polynomial = sp_polynomial(self.coefficients)
         self.length = sum(log_plus(coefficient.numerator) + log_plus(coefficient.denominator) + index * self.field.length for index, coefficient in enumerate(self.coefficients))
     @classmethod
     def from_coefficients(cls, field, coefficients):
@@ -135,9 +135,13 @@ class RealAlgebraic(object):
             return RealAlgebraic(self.field, self.cp_mod ** other)
         else:
             return NotImplemented
+    
     def minpoly(self):
         ''' Return the (cypari) minimum polynomial of this algebraic number. '''
         return self.cp_mod.minpoly()
+    def degree(self):
+        ''' Return the degree of this algebraic number. '''
+        return self.minpoly().poldegree()
     
     def interval(self, precision=8):
         ''' Return an interval around self that is correct to at least ``prec`` digits. '''

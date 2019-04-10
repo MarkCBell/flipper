@@ -145,7 +145,7 @@ class RealAlgebraic(object):
     
     def interval(self, precision=8):
         ''' Return an interval around self that is correct to at least ``prec`` digits. '''
-        intervals = self.field.intervals(precision)
+        intervals = self.field.intervals(precision)  # TODO: This isn't quite right since later when we multiply by coeffs we may lose a little precision.
         coeffs = [flipper.kernel.Interval.from_fraction(coeff, precision) for coeff in self.coefficients]
         return sum(coeff * interval for coeff, interval in zip(coeffs, intervals))
     def N(self, precision=8):

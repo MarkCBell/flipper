@@ -5,6 +5,7 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
+import realalg
 import cypari
 
 import flipper
@@ -166,8 +167,8 @@ class Matrix(object):
             degree = int(polynomial.poldegree())
             if degree > 1:
                 try:
-                    K = flipper.kernel.RealNumberField([int(polynomial.polcoeff(i)) for i in range(degree+1)])
-                except IndexError:
+                    K = realalg.RealNumberField([int(polynomial.polcoeff(i)) for i in range(degree+1)])
+                except ValueError:  # No real roots.
                     continue
                 
                 if K.lmbda >= 1:
@@ -175,15 +176,10 @@ class Matrix(object):
                     a = x.Mod(polynomial)
                     kernel_basis = (M - a).matker()
                     
-                    basis = [[[entry.lift().polcoeff(i) for i in range(degree)] for entry in v] for v in kernel_basis]
-                    flipper_basis_matrix = flipper.kernel.Matrix([[K(entry) for entry in v] for v in basis])
-                    
-                    if len(flipper_basis_matrix) == 1:  # If rank(kernel) == 1.
-                        [flipper_eigenvector] = flipper_basis_matrix
-                        if flipper.kernel.matrix.nonnegative(flipper_eigenvector) and condition_matrix.nonnegative_image(flipper_eigenvector):
-                            return K.lmbda, flipper_eigenvector
-                    else:
-                        pass
+                    if len(kernel_basis) == 1:  # Rank 1 kernel.
+                        eigenvector = [K([entry.lift().polcoeff(i) for i in range(degree)]) for entry in kernel_basis[0]]
+                        if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+                            return K.lmbda, eigenvector
         
         raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

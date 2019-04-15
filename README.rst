@@ -46,6 +46,6 @@ External Links
 .. _PyPI: https://pypi.python.org/pypi/flipper
 .. _ReadTheDocs: http://flipper.readthedocs.io
 .. _Sage: http://www.sagemath.org
-.. _Travis: https://travis-ci.org/MarkCBell/flipper
+.. _Travis: https://travis-ci.com/MarkCBell/flipper
 .. _Coveralls: https://coveralls.io/github/MarkCBell/flipper
 

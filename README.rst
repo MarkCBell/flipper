@@ -11,7 +11,7 @@ Flipper
     :alt: PyPI license
 
 .. image:: https://api.travis-ci.com/MarkCBell/flipper.svg?branch=master
-    :target: https://travis-ci.com/MarkCBell/flipper/
+    :target: https://travis-ci.com/MarkCBell/flipper
     :alt: Travis build status
 
 .. image:: https://img.shields.io/coveralls/github/MarkCBell/flipper.svg?branch=master

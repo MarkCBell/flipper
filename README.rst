@@ -10,8 +10,8 @@ Flipper
     :target: https://pypi.org/project/flipper/
     :alt: PyPI license
 
-.. image:: https://travis-ci.org/MarkCBell/flipper.svg?branch=master
-    :target: https://travis-ci.org/MarkCBell/flipper
+.. image:: https://api.travis-ci.com/MarkCBell/flipper.svg?branch=master
+    :target: https://travis-ci.com/MarkCBell/flipper/
     :alt: Travis build status
 
 .. image:: https://img.shields.io/coveralls/github/MarkCBell/flipper.svg?branch=master

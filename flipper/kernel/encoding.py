@@ -4,6 +4,7 @@
 Provides one class: Encoding. '''
 
 from itertools import product, count
+import cypari
 
 import flipper
 
@@ -323,7 +324,14 @@ class Encoding(object):
             tested.add(cell)
             action_matrix, condition_matrix = cell
             eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
-            invariant_lamination = triangulation.lamination(eigenvector)
+            
+            # Rescale to clear denominators for performance.
+            scale = cypari.pari.one()
+            for entry in eigenvector:
+                for coefficient in entry.coefficients:
+                    scale = scale.lcm(coefficient.denominator)
+            scaled_eigenvector = [entry * int(scale) for entry in eigenvector]
+            invariant_lamination = triangulation.lamination(scaled_eigenvector)
             if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
                 raise flipper.ComputationError('No interesting eigenvectors in cell.')
             

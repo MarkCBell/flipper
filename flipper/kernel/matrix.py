@@ -177,9 +177,10 @@ class Matrix(object):
                     kernel_basis = (M - a).matker()
                     
                     if len(kernel_basis) == 1:  # Rank 1 kernel.
+                        eigenvalue = K.lmbda
                         eigenvector = [K([entry.lift().polcoeff(i) for i in range(degree)]) for entry in kernel_basis[0]]
                         if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-                            return K.lmbda, eigenvector
+                            return eigenvalue, eigenvector
         
         raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

@@ -28,6 +28,10 @@ setup(
     package_data={
         'flipper.application': ['icon/*'],
         },
+    entry_points='''
+    [gui_scripts]
+    flipper.app=flipper.app:main
+    ''',
     include_package_data=True,
     install_requires=requirements,
     license='MIT License',

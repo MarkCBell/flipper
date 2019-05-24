@@ -18,7 +18,6 @@ flipper.kernel
     :nosignatures:
     :template: summary.rst
 
-    ~algebraicapproximation.AlgebraicApproximation
     ~bundle.Bundle
     ~encoding.Encoding
     ~equippedtriangulation.EquippedTriangulation
@@ -29,18 +28,13 @@ flipper.kernel
     ~error.FatalError
     ~flatstructure.FlatStructure
     ~flatstructure.Vector2
-    ~interval.Interval
     ~lamination.Lamination
     ~matrix.Matrix
     ~moves.EdgeFlip
     ~moves.Isometry
     ~moves.LinearTransformation
     ~moves.Move
-    ~numberfield.NumberField
-    ~numberfield.NumberFieldElement
     ~permutation.Permutation
-    ~polynomial.Polynomial
-    ~polynomial.PolynomialRoot
     ~splittingsequence.SplittingSequence
     ~splittingsequence.SplittingSequences
     ~triangulation.Corner

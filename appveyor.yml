@@ -30,7 +30,7 @@ init:
   - python.exe -c "import sys; print(sys.version)"
 
 install:
-  - pip.exe install setuptools --upgrade
+  - pip.exe install setuptools pip --upgrade
   - pip.exe install tox
 
 test_script:

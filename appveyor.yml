@@ -30,9 +30,8 @@ init:
   - python.exe -c "import sys; print(sys.version)"
 
 install:
-  - pip.exe install setuptools --upgrade
-  - pip.exe install virtualenv --upgrade
   - pip.exe install pip --upgrade --user
+  - pip.exe install setuptools virtualenv --upgrade
   - pip.exe install tox
 
 test_script:

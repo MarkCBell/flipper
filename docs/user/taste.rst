@@ -4,7 +4,7 @@ A taste of flipper
 
 The flipper GUI can be started by using the command::
 
-    > python -m flipper.app
+    > flipper.app
 
 flipper includes many pre-made examples under the ``File > Open example...`` menu.
 For example the twice-punctured torus is show below.

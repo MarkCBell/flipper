@@ -10,7 +10,9 @@ Walkthrough
 
     Start the flipper GUI by opening a terminal and running the command::
 
-    > python -m flipper.app
+    > flipper.app
+
+    You can also use ``> python -m flipper.app``
 
 The once-punctured torus
 ------------------------
@@ -250,7 +252,7 @@ Within Python
 .. note::
 
     For these exercises you should have some basic experience with Python.
-    Things like ``if``, ``else``, ``for ... in ...``, ``list(...)``, ``print(...)``, ``assert(...)`` and so on.
+    Things like ``if``, ``else``, ``for ... in ...``, ``list(...)``, ``print(...)``, ``assert ...`` and so on.
     If you don't then try a `Python tutorial <https://docs.python.org/3/tutorial/>`_ first.
 
 We can use a lot more features of flipper by running it interactively.
@@ -263,12 +265,12 @@ Within Python we can import flipper and load one of our standard examples::
     >>> import flipper
     >>> S = flipper.load('S_2_1')
 
-As before, we can construct mapping classes by composing together generators.::
+As before, we can construct mapping classes by composing together generators::
 
     >>> h = S.mapping_class('abCCdEa')
     >>> g = S.mapping_class('aC')
-    >>> assert(g * h != h * g)
-    >>> assert(h * h * h == h**3)  # Python uses ** for powers.
+    >>> assert g * h != h * g
+    >>> assert h * h * h == h**3  # Python uses ** for powers.
 
 We can compute all of the results available in the GUI by using the corresponding method, for example::
 
@@ -284,8 +286,8 @@ Other properties you have seen so far can be computed by using: ``h.nielsen_thur
 
 Many of the values we can compute also have additional methods::
 
-    >>> d = h.dilatation()  # This is an algebraic number.
-    >>> d.minimal_polynomial()
+    >>> d = h.dilatation()  # This is a real algebraic number.
+    >>> d.minpoly()
     1 - 4*x - 2*x^2 - 4*x^3 + x^4
 
 Some functions can be used in different ways.
@@ -331,7 +333,7 @@ Extensions and projects
 
 .. admonition:: Exercise
 
-    Any pseudo-Anosov on :math:`S_{2, 1}` has dilatation at least :math:`1.72208\ldots`.
+    Any pseudo-Anosov on :math:`S_{2, 1}` has dilatation at least :math:`1.72208\cdots`.
     Find a pseudo-Anosov with this dilatation.
 
 .. admonition:: Exercise
@@ -345,7 +347,7 @@ Extensions and projects
 
 .. admonition:: Exercise
 
-    Use the ``Bundle...`` property of a mapping class to build a SnapPy triangulation of its `mapping torus <https://en.wikipedia.org/wiki/Mapping_torus>`_.
+    Use the ``bundle()`` method of a mapping class to build a SnapPy triangulation of its `mapping torus <https://en.wikipedia.org/wiki/Mapping_torus>`_.
     You can also use ``snappy.Manifold(h.bundle())`` within Python.
     Use flipper and SnapPy together to investigate the relationship between dilatation and hyperbolic volume.
 

@@ -18,7 +18,7 @@ def readme():
 
 setup(
     name='flipper',
-    version='0.13.0',
+    version='0.13.1',
     description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
     long_description=readme(),
     author='Mark Bell',
@@ -26,6 +26,7 @@ setup(
     url='https://github.com/MarkCBell/flipper',
     packages=find_packages(),
     package_data={
+        'flipper': ['censuses/*'],
         'flipper.application': ['icon/*'],
         },
     entry_points='''

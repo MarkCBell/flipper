@@ -2,6 +2,15 @@
 History
 =======
 
+0.13.1 (2019-06-23)
+-------------------
+
+* Explicitly included censuses as package_data.
+* Added simpler way to start flipper.app.
+* Fixed appveyor build sequence.
+* Now using common realalg package.
+* Removed unused code.
+
 0.13.0 (2019-04-05)
 -------------------
 

@@ -18,7 +18,7 @@ def readme():
 
 setup(
     name='flipper',
-    version='0.13.1',
+    version='0.13.2',
     description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
     long_description=readme(),
     author='Mark Bell',

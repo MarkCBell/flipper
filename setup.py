@@ -25,10 +25,6 @@ setup(
     author_email='mcbell@illinois.edu',
     url='https://github.com/MarkCBell/flipper',
     packages=find_packages(),
-    package_data={
-        'flipper': ['censuses/*'],
-        'flipper.application': ['icon/*'],
-        },
     entry_points='''
     [gui_scripts]
     flipper.app=flipper.app:main

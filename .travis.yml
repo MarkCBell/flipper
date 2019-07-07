@@ -10,7 +10,7 @@ install:
   - pip install coveralls
 
 script:
-  - tox -e $TOX_ENV -- --hypothesis-profile=ci --duration=20
+  - tox -e $TOX_ENV -- --hypothesis-profile=ci --durations=20
   - if [[ $TOX_ENV == py* ]]; then coveralls; fi  # Upload coverage results from py* environments.
 
 jobs:

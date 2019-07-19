@@ -35,5 +35,5 @@ install:
   - pip.exe install tox
 
 test_script:
-  - tox.exe -e %TOX_ENV% -- --hypothesis-profile=ci --duration=20
+  - tox.exe -e %TOX_ENV% -- --hypothesis-profile=ci --durations=20
 

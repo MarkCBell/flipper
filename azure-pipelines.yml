@@ -42,7 +42,7 @@ jobs:
       versionSpec: '$(python.version)'
   - script: pip install tox
     displayName: 'Install tox'
-  - script: tox -e $(TOX_ENV) -- --hypothesis-profile=ci --duration=20 --junitxml=results.xml
+  - script: tox -e $(TOX_ENV) -- --hypothesis-profile=ci --durations=20 --junitxml=results.xml
     displayName: 'Run tox'
   - task: PublishTestResults@2
     displayName: 'Publish results file'

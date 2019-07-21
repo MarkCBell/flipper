@@ -25,10 +25,6 @@ Flipper officially supports Python 2.7 and 3.5 -- 3.7.
 It also runs on `Sage`_ which is currently the fastest way to run it.
 If you need even more speed (~25% more) then consider running flipper with the -O optimise bytecode option.
 
-.. note:: The use of **Python 3** is *highly* preferred over Python 2.
-    Consider upgrading your applications and infrastructure if you find yourself *still* using Python 2 in production today.
-    If you are using Python 3, congratulations — you are indeed a person of excellent taste. — *Kenneth Reitz*
-
 External Links
 --------------
 

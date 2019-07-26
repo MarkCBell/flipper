@@ -2,6 +2,11 @@
 History
 =======
 
+0.13.5 (2019-07-26)
+-------------------
+
+* Moved quickstart documentation into README.
+
 0.13.4 (2019-07-22)
 -------------------
 

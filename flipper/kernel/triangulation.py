@@ -326,27 +326,17 @@ class Triangulation(object):
         zeta = len(edge_labels) * 3 // 2
         
         # Check that each of 0, ..., zeta-1, ~0, ..., ~(zeta-1) occurs exactly once.
-        flattened = [label for labels in edge_labels for label in labels]
+        flattened = set(label for labels in edge_labels for label in labels)
         for i in range(zeta):
             if i not in flattened:
                 raise TypeError('Missing label %d' % i)
             if ~i not in flattened:
                 raise TypeError('Missing label ~%d' % i)
         
-        def finder(edge_label):
-            ''' Return the label and position of the given edge_label. '''
-            
-            for labels in edge_labels:
-                for i in range(3):
-                    if labels[i] == edge_label:
-                        return (labels, i)
-            raise flipper.FatalError('Label now missing.')
-        
-        def rotate(edge_label):
-            ''' Return the edge label one click round from edge_label. '''
-            
-            label, i = finder(edge_label)
-            return label[(i+1) % 3]
+        # Return the label and position of the given edge_label.
+        label_lookup = dict((label, (labels, index)) for labels in edge_labels for index, label in enumerate(labels))
+        # Return the edge label one click round from edge_label.
+        rotate_lookup = dict((label, next_label) for labels in edge_labels for label, next_label in zip(labels, labels[1:] + labels[:1]))
         
         # Group the edges into vertex classes. Here two edges are in the same
         # class iff they have the same tail.
@@ -355,7 +345,7 @@ class Triangulation(object):
         while unused:
             new_vertex = [unused.pop()]
             while True:
-                label, side = finder(new_vertex[-1])
+                label, side = label_lookup[new_vertex[-1]]
                 neighbour = ~label[(side+2) % 3]
                 if neighbour in unused:
                     new_vertex.append(neighbour)
@@ -373,7 +363,7 @@ class Triangulation(object):
             # We will label the vertices 0, ..., num_vertices-1 in some order.
             for index, vertex_class in enumerate(vertex_classes):
                 for edge_label in vertex_class:
-                    vertex_labels[rotate(edge_label)] = index
+                    vertex_labels[rotate_lookup[edge_label]] = index
         
         # Sanity check vertex_labels now.
         # All edges should have a label.
@@ -385,8 +375,8 @@ class Triangulation(object):
         
         for vertex_class in vertex_classes:
             for edge_label in vertex_class:
-                if vertex_labels[rotate(edge_label)] != vertex_labels[rotate(vertex_class[0])]:
-                    raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate(edge_label), rotate(vertex_class[0])))
+                if vertex_labels[rotate_lookup[edge_label]] != vertex_labels[rotate_lookup[vertex_class[0]]]:
+                    raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate_lookup[edge_label], rotate_lookup[vertex_class[0]]))
         
         X = set(vertex_labels.values())
         # Check we have the right number of labels. This also checks that distinct vertex_classes have distinct labels.
@@ -408,7 +398,7 @@ class Triangulation(object):
         def vertexer(edge_label):
             ''' Return the vertex at the tail of the given edge label. '''
             
-            return vertices[vertex_labels[rotate(edge_label)]]
+            return vertices[vertex_labels[rotate_lookup[edge_label]]]
         
         # Build the Edges.
         edges_map = dict((i, Edge(vertexer(i), vertexer(~i), i)) for i in range(zeta))

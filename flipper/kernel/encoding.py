@@ -4,7 +4,6 @@
 Provides one class: Encoding. '''
 
 from itertools import product, count
-import cypari
 
 import flipper
 

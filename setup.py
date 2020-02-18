@@ -9,7 +9,6 @@ requirements = [
     'numpy',
     'pandas',
     'realalg',
-    'sympy',
 ]
 
 def readme():

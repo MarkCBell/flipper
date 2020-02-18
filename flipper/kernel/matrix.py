@@ -5,8 +5,8 @@ Provides one class: Matrix.
 
 There are also helper functions: id_matrix and zero_matrix. '''
 
+import numpy as np
 import realalg
-import cypari
 
 import flipper
 
@@ -151,36 +151,17 @@ class Matrix(object):
         return all(dot(row, v) >= 0 for row in self)
     
     def directed_eigenvector(self, condition_matrix):
-        ''' Return an interesting eigenvector of self which lives inside of the cone C, defined by condition_matrix.
+        ''' Return an `interesting` (eigenvalue, eigenvector) pair  which lives inside of the cone C, defined by condition_matrix.
         
-        An eigenvector is interesting if its corresponding eigenvalue is: real, > 1, irrational and bigger than all
-        of its Galois conjugates.
+        See realalg for the definition of `interesting`.
         
         Raises a ComputationError if it cannot find an interesting vectors in C.
         Assumes that C contains at most one interesting eigenvector. '''
         
-        x = cypari.pari('x')
-        
-        M = cypari.pari.matrix(self.width, self.height, self.flatten())
-        
-        for polynomial in M.charpoly().factor()[0]:
-            degree = int(polynomial.poldegree())
-            if degree > 1:
-                try:
-                    K = realalg.RealNumberField([int(polynomial.polcoeff(i)) for i in range(degree+1)])
-                except ValueError:  # No real roots.
-                    continue
-                
-                if K.lmbda >= 1:
-                    # Compute the kernel:
-                    a = x.Mod(polynomial)
-                    kernel_basis = (M - a).matker()
-                    
-                    if len(kernel_basis) == 1:  # Rank 1 kernel.
-                        eigenvalue = K.lmbda
-                        eigenvector = [K([entry.lift().polcoeff(i) for i in range(degree)]) for entry in kernel_basis[0]]
-                        if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
-                            return eigenvalue, eigenvector
+        M = np.array(self.rows, dtype=object)
+        for eigenvalue, eigenvector in realalg.eigenvectors(M):
+            if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+                return eigenvalue, eigenvector
         
         raise flipper.ComputationError('No interesting eigenvalues in cell.')
 

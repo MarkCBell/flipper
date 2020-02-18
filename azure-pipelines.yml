@@ -14,26 +14,23 @@ jobs:
   strategy:
     matrix:
       Docs:
-        python.version: '3.7'
+        python.version: '3.8'
         TOX_ENV: 'docs'
-      Lint2:
-        python.version: '2.7'
-        TOX_ENV: 'lint2'
-      Lint3:
-        python.version: '3.6'
-        TOX_ENV: 'lint3'
+      Lint:
+        python.version: '3.8'
+        TOX_ENV: 'lint'
       Python27:
         python.version: '2.7'
         TOX_ENV: 'py27'
-      Python35:
-        python.version: '3.5'
-        TOX_ENV: 'py35'
       Python36:
         python.version: '3.6'
         TOX_ENV: 'py36'
       Python37:
         python.version: '3.7'
         TOX_ENV: 'py37'
+      Python38:
+        python.version: '3.8'
+        TOX_ENV: 'py38'
   
   steps:
   - task: UsePythonVersion@0

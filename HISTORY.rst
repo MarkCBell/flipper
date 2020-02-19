@@ -2,6 +2,13 @@
 History
 =======
 
+0.14.0 (2020-02-18)
+-------------------
+
+* Triangulations created more efficiently.
+* Using new version of realalg.
+* Removed cypari as a requirement.
+
 0.13.5 (2019-07-26)
 -------------------
 

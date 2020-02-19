@@ -23,7 +23,7 @@ It can decide the Nielsen--Thurston type of a given mapping class and, for pseud
 
 Flipper officially supports Python 2.7 and 3.6 -- 3.8.
 It also runs on `PyPy`_ and `Sage`_.
-To get the best performance, ensure that cyPari or cyPari2 is installed or run from it within Sage.
+To get the best performance, ensure that `cypari`_ or `cypari2`_ is installed or run from it within Sage.
 
 Quickstart
 ----------
@@ -56,10 +56,12 @@ External Links
 .. _AppVeyor: https://ci.appveyor.com/project/MarkCBell/flipper
 .. _Azure: https://dev.azure.com/MarkCBell/flipper
 .. _GitHub: https://github.com/MarkCBell/flipper
-.. _PyPI: https://pypi.python.org/pypi/flipper
+.. _PyPI: https://pypi.org/project/flipper
 .. _ReadTheDocs: http://flipper.readthedocs.io
 .. _Sage: http://www.sagemath.org
 .. _Travis: https://travis-ci.com/MarkCBell/flipper
 .. _Coveralls: https://coveralls.io/github/MarkCBell/flipper
 .. _PyPy: https://pypy.org/
+.. _cypari: https://pypi.org/project/cypari
+.. _cypari2: https://pypi.org/project/cypari2
 

@@ -234,7 +234,7 @@ class Triangulation(object):
         # Check that the vertices are labelled 0, ..., num_vertices-1.
         assert set(vertex.label for vertex in self.vertices) == set(range(self.num_vertices))
         # Check that the edges have indices 0, ..., zeta-1.
-        assert set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)])
+        assert set(self.labels) == set([i for i in range(self.zeta)] + [~i for i in range(self.zeta)])  # pylint: disable=unnecessary-comprehension
         
         self.triangle_lookup = dict((edge.label, triangle) for triangle in self for edge in triangle.edges)
         self.edge_lookup = dict((edge.label, edge) for edge in self.edges)
@@ -340,7 +340,7 @@ class Triangulation(object):
         
         # Group the edges into vertex classes. Here two edges are in the same
         # class iff they have the same tail.
-        unused = [i for i in range(zeta)] + [~i for i in range(zeta)]
+        unused = [i for i in range(zeta)] + [~i for i in range(zeta)]  # pylint: disable=unnecessary-comprehension
         vertex_classes = []
         while unused:
             new_vertex = [unused.pop()]
@@ -369,7 +369,7 @@ class Triangulation(object):
         # All edges should have a label.
         # Edges should have the same label iff they are opposite the same vertex.
         
-        for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:
+        for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:  # pylint: disable=unnecessary-comprehension
             if edge_label not in vertex_labels:
                 raise TypeError('Missing vertex label for edge %d.' % edge_label)
         
@@ -921,7 +921,7 @@ class Triangulation(object):
                             generator.append(edge)
                             current = a
                             break
-                        elif a == current and distance[b] == distance[a]-1:
+                        if a == current and distance[b] == distance[a]-1:
                             generator.append(~edge)
                             current = b
                             break

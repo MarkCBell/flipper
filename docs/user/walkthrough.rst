@@ -172,7 +172,6 @@ Load the example surface ``S_{2,1}``.
     .. image:: ../figures/S_2_1.svg
         :height: 150px
         :width: 250px
-        :scale: 10 %
         :alt: curves on S_2_1
         :align: center
 

@@ -51,7 +51,6 @@ External Links
 * `Travis`_
 * `AppVeyor`_
 * `Azure`_
-* `Coveralls`_
 
 .. _AppVeyor: https://ci.appveyor.com/project/MarkCBell/flipper
 .. _Azure: https://dev.azure.com/MarkCBell/flipper
@@ -60,7 +59,6 @@ External Links
 .. _ReadTheDocs: http://flipper.readthedocs.io
 .. _Sage: http://www.sagemath.org
 .. _Travis: https://travis-ci.com/MarkCBell/flipper
-.. _Coveralls: https://coveralls.io/github/MarkCBell/flipper
 .. _PyPy: https://pypy.org/
 .. _cypari: https://pypi.org/project/cypari
 .. _cypari2: https://pypi.org/project/cypari2

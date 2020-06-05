@@ -6,6 +6,7 @@ Provides one class: Encoding. '''
 from itertools import product, count
 
 import flipper
+from flipper.kernel.decorators import memoize  # Special import needed for decorating.
 
 NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'  # Strictly this  means "reducible and not periodic".
@@ -253,7 +254,8 @@ class Encoding(object):
         
             yield (As, Cs)
     
-    def pml_fixedpoint_uncached(self, starting_curve=None):
+    @memoize
+    def pml_fixedpoint(self):
         ''' Return a rescaling constant and projectively invariant lamination.
         
         Assumes that the mapping class is pseudo-Anosov.
@@ -407,20 +409,6 @@ class Encoding(object):
         # Currently, we can never reach this line. But it is here in case we
         # ever replace the count() with range().
         raise flipper.AssumptionError('Mapping class is reducible.')
-    
-    def pml_fixedpoint(self):
-        ''' A version of self.invariant_lamination_uncached with caching. '''
-        
-        if 'invariant_lamination' not in self._cache:
-            try:
-                self._cache['invariant_lamination'] = self.pml_fixedpoint_uncached()
-            except flipper.AssumptionError as error:
-                self._cache['invariant_lamination'] = error
-        
-        if isinstance(self._cache['invariant_lamination'], Exception):
-            raise self._cache['invariant_lamination']
-        
-        return self._cache['invariant_lamination']
     
     def invariant_lamination(self):
         ''' Return a projectively invariant lamination of this mapping class.

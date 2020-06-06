@@ -2,6 +2,12 @@
 History
 =======
 
+0.15.0 (2020-06-07)
+-------------------
+
+* Added heuristics for finding monodromies of bundles using taut structures.
+  Joint with Nathan M Dunfield.
+
 0.14.0 (2020-02-18)
 -------------------
 

@@ -5,7 +5,9 @@ http://arxiv.org/abs/math/0003132
 
 A taut ideal triangulation gives an angle structure where all the angles are 0 or pi.
 Such an angle structure gives instructions on how to turn the 2-skeleton of the ideal triangulation into a branched surface.
-When this branched surface is orientable, one has a taut ideal triangulation in the sense of Lackenby"s paper.
+When this branched surface is orientable, one has a taut ideal triangulation in the sense of Lackenby's paper.
+
+Based on code joint with Nathan M Dunfield.
 """
 
 from collections import Counter, namedtuple

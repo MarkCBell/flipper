@@ -8,8 +8,10 @@ from setuptools import setup, find_packages
 requirements = [
     'decorator',
     'numpy',
+    'networkx',
     'pandas',
     'realalg',
+    'snappy',
 ]
 
 def readme():

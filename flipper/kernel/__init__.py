@@ -33,6 +33,7 @@ from .triangulation3 import Tetrahedron, Triangulation3  # noqa: F401
 from . import utilities  # noqa: F401
 
 # Functions that help with construction.
+from .taut import monodromy_from_bundle
 create_triangulation = Triangulation.from_tuple
 triangulation_from_iso_sig = Triangulation.from_string
 create_equipped_triangulation = EquippedTriangulation.from_tuple

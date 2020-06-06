@@ -220,7 +220,7 @@ class EquippedTriangulation(object):
                         for k in range(len(relator)):  # Cycling.
                             ww = relator[k:] + relator[:k]
                             if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
-                                if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
+                                if all(ww[m:n] not in skip for n in range(j+1) for m in range(n)):
                                     skip[ww[:j]] = inverse(ww[j:])
         
         # Then do the actual search to the given relator_len.
@@ -242,7 +242,7 @@ class EquippedTriangulation(object):
                     for k in range(i):  # Cycling.
                         ww = relator[k:] + relator[:k]
                         if order(ww[:j], inverse(ww[j:])) and ww[:j] != inverse(ww[j:]):
-                            if all(ww[l:m] not in skip for m in range(j+1) for l in range(m)):
+                            if all(ww[m:n] not in skip for n in range(j+1) for m in range(n)):
                                 skip[ww[:j]] = inverse(ww[j:])
         
         return skip

@@ -5,6 +5,7 @@ History
 0.15.0 (2020-06-07)
 -------------------
 
+* Switch pml fixedpoint iteration thresholds to the Margalit--Strenner--Yurtas bounds.
 * Added heuristics for finding monodromies of bundles using taut structures.
   Joint with Nathan M Dunfield.
 

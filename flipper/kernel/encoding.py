@@ -3,7 +3,7 @@
 
 Provides one class: Encoding. '''
 
-from itertools import product, count
+from itertools import product
 
 import flipper
 from flipper.kernel.decorators import memoize  # Special import needed for decorating.
@@ -255,159 +255,41 @@ class Encoding(object):
             yield (As, Cs)
     
     @memoize
-    def pml_fixedpoint(self, starting_curve=None):
+    def pml_fixedpoint(self):
         ''' Return a rescaling constant and projectively invariant lamination.
         
         Assumes that the mapping class is pseudo-Anosov.
         
-        To find this we start with a curve on the surface and repeatedly apply
-        the map until it appear to be projectively similar to a previous iteration.
-        Finally it uses :func:`~flipper.kernel.matrix.Matrix.directed_eigenvector()`
-        to find the nearby projective fixed point. If this fails after some number
-        of iterations then we fall back to computing the action inside of every
-        cell of the PL action. Generically this is exponentially slow.
-        
-        Note: In most pseudo-Anosov cases < 15 iterations are needed, if it fails
-        to converge after many iterations then it is extremely likely that the
-        mapping class was not pseudo-Anosov. Also note that the number of iterations
-        done before switching technique is (currently) only dependent on the topology
-        of the underlying surface.
+        To find this we start with a curve on the surface and repeatedly apply the map.
+        We then use :func:`~flipper.kernel.matrix.Matrix.directed_eigenvector()` to find the nearby projective fixed point.
+        The work of Margalit--Strenner--Yurtas says that if we apply self too many times then self is not pseudo-Anosov.
         
         This encoding must be a mapping class. '''
         
-        # Suppose that f_1, ..., f_m, g_1, ..., g_n, t_1, ..., t_k, p is the Thurston decomposition of self.
-        # That is: f_i are pA on subsurfaces, g_i are periodic on subsurfaces, t_i are Dehn twist along the curve of
-        # the canonical curve system and p is a permutation of the subsurfaces.
-        # Additionally, let S_i be the subsurface corresponding to f_i, P_i correspond to g_i and A_i correspond to t_i.
-        # Finally, let x_0 be a curve on the surface and define x_i := self(x_{i-1}).
-        #
-        # The algorithm covers 3 cases:  (Note we reorder the subsurfaces for ease of notation.)
-        #  1) x_0 meets at S_1, ..., S_m',
-        #  2) x_0 meets no S_i but meets A_1, ..., A_k', and
-        #  3) x_0 meets no S_i or A_i, that is x_0 is contained in a P_1.
-        #
-        # In the first case, x_i will converge exponentially to the stable laminations of f_1, ..., f_m'.
-        # Here the convergence is so fast we need only a few iterations.
-        #
-        # In the second case x_i will converge linearly to c, the cores of A_1, ..., A_k'. To speed this up
-        # we note that x_i = i*c + O(1), so rescale x_i by 1/i, round and check if this is c.
-        #
-        # Finally, the third case happens if and only if x_i is periodic. In this case self must be
-        # periodic or reducible. We test for periodicity at the beginning hence if we ever find a curve
-        # fixed by a power of self then we must reducible.
-        
-        # Possible future improvements:
-        #  - Store the checked cells in a hash map to prevent rerunning the expensive action_matrix.directed_eigenvector.
-        #  - Automatically update to a finer RESOLUTION whenever you fail to get a lamination from action_matrix.directed_eigenvector.
-        
         assert self.is_mapping_class()
         
-        # We will use a hash to significantly speed up the algorithm.
-        resolution = 200
-        
-        def curve_hash(curve, resolution):
-            ''' A simple hash mapping cuves to a coarse lattice in PML. '''
-            # Hmmm, this can suffer from // always rounding down.
-            w = curve.weight()
-            return (resolution,) + tuple([entry * resolution // w for entry in curve])
-        
-        cells = self.pl_action()
-        tested = set()
-        
-        def test_cell(cell):
-            ''' Return an eigenvector of this action matrix inside the cone defined by condtion matrix.
-            
-            Raise a ComputationError if no such vector exists. '''
-            # We'll store cell in a set to ensure that we never test the same cell twice.
-            if cell in tested:
-                raise flipper.ComputationError('No interesting eigenvectors in cell.')
-            
-            tested.add(cell)
-            action_matrix, condition_matrix = cell
-            eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
-            
-            invariant_lamination = triangulation.lamination(eigenvector.tolist())
-            if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-                raise flipper.ComputationError('No interesting eigenvectors in cell.')
-            
-            return eigenvalue, invariant_lamination
-        
         # We start with a fast test for periodicity.
-        # This isn't needed but it means that if we ever discover that
-        # self is not pA then it must be reducible.
+        # This isn't needed but it means that if we ever discover that self is not pA then it must be reducible.
         if self.is_periodic():
             raise flipper.AssumptionError('Mapping class is periodic.')
         
-        triangulation = self.source_triangulation
-        max_order = triangulation.max_order
-        if starting_curve is None: starting_curve = triangulation.key_curves()[0]
-        curves = [starting_curve]
-        seen = {curve_hash(curves[0], resolution): [0]}
-        
-        # The result of Margalit--Strenner--Yurtas implies that this count will never go over some polynomial function of len(self).
-        # So in the future this could be replaced by range(poly(len(self))).
-        for i in count():
-            new_curve = self(curves[-1])
-            curves.append(new_curve)
-            hsh = curve_hash(new_curve, resolution)
-            # print(i, new_curve, hsh)
-            
-            # We try to find a projective fixed point through iteration.
-            if hsh in seen:
-                for j in reversed(seen[hsh]):  # Better to work backwards as the later ones are likely to be longer and so projectively closer.
-                    # Check if we have seen this curve before.
-                    if new_curve == curves[j]:  # self**(i-j)(new_curve) == new_curve, so self is reducible.
-                        raise flipper.AssumptionError('Mapping class is reducible.')
-                    # Test the cell containing the average the last few curves in case they have 'spiralled' around the fixedpoint.
-                    average_curve = sum(curves[j:])
-                    try:
-                        return test_cell(self.applied_geometric(average_curve))
-                    except flipper.ComputationError:
-                        pass
-                
-                seen[hsh].append(i+1)
-            else:
-                seen[hsh] = [i+1]
-            
-            # We now have a series of extra tests for edge cases / performance.
-            
-            # Extra test: handle the case when self is reducible and curve lies only in periodic parts.
-            if len(seen[hsh]) > 4 or i % max_order == 0:  # This is still slow (quadratic in max_order) so don't do it often.
-                for j in reversed(range(max(len(curves) - max_order, 0), len(curves)-1)):
-                    # A good guess for the reducing curve is the (additive) growth rate.
-                    vector = [x - y for x, y in zip(new_curve, curves[j])]
-                    new_small_curve = small_curve = triangulation.lamination(vector, algebraic=[0] * self.zeta)
-                    if not small_curve.is_empty():
-                        for k in range(1, max_order+1):
-                            new_small_curve = self(new_small_curve)
-                            if new_small_curve == small_curve:
-                                if k == 1:
-                                    # We could raise an AssumptionError in this case too as this also shows that self is reducible.
-                                    return 1, small_curve
-                                else:
-                                    raise flipper.AssumptionError('Mapping class is reducible.')
-            
-            # Performance.
-            if len(seen[hsh]) > 6:
-                # Recompute seen to a higher resolution.
-                # This reduces the chances that we will get false positives that need
-                # to have an expensive directed_eigenvector calculation done on them.
-                resolution = resolution * 10  # Crank up exponentially.
-            
-            # Extra test: just examine every cell.
-            if i > max(10 * max_order, 100):  # Is this a reasonable threshold?
-                # There can be (and generically are) exponentially many cells so this process is extremely slow.
-                # However it is guaranteed to terminate with an invariant lamination or prove that the mapping class is reducible.
+        for curve in self.source_triangulation.key_curves():
+            # The result of Margalit--Strenner--Yurtas say that this is a sufficient number of iterations to find a fixed point.
+            # See https://www.youtube.com/watch?v=-GO0AvUGjH4
+            for _ in range(36 * self.source_triangulation.euler_characteristic**2):
+                curve = self(curve)
                 try:
-                    return test_cell(next(cells))
+                    action_matrix, condition_matrix = self.applied_geometric(curve)
+                    eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
+                    
+                    invariant_lamination = self.source_triangulation(eigenvector.tolist())
+                    if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+                        raise flipper.ComputationError('No interesting eigenvectors in cell.')
+                    
+                    return eigenvalue, invariant_lamination
                 except flipper.ComputationError:
                     pass
-                except StopIteration:
-                    # If none of the cells contained a projective fixed-point with eigenvalue > 1 then this mapping class must be reducible.
-                    raise flipper.AssumptionError('Mapping class is reducible.')
         
-        # Currently, we can never reach this line. But it is here in case we
-        # ever replace the count() with range().
         raise flipper.AssumptionError('Mapping class is reducible.')
     
     def invariant_lamination(self):

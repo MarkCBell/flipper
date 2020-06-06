@@ -13,7 +13,7 @@ class Permutation(object):
     ''' This represents a permutation in Sym(n). '''
     def __init__(self, permutation):
         assert isinstance(permutation, (list, tuple))
-        assert all(isinstance(entry, flipper.IntegerType) for entry in permutation)
+        # assert all(isinstance(entry, flipper.IntegerType) for entry in permutation)
         assert set(permutation) == set(range(len(permutation)))
         
         self.permutation = tuple(permutation)
@@ -127,4 +127,19 @@ def permutation_from_pair(a, to_a, b, to_b):
         return P
     except IndexError:
         raise ValueError('Does not represent a gluing.')
+
+PERM3 = all_permutations(3)
+PERM3_INVERSE = {perm: perm.inverse() for perm in PERM3}
+PERM3_LOOKUP = dict((perm, index) for index, perm in enumerate(PERM3))
+TRANSITION_PERM3_LOOKUP = {
+    (0, 0): Permutation([0, 2, 1]),
+    (0, 1): Permutation([1, 0, 2]),
+    (0, 2): Permutation([2, 1, 0]),
+    (1, 0): Permutation([1, 0, 2]),
+    (1, 1): Permutation([2, 1, 0]),
+    (1, 2): Permutation([0, 2, 1]),
+    (2, 0): Permutation([2, 1, 0]),
+    (2, 1): Permutation([0, 2, 1]),
+    (2, 2): Permutation([1, 0, 2])
+}
 

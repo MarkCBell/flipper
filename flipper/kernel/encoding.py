@@ -255,7 +255,7 @@ class Encoding(object):
             yield (As, Cs)
     
     @memoize
-    def pml_fixedpoint(self):
+    def pml_fixedpoint(self, starting_curve=None):
         ''' Return a rescaling constant and projectively invariant lamination.
         
         Assumes that the mapping class is pseudo-Anosov.

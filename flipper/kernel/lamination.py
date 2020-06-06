@@ -10,6 +10,7 @@ except ImportError:
     from queue import Queue
 
 import flipper
+from flipper.kernel.decorators import memoize  # Special import needed for decorating.
 
 INFTY = float('inf')
 HASH_DENOMINATOR = 30
@@ -535,7 +536,8 @@ class Lamination(object):
         
         return lamination, encoding
     
-    def splitting_sequences_uncached(self, dilatation=None, maxlen=None):
+    @memoize
+    def splitting_sequences(self, dilatation=None, maxlen=None):
         ''' Return a list of splitting sequence associated to this lamination.
         
         This is the encoding obtained by flipping edges to repeatedly split
@@ -684,23 +686,6 @@ class Lamination(object):
                 seen[target] = [len(encodings)]
         
         raise RuntimeError('Unreachable code.')
-    
-    def splitting_sequences(self, dilatation=None, maxlen=None):
-        ''' A version of self.splitting_sequences_uncached with caching. '''
-        
-        if 'splitting_sequences' not in self._cache:
-            self._cache['splitting_sequences'] = {}
-        
-        if dilatation not in self._cache['splitting_sequences']:
-            try:
-                self._cache['splitting_sequences'][dilatation] = self.splitting_sequences_uncached(dilatation, maxlen)
-            except flipper.AssumptionError as error:
-                self._cache['splitting_sequences'][dilatation] = error
-        
-        if isinstance(self._cache['splitting_sequences'][dilatation], Exception):
-            raise self._cache['splitting_sequences'][dilatation]
-        
-        return self._cache['splitting_sequences'][dilatation]
     
     def encode_twist(self, k=1):
         ''' Return an Encoding of a left Dehn twist about this lamination raised to the power k.

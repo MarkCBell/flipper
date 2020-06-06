@@ -1339,9 +1339,3 @@ def create_triangulation(cls, edge_labels, vertex_labels=None, vertex_states=Non
     
     return cls.from_tuple(edge_labels, vertex_labels, vertex_states)
 
-
-
-
-
-
-

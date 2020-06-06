@@ -6,9 +6,12 @@
 from setuptools import setup, find_packages
 
 requirements = [
+    'decorator',
     'numpy',
+    'networkx',
     'pandas',
     'realalg',
+    'snappy',
 ]
 
 def readme():
@@ -17,7 +20,7 @@ def readme():
 
 setup(
     name='flipper',
-    version='0.14.0',
+    version='0.15.0',
     description='For manipulating curves and measured laminations on surfaces and producing mapping tori.',
     long_description=readme(),
     author='Mark Bell',

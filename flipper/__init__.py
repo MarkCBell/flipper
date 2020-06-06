@@ -38,6 +38,7 @@ __version__ = pkg_resources.get_distribution('flipper').version
 # Set up really short names for the most commonly used classes and functions by users.
 create_triangulation = flipper.kernel.create_triangulation
 triangulation_from_iso_sig = flipper.kernel.triangulation_from_iso_sig
+monodromy_from_bundle = flipper.kernel.monodromy_from_bundle
 norm = flipper.kernel.norm
 
 AbortError = flipper.kernel.AbortError
@@ -45,8 +46,4 @@ ApproximationError = flipper.kernel.ApproximationError
 AssumptionError = flipper.kernel.AssumptionError
 ComputationError = flipper.kernel.ComputationError
 FatalError = flipper.kernel.FatalError
-
-# Finally load in the constants. These might require flipper to do the calculations
-# so we can't create them before this point.
-import flipper.kernel.constants  # noqa: F402
 

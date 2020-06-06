@@ -10,4 +10,4 @@ Development Lead
 Contributors
 ------------
 
-None yet. Why not be the first?
+* Nathan M Dunfield <nmd@illinois.edu> - Code for constructing taut strunctures on bundles.

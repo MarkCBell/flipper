@@ -160,7 +160,7 @@ class Matrix(object):
         
         M = np.array(self.rows, dtype=object)
         for eigenvalue, eigenvector in realalg.eigenvectors(M):
-            if flipper.kernel.matrix.nonnegative(eigenvector) and condition_matrix.nonnegative_image(eigenvector):
+            if condition_matrix.nonnegative_image(eigenvector):
                 return eigenvalue, eigenvector
         
         raise flipper.ComputationError('No interesting eigenvalues in cell.')

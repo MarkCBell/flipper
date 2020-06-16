@@ -8,7 +8,7 @@ from setuptools import setup, find_packages
 requirements = [
     'decorator',
     'numpy',
-    'networkx',
+    'networkx>=2.4',
     'pandas',
     'realalg',
     'snappy',

@@ -19,9 +19,6 @@ jobs:
       Lint:
         python.version: '3.8'
         TOX_ENV: 'lint'
-      Python27:
-        python.version: '2.7'
-        TOX_ENV: 'py27'
       Python36:
         python.version: '3.6'
         TOX_ENV: 'py36'

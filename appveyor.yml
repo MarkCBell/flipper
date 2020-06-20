@@ -9,9 +9,6 @@ environment:
     - PYTHON: "C:\\Python36"
       TOX_ENV: "lint"
 
-    - PYTHON: "C:\\Python27"
-      TOX_ENV: "py27"
-
     - PYTHON: "C:\\Python36"
       TOX_ENV: "py36"
 

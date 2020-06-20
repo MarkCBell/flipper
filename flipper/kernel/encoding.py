@@ -107,8 +107,6 @@ class Encoding:
             return self.identify() == other.identify()
         else:
             return NotImplemented
-    def __ne__(self, other):
-        return not self == other
     def __hash__(self):
         return hash(self.identify())
     def is_homologous_to(self, other):

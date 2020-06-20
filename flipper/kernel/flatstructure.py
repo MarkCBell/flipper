@@ -26,8 +26,6 @@ class Vector2:
         return iter([self.x, self.y])
     def __eq__(self, other):
         return self.x == other.x and self.y == other.y
-    def __ne__(self, other):
-        return not self == other
     def __neg__(self):
         return Vector2(-self.x, -self.y)
     def __add__(self, other):

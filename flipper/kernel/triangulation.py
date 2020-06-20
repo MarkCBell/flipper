@@ -539,8 +539,6 @@ class Triangulation:
         return (create_triangulation, (self.__class__,) + self.package())
     def __eq__(self, other):
         return self.signature == other.signature
-    def __ne__(self, other):
-        return not self == other
     def __call__(self, geometric, algebraic=None, remove_peripheral=True):
         return self.lamination(geometric, algebraic, remove_peripheral)
     

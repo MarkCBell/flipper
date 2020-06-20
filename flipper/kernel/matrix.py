@@ -54,8 +54,6 @@ class Matrix:
         return iter(self.rows)
     def __eq__(self, other):
         return self.width == other.width and self.height == other.height and all(row1 == row2 for row1, row2 in zip(self.rows, other.rows))
-    def __ne__(self, other):
-        return not self == other
     
     def __neg__(self):
         return Matrix([[-x for x in row] for row in self])

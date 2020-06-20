@@ -53,8 +53,6 @@ class Permutation:
         return result
     def __eq__(self, other):
         return self.permutation == other.permutation
-    def __ne__(self, other):
-        return not self == other
     def inverse(self):
         ''' Return the inverse of this permutation. '''
         

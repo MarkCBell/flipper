@@ -80,8 +80,6 @@ class Lamination:
         return self.triangulation == other.triangulation and \
             all(v == w for v, w in zip(self.geometric, other.geometric)) and \
             all(v == w for v, w in zip(self.algebraic, other.algebraic))
-    def __ne__(self, other):
-        return not self == other
     def __hash__(self):
         # This should be done better.
         return hash(tuple(self.geometric) + tuple(self.algebraic))

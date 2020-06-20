@@ -25,7 +25,7 @@ def dot(a, b):
     # return c
     return sum(x * y for x, y in zip(a, b))
 
-class Matrix(object):
+class Matrix:
     ''' This represents a matrix. '''
     def __init__(self, data):
         assert isinstance(data, (list, tuple))

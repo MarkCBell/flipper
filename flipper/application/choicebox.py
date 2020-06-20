@@ -9,7 +9,7 @@ try:
 except ImportError:  # Python 3.
     from tkinter import ttk as TTK
 
-class GetChoiceApp(object):
+class GetChoiceApp:
     def __init__(self, title, prompt, options, host_app_parent=None):
         if host_app_parent is None: host_app_parent = TK._default_root
         self.host_app_parent = host_app_parent

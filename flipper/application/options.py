@@ -21,7 +21,7 @@ LABEL_EDGES_ALGEBRAIC = 'Algebraic'
 SIZE_SMALL, SIZE_MEDIUM, SIZE_LARGE = 0, 1, 2
 # SIZE_XLARGE = 3
 
-class Options(object):
+class Options:
     def __init__(self, parent):
         self.parent = parent
         self.application_font = TK_FONT.Font(family='TkDefaultFont', size=10)

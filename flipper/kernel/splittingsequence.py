@@ -5,7 +5,7 @@ Provides one class: SplittingSequence. '''
 
 import flipper
 
-class SplittingSequence(object):
+class SplittingSequence:
     ''' This represents a sequence of flips of an Triangulation. '''
     def __init__(self, preperiodic, mapping_class, dilatation, lamination):
         assert isinstance(preperiodic, flipper.kernel.Encoding)
@@ -27,7 +27,7 @@ class SplittingSequence(object):
         # Hmmm, this assumes we're not taking roots.
         self.mapping_class._cache['invariant_lamination'] = (self.dilatation, self.lamination)
 
-class SplittingSequences(object):
+class SplittingSequences:
     ''' This represents a sequence of flips of an Triangulation. '''
     def __init__(self, encoding, isometries, index, dilatation, lamination):
         assert isinstance(encoding, flipper.kernel.Encoding)

@@ -15,7 +15,7 @@ from flipper.kernel.decorators import memoize  # Special import needed for decor
 INFTY = float('inf')
 HASH_DENOMINATOR = 30
 
-class Lamination(object):
+class Lamination:
     ''' This represents a lamination on an triangulation.
     
     It is given by a list of its geometric intersection numbers and a

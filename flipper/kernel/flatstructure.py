@@ -7,7 +7,7 @@ Provides two classes: Vector2 and FlatStructure.
 
 import flipper
 
-class Vector2(object):
+class Vector2:
     ''' This represents a point in RR^2. '''
     
     # Warning: This needs to be updated if the interals of this class ever change.
@@ -37,7 +37,7 @@ class Vector2(object):
     def __mul__(self, other):
         return Vector2(self.x * other, self.y * other)
 
-class FlatStructure(object):
+class FlatStructure:
     ''' This represents a triangulation with a flat structure.
     
     It is specified by a triangulation together with a map taking each edge to a Vector2.

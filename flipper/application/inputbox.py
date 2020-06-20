@@ -4,7 +4,7 @@ try:
 except ImportError:  # Python 3.
     import tkinter as TK
 
-class GetStringApp(object):
+class GetStringApp:
     def __init__(self, title, prompt, default='', validate=None, host_app_parent=None):
         if host_app_parent is None: host_app_parent = TK._default_root
         self.host_app_parent = host_app_parent

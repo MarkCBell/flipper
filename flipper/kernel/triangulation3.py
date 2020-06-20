@@ -35,7 +35,7 @@ EXIT_CUSP_RIGHT = {
     (3, 0): 2, (3, 1): 0, (3, 2): 1
     }
 
-class Tetrahedron(object):
+class Tetrahedron:
     ''' This represents a tetrahedron. '''
     def __init__(self, label):
         assert isinstance(label, flipper.IntegerType)
@@ -107,7 +107,7 @@ class Tetrahedron(object):
     def __snappy__(self):
         return self.snappy_string()
 
-class Triangulation3(object):
+class Triangulation3:
     ''' This represents triangulation, that is a collection of tetrahedra. '''
     def __init__(self, num_tetrahedra):
         assert isinstance(num_tetrahedra, flipper.IntegerType)

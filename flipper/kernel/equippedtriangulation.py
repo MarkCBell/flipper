@@ -52,7 +52,7 @@ def _worker_thread_mapping_class(Q, A):
     A.put(None)
 
 
-class EquippedTriangulation(object):
+class EquippedTriangulation:
     ''' This represents a triangulation along with a collection of named laminations and mapping classes on it.
     
     Most importantly this object can construct a mapping class from a string descriptor.

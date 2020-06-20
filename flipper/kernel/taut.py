@@ -41,7 +41,7 @@ t3m.Edge.arrows_around = lambda self: walk(self.get_arrow())
 t3m.Arrow.face_index = lambda self: self.Tetrahedron.Class[self.Face].Index
 t3m.Arrow.oriented_face = lambda self: (self.Tetrahedron.Index, self.Face)
 
-class Surface(object):
+class Surface:
     """ An oriented surface carried by the branched surface associated to a taut structure. """
 
     def __init__(self, taut_str, weights):
@@ -134,7 +134,7 @@ class Surface(object):
         return min(self.weights) > 0
 
 
-class TautStructure(object):
+class TautStructure:
     """ Represents a taut structure on a triangulation.
 
     This is specified by a collection of SnapPy.Arrows which define a dihedral of a Tetrahedron.

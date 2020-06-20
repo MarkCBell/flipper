@@ -27,7 +27,7 @@ def norm(value):
     
     return max(value, ~value)
 
-class Vertex(object):
+class Vertex:
     ''' This represents a vertex, labelled with an integer. '''
     
     # Warning: This needs to be updated if the interals of this class ever change.
@@ -54,7 +54,7 @@ class Vertex(object):
         else:
             return NotImplemented
 
-class Edge(object):
+class Edge:
     ''' This represents an oriented edge, labelled with an integer.
     
     It is specified by the vertices that it connects from / to.
@@ -106,7 +106,7 @@ class Edge(object):
         
         return +1 if self.is_positive() else -1
 
-class Triangle(object):
+class Triangle:
     ''' This represents a triangle.
     
     It is specified by a list of three edges, ordered anticlockwise.
@@ -168,7 +168,7 @@ class Triangle(object):
         else:
             return NotImplemented
 
-class Corner(object):
+class Corner:
     ''' This represents a corner of a triangulation
     
     It is a triangle along with a side number (the side opposite this corner). '''
@@ -204,7 +204,7 @@ class Corner(object):
 # Remark: In other places in the code you will often see L(triangulation). This is the space
 # of laminations on triangulation with the coordinate system induced by the triangulation.
 
-class Triangulation(object):
+class Triangulation:
     ''' This represents a triangulation of a punctured surface.
     
     It is specified by a list of Triangles. Its edges must be

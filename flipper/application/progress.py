@@ -27,7 +27,7 @@ def _worker_thread(function, args, answer):
     except Exception as error:
         answer.put(error)  # Return any errors that occur.
 
-class ProgressApp(object):
+class ProgressApp:
     def __init__(self, host_app_parent=None):
         if host_app_parent is None: host_app_parent = TK._default_root
         self.host_app_parent = host_app_parent

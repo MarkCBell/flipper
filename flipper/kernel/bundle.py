@@ -5,7 +5,7 @@ Provides one class: Bundle. '''
 
 import flipper
 
-class Bundle(object):
+class Bundle:
     ''' This represents a triangulation of a surface bundle over the circle.
     
     It is specified by a triangulation of the surface, a triangulation of the

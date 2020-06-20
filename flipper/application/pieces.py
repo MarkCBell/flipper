@@ -73,7 +73,7 @@ def interpolate(A, B, C, r, s):
     
     return X, P, Q, Y
 
-class ColourPalette(object):
+class ColourPalette:
     def __init__(self):
         self.state = 0
     
@@ -88,7 +88,7 @@ class ColourPalette(object):
     def reset(self):
         self.state = 0
 
-class DrawableObject(object):
+class DrawableObject:
     def __init__(self, canvas, vertices, options):
         self.options = options
         self.canvas = canvas

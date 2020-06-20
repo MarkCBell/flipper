@@ -8,7 +8,7 @@ shortened in polynomial time. '''
 
 import flipper
 
-class Move(object):
+class Move:
     ''' This represents an abstract move between triangulations and provides the framework for subclassing. '''
     def __init__(self, source_triangulation, target_triangulation):
         assert isinstance(source_triangulation, flipper.kernel.Triangulation)

@@ -9,7 +9,7 @@ from itertools import permutations, combinations
 
 import flipper
 
-class Permutation(object):
+class Permutation:
     ''' This represents a permutation in Sym(n). '''
     def __init__(self, permutation):
         assert isinstance(permutation, (list, tuple))

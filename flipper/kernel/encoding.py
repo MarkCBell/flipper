@@ -12,7 +12,7 @@ NT_TYPE_PERIODIC = 'Periodic'
 NT_TYPE_REDUCIBLE = 'Reducible'  # Strictly this  means "reducible and not periodic".
 NT_TYPE_PSEUDO_ANOSOV = 'Pseudo-Anosov'
 
-class Encoding(object):
+class Encoding:
     ''' This represents a map between two Triagulations.
     
     If it maps to and from the same triangulation then it represents

@@ -119,7 +119,7 @@ def helper(glob, method, args):
     
     return glob, result
 
-class FlipperApplication(object):
+class FlipperApplication:
     def __init__(self, parent):
         self.parent = parent
         self.options = flipper.application.Options(self)

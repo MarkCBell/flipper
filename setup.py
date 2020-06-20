@@ -6,12 +6,12 @@
 from setuptools import setup, find_packages
 
 requirements = [
-    'decorator',
-    'numpy',
-    'networkx',
-    'pandas',
-    'realalg',
-    'snappy',
+    'decorator>=4.3.0',
+    'numpy>=1.15.1',
+    'networkx>=2.0',
+    'pandas>=1.0.0',
+    'realalg>=0.3.1',
+    'snappy>=2.8',
 ]
 
 def readme():

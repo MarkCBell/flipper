@@ -13,9 +13,6 @@ jobs:
     vmImage: 'Ubuntu-16.04'
   strategy:
     matrix:
-      Docs:
-        python.version: '3.8'
-        TOX_ENV: 'docs'
       Lint:
         python.version: '3.8'
         TOX_ENV: 'lint'

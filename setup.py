@@ -10,7 +10,7 @@ requirements = [
     'numpy>=1.15.1',
     'networkx>=2.0',
     'pandas>=1.0.0',
-    'realalg>=0.3.1',
+    'realalg>=0.3.2',
     'snappy>=2.8',
 ]
 

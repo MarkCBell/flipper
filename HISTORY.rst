@@ -2,12 +2,13 @@
 History
 =======
 
-0.15.1 (2020-07-15)
+0.15.1 (2020-07-17)
 -------------------
 
 * Removed Python 2 support.
 * Added minimum Python dependency versions.
 * Merged lint and docs tox cases.
+* Switched to the latest version of realalg.
 
 0.15.0 (2020-06-07)
 -------------------

@@ -2,6 +2,13 @@
 History
 =======
 
+0.15.1 (2020-07-15)
+-------------------
+
+* Removed Python 2 support.
+* Added minimum Python dependency versions.
+* Merged lint and docs tox cases.
+
 0.15.0 (2020-06-07)
 -------------------
 

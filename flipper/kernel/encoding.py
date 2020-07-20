@@ -271,23 +271,25 @@ class Encoding:
         if self.is_periodic():
             raise flipper.AssumptionError('Mapping class is periodic.')
         
+        bound = 36 * self.source_triangulation.euler_characteristic**2
         for curve in self.source_triangulation.key_curves():
             # The result of Margalit--Strenner--Yurtas say that this is a sufficient number of iterations to find a fixed point.
             # See https://www.youtube.com/watch?v=-GO0AvUGjH4
-            for _ in range(36 * self.source_triangulation.euler_characteristic**2):
+            for n in range(bound):
                 curve = self(curve)
-            
-            try:
-                action_matrix, condition_matrix = self.applied_geometric(curve)
-                eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
                 
-                invariant_lamination = self.source_triangulation(eigenvector.tolist())
-                if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-                    raise flipper.ComputationError('No interesting eigenvectors in cell.')
-                
-                return eigenvalue, invariant_lamination
-            except flipper.ComputationError:
-                pass
+                if n & (n-1) == 0 or n == bound-1:  # if n is a power of two or we have reached the bound.
+                    try:
+                        action_matrix, condition_matrix = self.applied_geometric(curve)
+                        eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
+                        
+                        invariant_lamination = self.source_triangulation(eigenvector.tolist())
+                        if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+                            raise flipper.ComputationError('No interesting eigenvectors in cell.')
+                        
+                        return eigenvalue, invariant_lamination
+                    except flipper.ComputationError:
+                        pass
         
         raise flipper.AssumptionError('Mapping class is reducible.')
     

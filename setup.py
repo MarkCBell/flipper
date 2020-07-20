@@ -11,7 +11,6 @@ requirements = [
     'networkx>=2.0',
     'pandas>=1.0.0',
     'realalg>=0.3.2',
-    'snappy>=2.8',
 ]
 
 def readme():

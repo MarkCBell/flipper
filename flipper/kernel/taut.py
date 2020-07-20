@@ -14,22 +14,25 @@ from collections import Counter, namedtuple
 from itertools import groupby
 
 import networkx as nx
-import snappy
-import snappy.snap.t3mlite as t3m
-from snappy.snap.t3mlite.simplex import E01, E02, E03, E12, E13, E23, F0
-from snappy.snap.t3mlite.simplex import VerticesOfFaceCounterclockwise as VerticesOfFace
+try:
+    from snappy import FXrays, Manifold
+    from snappy.snap import t3mlite as t3m
+    from snappy.snap.t3mlite.simplex import E01, E02, E03, E12, E13, E23, F0
+    from snappy.snap.t3mlite.simplex import VerticesOfFaceCounterclockwise as VerticesOfFace
 
-import flipper
+    import flipper
 
-EdgeToQuad = {E01: 2, E02: 1, E03: 0, E12: 0, E13: 1, E23: 2}
-VerticesOfFaceIndex = dict(((face, vertex), index) for face, vertices in VerticesOfFace.items() for index, vertex in enumerate(vertices))
-Compose = dict(
-    ((face, vertex), (VerticesOfFace[face][VerticesOfFaceIndex[face, vertex] - 2], VerticesOfFace[face][VerticesOfFaceIndex[face, vertex] - 1]))
-    for face, vertex in VerticesOfFaceIndex
-    )
+    EdgeToQuad = {E01: 2, E02: 1, E03: 0, E12: 0, E13: 1, E23: 2}
+    VerticesOfFaceIndex = dict(((face, vertex), index) for face, vertices in VerticesOfFace.items() for index, vertex in enumerate(vertices))
+    Compose = dict(
+        ((face, vertex), (VerticesOfFace[face][VerticesOfFaceIndex[face, vertex] - 2], VerticesOfFace[face][VerticesOfFaceIndex[face, vertex] - 1]))
+        for face, vertex in VerticesOfFaceIndex
+        )
+except ImportError:
+    pass
 
 def walk(arrow, end=None):
-    """ Yield all of  the arrows around an edge in turn (until end is reached). """
+    """ Yield all of the arrows around an edge in turn (until end is reached). """
 
     arrow = arrow.copy()
     for _ in range(arrow.axis().valence()):
@@ -37,9 +40,20 @@ def walk(arrow, end=None):
         arrow.next()
         if arrow == end: return
 
-t3m.Edge.arrows_around = lambda self: walk(self.get_arrow())
-t3m.Arrow.face_index = lambda self: self.Tetrahedron.Class[self.Face].Index
-t3m.Arrow.oriented_face = lambda self: (self.Tetrahedron.Index, self.Face)
+def arrows_around(edge):
+    """ Yield the arrows around this edge. """
+
+    return walk(edge.get_arrow())
+
+def face_index(arrow):
+    """ Return the Index of the Face that this arrow lies in. """
+
+    return arrow.Tetrahedron.Class[arrow.Face].Index
+
+def oriented_face(arrow):
+    """ Return the OrientedFace defined by this arrow. """
+
+    return (arrow.Tetrahedron.Index, arrow.Face)
 
 class Surface:
     """ An oriented surface carried by the branched surface associated to a taut structure. """
@@ -86,7 +100,7 @@ class Surface:
             for side in sides:
                 i = 0
                 for arrow in side:
-                    sect_index = arrow.face_index()
+                    sect_index = face_index(arrow)
                     weight = self.weights[sect_index]
                     triangle_side = VerticesOfFaceIndex[arrow.Face, arrow.Face ^ arrow.Edge]
                     sign = arrow.Tetrahedron.get_orientation_of_edge(*Compose[arrow.Face, arrow.Face ^ arrow.Edge])
@@ -142,12 +156,12 @@ class TautStructure:
         self.angle_vector = angle_vector
         self.pi_quads = [i % 3 for i, a in enumerate(angle_vector[:-1]) if a == 1]
 
-        pi_arrows = [[parrow for arrow in edge.arrows_around() for parrow in [arrow, arrow.copy().reverse()] if self.angle_is_pi(parrow)] for edge in self.manifold.Edges]
+        pi_arrows = [[parrow for arrow in arrows_around(edge) for parrow in [arrow, arrow.copy().reverse()] if self.angle_is_pi(parrow)] for edge in self.manifold.Edges]
         blocks = [(list(walk(S0, E0)), list(walk(S1, E1)), list(walk(E0, S0)), list(walk(E1, S1))) for S0, S1, E0, E1 in pi_arrows]
 
         G = nx.Graph()
-        G.add_nodes_from(arrow.oriented_face() for sides in blocks for side in sides for arrow in side)  # Add a node for every arrow in the triangulation.
-        G.add_edges_from((a1.oriented_face(), a2.oriented_face()) for A, B, C, D in blocks for S0, S1 in [(A, B), (C, D)] for a1, a2 in zip(S0 + S1, (S0 + S1)[1:]))
+        G.add_nodes_from(oriented_face(arrow) for sides in blocks for side in sides for arrow in side)  # Add a node for every arrow in the triangulation.
+        G.add_edges_from((oriented_face(a1), oriented_face(a2)) for A, B, C, D in blocks for S0, S1 in [(A, B), (C, D)] for a1, a2 in zip(S0 + S1, (S0 + S1)[1:]))
 
         num_components = nx.algorithms.components.number_connected_components(G)
         if num_components == 1:
@@ -200,7 +214,7 @@ class TautStructure:
         angle_matrix = t3m.linalg.Matrix(nedges + ntets, 3*ntets + 1)
 
         for i, edge in enumerate(triangulation.Edges):  # Edge equations.
-            for arrow in edge.arrows_around():
+            for arrow in arrows_around(edge):
                 t = arrow.Tetrahedron.Index
                 q = EdgeToQuad[arrow.Edge]
                 angle_matrix[i, 3*t + q] += 1
@@ -211,7 +225,7 @@ class TautStructure:
                 angle_matrix[nedges + t, 3*t + q] += 1
             angle_matrix[nedges + t, 3*ntets] = -1
 
-        xrays = snappy.FXrays.find_Xrays(angle_matrix.nrows(), angle_matrix.ncols(), angle_matrix.entries(), filtering=True, print_progress=False)
+        xrays = FXrays.find_Xrays(angle_matrix.nrows(), angle_matrix.ncols(), angle_matrix.entries(), filtering=True, print_progress=False)
         for xray in xrays:
             try:
                 return cls(triangulation, xray)
@@ -240,9 +254,9 @@ class TautStructure:
         for i, sides in enumerate(self.branch_loci):
             for j, side in enumerate(sides):
                 for arrow in side:
-                    W[i, arrow.face_index()] += (-1)**j
+                    W[i, face_index(arrow)] += (-1)**j
 
-        xrays = snappy.FXrays.find_Xrays(W.nrows(), W.ncols(), W.entries(), filtering=False, print_progress=False)
+        xrays = FXrays.find_Xrays(W.nrows(), W.ncols(), W.entries(), filtering=False, print_progress=False)
         return [Surface(self, xray) for xray in xrays]
 
     def surface_with_maximal_support(self):
@@ -256,7 +270,7 @@ class TautStructure:
         # How to wrap from the bottom edge back to the top.
         top = dict((arrow.Tetrahedron.Index, index) for index, starts in enumerate(self.tops) for arrow in starts)
         bottom = dict((arrow.Tetrahedron.Index, index) for index, ends in enumerate(self.bottoms) for arrow in ends)
-        edge_advance = dict(((loci, sum(self.surface.weights[arrow.face_index()] for arrow in self.branch_loci[loci][0]) - 1), (top[tet], 0)) for tet, loci in bottom.items())
+        edge_advance = dict(((loci, sum(self.surface.weights[face_index(arrow)] for arrow in self.branch_loci[loci][0]) - 1), (top[tet], 0)) for tet, loci in bottom.items())
 
         S0, E0 = self.surface.connected_component()  # Get a component and its edges.
         E_curr = E0
@@ -274,7 +288,7 @@ class TautStructure:
             try:
                 h = F.encode_flips_and_close(flips, 0, edge)
                 B = h.bundle(veering=False, _safety=False)
-                if M0.is_isometric_to(snappy.Manifold(B)):
+                if M0.is_isometric_to(Manifold(B)):
                     return F, flips, edge
             except (flipper.AssumptionError, AssertionError):
                 pass

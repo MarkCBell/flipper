@@ -2,6 +2,11 @@
 History
 =======
 
+0.15.2 (2020-07-20)
+-------------------
+
+* Snappy is only required if computing taut structures.
+
 0.15.1 (2020-07-17)
 -------------------
 

@@ -81,7 +81,7 @@ Ready to contribute? Here's how to set up `flipper` for local development.
   tox will install and run flake8, pylint and flippers unittests in several versions of Python.
   Since this can take a long time, you may wish to run just a single environment during development, for example::
 
-    $ tox -e py27
+    $ tox -e py37
 
   Alternatively, you may wish to run just the tests associated to the code you are developing, for example::
 

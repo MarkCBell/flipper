@@ -276,17 +276,18 @@ class Encoding:
             # See https://www.youtube.com/watch?v=-GO0AvUGjH4
             for _ in range(36 * self.source_triangulation.euler_characteristic**2):
                 curve = self(curve)
-                try:
-                    action_matrix, condition_matrix = self.applied_geometric(curve)
-                    eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
-                    
-                    invariant_lamination = self.source_triangulation(eigenvector.tolist())
-                    if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
-                        raise flipper.ComputationError('No interesting eigenvectors in cell.')
-                    
-                    return eigenvalue, invariant_lamination
-                except flipper.ComputationError:
-                    pass
+            
+            try:
+                action_matrix, condition_matrix = self.applied_geometric(curve)
+                eigenvalue, eigenvector = action_matrix.directed_eigenvector(condition_matrix)
+                
+                invariant_lamination = self.source_triangulation(eigenvector.tolist())
+                if invariant_lamination.is_empty():  # But it might have been entirely peripheral.
+                    raise flipper.ComputationError('No interesting eigenvectors in cell.')
+                
+                return eigenvalue, invariant_lamination
+            except flipper.ComputationError:
+                pass
         
         raise flipper.AssumptionError('Mapping class is reducible.')
     

@@ -254,8 +254,8 @@ class Triangulation:
             for i in range(len(corner_class)-1):
                 try:
                     ordered_class[i+1] = lookup[~ordered_class[i].edges[1]]
-                except KeyError:
-                    raise ValueError('Corners do not close up about vertex.')
+                except KeyError as err:
+                    raise ValueError('Corners do not close up about vertex.') from err
             
             if ordered_class[0].edges[2] != ~ordered_class[-1].edges[1]:
                 raise ValueError('Corners do not close up about vertex.')
@@ -437,8 +437,8 @@ class Triangulation:
         
         try:
             values = [char_lookup[letter] for letter in signature]
-        except KeyError:
-            raise ValueError('Signature must be a string matching [a-zA-Z0-9+-]*')
+        except KeyError as err:
+            raise ValueError('Signature must be a string matching [a-zA-Z0-9+-]*') from err
         
         if values[0] < 63:
             num_chars = 1
@@ -490,8 +490,8 @@ class Triangulation:
                             permutation_index += 1
                         else:
                             raise ValueError('Each gluing must be type 0, 1 or 2.')
-                    except IndexError:
-                        raise ValueError('String does not correspond to a isomorphism signature.')
+                    except IndexError as err:
+                        raise ValueError('String does not correspond to a isomorphism signature.') from err
                     type_index += 1
                     
                     edge_labels[i][j] = zeta

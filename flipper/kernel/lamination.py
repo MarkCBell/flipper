@@ -622,8 +622,8 @@ class Lamination:
                         # Need to rebuild the heap as indices no longer correspond.
                         weights_heap = [flip_first((weight, index)) for index, weight in enumerate(lamination)]
                         heapq.heapify(weights_heap)
-                    except flipper.AssumptionError:
-                        raise flipper.AssumptionError('Lamination is not filling.')
+                    except flipper.AssumptionError as err:
+                        raise flipper.AssumptionError('Lamination is not filling.') from err
                 else:
                     # Add the new edge weight back into the heap.
                     heapq.heappush(weights_heap, flip_first((lamination(flip_index), flip_index)))

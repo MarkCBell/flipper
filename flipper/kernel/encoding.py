@@ -327,8 +327,8 @@ class Encoding:
         dilatation, lamination = self.pml_fixedpoint()
         try:
             splittings = lamination.splitting_sequences(dilatation=None if take_roots else dilatation)
-        except flipper.AssumptionError:  # Lamination is not filling.
-            raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.')
+        except flipper.AssumptionError as err:  # Lamination is not filling.
+            raise flipper.AssumptionError('Mapping class is not pseudo-Anosov.') from err
         
         return splittings
     
@@ -572,10 +572,10 @@ class Encoding:
             try:
                 tetra_count, upper_triangulation, upper_map, lower_map = \
                     item.extend_bundle(triangulation3, tetra_count, upper_triangulation, lower_triangulation, upper_map, lower_map)
-            except AttributeError:
+            except AttributeError as err:
                 # We have no way to handle any other type that appears.
                 # Currently this means there was a LinearTransform and so this is not a mapping class.
-                raise flipper.FatalError('Unknown move %s encountered while building bundle.' % item)
+                raise flipper.FatalError('Unknown move %s encountered while building bundle.' % item) from err
         
         # We're now back to the starting triangulation.
         assert lower_triangulation == upper_triangulation

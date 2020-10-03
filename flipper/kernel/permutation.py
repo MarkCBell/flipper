@@ -123,8 +123,8 @@ def permutation_from_pair(a, to_a, b, to_b):
         p = {a: to_a, b: to_b, c: to_d, d: to_c}
         P = Permutation([p[i] for i in range(4)])
         return P
-    except IndexError:
-        raise ValueError('Does not represent a gluing.')
+    except IndexError as err:
+        raise ValueError('Does not represent a gluing.') from err
 
 PERM3 = all_permutations(3)
 PERM3_INVERSE = {perm: perm.inverse() for perm in PERM3}

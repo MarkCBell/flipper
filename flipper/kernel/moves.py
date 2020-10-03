@@ -60,7 +60,7 @@ class Isometry(Move):
         
         assert isinstance(label_map, dict)
         
-        super(Isometry, self).__init__(source_triangulation, target_triangulation)
+        super().__init__(source_triangulation, target_triangulation)
         self.label_map = dict(label_map)
         
         self.flip_length = 0  # The number of flips needed to realise this move.
@@ -155,7 +155,7 @@ class Isometry(Move):
 class EdgeFlip(Move):
     ''' Represents the change to a lamination caused by flipping an edge. '''
     def __init__(self, source_triangulation, target_triangulation, edge_label):
-        super(EdgeFlip, self).__init__(source_triangulation, target_triangulation)
+        super().__init__(source_triangulation, target_triangulation)
         assert isinstance(edge_label, flipper.IntegerType)
         
         self.flip_length = 1  # The number of flips needed to realise this move.
@@ -315,7 +315,7 @@ class EdgeFlip(Move):
 class LinearTransformation(Move):
     ''' Represents the change to a lamination caused by a linear map. '''
     def __init__(self, source_triangulation, target_triangulation, geometric, algebraic):
-        super(LinearTransformation, self).__init__(source_triangulation, target_triangulation)
+        super().__init__(source_triangulation, target_triangulation)
         assert isinstance(geometric, flipper.kernel.Matrix)
         assert isinstance(algebraic, flipper.kernel.Matrix)
         

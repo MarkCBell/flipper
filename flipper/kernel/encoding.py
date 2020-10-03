@@ -624,6 +624,9 @@ class Encoding:
         
         return flipper.kernel.Bundle(lower_triangulation, triangulation3, fibre_immersion)
     
+    def __snappy__(self):
+        return self.bundle(veering=False).snappy_string()
+    
     def flat_structure(self):
         ''' Return the flat structure associated to self.canonical().
         

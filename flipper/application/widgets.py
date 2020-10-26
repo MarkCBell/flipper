@@ -5,11 +5,11 @@
     2) SplitButton - a button with additional menu of actions.
     3) AnimatedCanvas - a canvas that periodically updates. '''
 
-import tkinter as TK
-DOWN_ARROW = chr(9660)
-
-import os
 from base64 import b64encode
+import os
+import tkinter as TK
+
+DOWN_ARROW = chr(9660)
 
 def extract_contents(paths, output_file):
     ''' Convert a list of images into a single Python script. '''

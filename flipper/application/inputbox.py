@@ -1,8 +1,5 @@
 
-try:
-    import Tkinter as TK
-except ImportError:  # Python 3.
-    import tkinter as TK
+import tkinter as TK
 
 class GetStringApp:
     def __init__(self, title, prompt, default='', validate=None, host_app_parent=None):

@@ -1,15 +1,7 @@
 
-try:
-    import Tkinter as TK
-    import tkFont as TK_FONT
-except ImportError:  # Python 3.
-    import tkinter as TK
-    import tkinter.font as TK_FONT
-
-try:
-    import ttk as TTK
-except ImportError:  # Python 3.
-    from tkinter import ttk as TTK
+import tkinter as TK
+import tkinter.font as TK_FONT
+from tkinter import ttk as TTK
 
 RENDER_LAMINATION_FULL = 'Full'
 RENDER_LAMINATION_W_TRAIN_TRACK = 'Weighted train track'

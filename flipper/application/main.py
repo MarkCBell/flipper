@@ -15,24 +15,16 @@ from itertools import combinations
 FileType = io.TextIOWrapper if sys.version_info >= (3, 0) else file  # noqa: F821
 
 try:
-    import Tkinter as TK
-    import tkFileDialog
-    import tkMessageBox
-except ImportError:  # Python 3.
-    try:
-        import tkinter as TK
-        import tkinter.filedialog as tkFileDialog
-        import tkinter.messagebox as tkMessageBox
-    except ImportError:
-        raise ImportError('Tkinter not available.')
+    import tkinter as TK
+    import tkinter.filedialog as tkFileDialog
+    import tkinter.messagebox as tkMessageBox
+except ImportError:
+    raise ImportError('Tkinter not available.')
 
 try:
-    import ttk as TTK
-except ImportError:  # Python 3.
-    try:
-        from tkinter import ttk as TTK
-    except ImportError:
-        raise ImportError('Ttk not available.')
+    from tkinter import ttk as TTK
+except ImportError:
+    raise ImportError('Ttk not available.')
 
 # Some constants.
 if sys.platform in ['darwin']:

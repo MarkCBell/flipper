@@ -1,13 +1,6 @@
 
-try:
-    import Tkinter as TK
-except ImportError:  # Python 3.
-    import tkinter as TK
-
-try:
-    import ttk as TTK
-except ImportError:  # Python 3.
-    from tkinter import ttk as TTK
+import tkinter as TK
+from tkinter import ttk as TTK
 
 class GetChoiceApp:
     def __init__(self, title, prompt, options, host_app_parent=None):

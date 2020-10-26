@@ -3,18 +3,11 @@ import flipper
 import flipper.application
 from flipper.application.spinning_icon import SPINNING_ICON
 
-from multiprocessing import Process
 from multiprocessing import JoinableQueue as Queue
+from multiprocessing import Process
+from queue import Empty
 
-try:
-    from Queue import Empty
-except ImportError:  # Python 3.
-    from queue import Empty
-
-try:
-    import Tkinter as TK
-except ImportError:  # Python 3.
-    import tkinter as TK
+import tkinter as TK
 
 # Note: Because of how memory is managed in Python the _worker_thread
 # works with a copy of the main memory. Therefore any changes it makes to the

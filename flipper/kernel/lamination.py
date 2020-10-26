@@ -3,16 +3,13 @@
 
 Provides one class: Lamination. '''
 
+from math import inf
+from queue import Queue
 import heapq
-try:
-    from Queue import Queue
-except ImportError:
-    from queue import Queue
 
 import flipper
 from flipper.kernel.decorators import memoize  # Special import needed for decorating.
 
-INFTY = float('inf')
 HASH_DENOMINATOR = 30
 
 class Lamination:
@@ -202,7 +199,7 @@ class Lamination:
         def weight_change(lamination, edge_index):
             ''' Return how much the weight would change by if this flip was done. '''
             
-            if lamination(edge_index) == 0 or not lamination.triangulation.is_flippable(edge_index): return INFTY
+            if lamination(edge_index) == 0 or not lamination.triangulation.is_flippable(edge_index): return inf
             a, b, c, d = lamination.triangulation.square_about_edge(edge_index)
             return max(lamination(a) + lamination(c), lamination(b) + lamination(d)) - 2 * lamination(edge_index)
         

@@ -8,17 +8,12 @@ Provides five classes: Vertex, Edge, Triangle, Corner and Triangulation.
     A Triangulation is a collection of Triangles. '''
 
 from itertools import groupby
-from math import log
+from math import log, inf
+from queue import Queue
 from random import choice
 import string
-try:
-    from Queue import Queue
-except ImportError:
-    from queue import Queue
 
 import flipper
-
-INFTY = float('inf')
 
 def norm(value):
     ''' A map taking an edges label to its index.
@@ -598,7 +593,7 @@ class Triangulation:
         be used to generate signatures relative to a fixed boundary by specify
         an edge on that boundary (and True) as the only starting point. '''
         
-        best = ([INFTY], [INFTY], [INFTY])
+        best = ([inf], [inf], [inf])
         skip = set() if skip is None else set(skip)
         
         perm_inverse = flipper.kernel.permutation.PERM3_INVERSE

@@ -55,7 +55,7 @@ However, to access the full power of flipper it should be imported into a Python
 
 Here we can also access large censuses of monodromies::
 
-    >>> census = flipper.census('knot_monodromies')  # Census of fibred knots.
+    >>> census = flipper.census('knots')  # Census of fibred knots.
     >>> for s, w, _ in census:
     ...     h = flipper.load(s).mapping_class(w)
     ...     if h.dilatation() < 1.2:

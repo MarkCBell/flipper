@@ -94,8 +94,8 @@ class Tetrahedron:
         ''' Return the SnapPy string describing this tetrahedron. '''
         
         strn = ''
-        strn += '%4d %4d %4d %4d \n' % tuple([tetrahedra.label for tetrahedra, gluing in self.glued_to])
-        strn += ' %4s %4s %4s %4s\n' % tuple([gluing.compressed_string() for tetrahedra, gluing in self.glued_to])
+        strn += '%4d %4d %4d %4d \n' % tuple(tetrahedra.label for tetrahedra, gluing in self.glued_to)
+        strn += ' %4s %4s %4s %4s\n' % tuple(gluing.compressed_string() for tetrahedra, gluing in self.glued_to)
         strn += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
         strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
         strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'

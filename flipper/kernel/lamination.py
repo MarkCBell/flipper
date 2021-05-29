@@ -151,7 +151,7 @@ class Lamination:
         
         # We'll try to preserve as much of the structure as possible to try to reduce hash collisions.
         # In this version we'll store the sorted, cyclically ordered, triangles.
-        triples = [tuple([L[edge.index] for edge in triangle]) for triangle in self.triangulation]
+        triples = [tuple(L[edge.index] for edge in triangle) for triangle in self.triangulation]
         return tuple(sorted([min(triple[i:] + triple[:i] for i in range(len(triple))) for triple in triples]))
     
     def weight(self):

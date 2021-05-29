@@ -13,7 +13,7 @@ import flipper
 def inverse(word):
     ''' Return the inverse of a word by reversing and swapcasing it. '''
     
-    return tuple([letter.swapcase() for letter in reversed(word)])
+    return tuple(letter.swapcase() for letter in reversed(word))
 
 def generate_ordering(letters):
     ''' Return a function which determines if v >= w (with respect to the short-lex ordering).

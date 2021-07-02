@@ -2,6 +2,15 @@
 History
 =======
 
+0.15.3 (2021-07-02)
+-------------------
+
+* Removed Python 2 imports.
+* Switched to github actions for CI/CD.
+* Fixed typo in knot census documentation.
+* Added Python 3.9 support.
+* Making smaller taut surfaces.
+
 0.15.2 (2020-07-20)
 -------------------
 

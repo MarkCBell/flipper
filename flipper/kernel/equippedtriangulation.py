@@ -157,11 +157,11 @@ class EquippedTriangulation:
             else:
                 raise ValueError('A triangulation, Lamination or Encoding must be given.')
         
-        if any(laminations[name].triangulation != triangulation for name in laminations):
+        if any(lamination.triangulation != triangulation for lamination in laminations.values()):
             raise ValueError('All laminations must be on the same triangulation.')
-        if any(mapping_classes[name].source_triangulation != triangulation for name in mapping_classes):
+        if any(mapping_class.source_triangulation != triangulation for mapping_class in mapping_classes.values()):
             raise ValueError('All mapping classes must go from the same triangulation.')
-        if any(mapping_classes[name].target_triangulation != triangulation for name in mapping_classes):
+        if any(mapping_class.target_triangulation != triangulation for mapping_class in mapping_classes.values()):
             raise ValueError('All mapping classes must go to the same triangulation.')
         
         return cls(triangulation, laminations, mapping_classes)
@@ -345,8 +345,8 @@ class EquippedTriangulation:
             }
         
         # Install any missing options with defaults.
-        for option in default_options:
-            if option not in options: options[option] = default_options[option]
+        for option, default in default_options.items():
+            if option not in options: options[option] = default
         
         # Set implications. Possible values for options['equivalence'] are:
         #  None, group, conjugacy, bundle
@@ -460,8 +460,8 @@ class EquippedTriangulation:
             }
         
         # Install any missing options with defaults.
-        for option in default_options:
-            if option not in options: options[option] = default_options[option]
+        for option, default in default_options.items():
+            if option not in options: options[option] = default
         
         # Set implications. Possible values for options['equivalence'] are:
         #  None, group, conjugacy, bundle

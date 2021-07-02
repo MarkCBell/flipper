@@ -245,7 +245,7 @@ class TautStructure:
     def empty_surface(self):
         """ Return the empty surface on this TautStructure. """
 
-        return Surface(self, [0] * 2 * len(self.manifold.Tetrahedra))
+        return Surface(self, [0] * len(self.manifold.Faces))
 
     def surfaces(self):
         """ Return a list of extremal surface supported by this TautStructure. """
@@ -262,7 +262,15 @@ class TautStructure:
     def surface_with_maximal_support(self):
         """ A reasonably small surface with maximal support """
 
-        return sum(self.surfaces(), self.empty_surface())
+        surfaces = self.surfaces()
+        surface = self.empty_surface()
+        for index in range(len(self.manifold.Faces)):
+            if surface.weights[index] > 0:
+                continue
+
+            surface += min((s for s in surfaces if s.weights[index] > 0), key=lambda s: sum(s.weights))
+
+        return surface
 
     def flipper_bundle_data(self):
         """ Return the flipper triangulation, flip sequence and edge closer defined by following this TautStructure. """

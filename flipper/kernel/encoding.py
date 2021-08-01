@@ -355,7 +355,7 @@ class Encoding:
         
         homology_splittings = [splitting for splitting in self.splitting_sequences() if (splitting.preperiodic * self).is_homologous_to(splitting.mapping_class * splitting.preperiodic)]
         
-        if len(homology_splittings) == 0:  # pylint: disable=len-as-condition
+        if len(homology_splittings) == 0:
             raise flipper.FatalError('Mapping class is not homologous to any splitting sequence.')
         elif len(homology_splittings) == 1:
             return homology_splittings[0]

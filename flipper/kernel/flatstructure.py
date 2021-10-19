@@ -16,7 +16,7 @@ class Vector2:
     def __init__(self, x, y):
         self.x, self.y = x, y
     def __str__(self):
-        return "(%s, %s)" % (self.x, self.y)
+        return f"({self.x}, {self.y})"
     def __repr__(self):
         return str(self)
     def __reduce__(self):
@@ -52,7 +52,7 @@ class FlatStructure:
         self.triangulation = triangulation
         self.edge_vectors = edge_vectors
     def __str__(self):
-        return '\n'.join('%s --> %s' % (edge, self.edge_vectors[edge]) for edge in sorted(self.triangulation.positive_edges, key=lambda e: e.index))
+        return '\n'.join(f'{edge} --> {self.edge_vectors[edge]}' for edge in sorted(self.triangulation.positive_edges, key=lambda e: e.index))
     def __repr__(self):
         return str(self)
 

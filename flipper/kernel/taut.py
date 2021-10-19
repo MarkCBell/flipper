@@ -64,7 +64,7 @@ class Surface:
         self.euler_characteristic = -sum(self.weights) // 2
 
     def __repr__(self):
-        return "<Surface: %s>" % self.weights
+        return f"<Surface: {self.weights}>"
 
     def __eq__(self, other):
         if isinstance(other, Surface):
@@ -235,7 +235,7 @@ class TautStructure:
         raise ValueError("Could not find taut structure on triangulation")
 
     def __repr__(self):
-        return "<TautStructure: %s>" % self.pi_quads
+        return f"<TautStructure: {self.pi_quads}>"
 
     def angle_is_pi(self, arrow):
         """ Return whether the dihedral angle defined by this arrow is pi. """

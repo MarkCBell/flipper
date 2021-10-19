@@ -69,7 +69,7 @@ class Isometry(Move):
         # Hmmm, should always we do this just to check consistency?
         for i in self.source_triangulation.labels:
             if i not in self.label_map:
-                raise flipper.AssumptionError('This label_map not defined on edge %d.' % i)
+                raise flipper.AssumptionError(f'This label_map not defined on edge {i}')
         
         self.index_map = dict((i, flipper.kernel.norm(self.label_map[i])) for i in self.source_triangulation.indices)
         # Store the inverses too while we're at it.
@@ -167,7 +167,7 @@ class EdgeFlip(Move):
         self.square = self.source_triangulation.square_about_edge(self.edge_label)
     
     def __str__(self):
-        return 'Flip %s%d' % ('' if self.edge_index == self.edge_label else '~', self.edge_index)
+        return f'Flip {"" if self.edge_index == self.edge_label else "~"}{self.edge_index}'
     def __reduce__(self):
         return (self.__class__, (self.source_triangulation, self.target_triangulation, self.edge_label))
     def __len__(self):

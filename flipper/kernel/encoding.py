@@ -152,14 +152,14 @@ class Encoding:
         if k == 0:
             return self.source_triangulation.id_encoding()
         elif k > 0:
-            return Encoding(self.sequence * k, _cache=dict() if 'name' not in self._cache else {'name': '(%s)^%d' % (self._cache['name'], k)})
+            return Encoding(self.sequence * k, _cache=dict() if 'name' not in self._cache else {'name': f'({self._cache["name"]})^{k}'})
         else:
             return self.inverse()**abs(k)
     
     def inverse(self):
         ''' Return the inverse of this encoding. '''
         
-        return Encoding([item.inverse() for item in reversed(self.sequence)], _cache=dict() if 'name' not in self._cache else {'name': '(%s)^-1' % self._cache['name']})
+        return Encoding([item.inverse() for item in reversed(self.sequence)], _cache=dict() if 'name' not in self._cache else {'name': f'({self._cache["name"]})^-1'})
     def __invert__(self):
         return self.inverse()
     
@@ -575,7 +575,7 @@ class Encoding:
             except AttributeError as err:
                 # We have no way to handle any other type that appears.
                 # Currently this means there was a LinearTransform and so this is not a mapping class.
-                raise flipper.FatalError('Unknown move %s encountered while building bundle.' % item) from err
+                raise flipper.FatalError(f'Unknown move {item} encountered while building bundle.') from err
         
         # We're now back to the starting triangulation.
         assert lower_triangulation == upper_triangulation

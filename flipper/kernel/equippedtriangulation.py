@@ -171,7 +171,7 @@ class EquippedTriangulation:
     def __str__(self):
         lam_keys = sorted(self.laminations.keys())
         pos_keys = sorted(self.pos_mapping_classes.keys())
-        return 'Triangulation with laminations: %s and mapping classes: %s.' % (lam_keys, pos_keys)
+        return f'Triangulation with laminations: {lam_keys} and mapping classes: {pos_keys}'
     def __call__(self, word):
         return self.mapping_class(word)
     
@@ -542,7 +542,7 @@ class EquippedTriangulation:
                         subword = subword[len(letter):]
                         break
                 else:
-                    raise TypeError('After extracting %s, the remaining %s cannot be greedly decomposed as a concatination of self.mapping_classes.' % ('.'.join(decomposition), word))
+                    raise TypeError(f'After extracting {decomposition}, the remaining {word} cannot be greedly decomposed as a concatination of self.mapping_classes')
         
         return decomposition
     
@@ -594,7 +594,7 @@ class EquippedTriangulation:
         # only all pure powers to be expanded once, that is 'aBBB^2^3' is not recognised.
         available_letters = sorted(self.mapping_classes, key=len, reverse=True)
         for letter in available_letters:
-            for subword, power in re.findall(r'(%s)\^(-?\d+)' % letter, word):
+            for subword, power in re.findall(rf'({letter})\^(-?\d+)', word):
                 int_power = int(power)
                 word = word.replace(subword + '^' + power, (letter if int_power > 0 else letter.swapcase()) * abs(int_power))
         

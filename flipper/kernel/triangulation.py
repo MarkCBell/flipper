@@ -324,9 +324,9 @@ class Triangulation:
         flattened = set(label for labels in edge_labels for label in labels)
         for i in range(zeta):
             if i not in flattened:
-                raise TypeError('Missing label %d' % i)
+                raise TypeError(f'Missing label {i}')
             if ~i not in flattened:
-                raise TypeError('Missing label ~%d' % i)
+                raise TypeError(f'Missing label ~{i}')
         
         # Return the label and position of the given edge_label.
         label_lookup = dict((label, (labels, index)) for labels in edge_labels for index, label in enumerate(labels))
@@ -366,17 +366,17 @@ class Triangulation:
         
         for edge_label in [i for i in range(zeta)] + [~i for i in range(zeta)]:  # pylint: disable=unnecessary-comprehension
             if edge_label not in vertex_labels:
-                raise TypeError('Missing vertex label for edge %d.' % edge_label)
+                raise TypeError(f'Missing vertex label for edge {edge_label}.')
         
         for vertex_class in vertex_classes:
             for edge_label in vertex_class:
                 if vertex_labels[rotate_lookup[edge_label]] != vertex_labels[rotate_lookup[vertex_class[0]]]:
-                    raise TypeError('Edges %d and %d should not have different vertex labels.' % (rotate_lookup[edge_label], rotate_lookup[vertex_class[0]]))
+                    raise TypeError(f'Edges {rotate_lookup[edge_label]} and {rotate_lookup[vertex_class[0]]} should not have different vertex labels.')
         
         X = set(vertex_labels.values())
         # Check we have the right number of labels. This also checks that distinct vertex_classes have distinct labels.
         if len(X) != num_vertices:
-            raise TypeError('There are %d vertices but %d vertex labels were given.' % (num_vertices, len(X)))
+            raise TypeError(f'There are {num_vertices} vertices but {len(X)} vertex labels were given.')
         
         # Build the vertex_states if not given.
         if vertex_states is None:
@@ -385,7 +385,7 @@ class Triangulation:
         # Check we have a state for each vertex.
         for label in X:
             if label not in vertex_states:
-                raise TypeError('No state given for vertex %s.' % label)
+                raise TypeError(f'No state given for vertex {label}.')
         
         # Build the vertices.
         vertices = [Vertex(label, filled=vertex_states[label]) for label in X]
@@ -801,7 +801,7 @@ class Triangulation:
             elif i in label_map and ~i not in label_map:
                 label_map[~i] = ~label_map[i]
             else:
-                raise flipper.AssumptionError('Missing new label for %d.' % i)
+                raise flipper.AssumptionError(f'Missing new label for {i}.')
         
         vertex_map = dict()
         for vertex in self.vertices:
@@ -1174,7 +1174,7 @@ class Triangulation:
             elif i in label_map and ~i not in label_map:
                 label_map[~i] = ~label_map[i]
             else:
-                raise flipper.AssumptionError('Missing new label for %d.' % i)
+                raise flipper.AssumptionError(f'Missing new label for {i}.')
         
         new_triangulation = self.relabel_edges(label_map)
         

@@ -50,7 +50,7 @@ class Tetrahedron:
     def __repr__(self):
         return str(self)
     def __str__(self):
-        return '%s --> %s' % (self.label, ', '.join('%d: %s' % (x[0].label, x[1]) if x is not None else 'X' for x in self.glued_to))  # pylint: disable=unsubscriptable-object
+        return '%s --> %s' % (self.label, ', '.join(f'{x[0].label}: {x[1]}' if x is not None else 'X' for x in self.glued_to))  # pylint: disable=unsubscriptable-object, consider-using-f-string
     
     def glue(self, side, target, permutation):
         ''' Glue the given side of this tetrahedron to target via the given permutation.
@@ -94,12 +94,12 @@ class Tetrahedron:
         ''' Return the SnapPy string describing this tetrahedron. '''
         
         strn = ''
-        strn += '%4d %4d %4d %4d \n' % tuple(tetrahedra.label for tetrahedra, gluing in self.glued_to)
-        strn += ' %4s %4s %4s %4s\n' % tuple(gluing.compressed_string() for tetrahedra, gluing in self.glued_to)
-        strn += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)
-        strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)
+        strn += '%4d %4d %4d %4d \n' % tuple(tetrahedra.label for tetrahedra, gluing in self.glued_to)  # pylint: disable=consider-using-f-string
+        strn += ' %4s %4s %4s %4s\n' % tuple(gluing.compressed_string() for tetrahedra, gluing in self.glued_to)  # pylint: disable=consider-using-f-string
+        strn += '%4d %4d %4d %4d \n' % tuple(self.cusp_indices)  # pylint: disable=consider-using-f-string
+        strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for meridian in self.peripheral_curves[MERIDIANS] for cusp in meridian)  # pylint: disable=consider-using-f-string
         strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
-        strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)
+        strn += ' %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d %2d\n' % tuple(cusp for longitude in self.peripheral_curves[LONGITUDES] for cusp in longitude)  # pylint: disable=consider-using-f-string
         strn += '  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0\n'
         strn += '  0.000000000000 0.000000000000\n'
         return strn
@@ -344,17 +344,17 @@ class Triangulation3:
         
         strn = ''
         strn += '% Triangulation\n'
-        strn += '%s\n' % name
+        strn += f'{name}\n'
         strn += 'not_attempted 0.0\n'
         strn += 'oriented_manifold\n'
         strn += 'CS_unknown\n'
         strn += '\n'
-        strn += '%d 0\n' % self.num_cusps
+        strn += f'{self.num_cusps} 0\n'
         for slope in fillings:
-            strn += '    torus %16.12f %16.12f\n' % slope
+            strn += f'    torus {slope[0]:16.12f} {slope[1]:16.12f}\n'
         
         strn += '\n'
-        strn += '%d\n' % self.num_tetrahedra
+        strn += f'{self.num_tetrahedra}\n'
         for tetrahedra in self:
             strn += tetrahedra.snappy_string() + '\n'
         

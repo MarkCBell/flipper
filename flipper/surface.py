@@ -206,7 +206,7 @@ def _check(surface):
         # All surfaces S_{g, 2} for g < 23 have been tested.
         g = surface.triangulation.genus
         chain = surface.mapping_class('a0.b0.' + '.'.join('c%d.b%d' % (i, i+1) for i in range(g-1)))
-        assert(chain**(4*g+2) == surface.mapping_class('q0.q0'))
+        assert chain**(4*g+2) == surface.mapping_class('q0.q0')
     
     def intersection(l1, l2):
         return surface.lamination(l1).geometric_intersection(surface.lamination(l2))

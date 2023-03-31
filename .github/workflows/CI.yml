@@ -8,7 +8,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        tox: [lint, py36, py37, py38, py39]
+        tox: [lint, py37, py38, py39, py310, py311]
         include:
         - tox: lint
           python-version: "3.10"

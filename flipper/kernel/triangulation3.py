@@ -10,6 +10,8 @@ Provides two classes: Tetrahedron and Triangulation3. '''
 
 from itertools import combinations, product
 
+import networkx as nx
+
 import flipper
 
 # Edge veerings:
@@ -173,25 +175,8 @@ class Triangulation3:
         
         cusp_pairing = self.cusp_identification_map()
         
-        self.cusps = []
-        remaining_vertices = list(product(self, range(4)))
-        while remaining_vertices:
-            # We do a depth first search to find all vertices in this cusp.
-            new_vertex = remaining_vertices.pop()
-            new_vertex_class = [new_vertex]
-            # This is a stack of triangles that may still have consequences.
-            to_explore = [new_vertex]
-            while to_explore:
-                current_tetrahedron, current_side = to_explore.pop()
-                for side in VERTICES_MEETING[current_side]:
-                    neighbour_tetrahedron, neighbour_side, _ = cusp_pairing[(current_tetrahedron, current_side, side)]
-                    neighbour_vertex = neighbour_tetrahedron, neighbour_side
-                    if neighbour_vertex in remaining_vertices:
-                        to_explore.append(neighbour_vertex)
-                        new_vertex_class.append(neighbour_vertex)
-                        remaining_vertices.remove(neighbour_vertex)
-            
-            self.cusps.append(new_vertex_class)
+        G = nx.Graph(((tetra, side), (neighbour_tetra, neighbour_side)) for (tetra, side, _), (neighbour_tetra, neighbour_side, _) in cusp_pairing.items())
+        self.cusps = list(nx.algorithms.connected_components(G))
         
         # Then iterate through each one assigning cusp indices.
         for index, vertex_class in enumerate(self.cusps):

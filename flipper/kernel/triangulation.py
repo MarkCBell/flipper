@@ -13,6 +13,8 @@ from queue import Queue
 from random import choice
 import string
 
+import networkx as nx
+
 import flipper
 
 def norm(value):
@@ -886,40 +888,20 @@ class Triangulation:
         
         # Generators are given by edges not in the tree or the dual tree (along with some segment
         # in the dual tree to make it into a loop).
-        dual_tree_indices = [edge_index for edge_index in range(self.zeta) if dual_tree[edge_index]]
+        
         homology_generators = []
+        G = nx.DiGraph()
+        for triangle in self:
+            for edge in triangle:
+                if dual_tree[edge.index]:
+                    G.add_edge(triangle, edge)
+                    G.add_edge(~edge, triangle)
+        
         for edge_index in range(self.zeta):
             if not tree[edge_index] and not dual_tree[edge_index]:
-                generator = [~edge_index]
-                source, target = self.triangles_of_edge(edge_index)
-                
-                # Find a path in dual_tree from source to target. This is a really
-                # inefficient way to do this. We initially define the distance to
-                # each point to be self.num_triangles+1 which we know is larger than
-                # any possible distance.
-                distance = dict((triangle, self.num_triangles+1) for triangle in self.triangles)
-                distance[source] = 0
-                while distance[target] == self.num_triangles+1:
-                    for edge in dual_tree_indices:  # Only allowed to move in the tree.
-                        a, b = self.triangles_of_edge(edge)
-                        distance[a] = min(distance[b]+1, distance[a])
-                        distance[b] = min(distance[a]+1, distance[b])
-                
-                # Now find a way from the target back to the source by following the distance
-                current = target
-                while current != source:
-                    for edge in dual_tree_indices:
-                        a, b = self.triangles_of_edge(edge)
-                        if b == current and distance[a] == distance[b]-1:
-                            generator.append(edge)
-                            current = a
-                            break
-                        if a == current and distance[b] == distance[a]-1:
-                            generator.append(~edge)
-                            current = b
-                            break
-                
-                # We've now made a generating loop.
+                target, source = self.triangles_of_edge(edge_index)
+                path = nx.shortest_path(G, source, target)
+                generator = [edge_index] + [edge.label for edge in path[1::2]]
                 homology_generators.append(generator)
         
         return homology_generators

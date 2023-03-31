@@ -11,15 +11,17 @@ jobs:
         tox: [lint, py36, py37, py38, py39]
         include:
         - tox: lint
-          python-version: 3.9
-        - tox: py36
-          python-version: 3.6
+          python-version: "3.10"
         - tox: py37
-          python-version: 3.7
+          python-version: "3.7"
         - tox: py38
-          python-version: 3.8
+          python-version: "3.8"
         - tox: py39
-          python-version: 3.9
+          python-version: "3.9"
+        - tox: py310
+          python-version: "3.10"
+        - tox: py311
+          python-version: "3.11"
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout branch

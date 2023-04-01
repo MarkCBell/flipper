@@ -6,24 +6,31 @@ environment:
     - PYTHON: "C:\\Python38"
       TOXENV: "lint"
 
-    - PYTHON: "C:\\Python36"
-      TOXENV: "py36"
-
     - PYTHON: "C:\\Python37"
       TOXENV: "py37"
 
     - PYTHON: "C:\\Python38"
       TOXENV: "py38"
 
+    - PYTHON: "C:\\Python39"
+      TOXENV: "py39"
+
+    - PYTHON: "C:\\Python310"
+      TOXENV: "py310"
+
+    - PYTHON: "C:\\Python311"
+      TOXENV: "py311"
+
 init:
   - set "PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
   - echo "%PYTHON%"
-  - python.exe -c "import sys; print(sys.version)"
+  - python -c "import sys; print(sys.version)"
+  - pip --version
 
 install:
-  - pip.exe install virtualenv --upgrade
-  - pip.exe install tox
+  - pip install virtualenv --upgrade
+  - pip install tox
 
 test_script:
-  - tox.exe -- --hypothesis-profile=ci --durations=20
+  - tox -- --hypothesis-profile=ci --durations=20
 

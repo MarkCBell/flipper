@@ -2,6 +2,12 @@
 History
 =======
 
+0.15.4 (2024-09-19)
+-------------------
+
+* Uplift for new workflow.
+* Retire old Python runtimes.
+
 0.15.3 (2021-07-02)
 -------------------
 

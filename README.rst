@@ -10,14 +10,14 @@ Flipper
     :target: https://pypi.org/project/flipper/
     :alt: PyPI license
 
-.. image:: https://img.shields.io/github/workflow/status/MarkCBell/flipper/Build/master
-    :target: https://github.com/MarkCBell/flipper/actions
+.. image:: https://img.shields.io/github/check-runs/MarkCBell/flipper/master
+    :target: https://github.com/MarkCBell/realalg/actions
     :alt: Github build status
 
 Flipper is a program for computing the action of mapping classes on laminations on punctured surfaces using ideal triangulation coordinates.
 It can decide the Nielsen--Thurston type of a given mapping class and, for pseudo-Anosov mapping classes, construct a layered, veering triangulation of their mapping torus, as described by Agol.
 
-Flipper officially supports Python 3.7 -- 3.11.
+Flipper officially supports Python 3.8 -- 3.12.
 It also runs on `PyPy`_ and `Sage`_.
 To get the best performance, ensure that `cypari`_ (>= 2.4.0) or `cypari2`_ is installed or run from it within Sage.
 
@@ -44,11 +44,7 @@ External Links
 * `PyPI`_
 * `ReadTheDocs`_
 * `GitHub`_
-* `AppVeyor`_
-* `Azure`_
 
-.. _AppVeyor: https://ci.appveyor.com/project/MarkCBell/flipper
-.. _Azure: https://dev.azure.com/MarkCBell/flipper
 .. _GitHub: https://github.com/MarkCBell/flipper
 .. _PyPI: https://pypi.org/project/flipper
 .. _ReadTheDocs: http://flipper.readthedocs.io

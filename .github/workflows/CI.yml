@@ -8,12 +8,10 @@ jobs:
       fail-fast: false
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
-        tox: [lint, py37, py38, py39, py310, py311]
+        tox: [lint, py38, py39, py310, py311, py312]
         include:
         - tox: lint
-          python-version: "3.10"
-        - tox: py37
-          python-version: "3.7"
+          python-version: "3.8"
         - tox: py38
           python-version: "3.8"
         - tox: py39
@@ -22,12 +20,14 @@ jobs:
           python-version: "3.10"
         - tox: py311
           python-version: "3.11"
+        - tox: py312
+          python-version: "3.12"
     runs-on: ${{ matrix.os }}
     steps:
     - name: Checkout branch
-      uses: actions/checkout@v2
+      uses: actions/checkout@v4
     - name: Set up Python ${{ matrix.python-version }}
-      uses: actions/setup-python@v2
+      uses: actions/setup-python@v5
       with:
         python-version: ${{ matrix.python-version }}
     - name: Display Python version
@@ -48,22 +48,19 @@ jobs:
     if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
     needs: build
     runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      id-token: write
     steps:
-    - name: Checkout branch
-      uses: actions/checkout@v2
-    - name: Set up Python 3.9
-      uses: actions/setup-python@v2
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Set up Python
+      uses: actions/setup-python@v5
       with:
-        python-version: 3.9
-    - name: Display Python version
-      run: |
-        python -c "import sys; print(sys.version)"
-        pip --version
+        python-version: "3.12"
     - name: Build
       run: |
+        pip install setuptools
         python setup.py sdist
     - name: Publish
-      uses: pypa/gh-action-pypi-publish@master
-      with:
-        user: __token__
-        password: ${{ secrets.pypi }}
+      uses: pypa/gh-action-pypi-publish@release/v1

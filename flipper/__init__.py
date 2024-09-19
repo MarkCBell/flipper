@@ -32,8 +32,8 @@ from flipper.census import census  # noqa: F401
 
 from numbers import Integral as IntegerType  # noqa: F401
 
-import pkg_resources
-__version__ = pkg_resources.get_distribution('flipper').version
+import importlib.metadata
+__version__ = importlib.metadata.version('flipper')
 
 # Set up really short names for the most commonly used classes and functions by users.
 create_triangulation = flipper.kernel.create_triangulation

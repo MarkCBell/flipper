@@ -22,7 +22,7 @@ def generate_ordering(letters):
     
     positions = dict((letter, index) for index, letter in enumerate(letters))
     return lambda v, w: all(x in positions for x in v) and \
-        all(y in positions for y in v) and \
+        all(y in positions for y in w) and \
         [len(v)] + [positions[x] for x in v] >= [len(w)] + [positions[y] for y in w]
 
 ##########################################################################
@@ -280,8 +280,7 @@ class EquippedTriangulation:
                 if good and options['conjugacy'] and not all(order(prefix2[i:2*i], prefix2[:min(i, lp2-i)]) for i in range(lp2 // 2, lp)): good = False
                 if good and options['prefilter'] is not None and not options['prefilter'](prefix): good = False
                 if good:
-                    for word in self._all_words_unjoined(length, prefix2, **options):
-                        yield word
+                    yield from self._all_words_unjoined(length, prefix2, **options)
     
     def _all_words_joined(self, length, prefix, **options):
         for word in self._all_words_unjoined(length, prefix, **options):
@@ -372,8 +371,7 @@ class EquippedTriangulation:
         
         if options['cores'] is None:
             # Just use the single core algorithm:
-            for word in self._all_words_joined(length, prefix, **options):
-                yield word
+            yield from self._all_words_joined(length, prefix, **options)
         else:
             temp_options = dict(options)
             temp_options['conjugacy'] = False
@@ -487,8 +485,7 @@ class EquippedTriangulation:
         
         if options['cores'] is None:
             # Just use the single core algorithm:
-            for word in self._all_mapping_classes(length, prefix, **options):
-                yield word
+            yield from self._all_mapping_classes(length, prefix, **options)
         else:
             temp_options = dict(options)
             temp_options['conjugacy'] = False

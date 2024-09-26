@@ -2,6 +2,11 @@
 History
 =======
 
+0.15.5 (2024-09-27)
+-------------------
+
+* Fixed bug in a triangulation's homology generators.
+
 0.15.4 (2024-09-19)
 -------------------
 

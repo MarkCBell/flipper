@@ -901,7 +901,7 @@ class Triangulation:
             if not tree[edge_index] and not dual_tree[edge_index]:
                 target, source = self.triangles_of_edge(edge_index)
                 path = nx.shortest_path(G, source, target)
-                generator = [edge_index] + [edge.label for edge in path[1::2]]
+                generator = [edge_index] + [edge.label for edge in reversed(path[1::2])]
                 homology_generators.append(generator)
         
         return homology_generators

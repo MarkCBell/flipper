@@ -176,7 +176,7 @@ class Triangulation3:
         cusp_pairing = self.cusp_identification_map()
         
         G = nx.Graph(((tetra, side), (neighbour_tetra, neighbour_side)) for (tetra, side, _), (neighbour_tetra, neighbour_side, _) in cusp_pairing.items())
-        self.cusps = list(nx.algorithms.connected_components(G))
+        self.cusps = [list(component) for component in nx.algorithms.connected_components(G)]
         
         # Then iterate through each one assigning cusp indices.
         for index, vertex_class in enumerate(self.cusps):

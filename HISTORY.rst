@@ -2,6 +2,12 @@
 History
 =======
 
+
+0.15.6 (2025-01-10)
+-------------------
+
+* Fixed bug to ensure 3-triangulations cusps are lists of lists.
+
 0.15.5 (2024-09-27)
 -------------------
 

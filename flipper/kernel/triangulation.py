@@ -443,8 +443,8 @@ class Triangulation:
             start = 1
         else:
             num_chars = values[1]  # This must be > 1.
-            num_tri = debase(values[1:num_chars])
-            start = 1 + num_chars
+            num_tri = debase(values[2:num_chars+2])
+            start = 2 + num_chars
         
         if num_chars == 0:
             raise ValueError('Signature must specify a character length > 0.')
